@@ -1,6 +1,6 @@
 import { GearsManage, PetPlayer } from "@cass-plugins/pet-fight";
 import { Inventory } from "@cassidy/ut-shop";
-import { FontSystem } from "cassidy-styler";
+import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 import { PersistentStats, PetSchema } from "@cass-modules/Encounter";
 
@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.1.6",
+  version: "1.1.8",
   usage: "{prefix}{name} [pet]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -46,7 +46,7 @@ const petSchema: PetSchema = {
   },
 };
 
-const MAX_TURNS = 30;
+const MAX_TURNS = 100;
 
 interface ArenaGameState {
   player1Pet: PetPlayer | null;
@@ -241,13 +241,15 @@ export async function entry({
     // const player1Data = await ctx.money.getItem(gameState.player1Author);
     // const player2Data = await ctx.money.getItem(gameState.player2Author);
 
-    const result = `* ${gameState.flavorCache}\n\n${activePet.getPlayerUI({
+    const result = `${UNIRedux.charm} ${
+      gameState.flavorCache
+    }\n\n${activePet.getPlayerUI({
       selectionOptions: petSchema,
       turn: true,
       showStats: true,
     })}\n\n**Opponent**\n${opponentPet.getPlayerUI({
       showStats: true,
-    })}\n\n⚠️ **Remaining turns before draw:  ${
+    })}\n\n⚠️ **Remaining turns before ending:  ${
       MAX_TURNS - (gameState.turnCount + 1)
     }**\n\n***Reply with one option (word only)***`;
 
@@ -292,13 +294,17 @@ export async function entry({
     turn: string
   ): Promise<void> {
     if (!gameState || !gameState.player1Pet || !gameState.player2Pet) return;
-    gameState!.turnCount += 1;
 
-    if (gameState!.turnCount >= MAX_TURNS) {
+    if (
+      gameState!.turnCount >= MAX_TURNS &&
+      gameState.player1Pet.getPercentHP() !==
+        gameState.player2Pet.getPercentHP()
+    ) {
       info.removeAtReply();
-      await handleDraw(ctx, info);
+      await handleNoTurns(ctx, info);
       return;
     }
+    gameState!.turnCount += 1;
     const activePet =
       gameState.activePlayer === 1
         ? gameState.player1Pet
@@ -339,34 +345,36 @@ export async function entry({
           targetPet.HP -= damage;
           petStats.totalDamageDealt += damage;
           opponentStats.totalDamageTaken += damage;
-          flavorText = `* ${activePet.petIcon} **${
+          flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${
             activePet.petName
           }** cheated! Dealt **${damage}** damage.\n${targetPet.getPlayerUI(
             {}
           )}`;
         } else {
-          flavorText = `* ${activePet.petIcon} **${activePet.petName}** tried to cheat but failed.`;
+          flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** tried to cheat but failed.`;
         }
         break;
       case "bash":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used 🥊 **Bash**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🥊 **Bash**!\n`;
         if ((prevMove === "bash" && dodgeChance < 0.7) || dodgeChance < 0.1) {
-          flavorText += `* **${targetPet.petName}** dodged!`;
+          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
         } else {
           const damage = Math.round(activePet.calculateAttack(targetPet.DF));
           targetPet.HP -= damage;
           petStats.totalDamageDealt += damage;
           opponentStats.totalDamageTaken += damage;
-          flavorText += `* Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
+          flavorText += `${
+            UNIRedux.charm
+          } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
         }
         break;
       case "hexsmash":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used 💥 **HexSmash**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 💥 **HexSmash**!\n`;
         if (
           (prevMove === "hexsmash" && dodgeChance < 0.7) ||
           dodgeChance < 0.1
         ) {
-          flavorText += `* **${targetPet.petName}** dodged!`;
+          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
         } else {
           const meanStat = Math.min(
             (activePet.ATK + activePet.MAGIC) / 2,
@@ -378,16 +386,18 @@ export async function entry({
           targetPet.HP -= damage;
           petStats.totalDamageDealt += damage;
           opponentStats.totalDamageTaken += damage;
-          flavorText += `* Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
+          flavorText += `${
+            UNIRedux.charm
+          } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
         }
         break;
       case "fluxstrike":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used 🌩️ **FluxStrike**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🌩️ **FluxStrike**!\n`;
         if (
           (prevMove === "fluxstrike" && dodgeChance < 0.7) ||
           dodgeChance < 0.1
         ) {
-          flavorText += `* **${targetPet.petName}** dodged!`;
+          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
         } else {
           const damageFactor = Math.max(
             0.5,
@@ -405,16 +415,18 @@ export async function entry({
           targetPet.HP -= damage;
           petStats.totalDamageDealt += damage;
           opponentStats.totalDamageTaken += damage;
-          flavorText += `* Dealt **${damage}** fluctuating damage.\n${targetPet.getPlayerUI()}`;
+          flavorText += `${
+            UNIRedux.charm
+          } Dealt **${damage}** fluctuating damage.\n${targetPet.getPlayerUI()}`;
         }
         break;
       case "chaosbolt":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used ⚡ **ChaosBolt**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ⚡ **ChaosBolt**!\n`;
         if (
           (prevMove === "chaosbolt" && dodgeChance < 0.9) ||
           dodgeChance < 0.5
         ) {
-          flavorText += `* **${targetPet.petName}** dodged!`;
+          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
         } else {
           const statThreshold = activePet.level * 2;
           const statFactor = Math.min(
@@ -433,18 +445,20 @@ export async function entry({
             (1 - petStats.attackBoosts * 0.1);
           if (Math.random() < chaosChance && statFactor >= 1) {
             damage = Math.round(damage * 1.5);
-            flavorText += `* Critical chaos hit! `;
+            flavorText += `${UNIRedux.charm} Critical chaos hit! `;
           }
           damage = Math.min(damage, Math.round(targetPet.maxHP * 0.25));
           targetPet.HP -= damage;
           petStats.totalDamageDealt += damage;
           opponentStats.totalDamageTaken += damage;
-          flavorText += `* Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
+          flavorText += `${
+            UNIRedux.charm
+          } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
           petStats.lastMove = "chaosbolt";
         }
         break;
       case "equilibrium":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used ⚖️ **Equilibrium**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ⚖️ **Equilibrium**!\n`;
         const eqFactor = Math.min(
           1 + petStats.totalDamageTaken / (activePet.maxHP * 2),
           2
@@ -484,26 +498,28 @@ export async function entry({
           activePet.HP += finalHeal;
           petStats.totalDamageDealt += finalDamage;
           opponentStats.totalDamageTaken += finalDamage;
-          flavorText += `* Dealt **${finalDamage}** damage, healed **${finalHeal}** HP.\n${targetPet.getPlayerUI()}\n${activePet.getPlayerUI(
+          flavorText += `${
+            UNIRedux.charm
+          } Dealt **${finalDamage}** damage, healed **${finalHeal}** HP.\n${targetPet.getPlayerUI()}\n${activePet.getPlayerUI(
             { upperPop: `+${finalHeal} HP` }
           )}`;
           petStats.lastMove = "equilibrium";
         } else {
-          flavorText += `* No effect! Opponent's HP% not higher.`;
+          flavorText += `${UNIRedux.charm} No effect! Opponent's HP% not higher.`;
         }
         break;
       case "defend":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used 🛡️ **Defend**!`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🛡️ **Defend**!`;
         break;
       // case "lifeup":
-      //   flavorText = `* ${activePet.petIcon} **${activePet.petName}** used ✨ **LifeUp**!\n`;
+      //   flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ✨ **LifeUp**!\n`;
       //   const healing = Math.max(
       //     Math.round((activePet.maxHP / 9) * (activePet.MAGIC * 0.09)),
       //     Math.round(activePet.maxHP / 9)
       //   );
       //   const finalHealing = Math.min(healing, activePet.maxHP - activePet.HP);
       //   activePet.HP += finalHealing;
-      //   flavorText += `* Healed **${finalHealing}** HP.\n${activePet.getPlayerUI(
+      //   flavorText += `${UNIRedux.charm} Healed **${finalHealing}** HP.\n${activePet.getPlayerUI(
       //     {
       //       upperPop:
       //         activePet.HP >= activePet.maxHP ? `MAX` : `+${finalHealing} HP`,
@@ -511,7 +527,7 @@ export async function entry({
       //   )}`;
       //   break;
       case "guardpulse":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used 🛡️ **GuardPulse**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🛡️ **GuardPulse**!\n`;
         const guardFactor = Math.max(0.5, 1 - petStats.defenseBoosts * 0.2);
         const guardBoost = Math.round(
           activePet.DF *
@@ -521,12 +537,14 @@ export async function entry({
         );
         activePet.defModifier += guardBoost;
         petStats.defenseBoosts += 1;
-        flavorText += `* Defense boosted by **${guardBoost}**.\n${activePet.getPlayerUI(
-          { showStats: true }
-        )}`;
+        flavorText += `${
+          UNIRedux.charm
+        } Defense boosted by **${guardBoost}**.\n${activePet.getPlayerUI({
+          showStats: true,
+        })}`;
         break;
       case "vitalsurge":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used 💖 **VitalSurge**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 💖 **VitalSurge**!\n`;
         const healFactor = Math.min(
           1.5,
           1 + (1 - petStats.healsPerformed * 0.2)
@@ -540,12 +558,14 @@ export async function entry({
         const finalHeal = Math.min(surgeHeal, activePet.maxHP - activePet.HP);
         activePet.HP += finalHeal;
         petStats.healsPerformed += 1;
-        flavorText += `* Healed **${finalHeal}** HP.\n${activePet.getPlayerUI({
+        flavorText += `${
+          UNIRedux.charm
+        } Healed **${finalHeal}** HP.\n${activePet.getPlayerUI({
           upperPop: `+${finalHeal} HP`,
         })}`;
         break;
       case "statsync":
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** used 🔄 **StatSync**!\n`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🔄 **StatSync**!\n`;
         const syncFactor = Math.max(0.5, 1 - petStats.attackBoosts * 0.2);
         const syncBoost = Math.round(
           Math.max(
@@ -561,14 +581,14 @@ export async function entry({
         );
         activePet.atkModifier += syncBoost;
         petStats.attackBoosts += 1;
-        flavorText += `* ${
+        flavorText += `${UNIRedux.charm} ${
           syncBoost < 1
             ? `ATK boost too weak.`
             : `ATK boosted by **${syncBoost}**.`
         }\n${activePet.getPlayerUI({ showStats: true })}`;
         break;
       default:
-        flavorText = `* ${activePet.petIcon} **${activePet.petName}** doesn't know **${turn}**.`;
+        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** doesn't know **${turn}**.`;
     }
 
     if (gameState.activePlayer === 1) gameState.prevMove1 = turn;
@@ -595,7 +615,7 @@ export async function entry({
         showStats: true,
       })}\n\n${
         gameState.activePlayer === 1 ? player1Data.name : player2Data.name
-      }, select your move!\n\n⚠️ **Remaining turns before draw:  ${
+      }, select your move!\n\n⚠️ **Remaining turns before ending:  ${
         MAX_TURNS - (gameState.turnCount + 1)
       }**\n\n***Reply with one option (word only)***`,
       style
@@ -606,7 +626,11 @@ export async function entry({
     );
   }
 
-  async function handleWin(ctx: CommandContext, winner: 1 | 2): Promise<void> {
+  async function handleWin(
+    ctx: CommandContext,
+    winner: 1 | 2,
+    isMaxTurns = false
+  ): Promise<void> {
     if (!gameState || !gameState.player1Pet || !gameState.player2Pet) return;
     const winnerPet =
       winner === 1 ? gameState.player1Pet : gameState.player2Pet;
@@ -637,35 +661,49 @@ export async function entry({
     });
 
     await ctx.output.replyStyled(
-      `* ${winnerData.name} wins!\n${winnerPet.petIcon} **${winnerPet.petName}** defeated ${loserPet.petIcon} **${loserPet.petName}**!\n${winnerData.name} earned **${winnerPts} 💷**, ${loserData.name} earned **${loserPts} 💷**.`,
+      isMaxTurns
+        ? `${UNIRedux.charm} Max turns reached!\n${winnerData.name} wins by having **higher remaining HP%**!\n${winnerPet.petIcon} **${winnerPet.petName}** had more health than ${loserPet.petIcon} **${loserPet.petName}**.\n${winnerData.name} earned **${winnerPts} 💷**, ${loserData.name} earned **${loserPts} 💷**.`
+        : `${UNIRedux.charm} ${winnerData.name} wins!\n${winnerPet.petIcon} **${winnerPet.petName}** defeated ${loserPet.petIcon} **${loserPet.petName}**!\n${winnerData.name} earned **${winnerPts} 💷**, ${loserData.name} earned **${loserPts} 💷**.`,
       style
     );
+
     gameState = null;
   }
 
   async function handleDefeat(
     ctx: CommandContext,
     info: OutputResult,
-    winner: 1 | 2
+    winner: 1 | 2,
+    isMaxTurns = false
   ): Promise<void> {
     isDefeat = true;
     info.removeAtReply();
-    await handleWin(ctx, winner);
+    await handleWin(ctx, winner, isMaxTurns);
   }
 
-  async function handleDraw(
+  async function handleNoTurns(
     ctx: CommandContext,
     info: OutputResult
   ): Promise<void> {
     if (!gameState || !gameState.player1Pet || !gameState.player2Pet) return;
     info.removeAtReply();
-    const player1Data = await ctx.money.getItem(gameState.player1Author);
-    const player2Data = await ctx.money.getItem(gameState.player2Author);
+    let winner = null;
 
-    await ctx.output.replyStyled(
-      `* Match ends in a draw after ${MAX_TURNS} turns!\n${player1Data.name}'s ${gameState.player1Pet.petIcon} **${gameState.player1Pet.petName}** and ${player2Data.name}'s ${gameState.player2Pet.petIcon} **${gameState.player2Pet.petName}** fought valiantly.\nNo battle points awarded.`,
-      style
-    );
-    gameState = null;
+    const hp1 = gameState.player1Pet.getPercentHP();
+    const hp2 = gameState.player2Pet.getPercentHP();
+
+    if (hp1 > hp2) {
+      winner = gameState.player1Pet;
+    } else if (hp2 > hp1) {
+      winner = gameState.player2Pet;
+    }
+
+    let xis = winner === gameState.player1Pet ? 1 : 2;
+
+    if (xis === 2) {
+      isDefeat = true;
+    }
+
+    await handleWin(ctx, xis as 1 | 2, true);
   }
 }

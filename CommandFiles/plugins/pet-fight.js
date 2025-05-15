@@ -1,10 +1,11 @@
+// @ts-check
+
 import { abbreviateNumber } from "@cass-modules/ArielUtils";
 
-// @ts-check
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.1",
+  version: "2.0.2",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -714,7 +715,13 @@ export class PetPlayer {
     gearData = JSON.parse(JSON.stringify(gearData));
     this.exp = petData.lastExp ?? 0;
     const { weapon = [], armors = [], items = [] } = gearData;
+    /**
+     * @type {import("@cass-modules/cassidyUser").WeaponInventoryItem[]}
+     */
     this.weapon = PetPlayer.sanitizeWeapon(weapon);
+    /**
+     * @type {import("@cass-modules/cassidyUser").ArmorInventoryItem[]}
+     */
     this.armors = PetPlayer.sanitizeArmors(armors);
     this.items = items;
     this.OgpetData = petData;
@@ -935,7 +942,7 @@ export class PetPlayer {
   atkModifier = 0;
   get ATK() {
     const extra = PetPlayer.getExtraATKOf(this.level);
-    const weaponAtks = this.weapon[0].atk;
+    const weaponAtks = this.weapon.reduce((acc, weapon) => acc + weapon.atk, 0);
     const armorAtks = this.armors.reduce((acc, armor) => acc + armor.atk, 0);
     return Math.round(
       armorAtks / 4 + weaponAtks / 2 + extra + this.atkModifier
@@ -958,7 +965,14 @@ export class PetPlayer {
       )
     );
   }
-  calculateAttack(enemyDef, atk) {
+
+  /**
+   *
+   * @param {number} enemyDef
+   * @param {number} atk
+   * @returns
+   */
+  calculateAttack(enemyDef, atk = this.ATK) {
     atk ??= this.ATK;
     const df = enemyDef;
     return Math.max(
@@ -966,6 +980,18 @@ export class PetPlayer {
       Math.floor((atk + Math.floor(Math.random() * 15)) * 2.2) - df / 5
     );
   }
+
+  getCounterableEnemyDef(atk = this.ATK) {
+    const base = Math.floor(atk * 2.2);
+    return Math.floor(5 * (base - 1));
+  }
+
+  getFairEnemyDef(atk) {
+    atk ??= this.ATK;
+    const base = Math.floor(atk * 2.2);
+    return Math.floor(3.75 * base);
+  }
+
   magicModifier = 0;
   get MAGIC() {
     const gearMagic =
@@ -988,12 +1014,24 @@ export class PetPlayer {
     return new PetPlayer(this.OgpetData, this.OggearData);
   }
 
+  /**
+   *
+   * @param {import("@cass-modules/cassidyUser").WeaponInventoryItem[]} weapon
+   * @returns {import("@cass-modules/cassidyUser").WeaponInventoryItem[]}
+   */
   static sanitizeWeapon(weapon) {
     let { atk = 0, def = 0, magic = 0 } = weapon[0] ?? {};
-    weapon[0] ??= {};
-    atk = parseInt(atk);
-    def = parseInt(def);
-    magic = parseInt(magic);
+    weapon[0] ??= {
+      atk: 0,
+      flavorText: "",
+      icon: "",
+      key: "",
+      name: "",
+      type: "weapon",
+    };
+    atk = Math.floor(atk);
+    def = Math.floor(def);
+    magic = Math.floor(magic);
     if (isNaN(atk)) {
       atk = 0;
     }
@@ -1005,18 +1043,23 @@ export class PetPlayer {
     }
     return [{ ...weapon[0], atk, def, magic }];
   }
+  /**
+   *
+   * @param {import("@cass-modules/cassidyUser").ArmorInventoryItem[]} armors
+   * @returns {import("@cass-modules/cassidyUser").ArmorInventoryItem[]}
+   */
   static sanitizeArmors(armors) {
     let result = armors.map((armor) => {
       let { def = 0, magic = 0, atk = 0 } = armor ?? {};
-      def = parseInt(def);
+      def = Math.floor(def);
       if (isNaN(def)) {
         def = 0;
       }
-      atk = parseInt(atk);
+      atk = Math.floor(atk);
       if (isNaN(atk)) {
         atk = 0;
       }
-      magic = parseInt(magic);
+      magic = Math.floor(magic);
       if (isNaN(magic)) {
         magic = 0;
       }

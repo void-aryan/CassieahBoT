@@ -55,7 +55,7 @@ export interface UserStatsManagerOld {
   toLeanObject(): Promise<Record<string, UserData>>;
 }
 
-type BaseInventoryItem = {
+export type BaseInventoryItem = {
   key: string;
   name: string;
   flavorText: string;
@@ -68,26 +68,26 @@ type BaseInventoryItem = {
   index?: number;
 };
 
-type WeaponInventoryItem = {
+export type WeaponInventoryItem = BaseInventoryItem & {
   atk: number;
   def?: number;
   magic?: number;
   type: "weapon";
 };
 
-type ArmorInventoryItem = {
+export type ArmorInventoryItem = BaseInventoryItem & {
   atk?: number;
   def: number;
   magic?: number;
   type: "armor";
 };
 
-type ChequeItem = {
+export type ChequeItem = {
   chequeAmount: number;
   type: "cheque";
 };
 
-type PetUncaged = {
+export type PetUncaged = {
   name: string;
   key: string;
   flavorText: string;
@@ -193,9 +193,6 @@ type UserStatsManager = import("../../handlers/database/handleStat").default;
 export {
   UserData,
   InventoryItem,
-  BaseInventoryItem,
-  ArmorInventoryItem,
-  WeaponInventoryItem,
   InventoryTypes,
   NullableUserData,
   UserStatsManager,
