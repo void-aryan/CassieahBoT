@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.2.7",
+  version: "1.2.8",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -72,36 +72,81 @@ async function generateAIPet(
     "name",
     "userID"
   );
-  const playerExp = player1Pet.exp || 0;
+  const playerStrength = calculatePetStrength(player1Pet);
+  const playerPetIcon = player1Pet.petIcon;
+  const playerPetName = player1Pet.petName;
   let closestPet: PetPlayer | null = null;
   let closestAuthor: string | null = null;
-  let minExpDiff = Infinity;
+  let minStrengthDiff = Infinity;
+  let fallbackPet: PetPlayer | null = null;
+  let fallbackAuthor: string | null = null;
+  let fallbackStrengthDiff = Infinity;
+  const allPetNamesAndIcons: { name: string; icon: string }[] = [];
 
   for (const user of Object.values(allUsers)) {
     const { petsData } = getInfos(user);
     for (const petData of petsData.getAll()) {
+      allPetNamesAndIcons.push({ name: petData.name, icon: petData.icon });
       const pet = new PetPlayer(
         petData,
         new GearsManage(user.gearsData).getGearData(petData.key)
       );
-      const expDiff = Math.abs((pet.exp || 0) - playerExp);
-      if (expDiff < minExpDiff) {
-        minExpDiff = expDiff;
+      const petStrength = calculatePetStrength(pet);
+      const strengthDiff = Math.abs(petStrength - playerStrength);
+      const isDisqualified =
+        pet.petIcon === playerPetIcon && pet.petName === playerPetName;
+
+      if (!isDisqualified && strengthDiff < minStrengthDiff) {
+        minStrengthDiff = strengthDiff;
         closestPet = pet;
         closestAuthor = user.userID;
-      } else if (expDiff === minExpDiff && Math.random() < 0.5) {
+      } else if (
+        !isDisqualified &&
+        strengthDiff === minStrengthDiff &&
+        Math.random() < 0.5
+      ) {
         closestPet = pet;
         closestAuthor = user.userID;
+      }
+
+      if (strengthDiff < fallbackStrengthDiff) {
+        fallbackStrengthDiff = strengthDiff;
+        fallbackPet = pet;
+        fallbackAuthor = user.userID;
+      } else if (strengthDiff === fallbackStrengthDiff && Math.random() < 0.5) {
+        fallbackPet = pet;
+        fallbackAuthor = user.userID;
       }
     }
   }
 
-  if (!closestPet || !closestAuthor) {
+  if (!closestPet && !fallbackPet) {
     throw new Error("No suitable AI pet found.");
   }
 
-  return { pet: closestPet, author: `AI_${Date.now()}` };
+  const selectedPet = closestPet || fallbackPet;
+  const selectedAuthor = closestAuthor || fallbackAuthor;
+
+  if (!selectedPet || !selectedAuthor) {
+    throw new Error("No suitable AI pet found.");
+  }
+
+  if (allPetNamesAndIcons.length > 0) {
+    const randomPet =
+      allPetNamesAndIcons[
+        Math.floor(Math.random() * allPetNamesAndIcons.length)
+      ];
+    selectedPet.petName = randomPet.name;
+    selectedPet.petIcon = randomPet.icon;
+  }
+
+  selectedPet.atkModifier += 5;
+  selectedPet.defModifier += 25;
+  selectedPet.magicModifier += 16;
+
+  return { pet: selectedPet, author: `AI_${Date.now()}` };
 }
+
 function generateAIMove(
   gameState: ArenaGameState,
   activePet: PetPlayer,
