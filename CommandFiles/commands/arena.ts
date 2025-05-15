@@ -1,5 +1,5 @@
 import { GearsManage, PetPlayer } from "@cass-plugins/pet-fight";
-import { Inventory } from "@cassidy/ut-shop";
+import { Collectibles, Inventory } from "@cassidy/ut-shop";
 import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 import { PersistentStats, PetSchema } from "@cass-modules/Encounter";
@@ -8,8 +8,8 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.1.8",
-  usage: "{prefix}{name} [pet]",
+  version: "1.2.7",
+  usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
   permissions: [0],
@@ -58,11 +58,632 @@ interface ArenaGameState {
   prevMove1: string | null;
   prevMove2: string | null;
   turnCount: number;
+  isAIMode: boolean;
+}
+
+async function generateAIPet(
+  money: CommandContext["money"],
+  player1Pet: PetPlayer
+): Promise<{ pet: PetPlayer; author: string }> {
+  const allUsers = await money.queryItemAll(
+    { "value.petsData": { $exists: true } },
+    "petsData",
+    "gearsData",
+    "name",
+    "userID"
+  );
+  const playerExp = player1Pet.exp || 0;
+  let closestPet: PetPlayer | null = null;
+  let closestAuthor: string | null = null;
+  let minExpDiff = Infinity;
+
+  for (const user of Object.values(allUsers)) {
+    const { petsData } = getInfos(user);
+    for (const petData of petsData.getAll()) {
+      const pet = new PetPlayer(
+        petData,
+        new GearsManage(user.gearsData).getGearData(petData.key)
+      );
+      const expDiff = Math.abs((pet.exp || 0) - playerExp);
+      if (expDiff < minExpDiff) {
+        minExpDiff = expDiff;
+        closestPet = pet;
+        closestAuthor = user.userID;
+      } else if (expDiff === minExpDiff && Math.random() < 0.5) {
+        closestPet = pet;
+        closestAuthor = user.userID;
+      }
+    }
+  }
+
+  if (!closestPet || !closestAuthor) {
+    throw new Error("No suitable AI pet found.");
+  }
+
+  return { pet: closestPet, author: `AI_${Date.now()}` };
+}
+function generateAIMove(
+  gameState: ArenaGameState,
+  activePet: PetPlayer,
+  targetPet: PetPlayer,
+  petStats: PersistentStats,
+  prevMove: string | null
+): string {
+  const RANDOMNESS_BASE = 0.15;
+  const ENDGAME_RANDOMNESS_REDUCTION = 0.05;
+  const CRITICAL_HP_THRESHOLD = 25;
+  const HP_DIFF_THRESHOLD = 15;
+  const DEFENSE_BOOST_CAP = 3;
+  const ATTACK_BOOST_CAP = 3;
+  const HEAL_DIMINISHING_FACTOR = 0.25;
+  const MAX_TURN_WEIGHT = 0.9;
+  const DODGE_RISK_BASE = 0.08;
+  const DODGE_RISK_MODIFIERS = {
+    bash: 0.65,
+    hexsmash: 0.65,
+    fluxstrike: 0.65,
+    chaosbolt: 0.85,
+    default: 0.45,
+  };
+  const MOOD_SHIFT_CHANCE = 0.3;
+  const moves = [
+    "bash",
+    "hexsmash",
+    "fluxstrike",
+    "chaosbolt",
+    "vitalsurge",
+    "guardpulse",
+    "statsync",
+    "equilibrium",
+  ];
+  const currentHPPercent = activePet.getPercentHP();
+  const targetHPPercent = targetPet.getPercentHP();
+  const hpDifference = targetHPPercent - currentHPPercent;
+  const turnsRemaining = MAX_TURNS - gameState.turnCount;
+  const isEndgame = turnsRemaining <= 15;
+  const isEarlyGame = gameState.turnCount <= 25;
+  const dodgeRisk = prevMove
+    ? DODGE_RISK_MODIFIERS[prevMove as keyof typeof DODGE_RISK_MODIFIERS] ||
+      DODGE_RISK_MODIFIERS.default
+    : DODGE_RISK_BASE;
+  const damageDealtRatio = petStats.totalDamageDealt / (targetPet.maxHP || 1);
+  const damageTakenRatio = petStats.totalDamageTaken / (activePet.maxHP || 1);
+  const healEfficiency = Math.max(
+    0.5,
+    1 - petStats.healsPerformed * HEAL_DIMINISHING_FACTOR
+  );
+  const attackBoostEfficiency = Math.max(0.5, 1 - petStats.attackBoosts * 0.25);
+  const defenseBoostEfficiency = Math.max(
+    0.5,
+    1 - petStats.defenseBoosts * 0.25
+  );
+  const attackAdvantage =
+    (activePet.ATK + activePet.atkModifier) /
+    (targetPet.DF + targetPet.defModifier || 1);
+  const defenseDisadvantage =
+    (activePet.DF + activePet.defModifier) /
+    (targetPet.DF + targetPet.defModifier || 1);
+  const magicAdvantage = activePet.MAGIC / (targetPet.MAGIC || 1);
+  const levelDifference = activePet.level - targetPet.level;
+  const statThreshold = activePet.level * 2.5;
+  const opponentStats =
+    gameState.player1Pet && gameState.player2Pet
+      ? gameState.activePlayer === 2
+        ? statMap.get(
+            `${gameState.player1Author}_${gameState.player1Pet.OgpetData.key}`
+          )
+        : statMap.get(
+            `${gameState.player2Author}_${gameState.player2Pet.OgpetData.key}`
+          )
+      : null;
+  const opponentDamageDealtRatio = opponentStats
+    ? opponentStats.totalDamageDealt / (activePet.maxHP || 1)
+    : 0;
+  const opponentDamageTakenRatio = opponentStats
+    ? opponentStats.totalDamageTaken / (targetPet.maxHP || 1)
+    : 0;
+  const opponentAttackBoosts = opponentStats ? opponentStats.attackBoosts : 0;
+  const opponentDefenseBoosts = opponentStats ? opponentStats.defenseBoosts : 0;
+  const moveHistory = {
+    player: gameState.prevMove1,
+    ai: gameState.prevMove2,
+  };
+  const repeatedMovePenalty = prevMove === petStats.lastMove ? 0.25 : 1;
+  type AIMood = "aggressive" | "defensive" | "balanced";
+  let currentMood: AIMood = "balanced";
+  if (Math.random() < MOOD_SHIFT_CHANCE) {
+    const moodRoll = Math.random();
+    currentMood =
+      moodRoll < 0.33
+        ? "aggressive"
+        : moodRoll < 0.66
+        ? "defensive"
+        : "balanced";
+  } else if (currentHPPercent < 40) {
+    currentMood = "defensive";
+  } else if (targetHPPercent < 30 && isEndgame) {
+    currentMood = "aggressive";
+  }
+  const calculateBashDamage = (): number => {
+    return Math.round(
+      activePet.calculateAttack(targetPet.DF + targetPet.defModifier)
+    );
+  };
+  const calculateHexSmashDamage = (): number => {
+    const meanStat = Math.min(
+      (activePet.ATK + activePet.atkModifier + activePet.MAGIC) / 2,
+      (activePet.ATK + activePet.atkModifier) * 3
+    );
+    return Math.round(
+      activePet.calculateAttack(
+        targetPet.DF + targetPet.defModifier,
+        meanStat
+      ) * 1.5
+    );
+  };
+  const calculateFluxStrikeDamage = (): number => {
+    const damageFactor = Math.max(
+      0.5,
+      1 - petStats.totalDamageDealt / (targetPet.maxHP * 2)
+    );
+    const fluxMultiplier =
+      1 + 0.5 * (targetPet.HP / targetPet.maxHP) * damageFactor;
+    return Math.round(
+      (activePet.ATK + activePet.atkModifier) * fluxMultiplier -
+        (targetPet.DF + targetPet.defModifier) / 5
+    );
+  };
+  const calculateChaosBoltDamage = (): number => {
+    const statFactor = Math.min(
+      (activePet.ATK + activePet.atkModifier + activePet.MAGIC) / statThreshold,
+      1
+    );
+    const effectiveStat = Math.max(
+      activePet.ATK + activePet.atkModifier,
+      activePet.MAGIC / 2
+    );
+    let damage = Math.round(
+      activePet.calculateAttack(
+        targetPet.DF + targetPet.defModifier,
+        effectiveStat
+      ) * statFactor
+    );
+    const chaosChance =
+      Math.min(
+        ((activePet.ATK + activePet.atkModifier + activePet.MAGIC) /
+          (targetPet.DF + targetPet.defModifier || 1)) *
+          0.25,
+        0.35
+      ) *
+      (1 - petStats.attackBoosts * 0.15);
+    if (Math.random() < chaosChance && statFactor >= 1) {
+      damage = Math.round(damage * 1.6);
+    }
+    return Math.min(damage, Math.round(targetPet.maxHP * 0.3));
+  };
+  const calculateEquilibriumEffect = (): { damage: number; heal: number } => {
+    const eqFactor = Math.min(
+      1 + petStats.totalDamageTaken / (activePet.maxHP * 2),
+      2.2
+    );
+    const hpDiff = targetPet.getPercentHP() - activePet.getPercentHP();
+    if (hpDiff <= 0) return { damage: 0, heal: 0 };
+    const attackStat = activePet.ATK + activePet.atkModifier + activePet.MAGIC;
+    const defenseStat = activePet.DF + activePet.defModifier + activePet.MAGIC;
+    const attackFactor = Math.min(attackStat / statThreshold, 1);
+    const defenseFactor = Math.min(defenseStat / statThreshold, 1);
+    const damage = Math.round(
+      activePet.calculateAttack(
+        targetPet.DF + targetPet.defModifier,
+        (activePet.ATK + activePet.atkModifier + activePet.MAGIC) / 2
+      ) *
+        (hpDiff / 100) *
+        eqFactor *
+        attackFactor
+    );
+    const heal = Math.round(
+      ((activePet.DF + activePet.defModifier + activePet.MAGIC) / 4) *
+        (hpDiff / 100) *
+        eqFactor *
+        defenseFactor +
+        activePet.maxHP * 0.06
+    );
+    const maxDamage = Math.round(targetPet.maxHP * 0.25);
+    const maxHeal = Math.round(activePet.maxHP * 0.3);
+    return {
+      damage: Math.min(damage, maxDamage),
+      heal: Math.min(heal, activePet.maxHP - activePet.HP, maxHeal),
+    };
+  };
+  const calculateVitalSurgeHeal = (): number => {
+    const healFactor = Math.min(
+      1.6,
+      1 + (1 - petStats.healsPerformed * HEAL_DIMINISHING_FACTOR)
+    );
+    const surgeHeal = Math.round(
+      activePet.MAGIC * (1 + activePet.HP / activePet.maxHP) * 0.6 * healFactor
+    );
+    return Math.min(surgeHeal, activePet.maxHP - activePet.HP);
+  };
+  const calculateGuardPulseBoost = (): number => {
+    const guardFactor = Math.max(0.5, 1 - petStats.defenseBoosts * 0.3);
+    return Math.round(
+      (activePet.DF + activePet.defModifier) *
+        (1 - activePet.HP / activePet.maxHP) *
+        1.8 *
+        guardFactor
+    );
+  };
+  const calculateStatSyncBoost = (): number => {
+    const syncFactor = Math.max(0.5, 1 - petStats.attackBoosts * 0.3);
+    return Math.round(
+      Math.max(
+        0,
+        Math.min(
+          (activePet.DF + activePet.defModifier + 1) *
+            ((targetPet.DF + targetPet.defModifier) /
+              (activePet.DF + activePet.defModifier || 1)) *
+            0.5 *
+            syncFactor,
+          activePet.level * 2.5
+        )
+      )
+    );
+  };
+  const assessDodgeRisk = (move: string): number => {
+    if (prevMove === move) {
+      return (
+        DODGE_RISK_MODIFIERS[move as keyof typeof DODGE_RISK_MODIFIERS] ||
+        DODGE_RISK_MODIFIERS.default
+      );
+    }
+    return DODGE_RISK_BASE;
+  };
+  const assessCriticalSituation = (): boolean => {
+    return (
+      currentHPPercent < CRITICAL_HP_THRESHOLD && activePet.HP < activePet.maxHP
+    );
+  };
+  const assessEndgamePressure = (): number => {
+    if (isEndgame) {
+      const hpRatio = currentHPPercent / (targetHPPercent || 1);
+      return Math.min(1.2, MAX_TURN_WEIGHT * (1 - hpRatio));
+    }
+    return 0;
+  };
+  const randomnessFactor = isEndgame
+    ? Math.max(0.05, RANDOMNESS_BASE - ENDGAME_RANDOMNESS_REDUCTION)
+    : RANDOMNESS_BASE + (isEarlyGame ? 0.1 : 0);
+  const predictOpponentMove = (): string => {
+    if (!moveHistory.player)
+      return moves[Math.floor(Math.random() * moves.length)];
+    const lastMove = moveHistory.player.toLowerCase();
+    const moveCounts: { [key: string]: number } = {};
+    moves.forEach((m) => (moveCounts[m] = 0));
+    moveCounts[lastMove] = 1;
+    if (
+      ["bash", "hexsmash", "fluxstrike", "chaosbolt"].includes(lastMove) &&
+      Math.random() < 0.75
+    ) {
+      return lastMove;
+    }
+    if (lastMove === "guardpulse" && Math.random() < 0.6) {
+      return "statsync";
+    }
+    if (lastMove === "statsync" && Math.random() < 0.6) {
+      return "guardpulse";
+    }
+    const weights = moves.map((m) => moveCounts[m] + 0.1);
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    let randomWeight = Math.random() * totalWeight;
+    for (let i = 0; i < moves.length; i++) {
+      randomWeight -= weights[i];
+      if (randomWeight <= 0) return moves[i];
+    }
+    return moves[Math.floor(Math.random() * moves.length)];
+  };
+  interface MoveScore {
+    move: string;
+    score: number;
+    expectedDamage?: number;
+    expectedHeal?: number;
+    boostType?: "attack" | "defense";
+    boostAmount?: number;
+  }
+  const moveScores: MoveScore[] = [];
+  const bashDodgeRisk = assessDodgeRisk("bash");
+  const bashDamage = calculateBashDamage();
+  let bashScore =
+    bashDamage * (1 - bashDodgeRisk) * attackAdvantage * repeatedMovePenalty;
+  if (isEndgame && targetHPPercent < 25) bashScore *= 1.6;
+  if (isEarlyGame && attackAdvantage < 0.9) bashScore *= 0.7;
+  if (opponentAttackBoosts > 1) bashScore *= 0.8;
+  if (currentMood === "aggressive") bashScore *= 1.2;
+  if (currentMood === "defensive") bashScore *= 0.8;
+  moveScores.push({
+    move: "bash",
+    score: bashScore,
+    expectedDamage: bashDamage,
+  });
+  const hexSmashDodgeRisk = assessDodgeRisk("hexsmash");
+  const hexSmashDamage = calculateHexSmashDamage();
+  let hexSmashScore =
+    ((hexSmashDamage *
+      (1 - hexSmashDodgeRisk) *
+      (attackAdvantage + magicAdvantage)) /
+      2) *
+    repeatedMovePenalty;
+  if (magicAdvantage > 1.3) hexSmashScore *= 1.4;
+  if (damageDealtRatio > 0.6) hexSmashScore *= 0.85;
+  if (opponentDefenseBoosts > 1) hexSmashScore *= 1.2;
+  if (currentMood === "aggressive") hexSmashScore *= 1.25;
+  if (currentMood === "defensive") hexSmashScore *= 0.75;
+  moveScores.push({
+    move: "hexsmash",
+    score: hexSmashScore,
+    expectedDamage: hexSmashDamage,
+  });
+  const fluxStrikeDodgeRisk = assessDodgeRisk("fluxstrike");
+  const fluxStrikeDamage = calculateFluxStrikeDamage();
+  let fluxStrikeScore =
+    fluxStrikeDamage *
+    (1 - fluxStrikeDodgeRisk) *
+    attackAdvantage *
+    (targetHPPercent / 100) *
+    repeatedMovePenalty;
+  if (targetHPPercent > 60) fluxStrikeScore *= 1.3;
+  if (isEndgame && targetHPPercent < 35) fluxStrikeScore *= 1.5;
+  if (opponentAttackBoosts > 2) fluxStrikeScore *= 0.9;
+  if (currentMood === "aggressive") fluxStrikeScore *= 1.2;
+  if (currentMood === "defensive") fluxStrikeScore *= 0.8;
+  moveScores.push({
+    move: "fluxstrike",
+    score: fluxStrikeScore,
+    expectedDamage: fluxStrikeDamage,
+  });
+  const chaosBoltDodgeRisk = assessDodgeRisk("chaosbolt");
+  const chaosBoltDamage = calculateChaosBoltDamage();
+  let chaosBoltScore =
+    chaosBoltDamage *
+    (1 - chaosBoltDodgeRisk) *
+    Math.max(attackAdvantage, magicAdvantage / 2) *
+    repeatedMovePenalty;
+  const chaosCriticalChance = Math.min(
+    ((activePet.ATK + activePet.atkModifier + activePet.MAGIC) /
+      (targetPet.DF + targetPet.defModifier || 1)) *
+      0.25,
+    0.35
+  );
+  chaosBoltScore *= 1 + chaosCriticalChance * 0.6;
+  if (isEarlyGame && levelDifference < -2) chaosBoltScore *= 0.6;
+  if (isEndgame && targetHPPercent < 20) chaosBoltScore *= 1.8;
+  if (opponentDefenseBoosts > 2) chaosBoltScore *= 1.3;
+  if (currentMood === "aggressive") chaosBoltScore *= 1.3;
+  if (currentMood === "defensive") chaosBoltScore *= 0.7;
+  moveScores.push({
+    move: "chaosbolt",
+    score: chaosBoltScore,
+    expectedDamage: chaosBoltDamage,
+  });
+  const vitalSurgeHeal = calculateVitalSurgeHeal();
+  let vitalSurgeScore =
+    vitalSurgeHeal * healEfficiency * (1 - currentHPPercent / 100);
+  if (assessCriticalSituation()) vitalSurgeScore *= 2.5;
+  if (petStats.healsPerformed >= 4) vitalSurgeScore *= 0.5;
+  if (magicAdvantage < 0.7) vitalSurgeScore *= 0.7;
+  if (opponentDamageDealtRatio > 0.5) vitalSurgeScore *= 1.4;
+  if (currentMood === "defensive") vitalSurgeScore *= 1.3;
+  if (currentMood === "aggressive") vitalSurgeScore *= 0.8;
+  moveScores.push({
+    move: "vitalsurge",
+    score: vitalSurgeScore,
+    expectedHeal: vitalSurgeHeal,
+  });
+  const guardPulseBoost = calculateGuardPulseBoost();
+  let guardPulseScore =
+    guardPulseBoost * defenseBoostEfficiency * (1 - defenseDisadvantage);
+  if (petStats.defenseBoosts >= DEFENSE_BOOST_CAP) guardPulseScore = 0;
+  if (damageTakenRatio > 0.6) guardPulseScore *= 1.6;
+  if (isEarlyGame && defenseDisadvantage < 0.9) guardPulseScore *= 1.3;
+  if (opponentAttackBoosts >= 2 || targetPet.atkModifier > activePet.level * 2)
+    guardPulseScore *= 1.5;
+  if (opponentDamageDealtRatio > 0.4) guardPulseScore *= 1.3;
+  if (currentMood === "defensive") guardPulseScore *= 1.4;
+  if (currentMood === "aggressive") guardPulseScore *= 0.7;
+  moveScores.push({
+    move: "guardpulse",
+    score: guardPulseScore,
+    boostType: "defense",
+    boostAmount: guardPulseBoost,
+  });
+  const statSyncBoost = calculateStatSyncBoost();
+  let statSyncScore = statSyncBoost * attackBoostEfficiency * attackAdvantage;
+  if (petStats.attackBoosts >= ATTACK_BOOST_CAP) statSyncScore = 0;
+  if (attackAdvantage < 0.9) statSyncScore *= 1.4;
+  if (isEndgame) statSyncScore *= 0.7;
+  if (opponentDefenseBoosts >= 2 || targetPet.defModifier > activePet.level * 2)
+    statSyncScore *= 1.5;
+  if (opponentDamageTakenRatio < 0.3) statSyncScore *= 1.2;
+  if (currentMood === "aggressive") statSyncScore *= 1.3;
+  if (currentMood === "defensive") statSyncScore *= 0.8;
+  moveScores.push({
+    move: "statsync",
+    score: statSyncScore,
+    boostType: "attack",
+    boostAmount: statSyncBoost,
+  });
+  const equilibriumEffect = calculateEquilibriumEffect();
+  let equilibriumScore =
+    (equilibriumEffect.damage + equilibriumEffect.heal) * (hpDifference / 100);
+  if (hpDifference <= 0) equilibriumScore = 0;
+  if (hpDifference > HP_DIFF_THRESHOLD) equilibriumScore *= 1.6;
+  if (isEndgame && equilibriumEffect.damage > targetPet.HP)
+    equilibriumScore *= 2.2;
+  if (opponentAttackBoosts > 1) equilibriumScore *= 0.9;
+  if (currentMood === "balanced") equilibriumScore *= 1.2;
+  if (currentMood === "aggressive") equilibriumScore *= 0.9;
+  moveScores.push({
+    move: "equilibrium",
+    score: equilibriumScore,
+    expectedDamage: equilibriumEffect.damage,
+    expectedHeal: equilibriumEffect.heal,
+  });
+  const predictedOpponentMove = predictOpponentMove();
+  if (
+    ["bash", "hexsmash", "fluxstrike", "chaosbolt"].includes(
+      predictedOpponentMove
+    )
+  ) {
+    moveScores.forEach((move) => {
+      if (
+        move.move === "guardpulse" &&
+        petStats.defenseBoosts < DEFENSE_BOOST_CAP
+      ) {
+        move.score *= 1.3;
+      }
+      if (move.move === "vitalsurge" && currentHPPercent < 50) {
+        move.score *= 1.2;
+      }
+    });
+  }
+  if (
+    predictedOpponentMove === "guardpulse" &&
+    petStats.attackBoosts < ATTACK_BOOST_CAP
+  ) {
+    moveScores.forEach((move) => {
+      if (move.move === "statsync") {
+        move.score *= 1.4;
+      }
+    });
+  }
+  if (
+    predictedOpponentMove === "statsync" &&
+    petStats.defenseBoosts < DEFENSE_BOOST_CAP
+  ) {
+    moveScores.forEach((move) => {
+      if (move.move === "guardpulse") {
+        move.score *= 1.4;
+      }
+    });
+  }
+  if (isEndgame) {
+    moveScores.forEach((move) => {
+      if (move.expectedDamage) {
+        const damagePotential = move.expectedDamage / (targetPet.HP || 1);
+        move.score *= 1 + assessEndgamePressure() * damagePotential;
+        if (move.expectedDamage > targetPet.HP) {
+          move.score *= 1.8;
+        }
+      }
+    });
+  }
+  if (isEarlyGame && damageTakenRatio < 0.25) {
+    moveScores.forEach((move) => {
+      if (move.boostType) {
+        move.score *= 1.3;
+      }
+    });
+  }
+  const assessMoveRisk = (move: MoveScore): number => {
+    let risk = 0;
+    if (move.expectedDamage) {
+      risk += dodgeRisk * (1 - move.expectedDamage / (targetPet.maxHP || 1));
+      if (opponentDefenseBoosts > 1) risk += 0.1;
+    }
+    if (move.expectedHeal) {
+      risk -= move.expectedHeal / (activePet.maxHP || 1);
+      if (opponentAttackBoosts > 1) risk += 0.05;
+    }
+    if (move.boostType) {
+      risk -= (move.boostAmount || 0) / (activePet.level * 3);
+      if (move.boostType === "attack" && opponentDefenseBoosts > 1) risk += 0.1;
+      if (move.boostType === "defense" && opponentAttackBoosts > 1) risk -= 0.1;
+    }
+    return Math.max(-0.5, Math.min(0.5, risk));
+  };
+  const moodModifiers = {
+    aggressive: (move: MoveScore) =>
+      move.expectedDamage ? 1.2 : move.boostType === "attack" ? 1.1 : 0.8,
+    defensive: (move: MoveScore) =>
+      move.expectedHeal || move.move === "guardpulse"
+        ? 1.2
+        : move.boostType === "defense"
+        ? 1.1
+        : 0.8,
+    balanced: () => 1,
+  };
+  moveScores.forEach((move) => {
+    move.score *= moodModifiers[currentMood](move);
+  });
+  const unpredictabilityFactor = Math.random() * 0.2 + 0.8;
+  moveScores.forEach((move) => {
+    move.score *= unpredictabilityFactor + (Math.random() * 0.1 - 0.05);
+  });
+  const maxScore = Math.max(...moveScores.map((m) => m.score), 1);
+  moveScores.forEach((move) => {
+    move.score = (move.score / maxScore) * 100;
+    move.score *= 1 - assessMoveRisk(move);
+    move.score = Math.max(0, move.score);
+  });
+  if (Math.random() < randomnessFactor) {
+    const nonZeroMoves = moveScores.filter((m) => m.score > 0);
+    return nonZeroMoves.length > 0
+      ? nonZeroMoves[Math.floor(Math.random() * nonZeroMoves.length)].move
+      : moves[Math.floor(Math.random() * moves.length)];
+  }
+  if (assessCriticalSituation() && vitalSurgeHeal > 0 && Math.random() < 0.9) {
+    return "vitalsurge";
+  }
+  if (
+    hpDifference > HP_DIFF_THRESHOLD &&
+    equilibriumEffect.damage > 0 &&
+    Math.random() < 0.85
+  ) {
+    return "equilibrium";
+  }
+  if (
+    isEndgame &&
+    targetHPPercent < 20 &&
+    moveScores.find((m) => m.move === "chaosbolt")?.expectedDamage! >
+      targetPet.HP &&
+    Math.random() < 0.9
+  ) {
+    return "chaosbolt";
+  }
+  if (
+    opponentAttackBoosts >= 3 &&
+    petStats.defenseBoosts < DEFENSE_BOOST_CAP &&
+    guardPulseBoost > activePet.level &&
+    Math.random() < 0.8
+  ) {
+    return "guardpulse";
+  }
+  if (
+    opponentDefenseBoosts >= 3 &&
+    petStats.attackBoosts < ATTACK_BOOST_CAP &&
+    statSyncBoost > activePet.level &&
+    Math.random() < 0.8
+  ) {
+    return "statsync";
+  }
+  const validMoves = moveScores.filter((m) => m.score > 0);
+  if (validMoves.length === 0) return "bash";
+  const totalScore = validMoves.reduce((sum, m) => sum + m.score, 0);
+  let randomScore = Math.random() * totalScore;
+  for (const move of validMoves.sort((a, b) => b.score - a.score)) {
+    randomScore -= move.score;
+    if (randomScore <= 0) {
+      return move.move;
+    }
+  }
+  return (
+    validMoves[Math.floor(Math.random() * validMoves.length)].move || "bash"
+  );
 }
 
 const statMap = new Map<string, PersistentStats>();
 
-function getInfos(data: UserData) {
+function getInfos(data: UserData | Pick<UserData, "petsData" | "gearsData">) {
   const gearsManage = new GearsManage(data.gearsData);
   const petsData = new Inventory(data.petsData);
   const playersMap = new Map<string, PetPlayer>();
@@ -89,6 +710,9 @@ export async function entry({
   input,
   output,
   money,
+  ctx,
+  prefix,
+  commandName,
 }: CommandContext): Promise<any> {
   let gameState: ArenaGameState | null = {
     player1Pet: null,
@@ -100,6 +724,7 @@ export async function entry({
     prevMove1: null,
     prevMove2: null,
     turnCount: 0,
+    isAIMode: input.arguments.includes("--ai"),
   };
   let isDefeat = false;
 
@@ -126,6 +751,54 @@ export async function entry({
   if (!player1Pet)
     return output.replyStyled(`Error loading pet "${player1PetName}".`, style);
   gameState.player1Pet = player1Pet;
+  if (gameState.isAIMode) {
+    const { pet: aiPet, author: aiAuthor } = await generateAIPet(
+      money,
+      player1Pet
+    );
+    gameState.player2Pet = aiPet;
+    gameState.player2Author = aiAuthor;
+
+    const player1StatSum = calculatePetStrength(player1Pet);
+    const player2StatSum = calculatePetStrength(aiPet);
+    const boost = Math.max(player1StatSum, player2StatSum) / 2;
+
+    const player1HpBoost = Math.round(boost);
+    player1Pet.hpModifier += player1HpBoost;
+    player1Pet.maxHPModifier += player1HpBoost;
+    player1Pet.HP = player1Pet.maxHP;
+
+    const player2HpBoost = Math.round(boost);
+    aiPet.hpModifier += player2HpBoost;
+    aiPet.maxHPModifier += player2HpBoost;
+    aiPet.HP = aiPet.maxHP;
+
+    gameState.flavorCache = `Arena battle begins! ${
+      gameState.activePlayer === 1 ? player1Data.name : "AI Opponent"
+    } goes first.`;
+
+    statMap.set(`${gameState.player1Author}_${player1Pet.OgpetData.key}`, {
+      totalDamageDealt: 0,
+      totalDamageTaken: 0,
+      mercyContributed: 0,
+      defenseBoosts: 0,
+      attackBoosts: 0,
+      healsPerformed: 0,
+      lastMove: null,
+    });
+    statMap.set(`${gameState.player2Author}_${aiPet.OgpetData.key}`, {
+      totalDamageDealt: 0,
+      totalDamageTaken: 0,
+      mercyContributed: 0,
+      defenseBoosts: 0,
+      attackBoosts: 0,
+      healsPerformed: 0,
+      lastMove: null,
+    });
+
+    await displayPetSelection(ctx);
+    return;
+  }
 
   const infoBegin = await output.replyStyled(
     `⚔️ **Arena Challenge**:\n${
@@ -133,7 +806,9 @@ export async function entry({
     } selected:\n\n${player1Pet.getPlayerUI({
       showStats: true,
       hideHP: true,
-    })}\n\nReply with one pet name to join.`,
+    })}\n\nReply with one pet name to join.\n\n🔎 Don't have actual opponents, or you want to win 💎 gems? Try --ai now! Just put --ai at the end.\n***EXAMPLE*** ${prefix}${commandName} ${
+      input.arguments[0]
+    } --ai`,
     style
   );
 
@@ -178,12 +853,13 @@ export async function entry({
 
     gameState!.player2Pet = player2Pet;
     gameState!.player2Author = ctx.input.senderID;
-    gameState!.activePlayer =
-      calculatePetStrength(player1Pet) < calculatePetStrength(player2Pet)
-        ? 1
-        : Math.random() < 0.5
-        ? 1
-        : 2;
+    gameState!.activePlayer = gameState.isAIMode
+      ? 1
+      : calculatePetStrength(player1Pet) < calculatePetStrength(player2Pet)
+      ? 1
+      : Math.random() < 0.5
+      ? 1
+      : 2;
 
     const player1StatSum = calculatePetStrength(player1Pet);
     const player2StatSum = calculatePetStrength(player2Pet);
@@ -238,8 +914,6 @@ export async function entry({
       gameState.activePlayer === 1
         ? gameState.player2Pet
         : gameState.player1Pet;
-    // const player1Data = await ctx.money.getItem(gameState.player1Author);
-    // const player2Data = await ctx.money.getItem(gameState.player2Author);
 
     const result = `${UNIRedux.charm} ${
       gameState.flavorCache
@@ -253,16 +927,62 @@ export async function entry({
       MAX_TURNS - (gameState.turnCount + 1)
     }**\n\n***Reply with one option (word only)***`;
 
-    const newInfo = await ctx.output.replyStyled(result, style);
-    newInfo.atReply(
-      async (turnCtx) => await handlePlayerTurn(turnCtx, newInfo)
-    );
+    if (gameState.isAIMode && gameState.activePlayer === 2) {
+      const aiMove = generateAIMove(
+        gameState,
+        gameState.player2Pet,
+        gameState.player1Pet,
+        statMap.get(
+          `${gameState.player2Author}_${gameState.player2Pet.OgpetData.key}`
+        )!,
+        gameState.prevMove2
+      );
+      await handleArenaTurn(
+        ctx,
+        new OutputResult(ctx, {
+          messageID: "dummy",
+          threadID: "dummy",
+          senderID: "dummy",
+          timestamp: Date.now(),
+        }),
+        aiMove,
+        result
+      );
+    } else {
+      const newInfo = await ctx.output.replyStyled(result, style);
+      newInfo.atReply(
+        async (turnCtx) => await handlePlayerTurn(turnCtx, newInfo)
+      );
+    }
   }
 
   async function handlePlayerTurn(
     ctx: CommandContext,
-    info: OutputResult
+    info: OutputResult,
+    extraRes = ""
   ): Promise<void> {
+    if (
+      isDefeat ||
+      !gameState ||
+      !gameState.player1Pet ||
+      !gameState.player2Pet
+    ) {
+      return;
+    }
+
+    if (gameState.isAIMode && gameState.activePlayer === 2) {
+      const aiMove = generateAIMove(
+        gameState,
+        gameState.player2Pet,
+        gameState.player1Pet,
+        statMap.get(
+          `${gameState.player2Author}_${gameState.player2Pet.OgpetData.key}`
+        )!,
+        gameState.prevMove2
+      );
+      await handleArenaTurn(ctx, info, aiMove, extraRes);
+      return;
+    }
     if (
       isDefeat ||
       !gameState ||
@@ -291,7 +1011,8 @@ export async function entry({
   async function handleArenaTurn(
     ctx: CommandContext,
     info: OutputResult,
-    turn: string
+    turn: string,
+    extraAIRes = ""
   ): Promise<void> {
     if (!gameState || !gameState.player1Pet || !gameState.player2Pet) return;
 
@@ -607,23 +1328,31 @@ export async function entry({
     gameState.flavorCache = `${
       gameState.activePlayer === 1 ? player1Data.name : player2Data.name
     }'s turn!`;
+    let isCurrentAI = gameState.isAIMode && gameState.activePlayer === 2;
 
-    const newInfo = await ctx.output.replyStyled(
-      `${flavorText}\n\n${targetPet.getPlayerUI({
-        turn: true,
-        selectionOptions: petSchema,
-        showStats: true,
-      })}\n\n${
+    let str = `${
+      extraAIRes ? `${extraAIRes}\n` : ""
+    }${flavorText}\n\n${targetPet.getPlayerUI({
+      turn: isCurrentAI ? false : true,
+      selectionOptions: petSchema,
+      showStats: true,
+    })}${isCurrentAI ? `\nAI is thinking...\n` : ""}`;
+    if (!isCurrentAI) {
+      str += `\n\n${
         gameState.activePlayer === 1 ? player1Data.name : player2Data.name
       }, select your move!\n\n⚠️ **Remaining turns before ending:  ${
         MAX_TURNS - (gameState.turnCount + 1)
-      }**\n\n***Reply with one option (word only)***`,
-      style
-    );
+      }**\n\n***Reply with one option (word only)***`;
+    }
+    if (!isCurrentAI) {
+      const newInfo = await ctx.output.replyStyled(str, style);
 
-    newInfo.atReply(
-      async (turnCtx) => await handlePlayerTurn(turnCtx, newInfo)
-    );
+      newInfo.atReply(
+        async (turnCtx) => await handlePlayerTurn(turnCtx, newInfo)
+      );
+    } else {
+      await handlePlayerTurn(ctx, info, str);
+    }
   }
 
   async function handleWin(
@@ -650,20 +1379,53 @@ export async function entry({
     );
 
     const winnerData = await ctx.money.getItem(winnerId);
-    const loserData = await ctx.money.getItem(loserId);
-    await ctx.money.setItem(winnerId, {
-      ...winnerData,
-      battlePoints: (winnerData.battlePoints || 0) + winnerPts,
-    });
-    await ctx.money.setItem(loserId, {
-      ...loserData,
-      battlePoints: (loserData.battlePoints || 0) + loserPts,
-    });
+    const winnerName = winner === 1 ? winnerData.name : "AI Opponent";
+    const loserData: Partial<UserData> = loserId
+      ? await ctx.money.getItem(loserId)
+      : { name: "AI Opponent", battlePoints: 0 };
+    const loserName = winner === 1 ? "AI Opponent" : loserData.name;
+    let wonDias = 0;
+    if (!gameState.isAIMode || winner === 1) {
+      const cll = new Collectibles(winnerData.collectibles);
+      const stre =
+        calculatePetStrength(winnerPet) + calculatePetStrength(loserPet);
+      const diasReward =
+        Math.max(1, Math.min(100, Math.floor(stre / 2 / 500))) || -1;
+      if (gameState.isAIMode) {
+        cll.raise("gems", diasReward);
+        wonDias = diasReward;
+      }
+      await ctx.money.setItem(winnerId, {
+        ...winnerData,
+        collectibles: Array.from(cll),
+        battlePoints: (winnerData.battlePoints || 0) + winnerPts,
+      });
+    }
+    if (!gameState.isAIMode && loserId) {
+      await ctx.money.setItem(loserId, {
+        ...loserData,
+        battlePoints: (loserData.battlePoints || 0) + loserPts,
+      });
+    }
 
     await ctx.output.replyStyled(
       isMaxTurns
-        ? `${UNIRedux.charm} Max turns reached!\n${winnerData.name} wins by having **higher remaining HP%**!\n${winnerPet.petIcon} **${winnerPet.petName}** had more health than ${loserPet.petIcon} **${loserPet.petName}**.\n${winnerData.name} earned **${winnerPts} 💷**, ${loserData.name} earned **${loserPts} 💷**.`
-        : `${UNIRedux.charm} ${winnerData.name} wins!\n${winnerPet.petIcon} **${winnerPet.petName}** defeated ${loserPet.petIcon} **${loserPet.petName}**!\n${winnerData.name} earned **${winnerPts} 💷**, ${loserData.name} earned **${loserPts} 💷**.`,
+        ? `${
+            UNIRedux.charm
+          } Max turns reached!\n${winnerName} wins by having **higher remaining HP%**!\n${
+            winnerPet.petIcon
+          } **${winnerPet.petName}** had more health than ${
+            loserPet.petIcon
+          } **${loserPet.petName}**.\n${winnerName} earned **${winnerPts} 💷**${
+            wonDias ? ` and **${wonDias}** 💎 gems` : ""
+          }, ${loserName} earned **${loserPts} 💷**.`
+        : `${UNIRedux.charm} ${winnerName} wins!\n${winnerPet.petIcon} **${
+            winnerPet.petName
+          }** defeated ${loserPet.petIcon} **${
+            loserPet.petName
+          }**!\n${winnerName} earned **${winnerPts} 💷**${
+            wonDias ? ` and **${wonDias}** 💎 gems` : ""
+          }, ${loserName} earned **${loserPts} 💷**.`,
       style
     );
 
