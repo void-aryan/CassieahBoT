@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "petclash",
   description: "Multi-pet PvP battle system with up to 7 pets per player",
   otherNames: ["clash"],
-  version: "1.0.2",
+  version: "1.0.3",
   usage: "{prefix}{name} [pet1|pet2|pet3...]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -34,7 +34,7 @@ const petSchema: PetSchema = {
   defend: true,
   extra: {
     Bash: "🥊",
-    LifeUp: "✨",
+    // LifeUp: "✨",
     HexSmash: "💥",
     FluxStrike: "🌩️",
     GuardPulse: "🛡️",
@@ -674,36 +674,36 @@ export async function entry({
         case "defend":
           flavorText += `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🛡️ **Defend**!\n`;
           break;
-        case "lifeup":
-          flavorText += `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ✨ **LifeUp**!\n`;
-          const healing = Math.max(
-            Math.round((activePet.maxHP / 9) * (activePet.MAGIC * 0.09)),
-            Math.round(activePet.maxHP / 9)
-          );
-          const targetHealPet =
-            Math.random() < 0.3 || activePet.HP < activePet.maxHP
-              ? activePet
-              : activePets.reduce(
-                  (min, pet) => (!pet.isDown() && pet.HP < min.HP ? pet : min),
-                  activePets[0]
-                );
-          const finalHealing = Math.min(
-            healing,
-            targetHealPet.maxHP - targetHealPet.HP
-          );
-          targetHealPet.HP += finalHealing;
-          petStats.healsPerformed += 1;
-          flavorText += `${
-            UNIRedux.charm
-          } Healed **${finalHealing}** HP for **${
-            targetHealPet.petName
-          }**.\n${targetHealPet.getPlayerUI({
-            upperPop:
-              targetHealPet.HP >= targetHealPet.maxHP
-                ? `MAX`
-                : `+${finalHealing} HP`,
-          })}\n`;
-          break;
+        // case "lifeup":
+        //   flavorText += `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ✨ **LifeUp**!\n`;
+        //   const healing = Math.max(
+        //     Math.round((activePet.maxHP / 9) * (activePet.MAGIC * 0.09)),
+        //     Math.round(activePet.maxHP / 9)
+        //   );
+        //   const targetHealPet =
+        //     Math.random() < 0.3 || activePet.HP < activePet.maxHP
+        //       ? activePet
+        //       : activePets.reduce(
+        //           (min, pet) => (!pet.isDown() && pet.HP < min.HP ? pet : min),
+        //           activePets[0]
+        //         );
+        //   const finalHealing = Math.min(
+        //     healing,
+        //     targetHealPet.maxHP - targetHealPet.HP
+        //   );
+        //   targetHealPet.HP += finalHealing;
+        //   petStats.healsPerformed += 1;
+        //   flavorText += `${
+        //     UNIRedux.charm
+        //   } Healed **${finalHealing}** HP for **${
+        //     targetHealPet.petName
+        //   }**.\n${targetHealPet.getPlayerUI({
+        //     upperPop:
+        //       targetHealPet.HP >= targetHealPet.maxHP
+        //         ? `MAX`
+        //         : `+${finalHealing} HP`,
+        //   })}\n`;
+        //   break;
         case "vitalsurge":
           flavorText += `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 💖 **VitalSurge**!\n`;
           const healFactor = Math.min(
