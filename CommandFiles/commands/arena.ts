@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.3.1",
+  version: "1.3.3",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -43,6 +43,7 @@ const petSchema: PetSchema = {
     VitalSurge: "💖",
     StatSync: "🔄",
     Equilibrium: "⚖️",
+    Generate: "🤖",
   },
 };
 
@@ -1196,6 +1197,7 @@ export async function entry({
       await handleNoTurns(ctx, info);
       return;
     }
+
     gameState!.turnCount += 1;
     const activePet =
       gameState.activePlayer === 1
@@ -1233,6 +1235,16 @@ export async function entry({
         extraAIRes
       );
       return;
+    }
+
+    if (turn === "generate") {
+      turn = generateAIMove(
+        gameState,
+        activePet,
+        targetPet,
+        petStats,
+        prevMove
+      );
     }
 
     switch (turn) {
@@ -1494,7 +1506,12 @@ export async function entry({
 
     if (targetPet.HP <= 0) {
       info.removeAtReply();
-      await handleWin(ctx, gameState.activePlayer, false, extraAIRes);
+      await handleWin(
+        ctx,
+        gameState.activePlayer,
+        false,
+        `${extraAIRes}\n\n${flavorText}`
+      );
       return;
     }
 
