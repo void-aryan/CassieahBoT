@@ -5,7 +5,7 @@ import { abbreviateNumber } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.5",
+  version: "2.0.6",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -762,10 +762,11 @@ export class PetPlayer {
         : `(${hideHP ? "??" : Math.floor((this.HP / this.maxHP) * 100)}%)`
     }`;
     if (showStats) {
+      const stat = this.calculateDamageReduction();
       txt += `\n ⚔️ **${abbreviateNumber(this.ATK)}** | 🔰 **${abbreviateNumber(
         this.DF
-      )}** (${abbreviateNumber(
-        Math.floor(this.DF / 5)
+      )}** (${abbreviateNumber(stat.defReduction)}/${abbreviateNumber(
+        stat.per
       )}) | 🔥 **${abbreviateNumber(this.MAGIC)}**`;
     }
     if (turn) {
@@ -1020,6 +1021,20 @@ export class PetPlayer {
     let reducedDamage = damage - defReduction;
 
     return Math.max(Math.floor(reducedDamage), 1);
+  }
+
+  calculateDamageReduction(def = this.DF) {
+    const k = 5;
+    const factor = 0.3;
+
+    const C = (factor * 30) / 3;
+
+    const defReduction = def / (1 + def / C) / k;
+
+    return {
+      defReduction: Math.floor(defReduction),
+      per: Math.round(C),
+    };
   }
 
   /**
