@@ -7,12 +7,14 @@ import { Inventory } from "@cassidy/ut-shop";
 import { listItem, groupItems } from "@cass-modules/BriefcaseAPI";
 const { fonts } = FontSystem;
 
+const ABANK = fonts.serif("AC-BANK");
+
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "1.0.2",
+  version: "1.0.3",
   author: "original idea by Duke Agustin,recreated by Liane Cagara",
   waitingTime: 1,
-  description: "Manage your finances and items with Ariel's Bank (𝐀-𝐁𝐀𝐍𝐊 ®).",
+  description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
   category: "Finance",
   noPrefix: "both",
   otherNames: ["bank", "arielbank", "b", "ac", "acbank"],
@@ -28,6 +30,13 @@ export interface Award {
   date: number;
 }
 
+export const style: CassidySpectra.CommandStyle = {
+  contentFont: "fancy",
+  footer: {
+    content: "",
+  },
+};
+
 // export const style = {
 //   title: "𝐀-𝐁𝐀𝐍𝐊 ® | 🏦",
 //   titleFont: "bold",
@@ -35,7 +44,7 @@ export interface Award {
 // };
 
 export const limitKey = "bank_reach_limit";
-const percentLimit = 0.2;
+const percentLimit = 1e-154;
 
 const formatTrophy = (data: UserData & { awards?: Award[] }) => {
   return `${
@@ -72,8 +81,6 @@ const formatCash = (amount = 0, abbr = true) =>
   `${
     abbr ? `(**${abbreviateNumber(amount)}**) ` : ""
   }${amount.toLocaleString()} 💵`;
-
-const ABANK = fonts.serif("AC-BANK");
 
 const NOTIF = `🏦 ${fonts.bold("ARIEL-CASS NOTIF")} 👩🏻‍💼`;
 

@@ -10,7 +10,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "skyrise",
   description: "Build and manage your floating island empire!",
   otherNames: ["srs", "sky", "skyr"],
-  version: "1.0.12",
+  version: "1.0.15",
   usage: "{prefix}{name} <command> [args]",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -391,7 +391,7 @@ function calculateProduction(
     updatedBuilding.production.amount * levelPow * intervals * workerBoost;
   const baseAmount = baseAmountX + (Math.random() - 0.5) * baseAmountX;
 
-  const srWorkerMultiplier = Math.pow(2, _srworkers ?? 0);
+  const srWorkerMultiplier = Math.pow(2, Math.min(5, _srworkers ?? 0));
 
   return Math.floor(baseAmount * srWorkerMultiplier);
 }
@@ -442,7 +442,7 @@ export function predictProduction(
   const minBaseAmount = baseAmountX * 0.5;
   const maxBaseAmount = baseAmountX * 1.5;
 
-  const srWorkerMultiplier = Math.pow(2, totalWorkers);
+  const srWorkerMultiplier = Math.pow(2, Math.min(5, totalWorkers));
 
   const minAmount = Math.floor(minBaseAmount * srWorkerMultiplier);
   const maxAmount = Math.floor(maxBaseAmount * srWorkerMultiplier);

@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.2.9",
+  version: "1.3.0",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -81,12 +81,25 @@ async function generateAIPet(
   let fallbackPet: PetPlayer | null = null;
   let fallbackAuthor: string | null = null;
   let fallbackStrengthDiff = Infinity;
-  const allPetNamesAndIcons: { name: string; icon: string }[] = [];
+  const allPetNamesAndIcons: { name: string; icon: string }[] = [
+    { icon: "🔫", name: "PhilCassidy" },
+    { icon: "🎀", name: "Liane" },
+    { icon: "🃏", name: "HighRollPass" },
+    { icon: "🌒", name: "ShadowCoin" },
+    { icon: "☄️", name: "CosmicCrunchEX" },
+    { icon: "⚖️", name: "Equilibrium" },
+    { icon: "⛪", name: "Jesus" },
+    { icon: "👨‍💻", name: "Ownersv2" },
+    { icon: "✅", name: "PrinceHar" },
+    { icon: "⚔️", name: "Yhander" },
+  ];
 
   for (const user of Object.values(allUsers)) {
     const { petsData } = getInfos(user);
     for (const petData of petsData.getAll()) {
-      allPetNamesAndIcons.push({ name: petData.name, icon: petData.icon });
+      if (player1Pet.petName !== petData.name) {
+        allPetNamesAndIcons.push({ name: petData.name, icon: petData.icon });
+      }
       const pet = new PetPlayer(
         petData,
         new GearsManage(user.gearsData).getGearData(petData.key)
@@ -143,6 +156,10 @@ async function generateAIPet(
   selectedPet.atkModifier += 5;
   selectedPet.defModifier += 25;
   selectedPet.magicModifier += 16;
+
+  selectedPet.atkModifier = +Math.floor(player1Pet.ATK / 2);
+  selectedPet.defModifier = +Math.floor(player1Pet.DF / 2);
+  selectedPet.magicModifier = +Math.floor(player1Pet.MAGIC / 2);
 
   return { pet: selectedPet, author: `AI_${Date.now()}` };
 }
@@ -443,7 +460,7 @@ function generateAIMove(
     if (lastMove === "statsync" && Math.random() < 0.6) {
       return "guardpulse";
     }
-    if (lastMove === "vitalsurge" && Math.random() < 0.5) {
+    if (lastMove === "vitalsurge" && Math.random() < 0.8) {
       return ["bash", "hexsmash", "fluxstrike", "chaosbolt"][
         Math.floor(Math.random() * 4)
       ];
@@ -660,10 +677,10 @@ function generateAIMove(
         move.move === "guardpulse" &&
         petStats.defenseBoosts < DEFENSE_BOOST_CAP
       ) {
-        move.score *= 1.3;
+        move.score *= 1.5;
       }
-      if (move.move === "vitalsurge" && currentHPPercent < 50) {
-        move.score *= 1.2;
+      if (move.move === "vitalsurge" && currentHPPercent < 10) {
+        move.score *= 0.7;
       }
     });
   }
@@ -1200,7 +1217,13 @@ export async function entry({
     let dodgeChance = Math.random();
 
     if (activePet.isDown()) {
-      await handleDefeat(ctx, info, gameState.activePlayer === 1 ? 2 : 1);
+      await handleDefeat(
+        ctx,
+        info,
+        gameState.activePlayer === 1 ? 2 : 1,
+        false,
+        extraAIRes
+      );
       return;
     }
 
@@ -1463,7 +1486,7 @@ export async function entry({
 
     if (targetPet.HP <= 0) {
       info.removeAtReply();
-      await handleWin(ctx, gameState.activePlayer);
+      await handleWin(ctx, gameState.activePlayer, false, extraAIRes);
       return;
     }
 
@@ -1504,7 +1527,8 @@ export async function entry({
   async function handleWin(
     ctx: CommandContext,
     winner: 1 | 2,
-    isMaxTurns = false
+    isMaxTurns = false,
+    extraText = ""
   ): Promise<void> {
     if (!gameState || !gameState.player1Pet || !gameState.player2Pet) return;
     const winnerPet =
@@ -1525,11 +1549,13 @@ export async function entry({
     );
 
     const winnerData = await ctx.money.getItem(winnerId);
-    const winnerName = winner === 1 ? winnerData.name : "AI Opponent";
+    const winnerName =
+      winner === 1 && gameState.isAIMode ? winnerData.name : "AI Opponent";
     const loserData: Partial<UserData> = loserId
       ? await ctx.money.getItem(loserId)
       : { name: "AI Opponent", battlePoints: 0 };
-    const loserName = winner === 1 ? "AI Opponent" : loserData.name;
+    const loserName =
+      winner === 1 && gameState.isAIMode ? "AI Opponent" : loserData.name;
     let wonDias = 0;
     if (!gameState.isAIMode || winner === 1) {
       const cll = new Collectibles(winnerData.collectibles);
@@ -1573,27 +1599,32 @@ export async function entry({
     }
 
     await ctx.output.replyStyled(
-      isMaxTurns
-        ? `${
-            UNIRedux.charm
-          } Max turns reached!\n${winnerName} wins by having **higher remaining HP%**!\n${
-            winnerPet.petIcon
-          } **${winnerPet.petName}** had more health than ${
-            loserPet.petIcon
-          } **${loserPet.petName}**.\n${winnerName} earned **${winnerPts} 💷**${
-            wonDias
-              ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate`
-              : ""
-          }, ${loserName} earned **${loserPts} 💷**.`
-        : `${UNIRedux.charm} ${winnerName} wins!\n${winnerPet.petIcon} **${
-            winnerPet.petName
-          }** defeated ${loserPet.petIcon} **${
-            loserPet.petName
-          }**!\n${winnerName} earned **${winnerPts} 💷**${
-            wonDias
-              ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate!`
-              : ""
-          }, ${loserName} earned **${loserPts} 💷**.`,
+      extraText
+        ? `${extraText.trimEnd()}\n\n`
+        : "" +
+            (isMaxTurns
+              ? `${
+                  UNIRedux.charm
+                } Max turns reached!\n${winnerName} wins by having **higher remaining HP%**!\n${
+                  winnerPet.petIcon
+                } **${winnerPet.petName}** had more health than ${
+                  loserPet.petIcon
+                } **${
+                  loserPet.petName
+                }**.\n${winnerName} earned **${winnerPts} 💷**${
+                  wonDias
+                    ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate`
+                    : ""
+                }, ${loserName} earned **${loserPts} 💷**.`
+              : `${UNIRedux.charm} ${winnerName} wins!\n${
+                  winnerPet.petIcon
+                } **${winnerPet.petName}** defeated ${loserPet.petIcon} **${
+                  loserPet.petName
+                }**!\n${winnerName} earned **${winnerPts} 💷**${
+                  wonDias
+                    ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate!`
+                    : ""
+                }, ${loserName} earned **${loserPts} 💷**.`),
       style
     );
 
@@ -1604,16 +1635,18 @@ export async function entry({
     ctx: CommandContext,
     info: OutputResult,
     winner: 1 | 2,
-    isMaxTurns = false
+    isMaxTurns = false,
+    extraText = ""
   ): Promise<void> {
     isDefeat = true;
     info.removeAtReply();
-    await handleWin(ctx, winner, isMaxTurns);
+    await handleWin(ctx, winner, isMaxTurns, extraText);
   }
 
   async function handleNoTurns(
     ctx: CommandContext,
-    info: OutputResult
+    info: OutputResult,
+    extraText = ""
   ): Promise<void> {
     if (!gameState || !gameState.player1Pet || !gameState.player2Pet) return;
     info.removeAtReply();
@@ -1634,6 +1667,6 @@ export async function entry({
       isDefeat = true;
     }
 
-    await handleWin(ctx, xis as 1 | 2, true);
+    await handleWin(ctx, xis as 1 | 2, true, extraText);
   }
 }
