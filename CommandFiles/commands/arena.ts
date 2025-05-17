@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.3.0",
+  version: "1.3.1",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -682,6 +682,9 @@ function generateAIMove(
       if (move.move === "vitalsurge" && currentHPPercent < 10) {
         move.score *= 0.7;
       }
+      if (move.move === "guardpulse" && currentHPPercent < 50) {
+        move.score *= 1.5;
+      }
     });
   }
   if (
@@ -784,7 +787,11 @@ function generateAIMove(
       : moves[Math.floor(Math.random() * moves.length)];
   }
 
-  if (assessUrgentSituation() && vitalSurgeHeal > 0 && Math.random() < 0.95) {
+  if (
+    assessUrgentSituation() &&
+    vitalSurgeHeal > targetPet.calculateAttack(activePet.DF) &&
+    Math.random() < 0.4
+  ) {
     return "vitalsurge";
   }
 
@@ -792,7 +799,8 @@ function generateAIMove(
     assessCriticalSituation() &&
     hpDifference > HP_DIFF_THRESHOLD &&
     equilibriumEffect.damage > 0 &&
-    Math.random() < 0.9
+    equilibriumEffect.heal > targetPet.calculateAttack(activePet.DF) &&
+    Math.random() < 0.5
   ) {
     return "equilibrium";
   }
