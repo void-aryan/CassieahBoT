@@ -1607,32 +1607,30 @@ export async function entry({
     }
 
     await ctx.output.replyStyled(
-      extraText
-        ? `${extraText.trimEnd()}\n\n`
-        : "" +
-            (isMaxTurns
-              ? `${
-                  UNIRedux.charm
-                } Max turns reached!\n${winnerName} wins by having **higher remaining HP%**!\n${
-                  winnerPet.petIcon
-                } **${winnerPet.petName}** had more health than ${
-                  loserPet.petIcon
-                } **${
-                  loserPet.petName
-                }**.\n${winnerName} earned **${winnerPts} 💷**${
-                  wonDias
-                    ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate`
-                    : ""
-                }, ${loserName} earned **${loserPts} 💷**.`
-              : `${UNIRedux.charm} ${winnerName} wins!\n${
-                  winnerPet.petIcon
-                } **${winnerPet.petName}** defeated ${loserPet.petIcon} **${
-                  loserPet.petName
-                }**!\n${winnerName} earned **${winnerPts} 💷**${
-                  wonDias
-                    ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate!`
-                    : ""
-                }, ${loserName} earned **${loserPts} 💷**.`),
+      (extraText ? `${extraText.trimEnd()}\n\n` : "") +
+        (isMaxTurns
+          ? `${
+              UNIRedux.charm
+            } Max turns reached!\n${winnerName} wins by having **higher remaining HP%**!\n${
+              winnerPet.petIcon
+            } **${winnerPet.petName}** had more health than ${
+              loserPet.petIcon
+            } **${
+              loserPet.petName
+            }**.\n${winnerName} earned **${winnerPts} 💷**${
+              wonDias
+                ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate`
+                : ""
+            }, ${loserName} earned **${loserPts} 💷**.`
+          : `${UNIRedux.charm} ${winnerName} wins!\n${winnerPet.petIcon} **${
+              winnerPet.petName
+            }** defeated ${loserPet.petIcon} **${
+              loserPet.petName
+            }**!\n${winnerName} earned **${winnerPts} 💷**${
+              wonDias
+                ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate!`
+                : ""
+            }, ${loserName} earned **${loserPts} 💷**.`),
       style
     );
 
