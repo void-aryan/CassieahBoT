@@ -1025,15 +1025,11 @@ export class PetPlayer {
 
   calculateDamageReduction(def = this.DF) {
     const k = 5;
-    const factor = 0.3;
-
-    const C = (factor * 30) / 3;
-
-    const defReduction = def / (1 + def / C) / k;
+    const defReduction = def / 5;
 
     return {
       defReduction: Math.floor(defReduction),
-      per: Math.round(C),
+      per: Math.round(k),
     };
   }
 
