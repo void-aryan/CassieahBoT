@@ -2,6 +2,7 @@
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { CassEXP } from "../modules/cassEXP.js";
 import { clamp } from "../modules/unisym.js";
+import { formatCash } from "@cass-modules/ArielUtils";
 
 /**
  * @type {CassidySpectra.CommandMeta}
@@ -10,7 +11,7 @@ export const meta = {
   name: "carnostalgia",
   description: "Manage your cars! (Reworked but same as new!)",
   otherNames: ["c", "car", "carn"],
-  version: "1.0.9",
+  version: "1.0.10",
   usage: "{prefix}{name} <command> [args]",
   category: "Simulation Games",
   author: "JenicaDev & Liane Cagara",
@@ -31,7 +32,7 @@ async function confirmSell({ input, output, repObj, money }) {
   if (author !== input.senderID) return;
   if (input.body.trim() !== code.trim()) {
     return output.reply(
-      `🚗 Sorry **${name}**, the code was incorrect. Sale cancelled.`
+      `🏁 Sorry **${name}**, the code was incorrect. Sale cancelled.`
     );
   }
 
@@ -42,7 +43,9 @@ async function confirmSell({ input, output, repObj, money }) {
   });
 
   return output.reply(
-    `🚗 Thank you **${name}** for successfully selling ${carToSell.icon} **${carToSell.name}** for $${price}💵!\nYour car empire grows stronger!`
+    `🏁 Thank you **${name}** for successfully selling ${carToSell.icon} **${
+      carToSell.name
+    }** for $${formatCash(price)}💵!\nYour car empire grows stronger!`
   );
 }
 
@@ -56,7 +59,7 @@ async function uncageReply({ input, output, Inventory, money, repObj }) {
   if (input.senderID !== author) return;
   if (carsData.getAll().length >= invLimit) {
     return output.reply(
-      `🚗 Sorry **${name}**, your garage is full! You can only have ${invLimit} cars. Sell or upgrade your garage.`
+      `🏁 Sorry **${name}**, your garage is full! You can only have ${invLimit} cars. Sell or upgrade your garage.`
     );
   }
 
@@ -74,11 +77,11 @@ async function uncageReply({ input, output, Inventory, money, repObj }) {
     const item = carVentory.getAll()[index];
     if (!item) {
       return output.reply(
-        `🚗 Sorry **${name}**, please reply with a valid number to uncage a car!`
+        `🏁 Sorry **${name}**, please reply with a valid number to uncage a car!`
       );
     }
     const i = await output.reply(
-      `🚗 ${item.icon} What would you like to name your **${item.name}**? (no spaces pls)`
+      `🏁 ${item.icon} What would you like to name your **${item.name}**? (no spaces pls)`
     );
     input.delReply(detectID);
     input.setReply(i.messageID, {
@@ -100,7 +103,7 @@ async function uncageReply({ input, output, Inventory, money, repObj }) {
     const existingCar = carsData.getAll().find((car) => car.name === newName);
     if (existingCar) {
       return output.reply(
-        `🚗 Sorry **${name}**, the name "${newName}" is already taken by your ${existingCar.carType} ${existingCar.icon}. Please choose another!`
+        `🏁 Sorry **${name}**, the name "${newName}" is already taken by your ${existingCar.carType} ${existingCar.icon}. Please choose another!`
       );
     }
 
@@ -127,7 +130,7 @@ async function uncageReply({ input, output, Inventory, money, repObj }) {
 
     input.delReply(detectID);
     return output.reply(
-      `🚗 Thank you **${name}** for successfully uncaging ${item.icon} a new ${item.key} **${newName}**!\nGoodluck ruling the roads with your new car!`
+      `🏁 Thank you **${name}** for successfully uncaging ${item.icon} a new ${item.key} **${newName}**!\nGoodluck ruling the roads with your new car!`
     );
   }
 }
@@ -364,7 +367,7 @@ const carShopItems = [
 /**
  * @param {{ distance: number; level: number; fuel: number; condition: number; maxSpeed: number; fuelEfficiency: number; durability: number; currentSpeed: number; gear: number; isRunning: boolean; lastAction: any; upgrades: any[]; crew: any[]; achievements: any[]; sellPrice: number; carType: any; icon: any; name: any; key: any; }} car
  */
-export function calculateWorth(car) {
+export function calculateWorthNew(car) {
   const updatedCar = updateCarData(car);
   const { sellPrice, level, distance, upgrades, condition } = updatedCar;
   const upgradeValue = upgrades.length * 500;
@@ -377,7 +380,7 @@ export function calculateWorth(car) {
 /**
  * @param {{ distance: number; level: number; fuel: number; condition: number; maxSpeed: number; fuelEfficiency: number; durability: number; currentSpeed: number; gear: number; isRunning: boolean; lastAction: any; upgrades: any[]; crew: any[]; achievements: any[]; sellPrice: number; carType: any; icon: any; name: any; key: any; }} car
  */
-export function calculateWorthOld(car) {
+export function calculateWorth(car) {
   const updatedCar = updateCarData(car);
   const { sellPrice, level, distance, upgrades, condition } = updatedCar;
   const upgradeValue = upgrades.length * 500;
@@ -521,12 +524,12 @@ export async function entry(ctx) {
               );
             if (!car) {
               return output.reply(
-                `🚗 Sorry **${name}**, you don’t have a car named "${args[0]}"!`
+                `🏁 Sorry **${name}**, you don’t have a car named "${args[0]}"!`
               );
             }
             const updatedCar = updateCarData(car);
             return output.reply(
-              `🚗 **${name}**'s Car Diagnostics:\n\n` +
+              `🏁 **${name}**'s Car Diagnostics:\n\n` +
                 `${updatedCar.icon} **${updatedCar.name}** (${updatedCar.carType})\n` +
                 `🛞 ***Speed***: ${updatedCar.currentSpeed}/${updatedCar.maxSpeed} mph\n` +
                 `⚙️ ***Gear***: ${updatedCar.gear}/6\n` +
@@ -550,7 +553,7 @@ export async function entry(ctx) {
                     ? updatedCar.achievements.join(", ")
                     : "None"
                 }\n` +
-                `💵 ***Worth***: $${calculateWorth(updatedCar)}\n` +
+                `💵 **Worth**: ${formatCash(calculateWorth(updatedCar))}\n` +
                 `🔥 ***Engine***: ${
                   updatedCar.isRunning ? "Revving" : "Idle"
                 }\n` +
@@ -568,7 +571,7 @@ export async function entry(ctx) {
             );
           }
 
-          let result = `🚗 **${name}**'s Garage:\n\n`;
+          let result = `🏁 **${name}**'s Garage:\n\n`;
           for (const car of carsData.getAll()) {
             const updatedCar = updateCarData(car);
             result +=
@@ -577,7 +580,7 @@ export async function entry(ctx) {
               `🛠️ ***Condition***: ${updatedCar.condition.toFixed(1)}%\n` +
               `🧭 ***Distance***: ${updatedCar.distance.toFixed(1)} miles\n\n`;
           }
-          result += `🚗 Use "${prefix}car status <car_name>" to check detailed diagnostics!`;
+          result += `🏁 Use "${prefix}car-status <car_name>" to check detailed diagnostics!`;
           return output.reply(result);
         },
       },
@@ -591,7 +594,7 @@ export async function entry(ctx) {
           const nameToSell = String(args[0]);
           if (!nameToSell) {
             return output.reply(
-              `🚗 Sorry **${name}**, please specify a car to sell!`
+              `🏁 Sorry **${name}**, please specify a car to sell!`
             );
           }
 
@@ -605,13 +608,13 @@ export async function entry(ctx) {
               ) || carsData.getOne(nameToSell);
           if (!carToSell) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have a car named "${nameToSell}"!`
+              `🏁 Sorry **${name}**, you don’t have a car named "${nameToSell}"!`
             );
           }
           const updatedCar = updateCarData(carToSell);
           if (updatedCar.level < 2) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${updatedCar.name}** needs to be level 2 or higher to sell!`
+              `🏁 Sorry **${name}**, **${updatedCar.name}** needs to be level 2 or higher to sell!`
             );
           }
 
@@ -619,7 +622,9 @@ export async function entry(ctx) {
           const newMoney = playerMoney + price;
           const code = global.utils.generateCaptchaCode(12);
           const i = await output.reply(
-            `🚗 **${name}**, please confirm the sale of ${updatedCar.icon} **${updatedCar.name}** for $${price}💵\n` +
+            `🏁 **${name}**, please confirm the sale of ${updatedCar.icon} **${
+              updatedCar.name
+            }** for $${formatCash(price)}💵\n` +
               `🛠️ ***Condition***: ${updatedCar.condition.toFixed(1)}%\n` +
               `🔧 ***Upgrades***: ${updatedCar.upgrades.length}\n` +
               `Reply with this code: [${code}]`
@@ -659,7 +664,7 @@ export async function entry(ctx) {
 
           if (!targetCar) {
             return output.reply(
-              `🚗 Sorry **${name}**, usage: ${prefix}car drive <car_name> <distance>`
+              `🏁 Sorry **${name}**, usage: ${prefix}car drive <car_name> <distance>`
             );
           }
 
@@ -668,18 +673,19 @@ export async function entry(ctx) {
             .find((car) => car.name.toLowerCase() === targetCar.toLowerCase());
           if (!rawTargetCarData) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
+              `🏁 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
             );
           }
           const targetCarData = updateCarData(rawTargetCarData);
+          const before = { ...targetCarData };
           if (targetCarData.fuel <= 0) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}** is out of fuel! Refuel it first.`
+              `🏁 Sorry **${name}**, **${targetCarData.name}** is out of fuel! Refuel it first.`
             );
           }
           if (targetCarData.condition <= 10) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}** is too damaged to drive! Repair it.`
+              `🏁 Sorry **${name}**, **${targetCarData.name}** is too damaged to drive! Repair it.`
             );
           }
 
@@ -721,17 +727,45 @@ export async function entry(ctx) {
             money: playerMoney + moneyEarned,
           });
 
+          /**
+           *
+           * @param {string} key
+           * @returns
+           */
+          function getDiff(key) {
+            const diff =
+              Number(
+                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+              ) -
+              Number(key === "worth" ? calculateWorth(before) : before[key]);
+            return key === "worth"
+              ? diff
+              : diff === 0
+              ? ""
+              : diff > 0
+              ? ` **(+${diff})**`
+              : ` **(${diff})**`;
+          }
+
           return output.reply(
-            `🚗 Thank you **${name}** for driving ${updatedCar.icon} **${updatedCar.name}** for ${distance} miles!\n\n` +
+            `🏁 Thank you **${name}** for driving ${updatedCar.icon} **${updatedCar.name}** for ${distance} miles!\n\n` +
               `🌤️ ***Weather***: ${weather}\n\n` +
               `${updatedCar.icon} **${updatedCar.name}**:\n` +
               `🛞 ***Speed***: ${updatedCar.currentSpeed} mph\n` +
-              `⛽ ***Fuel***: ${updatedCar.fuel.toFixed(1)}%\n` +
-              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(1)}%\n` +
+              `⛽ ***Fuel***: ${updatedCar.fuel.toFixed(1)}% ${getDiff(
+                "fuel"
+              )}\n` +
+              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(
+                1
+              )}% ${getDiff("condition")}\n` +
               `🧭 ***Distance***: ${updatedCar.distance.toFixed(1)} miles\n` +
-              `✨ ***Level***: ${updatedCar.level}\n` +
-              `💵 ***Worth***: $${calculateWorth(updatedCar)}\n` +
-              `🏆 ***Earnings***: $${moneyEarned}💵 | EXP: +${expGain}\n` +
+              `✨ ***Level***: ${updatedCar.level} ${getDiff("level")}\n` +
+              `💵 **Worth**: ${formatCash(
+                calculateWorth(updatedCar)
+              )} (+${formatCash(Number(getDiff("worth")))})\n` +
+              `🏆 ***Earnings***: ${formatCash(
+                moneyEarned
+              )} | EXP: +${expGain}\n` +
               `${
                 isCarLowOnFuel(updatedCar)
                   ? "⚠️ **WARN**: Fuel is low! Refuel soon.\n"
@@ -757,7 +791,7 @@ export async function entry(ctx) {
 
           if (!targetCar) {
             return output.reply(
-              `🚗 Sorry **${name}**, usage: ${prefix}car race <car_name>`
+              `🏁 Sorry **${name}**, usage: ${prefix}car race <car_name>`
             );
           }
 
@@ -766,18 +800,19 @@ export async function entry(ctx) {
             .find((car) => car.name.toLowerCase() === targetCar.toLowerCase());
           if (!rawTargetCarData) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
+              `🏁 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
             );
           }
           const targetCarData = updateCarData(rawTargetCarData);
+          const before = { ...targetCarData };
           if (targetCarData.fuel < 20) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}** needs at least 20% fuel to race!`
+              `🏁 Sorry **${name}**, **${targetCarData.name}** needs at least 20% fuel to race!`
             );
           }
           if (targetCarData.condition < 30) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}** is too damaged to race! Repair it.`
+              `🏁 Sorry **${name}**, **${targetCarData.name}** is too damaged to race! Repair it.`
             );
           }
 
@@ -796,7 +831,7 @@ export async function entry(ctx) {
 
           if (targetCarData.fuel < fuelCost) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${
+              `🏁 Sorry **${name}**, **${
                 targetCarData.name
               }** needs ${fuelCost.toFixed(1)}% fuel to race!`
             );
@@ -831,6 +866,26 @@ export async function entry(ctx) {
             money: newMoney,
           });
 
+          /**
+           *
+           * @param {string} key
+           * @returns
+           */
+          function getDiff(key) {
+            const diff =
+              Number(
+                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+              ) -
+              Number(key === "worth" ? calculateWorth(before) : before[key]);
+            return key === "worth"
+              ? diff
+              : diff === 0
+              ? ""
+              : diff > 0
+              ? ` **(+${diff})**`
+              : ` **(${diff})**`;
+          }
+
           const resultText = playerWins
             ? `🏁 Victory! You beat them by ${(
                 opponentTime - playerTime
@@ -839,7 +894,7 @@ export async function entry(ctx) {
                 2
               )} minutes ahead.`;
           return output.reply(
-            `🚗 Thank you **${name}** for racing ${updatedCar.icon} **${updatedCar.name}**!\n\n` +
+            `🏁 Thank you **${name}** for racing ${updatedCar.icon} **${updatedCar.name}**!\n\n` +
               `🏎️ ***Race Results***:\n` +
               `🌤️ ***Weather***: ${weather}\n` +
               `🧭 ***Distance***: ${raceDistance} miles\n` +
@@ -848,9 +903,13 @@ export async function entry(ctx) {
               `⏱️ ***Your Time***: ${playerTime.toFixed(2)} min\n` +
               `⏱️ ***Rival Time***: ${opponentTime.toFixed(2)} min\n` +
               `${resultText}\n` +
-              `🏆 ***Reward***: $${reward}💵 | EXP: +${expGain}\n` +
-              `⛽ ***Fuel Left***: ${updatedCar.fuel.toFixed(1)}%\n` +
-              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(1)}%`
+              `🏆 ***Reward***: ${formatCash(reward)} | EXP: +${expGain}\n` +
+              `⛽ ***Fuel Left***: ${updatedCar.fuel.toFixed(1)}% ${getDiff(
+                "fuel"
+              )}\n` +
+              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(
+                1
+              )}% ${getDiff("condition")}`
           );
         },
       },
@@ -866,7 +925,7 @@ export async function entry(ctx) {
 
           if (!targetCar) {
             return output.reply(
-              `🚗 Sorry **${name}**, usage: ${prefix}car refuel <car_name> <fuel_key>`
+              `🏁 Sorry **${name}**, usage: ${prefix}car refuel <car_name> <fuel_key>`
             );
           }
 
@@ -875,13 +934,14 @@ export async function entry(ctx) {
             .find((car) => car.name.toLowerCase() === targetCar.toLowerCase());
           if (!rawTargetCarData) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
+              `🏁 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
             );
           }
           const targetCarData = updateCarData(rawTargetCarData);
+          const before = { ...targetCarData };
           if (targetCarData.fuel >= 100) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}**’s tank is already full!`
+              `🏁 Sorry **${name}**, **${targetCarData.name}**’s tank is already full!`
             );
           }
           if (isCooldownActive(targetCarData.lastAction)) {
@@ -893,14 +953,14 @@ export async function entry(ctx) {
                   (1000 * 60)
               );
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}** is on a refuel cooldown. Wait ${timeLeft} minutes.`
+              `🏁 Sorry **${name}**, **${targetCarData.name}** is on a refuel cooldown. Wait ${timeLeft} minutes.`
             );
           }
 
           const fuel = inventory.getOne(fuelKey);
           if (!fuel || fuel.type !== "fuel") {
             return output.reply(
-              `🚗 Sorry **${name}**, "${fuelKey}" isn’t a valid fuel! Check the shop for fuel.`
+              `🏁 Sorry **${name}**, "${fuelKey}" isn’t a valid fuel! Check the shop for fuel.`
             );
           }
 
@@ -921,11 +981,34 @@ export async function entry(ctx) {
             carsData: Array.from(carsData),
             inventory: Array.from(inventory),
           });
+          /**
+           *
+           * @param {string} key
+           * @returns
+           */
+          function getDiff(key) {
+            const diff =
+              Number(
+                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+              ) -
+              Number(key === "worth" ? calculateWorth(before) : before[key]);
+            return key === "worth"
+              ? diff
+              : diff === 0
+              ? ""
+              : diff > 0
+              ? ` **(+${diff})**`
+              : ` **(${diff})**`;
+          }
 
           return output.reply(
-            `🚗 Thank you **${name}** for refueling ${updatedCar.icon} **${updatedCar.name}** with ${fuel.icon} **${fuel.name}**!\n\n` +
-              `⛽ ***Fuel***: ${updatedCar.fuel.toFixed(1)}%\n` +
-              `🛞 ***Max Speed***: ${updatedCar.maxSpeed} mph\n` +
+            `🏁 Thank you **${name}** for refueling ${updatedCar.icon} **${updatedCar.name}** with ${fuel.icon} **${fuel.name}**!\n\n` +
+              `⛽ ***Fuel***: ${updatedCar.fuel.toFixed(1)}% ${getDiff(
+                "fuel"
+              )}\n` +
+              `🛞 ***Max Speed***: ${updatedCar.maxSpeed} mph ${getDiff(
+                "maxSpeed"
+              )}\n` +
               `⏳ ***Cooldown***: 5 minutes started`
           );
         },
@@ -938,7 +1021,7 @@ export async function entry(ctx) {
           const allPlayers = await money.getAll();
           if (!allPlayers || Object.keys(allPlayers).length === 0) {
             return output.reply(
-              `🚗 Sorry **${name}**, no cars are registered yet!`
+              `🏁 Sorry **${name}**, no cars are registered yet!`
             );
           }
 
@@ -963,20 +1046,20 @@ export async function entry(ctx) {
 
           if (allCars.length === 0) {
             return output.reply(
-              `🚗 Sorry **${name}**, no cars are in the system yet!`
+              `🏁 Sorry **${name}**, no cars are in the system yet!`
             );
           }
 
           allCars.sort((a, b) => b.worth - a.worth);
           const topCars = allCars.slice(0, Math.min(10, allCars.length));
 
-          let leaderboard = `🚗 Top Car Legends for **${name}**:\n\n`;
+          let leaderboard = `🏁 Top Car Legends for **${name}**:\n\n`;
           topCars.forEach((entry, index) => {
             const { owner, car, worth } = entry;
             leaderboard +=
               `${index + 1}. ${car.icon} **${car.name}** (${car.carType})\n` +
               `👤 ***Owner***: ${owner}\n` +
-              `💵 ***Worth***: $${worth}\n` +
+              `💵 **Worth**: ${formatCash(worth)}\n` +
               `✨ ***Level***: ${car.level}\n` +
               `🧭 ***Distance***: ${car.distance.toFixed(1)} miles\n\n`;
           });
@@ -996,11 +1079,11 @@ export async function entry(ctx) {
           const cars = carVentory.getAll();
           if (cars.length === 0) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have any cars to uncage! Visit the shop to get some.`
+              `🏁 Sorry **${name}**, you don’t have any cars to uncage! Visit the shop to get some.`
             );
           }
 
-          let carList = `🚗 Your Garaged Cars:\n\n`;
+          let carList = `🏁 Your Garaged Cars:\n\n`;
           cars.forEach((car, index) => {
             carList += `${index + 1}. ${car.icon} **${car.name}** [${
               car.key
@@ -1032,7 +1115,7 @@ export async function entry(ctx) {
 
           if (!carName || !upgradeKey) {
             return output.reply(
-              `🚗 Sorry **${name}**, usage: ${prefix}car upgrade <car_name> <upgrade_key>`
+              `🏁 Sorry **${name}**, usage: ${prefix}car upgrade <car_name> <upgrade_key>`
             );
           }
 
@@ -1041,17 +1124,18 @@ export async function entry(ctx) {
             .find((c) => c.name.toLowerCase() === carName.toLowerCase());
           if (!rawCar) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have a car named "${carName}"!`
+              `🏁 Sorry **${name}**, you don’t have a car named "${carName}"!`
             );
           }
           const car = updateCarData(rawCar);
+          const before = { ...car };
           const upgrade = inventory.getOne(upgradeKey);
           if (
             !upgrade ||
             (upgrade.type !== "upgrade" && upgrade.type !== "repair")
           ) {
             return output.reply(
-              `🚗 Sorry **${name}**, "${upgradeKey}" isn’t a valid upgrade or repair item!`
+              `🏁 Sorry **${name}**, "${upgradeKey}" isn’t a valid upgrade or repair item!`
             );
           }
 
@@ -1077,11 +1161,37 @@ export async function entry(ctx) {
             inventory: Array.from(inventory),
           });
 
+          /**
+           *
+           * @param {string} key
+           * @returns
+           */
+          function getDiff(key) {
+            const diff =
+              Number(
+                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+              ) -
+              Number(key === "worth" ? calculateWorth(before) : before[key]);
+            return key === "worth"
+              ? diff
+              : diff === 0
+              ? ""
+              : diff > 0
+              ? ` **(+${diff})**`
+              : ` **(${diff})**`;
+          }
+
           return output.reply(
-            `🚗 Thank you **${name}** for upgrading ${updatedCar.icon} **${updatedCar.name}** with ${upgrade.icon} **${upgrade.name}**!\n\n` +
-              `🛞 ***Max Speed***: ${updatedCar.maxSpeed} mph\n` +
-              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(1)}%\n` +
-              `💵 ***Worth***: $${calculateWorth(updatedCar)}`
+            `🏁 Thank you **${name}** for upgrading ${updatedCar.icon} **${updatedCar.name}** with ${upgrade.icon} **${upgrade.name}**!\n\n` +
+              `🛞 ***Max Speed***: ${updatedCar.maxSpeed} mph ${getDiff(
+                "maxSpeed"
+              )}\n` +
+              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(
+                1
+              )}% ${getDiff("condition")}\n` +
+              `💵 **Worth**: ${formatCash(
+                calculateWorth(updatedCar)
+              )} (+${formatCash(Number(getDiff("worth")))})`
           );
         },
       },
@@ -1097,7 +1207,7 @@ export async function entry(ctx) {
 
           if (!targetCar || !destination) {
             return output.reply(
-              `🚗 Sorry **${name}**, usage: ${prefix}car roadtrip <car_name> <destination>`
+              `🏁 Sorry **${name}**, usage: ${prefix}car roadtrip <car_name> <destination>`
             );
           }
 
@@ -1106,18 +1216,19 @@ export async function entry(ctx) {
             .find((car) => car.name.toLowerCase() === targetCar.toLowerCase());
           if (!rawTargetCarData) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
+              `🏁 Sorry **${name}**, you don’t have a car named "${targetCar}"!`
             );
           }
           const targetCarData = updateCarData(rawTargetCarData);
+          const before = { ...targetCarData };
           if (targetCarData.fuel < 50) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}** needs at least 50% fuel for a road trip!`
+              `🏁 Sorry **${name}**, **${targetCarData.name}** needs at least 50% fuel for a road trip!`
             );
           }
           if (targetCarData.condition < 50) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${targetCarData.name}** is too damaged for a road trip! Repair it.`
+              `🏁 Sorry **${name}**, **${targetCarData.name}** is too damaged for a road trip! Repair it.`
             );
           }
 
@@ -1129,7 +1240,7 @@ export async function entry(ctx) {
           const trip = destinations[destination.toLowerCase()];
           if (!trip) {
             return output.reply(
-              `🚗 Sorry **${name}**, valid destinations are: city, mountains, desert`
+              `🏁 Sorry **${name}**, valid destinations are: city, mountains, desert`
             );
           }
 
@@ -1141,7 +1252,7 @@ export async function entry(ctx) {
             trip.distance * 0.1 * conditionMod * (1 - targetCarData.durability);
           if (targetCarData.fuel < fuelCost) {
             return output.reply(
-              `🚗 Sorry **${name}**, **${
+              `🏁 Sorry **${name}**, **${
                 targetCarData.name
               }** needs ${fuelCost.toFixed(1)}% fuel for the trip!`
             );
@@ -1167,15 +1278,39 @@ export async function entry(ctx) {
             money: newMoney,
           });
 
+          /**
+           *
+           * @param {string} key
+           * @returns
+           */
+          function getDiff(key) {
+            const diff =
+              Number(
+                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+              ) -
+              Number(key === "worth" ? calculateWorth(before) : before[key]);
+            return key === "worth"
+              ? diff
+              : diff === 0
+              ? ""
+              : diff > 0
+              ? ` **(+${diff})**`
+              : ` **(${diff})**`;
+          }
+
           return output.reply(
-            `🚗 Thank you **${name}** for taking ${updatedCar.icon} **${updatedCar.name}** on a road trip!\n\n` +
+            `🏁 Thank you **${name}** for taking ${updatedCar.icon} **${updatedCar.name}** on a road trip!\n\n` +
               `🌍 ***Road Trip Details***:\n` +
               `📍 ***Destination***: ${destination}\n` +
               `🧭 ***Distance***: ${trip.distance} miles\n` +
               `🌤️ ***Weather***: ${weather}\n` +
-              `⛽ ***Fuel Left***: ${updatedCar.fuel.toFixed(1)}%\n` +
-              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(1)}%\n` +
-              `🏆 ***Reward***: $${trip.reward}💵 | EXP: +${trip.exp}`
+              `⛽ ***Fuel Left***: ${updatedCar.fuel.toFixed(1)}% ${getDiff(
+                "fuel"
+              )}\n` +
+              `🛠️ ***Condition***: ${updatedCar.condition.toFixed(
+                1
+              )}% ${getDiff("condition")}\n` +
+              `🏆 ***Reward***: ${formatCash(trip.reward)} | EXP: +${trip.exp}`
           );
         },
       },
@@ -1190,7 +1325,7 @@ export async function entry(ctx) {
 
           if (!carName || !action) {
             return output.reply(
-              `🚗 Sorry **${name}**, usage: ${prefix}car crew <car_name> <add|remove> <member>`
+              `🏁 Sorry **${name}**, usage: ${prefix}car crew <car_name> <add|remove> <member>`
             );
           }
 
@@ -1199,43 +1334,43 @@ export async function entry(ctx) {
             .find((c) => c.name.toLowerCase() === carName.toLowerCase());
           if (!rawCar) {
             return output.reply(
-              `🚗 Sorry **${name}**, you don’t have a car named "${carName}"!`
+              `🏁 Sorry **${name}**, you don’t have a car named "${carName}"!`
             );
           }
           const car = updateCarData(rawCar);
           if (action === "add") {
             if (!member) {
               return output.reply(
-                `🚗 Sorry **${name}**, please specify a member to add!`
+                `🏁 Sorry **${name}**, please specify a member to add!`
               );
             }
             if (car.crew.length >= 3) {
               return output.reply(
-                `🚗 Sorry **${name}**, **${car.name}**’s crew is full (max 3 members)!`
+                `🏁 Sorry **${name}**, **${car.name}**’s crew is full (max 3 members)!`
               );
             }
             if (car.crew.includes(member)) {
               return output.reply(
-                `🚗 Sorry **${name}**, **${member}** is already in **${car.name}**’s crew!`
+                `🏁 Sorry **${name}**, **${member}** is already in **${car.name}**’s crew!`
               );
             }
             car.crew.push(member);
           } else if (action === "remove") {
             if (!member) {
               return output.reply(
-                `🚗 Sorry **${name}**, please specify a member to remove!`
+                `🏁 Sorry **${name}**, please specify a member to remove!`
               );
             }
             const index = car.crew.indexOf(member);
             if (index === -1) {
               return output.reply(
-                `🚗 Sorry **${name}**, **${member}** isn’t in **${car.name}**’s crew!`
+                `🏁 Sorry **${name}**, **${member}** isn’t in **${car.name}**’s crew!`
               );
             }
             car.crew.splice(index, 1);
           } else {
             return output.reply(
-              `🚗 Sorry **${name}**, please use "add" or "remove" for the action!`
+              `🏁 Sorry **${name}**, please use "add" or "remove" for the action!`
             );
           }
 
@@ -1249,7 +1384,7 @@ export async function entry(ctx) {
           });
 
           return output.reply(
-            `🚗 Thank you **${name}** for updating the crew for ${updatedCar.icon} **${updatedCar.name}**!\n\n` +
+            `🏁 Thank you **${name}** for updating the crew for ${updatedCar.icon} **${updatedCar.name}**!\n\n` +
               `👥 ***Crew***: ${
                 updatedCar.crew.length ? updatedCar.crew.join(", ") : "None"
               }`

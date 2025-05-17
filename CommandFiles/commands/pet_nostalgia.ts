@@ -1,17 +1,15 @@
-// @ts-check
 import { Inventory } from "@cassidy/ut-shop";
 import { CassEXP } from "../modules/cassEXP.js";
 import { clamp, UNIRedux } from "../modules/unisym.js";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
+import { InventoryItem } from "@cass-modules/cassidyUser";
+import { formatCash } from "@cass-modules/ArielUtils";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
+export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
-  version: "1.6.3",
+  version: "1.6.6",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -25,41 +23,22 @@ export const meta = {
 };
 export const PET_LIMIT = 7;
 
-/**
- *
- * @param {CommandContext & { repObj: { petsData: Inventory; newMoney: number; price: number; author: string; petToSell: UserData["petsData"][number]; code: string; petSells: number } }} param0
- * @returns
- */
-async function confirmSell({ input, output, repObj, money }) {
-  const { petsData, newMoney, price, author, petToSell, code, petSells } =
-    repObj;
-
-  if (author !== input.senderID) {
-    return;
-  }
-  if (input.body.trim() !== code.trim()) {
-    return output.reply(`❌ Wrong code.`);
-  }
-
-  petsData.deleteOne(petToSell.key);
-  await money.setItem(input.senderID, {
-    money: newMoney,
-    // @ts-ignore
-    petsData: Array.from(petsData),
-    petSells,
-  });
-
-  return output.reply(
-    `😥${petToSell.icon} You successfully sold **${petToSell.name}** for $${price}💵`
-  );
-}
-
-/**
- *
- * @param {CommandContext & { repObj: { author: string; inventory: Inventory; petVentory: Inventory; type: string; detectID: string; item: import("@cass-modules/cassidyUser").InventoryItem } }} param0
- * @returns
- */
-async function uncageReply({ input, output, Inventory, money, repObj }) {
+async function uncageReply({
+  input,
+  output,
+  Inventory,
+  money,
+  repObj,
+}: CommandContext & {
+  repObj: {
+    author: string;
+    inventory: Inventory;
+    petVentory: Inventory;
+    type: string;
+    detectID: string;
+    item: InventoryItem;
+  };
+}) {
   const { author, inventory, petVentory, type, detectID } = repObj;
   const { name = "Unregistered", petsData: rawPetsData = [] } =
     await money.getItem(input.senderID);
@@ -140,12 +119,21 @@ async function uncageReply({ input, output, Inventory, money, repObj }) {
   }
 }
 
-/**
- *
- * @param {CommandContext & { repObj: { author: string; petVentory: Inventory; type: string; detectID: string; item: import("@cass-modules/cassidyUser").InventoryItem } }} param0
- * @returns
- */
-async function renameReply({ input, output, Inventory, money, repObj }) {
+async function renameReply({
+  input,
+  output,
+  Inventory,
+  money,
+  repObj,
+}: CommandContext & {
+  repObj: {
+    author: string;
+    petVentory: Inventory;
+    type: string;
+    detectID: string;
+    item: InventoryItem;
+  };
+}) {
   const { author, petVentory, type, detectID } = repObj;
   const {
     name = "Unregistered",
@@ -225,10 +213,7 @@ async function renameReply({ input, output, Inventory, money, repObj }) {
   }
 }
 
-/**
- * @type {CassidySpectra.CommandStyle}
- */
-export const style = {
+export const style: CassidySpectra.CommandStyle = {
   title: {
     content: "🐕 Pet",
     text_font: "bold",
@@ -239,6 +224,7 @@ export const style = {
     content: "",
   },
 };
+
 const petFoodsII = [
   {
     icon: "🌈",
@@ -844,7 +830,7 @@ function petHungryAfter(pet) {
  * @param {any} petData
  * @returns {UserData["petsData"][number]}
  */
-export function autoUpdatePetData(petData) {
+export function autoUpdatePetData(petData: any): UserData["petsData"][number] {
   const { lastExp = 0 } = petData;
 
   petData.level = lastExp < 10 ? 1 : Math.floor(Math.log2(lastExp / 10)) + 1;
@@ -1074,12 +1060,22 @@ const petShop = {
   ],
 };
 
-/**
- *
- * @param {CommandContext & { repObj: { petsData: Inventory; newMoney: number; price: number; author: string; petToSell: import("@cass-modules/cassidyUser").InventoryItem; code: string; petSells: number; } }} param0
- * @returns
- */
-async function confirmSell({ input, output, repObj, money }) {
+async function confirmSell({
+  input,
+  output,
+  repObj,
+  money,
+}: CommandContext & {
+  repObj: {
+    petsData: Inventory;
+    newMoney: number;
+    price: number;
+    author: string;
+    petToSell: InventoryItem;
+    code: string;
+    petSells: number;
+  };
+}) {
   const { petsData, newMoney, price, author, petToSell, code, petSells } =
     repObj;
   if (author !== input.senderID) {
@@ -1097,16 +1093,13 @@ async function confirmSell({ input, output, repObj, money }) {
     petSells,
   });
   return output.reply(
-    `😥${petToSell.icon} You successfully sold **${petToSell.name}** for $${price}💵`
+    `😥${petToSell.icon} You successfully sold **${
+      petToSell.name
+    }** for ${formatCash(price)}`
   );
 }
 
-/**
- *
- * @param {CommandContext} ctx
- * @returns
- */
-export async function entry(ctx) {
+export async function entry(ctx: CommandContext) {
   const {
     input,
     output,
@@ -1140,7 +1133,7 @@ export async function entry(ctx) {
         description: "View pet gear and stats",
         aliases: ["-g"],
         args: ["[pet_name]"],
-        async handler(_) {
+        async handler(_, __) {
           const petsData = new Inventory(rawPetsData);
           const gearsData = new GearsManage(rawGearsData);
           petsData
@@ -1225,7 +1218,7 @@ export async function entry(ctx) {
 🗃️ ***Type***: ${pet.petType ?? "Unknown"}
 🧭 ***Level***: ${pet.level ?? 1}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${calculateWorth(pet)}$\n\n`;
+💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
           }
           result += `Type **${prefix}pet-gear <pet name>** to view the stats, gears, and spells of a specific pet.`;
           return output.reply(result);
@@ -1236,7 +1229,7 @@ export async function entry(ctx) {
         description: "Sell a pet",
         aliases: ["-s"],
         args: ["<pet_name>"],
-        async handler(_) {
+        async handler(_, __) {
           const petsData = new Inventory(rawPetsData);
           const gearsData = new GearsManage(rawGearsData);
           const nameToSell = String(args[0]);
@@ -1279,7 +1272,9 @@ export async function entry(ctx) {
 
 [font=typewriter]${code}[:font=typewriter]
 
-You are going to sell ${petToSell.icon} **${petToSell.name}** for $${price}💵`
+You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
+              price
+            )}`
           );
           input.setReply(i.messageID, {
             petsData,
@@ -1299,7 +1294,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${price}💵`
         key: "shop",
         description: "Visit the basic pet shop",
         aliases: ["-sh"],
-        async handler(_) {
+        async handler(_, __) {
           const bundle = {
             icon: "🐾",
             name: "Pet Bundle ☆ (Basic)",
@@ -1330,8 +1325,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${price}💵`
         key: "shopx",
         description: "Visit the advanced pet shop",
         aliases: ["-sx"],
-        // @ts-ignore
-        async handler(_) {
+        async handler(_, __) {
           const bundle = {
             icon: "⭐",
             name: "Pet Bundle ☆ (Tier 2)",
@@ -1398,8 +1392,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${price}💵`
         description: "Feed a pet",
         aliases: ["-f"],
         args: ["<pet_name>", "<food_key | --auto>"],
-        // @ts-ignore
-        async handler(_) {
+        async handler(_, __) {
           const petsData = new Inventory(rawPetsData);
           const inventory = new Inventory(rawInventory);
           const cassEXP = new CassEXP(cxp);
@@ -1517,7 +1510,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
            * @param {string} key
            * @returns
            */
-          function getDiff(key) {
+          function getDiff(key: string) {
             const diff =
               Number(
                 key === "worth" ? calculateWorth(updatedPet) : updatedPet[key]
@@ -1525,7 +1518,9 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
               Number(
                 key === "worth" ? calculateWorth(originalPet) : originalPet[key]
               );
-            return diff === 0
+            return key === "worth"
+              ? diff
+              : diff === 0
               ? ""
               : diff > 0
               ? ` **(+${diff})**`
@@ -1548,7 +1543,9 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
 ✨ ***Exp***: ${updatedPet.lastExp ?? 0}/${calculateNextExp(
             updatedPet
           )} ${getDiff("lastExp")}
-💵 **Worth**: ${calculateWorth(updatedPet)}$ ${getDiff("worth")}
+💵 **Worth**: ${formatCash(calculateWorth(updatedPet))} (+${formatCash(
+            Number(getDiff("worth"))
+          )})
 🍽️ ***Hungry ${
             hungryAfter >= 0 ? `After` : `Since`
           }***: ${global.utils.convertTimeSentence(
@@ -1577,7 +1574,6 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         description: "View top pets leaderboard",
         aliases: ["-t"],
         args: ["[page]"],
-        // @ts-ignore
         async handler(_, __) {
           let page = parseInt(args[0]) ?? 1;
           if (isNaN(page)) page = 1;
@@ -1661,7 +1657,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
 🗃️ ***Type***: ${pet.petType ?? "Unknown"}
 🧭 ***Level***: ${pet.level ?? 1}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${calculateWorth(pet)}$\n\n`;
+💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
             num++;
           }
           result += `Type **${prefix}pet-top ${
@@ -1674,7 +1670,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         key: "list",
         description: "List your pets",
         aliases: ["-l"],
-        async handler(_) {
+        async handler(_, __) {
           const gearsData = new GearsManage(rawGearsData);
           const petsData = new Inventory(rawPetsData);
           const pets = petsData.getAll();
@@ -1690,7 +1686,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
 🗃️ ***Type***: ${pet.petType}
 🧭 ***Level***: ${pet.level}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${calculateWorth(pet)}$
+💵 **Worth**: ${formatCash(calculateWorth(pet))}
 🍽️ ***Hungry ${
               hungryAfter >= 0 ? `After` : `Since`
             }***: ${global.utils.convertTimeSentence(
@@ -1726,9 +1722,9 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
 
           let petList = ``;
           pets.forEach((pet, index) => {
-            petList += `${index + 1}. ${pet.icon} **${pet.name}** [${
+            petList += `${index + 1}. ${pet.icon} **${pet.name}** (${
               pet.key
-            }]\n${UNIRedux.charm} ${pet.flavorText}\n`;
+            })\n${UNIRedux.charm} ${pet.flavorText}\n`;
           });
           const i = await output.reply(
             `🐾 Here are your caged pets:\n\n${petList}\n\n🐾 Which pet would you like to uncage? Reply with a number!`
@@ -1749,7 +1745,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         key: "rename",
         description: "Rename a pet using a Dog Tag",
         aliases: ["-r"],
-        async handler(_) {
+        async handler(_, __) {
           const inventory = new Inventory(rawInventory);
           const petsData = new Inventory(rawPetsData);
           if (!inventory.has("dogTag")) {
@@ -1764,9 +1760,9 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
 
           let petList = "";
           pets.forEach((pet, index) => {
-            petList += `${index + 1}. ${pet.icon} **${pet.name}** [${
+            petList += `${index + 1}. ${pet.icon} **${pet.name}** (${
               pet.key
-            }]\n${UNIRedux.charm} ${pet.flavorText}\n`;
+            })\n${UNIRedux.charm} ${pet.flavorText}\n`;
           });
           const i = await output.reply(
             `🐾 Here are your pets:\n\n${petList}\n\n🐾 Which pet would you like to rename? Reply with a number!`
@@ -1789,8 +1785,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         description: "Assign pets to a car (max 5)",
         aliases: ["-ac"],
         args: ["<car_name>", "<...pet_names>"],
-        // @ts-ignore
-        async handler(_) {
+        async handler(_, __) {
           const petsData = new Inventory(rawPetsData || []);
           const carsData = new Inventory(rawCarsData || []);
           const [carName, ...petNames] = args;
@@ -1893,7 +1888,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         description: "View pets assigned to cars",
         aliases: ["-pc"],
         args: ["[car_name]"],
-        async handler(_) {
+        async handler(_, __) {
           const petsData = new Inventory(rawPetsData || []);
           const carsData = new Inventory(rawCarsData || []);
           const gearsData = new GearsManage(rawGearsData || []);
@@ -1922,7 +1917,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
 
             let result = `${UNIRedux.charm} Cars with Pets of **${name}**\n\n`;
             for (const car of cars) {
-              const petIcons = (car.pets || [])
+              const petIcons = ((car.pets ?? []) as any[])
                 .map((petId) => {
                   const pet = petsData.getOne(petId);
                   return pet && pet.icon ? pet.icon : "🐾";
@@ -1980,7 +1975,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
 🗃️ ***Type***: ${updatedPet.petType}
 🧭 ***Level***: ${updatedPet.level}
 ✨ ***Exp***: ${updatedPet.lastExp ?? 0}/${calculateNextExp(updatedPet)}
-💵 **Worth**: ${calculateWorth(updatedPet)}$
+💵 **Worth**: ${formatCash(calculateWorth(updatedPet))}
 🍽️ ***Hungry ${
               hungryAfter >= 0 ? `After` : `Since`
             }***: ${global.utils.convertTimeSentence(

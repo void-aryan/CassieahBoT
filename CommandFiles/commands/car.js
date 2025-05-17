@@ -134,7 +134,7 @@ async function uncageReply({ input, output, Inventory, money, repObj }) {
 }
 
 export const style = {
-  title: "NicaBoT CarSim 🚗",
+  title: "NicaBoT CarSim (Outdated) 🚗",
   titleFont: "fancy",
   contentFont: "fancy",
 };

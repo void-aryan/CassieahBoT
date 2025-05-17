@@ -8,7 +8,7 @@ import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
  */
 export const meta = {
   name: "petnica",
-  description: "Manage your pets!",
+  description: "Manage your pets! (Outdated)",
   otherNames: ["p", "pet"],
   version: "1.6.1",
   usage: "{prefix}{name}",
@@ -218,7 +218,7 @@ async function renameReply({ input, output, Inventory, money, repObj }) {
 }
 
 export const style = {
-  title: "Pet 🐕",
+  title: "Pet (Outdated) 🐕",
   titleFont: "bold",
   contentFont: "fancy",
 };
