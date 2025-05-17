@@ -5,7 +5,7 @@ import { abbreviateNumber } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.6",
+  version: "2.0.8",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -867,7 +867,7 @@ export class PetPlayer {
     return scalingFactor;
   }
 
-  calculateTakenDamage(damage) {
+  calculateTakenDamageOld2(damage) {
     let result = damage;
     // const df = this.DF * (1 / 5);
     //result = Math.floor(result - df);
@@ -881,6 +881,18 @@ export class PetPlayer {
           (1 + (Math.random() * DAMAGE_VARIABILITY - DAMAGE_VARIABILITY / 2))) /
           1.2
     );
+    const scalingFactor = PetPlayer.calculateExtraTakenDamage(this.HP);
+
+    result = Math.floor(result * scalingFactor);
+    result = Math.max(result, 1);
+
+    return result;
+  }
+
+  calculateTakenDamage(damage) {
+    let result = damage;
+
+    result = Math.floor(this.calculateReducedDamage(damage, this.DF * 2));
     const scalingFactor = PetPlayer.calculateExtraTakenDamage(this.HP);
 
     result = Math.floor(result * scalingFactor);
@@ -1183,9 +1195,13 @@ export class PetPlayer {
     const extra = Math.round((sellPrice ?? 0) / 500) * 10;
     return Math.floor(20 + 4 * (level - 1)) + extra;
   }
-  static getHPOf(level, sellPrice) {
+  static getHPOfOld2(level, sellPrice) {
     const extra = Math.round((sellPrice ?? 0) / 700) * 10;
     return Math.floor(20 + 4 * (level - 1)) + extra;
+  }
+  static getHPOf(level, sellPrice) {
+    const extra = Math.round((sellPrice ?? 0) / 200) * 17;
+    return Math.floor(20 + 5 * (level - 1)) + extra;
   }
   static getExtraDFOf(level) {
     return Math.floor((level - 1) / 2);

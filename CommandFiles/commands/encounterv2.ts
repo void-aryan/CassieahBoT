@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "encounterv2",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounter", "enc"],
-  version: "2.1.2",
+  version: "2.1.3",
   usage: "{prefix}{name}",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -1007,8 +1007,9 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**`,
       Number(Math.round(gameState.opponent.goldFled ?? 0) * multiplier) +
       (userData.money ?? 0);
     const collectibles = new ctx.Collectibles(userData.collectibles ?? []);
+    const wonDias = (gameState.opponent.winDias ?? 0) * 10;
     if (collectibles.has("gems")) {
-      collectibles.raise("gems", gameState.opponent.winDias ?? 0);
+      collectibles.raise("gems", wonDias);
     }
     await ctx.money.setItem(input.senderID, {
       money: newMoney,
@@ -1023,8 +1024,8 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**`,
             ? gameState.opponent.spareText()
             : gameState.opponent.fledText()
         }\nObtained **${pts} 💷 Battle Points!**\n${
-          gameState.opponent.winDias && collectibles.has("gems")
-            ? `You also won **${gameState.opponent.winDias}** 💎!`
+          wonDias && collectibles.has("gems")
+            ? `You also won **${wonDias}** 💎!`
             : ""
         }`,
       style
