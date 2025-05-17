@@ -18,43 +18,19 @@ import { CassEXP } from "./CommandFiles/modules/cassEXP.js";
 import type { GameSimulator } from "./CommandFiles/types/gamesimu.d.ts";
 import GlobalUtilsX from "./CommandFiles/types/utils-type";
 import type * as UNIUtils from "@cass-modules/unisym";
+import * as _CassidyUser from "./CommandFiles/modules/cassidyUser";
 
 declare global {
   var package: typeof import("./package.json");
   var logger: typeof import("./Cassidy.js").logger;
-  interface FactoryConfig {
-    title: string;
-    key: string;
-    init: {
-      slot: number;
-      proc: number;
-    };
-    upgrades: {
-      slot: number;
-      proc: number;
-    };
-    recipes: Recipe[];
-  }
 
-  interface Recipe {
-    name: string;
-    icon: string;
-    levelRequirement: number;
-    waitingTime: number;
-    ingr: IngredientGroup[];
-    result: any;
-  }
+  interface CommandMeta extends CassidySpectra.CommandMeta {}
+  interface Command extends CassidySpectra.CassidyCommand {}
+  interface CassidyCommand extends CassidySpectra.CassidyCommand {}
 
-  type IngredientGroup = Ingredient | Ingredient[];
-
-  interface Ingredient {
-    name: string;
-    icon: string;
-    amount: number;
-    key: string;
-  }
-  interface InventoryConstructor extends Inventory {}
-  interface GameSimulatorConstructor extends GameSimulator {}
+  type InventoryConstructor = typeof Inventory;
+  type CollectiblesConstructor = typeof Collectibles;
+  type GameSimulatorConstructor = typeof GameSimulator;
 
   export type AnyRecord = Record<string, any>;
 
@@ -805,6 +781,9 @@ declare global {
     export type InventoryConstructor = typeof Inventory;
     export type CollectiblesConstructor = typeof Collectibles;
 
+    export { _CassidyUser as CassidyUser };
+    export { _CassidyUser as User };
+
     export interface CassidyCommand {
       meta: CommandMeta;
       entry: CommandEntry;
@@ -1015,6 +994,38 @@ declare global {
   export interface Output extends OutputX {}
   export interface Input extends InputClass {}
   export interface OutputResultC extends OutputResult {}
+
+  interface FactoryConfig {
+    title: string;
+    key: string;
+    init: {
+      slot: number;
+      proc: number;
+    };
+    upgrades: {
+      slot: number;
+      proc: number;
+    };
+    recipes: Recipe[];
+  }
+
+  interface Recipe {
+    name: string;
+    icon: string;
+    levelRequirement: number;
+    waitingTime: number;
+    ingr: IngredientGroup[];
+    result: any;
+  }
+
+  type IngredientGroup = Ingredient | Ingredient[];
+
+  interface Ingredient {
+    name: string;
+    icon: string;
+    amount: number;
+    key: string;
+  }
 
   var defineCommand: typeof CassDefine.defineCommand;
   var easyCMD: typeof CassDefine.easyCMD;
