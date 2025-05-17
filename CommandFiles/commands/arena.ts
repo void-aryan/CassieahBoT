@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.2.8",
+  version: "1.2.9",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -156,13 +156,15 @@ function generateAIMove(
 ): string {
   const RANDOMNESS_BASE = 0.15;
   const ENDGAME_RANDOMNESS_REDUCTION = 0.05;
-  const CRITICAL_HP_THRESHOLD = 25;
+  const CRITICAL_HP_THRESHOLD = 30;
+  const URGENT_HP_THRESHOLD = 20;
   const HP_DIFF_THRESHOLD = 15;
   const DEFENSE_BOOST_CAP = 3;
   const ATTACK_BOOST_CAP = 3;
   const HEAL_DIMINISHING_FACTOR = 0.25;
   const MAX_TURN_WEIGHT = 0.9;
   const DODGE_RISK_BASE = 0.08;
+  const DAMAGE_THRESHOLD = 0.05;
   const DODGE_RISK_MODIFIERS = {
     bash: 0.65,
     hexsmash: 0.65,
@@ -181,6 +183,7 @@ function generateAIMove(
     "statsync",
     "equilibrium",
   ];
+
   const currentHPPercent = activePet.getPercentHP();
   const targetHPPercent = targetPet.getPercentHP();
   const hpDifference = targetHPPercent - currentHPPercent;
@@ -202,15 +205,12 @@ function generateAIMove(
     0.5,
     1 - petStats.defenseBoosts * 0.25
   );
-  const attackAdvantage =
-    (activePet.ATK + activePet.atkModifier) /
-    (targetPet.DF + targetPet.defModifier || 1);
-  const defenseDisadvantage =
-    (activePet.DF + activePet.defModifier) /
-    (targetPet.DF + targetPet.defModifier || 1);
+  const attackAdvantage = activePet.ATK / (targetPet.DF || 1);
+  const defenseDisadvantage = activePet.DF / (targetPet.DF || 1);
   const magicAdvantage = activePet.MAGIC / (targetPet.MAGIC || 1);
   const levelDifference = activePet.level - targetPet.level;
   const statThreshold = activePet.level * 2.5;
+
   const opponentStats =
     gameState.player1Pet && gameState.player2Pet
       ? gameState.activePlayer === 2
@@ -229,11 +229,35 @@ function generateAIMove(
     : 0;
   const opponentAttackBoosts = opponentStats ? opponentStats.attackBoosts : 0;
   const opponentDefenseBoosts = opponentStats ? opponentStats.defenseBoosts : 0;
+
   const moveHistory = {
     player: gameState.prevMove1,
     ai: gameState.prevMove2,
   };
-  const repeatedMovePenalty = prevMove === petStats.lastMove ? 0.25 : 1;
+
+  const isHighOpponentAttack = targetPet.ATK > activePet.DF / 5;
+  const isLowDefense = activePet.DF / 5 < targetPet.ATK;
+
+  const calculateAverageAttack = (
+    attacker: PetPlayer,
+    defenderDF: number,
+    attackStat?: number
+  ): number => {
+    let totalDamage = 0;
+    for (let i = 0; i < 20; i++) {
+      totalDamage += attacker.calculateAttack(defenderDF, attackStat);
+    }
+    return Math.round(totalDamage / 20);
+  };
+
+  const isLowDamageOutput = () => {
+    const avgBashDamage = calculateAverageAttack(activePet, targetPet.DF);
+    return avgBashDamage < targetPet.maxHP * DAMAGE_THRESHOLD;
+  };
+
+  const opponentAvgDamage = calculateAverageAttack(targetPet, activePet.DF);
+  const shouldPrioritizeStatSync = isHighOpponentAttack || isLowDamageOutput();
+
   type AIMood = "aggressive" | "defensive" | "balanced";
   let currentMood: AIMood = "balanced";
   if (Math.random() < MOOD_SHIFT_CHANCE) {
@@ -249,23 +273,21 @@ function generateAIMove(
   } else if (targetHPPercent < 30 && isEndgame) {
     currentMood = "aggressive";
   }
+
   const calculateBashDamage = (): number => {
-    return Math.round(
-      activePet.calculateAttack(targetPet.DF + targetPet.defModifier)
-    );
+    return calculateAverageAttack(activePet, targetPet.DF);
   };
+
   const calculateHexSmashDamage = (): number => {
     const meanStat = Math.min(
-      (activePet.ATK + activePet.atkModifier + activePet.MAGIC) / 2,
-      (activePet.ATK + activePet.atkModifier) * 3
+      (activePet.ATK + activePet.MAGIC) / 2,
+      activePet.ATK * 3
     );
     return Math.round(
-      activePet.calculateAttack(
-        targetPet.DF + targetPet.defModifier,
-        meanStat
-      ) * 1.5
+      calculateAverageAttack(activePet, targetPet.DF, meanStat) * 1.5
     );
   };
+
   const calculateFluxStrikeDamage = (): number => {
     const damageFactor = Math.max(
       0.5,
@@ -273,31 +295,21 @@ function generateAIMove(
     );
     const fluxMultiplier =
       1 + 0.5 * (targetPet.HP / targetPet.maxHP) * damageFactor;
-    return Math.round(
-      (activePet.ATK + activePet.atkModifier) * fluxMultiplier -
-        (targetPet.DF + targetPet.defModifier) / 5
-    );
+    return Math.round(activePet.ATK * fluxMultiplier - targetPet.DF / 5);
   };
+
   const calculateChaosBoltDamage = (): number => {
     const statFactor = Math.min(
-      (activePet.ATK + activePet.atkModifier + activePet.MAGIC) / statThreshold,
+      (activePet.ATK + activePet.MAGIC) / statThreshold,
       1
     );
-    const effectiveStat = Math.max(
-      activePet.ATK + activePet.atkModifier,
-      activePet.MAGIC / 2
-    );
-    let damage = Math.round(
-      activePet.calculateAttack(
-        targetPet.DF + targetPet.defModifier,
-        effectiveStat
-      ) * statFactor
-    );
+    const effectiveStat = Math.max(activePet.ATK, activePet.MAGIC / 2);
+    let damage =
+      calculateAverageAttack(activePet, targetPet.DF, effectiveStat) *
+      statFactor;
     const chaosChance =
       Math.min(
-        ((activePet.ATK + activePet.atkModifier + activePet.MAGIC) /
-          (targetPet.DF + targetPet.defModifier || 1)) *
-          0.25,
+        ((activePet.ATK + activePet.MAGIC) / (targetPet.DF || 1)) * 0.25,
         0.35
       ) *
       (1 - petStats.attackBoosts * 0.15);
@@ -306,6 +318,7 @@ function generateAIMove(
     }
     return Math.min(damage, Math.round(targetPet.maxHP * 0.3));
   };
+
   const calculateEquilibriumEffect = (): { damage: number; heal: number } => {
     const eqFactor = Math.min(
       1 + petStats.totalDamageTaken / (activePet.maxHP * 2),
@@ -313,21 +326,22 @@ function generateAIMove(
     );
     const hpDiff = targetPet.getPercentHP() - activePet.getPercentHP();
     if (hpDiff <= 0) return { damage: 0, heal: 0 };
-    const attackStat = activePet.ATK + activePet.atkModifier + activePet.MAGIC;
-    const defenseStat = activePet.DF + activePet.defModifier + activePet.MAGIC;
+    const attackStat = activePet.ATK + activePet.MAGIC;
+    const defenseStat = activePet.DF + activePet.MAGIC;
     const attackFactor = Math.min(attackStat / statThreshold, 1);
     const defenseFactor = Math.min(defenseStat / statThreshold, 1);
     const damage = Math.round(
-      activePet.calculateAttack(
-        targetPet.DF + targetPet.defModifier,
-        (activePet.ATK + activePet.atkModifier + activePet.MAGIC) / 2
+      calculateAverageAttack(
+        activePet,
+        targetPet.DF,
+        (activePet.ATK + activePet.MAGIC) / 2
       ) *
         (hpDiff / 100) *
         eqFactor *
         attackFactor
     );
     const heal = Math.round(
-      ((activePet.DF + activePet.defModifier + activePet.MAGIC) / 4) *
+      ((activePet.DF + activePet.MAGIC) / 4) *
         (hpDiff / 100) *
         eqFactor *
         defenseFactor +
@@ -340,6 +354,7 @@ function generateAIMove(
       heal: Math.min(heal, activePet.maxHP - activePet.HP, maxHeal),
     };
   };
+
   const calculateVitalSurgeHeal = (): number => {
     const healFactor = Math.min(
       1.6,
@@ -350,24 +365,22 @@ function generateAIMove(
     );
     return Math.min(surgeHeal, activePet.maxHP - activePet.HP);
   };
+
   const calculateGuardPulseBoost = (): number => {
     const guardFactor = Math.max(0.5, 1 - petStats.defenseBoosts * 0.3);
     return Math.round(
-      (activePet.DF + activePet.defModifier) *
-        (1 - activePet.HP / activePet.maxHP) *
-        1.8 *
-        guardFactor
+      activePet.DF * (1 - activePet.HP / activePet.maxHP) * 1.8 * guardFactor
     );
   };
+
   const calculateStatSyncBoost = (): number => {
     const syncFactor = Math.max(0.5, 1 - petStats.attackBoosts * 0.3);
     return Math.round(
       Math.max(
         0,
         Math.min(
-          (activePet.DF + activePet.defModifier + 1) *
-            ((targetPet.DF + targetPet.defModifier) /
-              (activePet.DF + activePet.defModifier || 1)) *
+          (activePet.DF + 1) *
+            (targetPet.DF / (activePet.DF || 1)) *
             0.5 *
             syncFactor,
           activePet.level * 2.5
@@ -375,6 +388,7 @@ function generateAIMove(
       )
     );
   };
+
   const assessDodgeRisk = (move: string): number => {
     if (prevMove === move) {
       return (
@@ -384,11 +398,20 @@ function generateAIMove(
     }
     return DODGE_RISK_BASE;
   };
+
   const assessCriticalSituation = (): boolean => {
     return (
-      currentHPPercent < CRITICAL_HP_THRESHOLD && activePet.HP < activePet.maxHP
+      currentHPPercent <= CRITICAL_HP_THRESHOLD &&
+      activePet.HP < activePet.maxHP
     );
   };
+
+  const assessUrgentSituation = (): boolean => {
+    return (
+      currentHPPercent <= URGENT_HP_THRESHOLD && activePet.HP < activePet.maxHP
+    );
+  };
+
   const assessEndgamePressure = (): number => {
     if (isEndgame) {
       const hpRatio = currentHPPercent / (targetHPPercent || 1);
@@ -396,9 +419,11 @@ function generateAIMove(
     }
     return 0;
   };
+
   const randomnessFactor = isEndgame
     ? Math.max(0.05, RANDOMNESS_BASE - ENDGAME_RANDOMNESS_REDUCTION)
     : RANDOMNESS_BASE + (isEarlyGame ? 0.1 : 0);
+
   const predictOpponentMove = (): string => {
     if (!moveHistory.player)
       return moves[Math.floor(Math.random() * moves.length)];
@@ -418,6 +443,14 @@ function generateAIMove(
     if (lastMove === "statsync" && Math.random() < 0.6) {
       return "guardpulse";
     }
+    if (lastMove === "vitalsurge" && Math.random() < 0.5) {
+      return ["bash", "hexsmash", "fluxstrike", "chaosbolt"][
+        Math.floor(Math.random() * 4)
+      ];
+    }
+    if (lastMove === "equilibrium" && Math.random() < 0.5) {
+      return "guardpulse";
+    }
     const weights = moves.map((m) => moveCounts[m] + 0.1);
     const totalWeight = weights.reduce((sum, w) => sum + w, 0);
     let randomWeight = Math.random() * totalWeight;
@@ -427,6 +460,7 @@ function generateAIMove(
     }
     return moves[Math.floor(Math.random() * moves.length)];
   };
+
   interface MoveScore {
     move: string;
     score: number;
@@ -435,128 +469,160 @@ function generateAIMove(
     boostType?: "attack" | "defense";
     boostAmount?: number;
   }
+
   const moveScores: MoveScore[] = [];
+
   const bashDodgeRisk = assessDodgeRisk("bash");
   const bashDamage = calculateBashDamage();
-  let bashScore =
-    bashDamage * (1 - bashDodgeRisk) * attackAdvantage * repeatedMovePenalty;
+  let bashScore = bashDamage * (1 - bashDodgeRisk) * attackAdvantage;
   if (isEndgame && targetHPPercent < 25) bashScore *= 1.6;
   if (isEarlyGame && attackAdvantage < 0.9) bashScore *= 0.7;
   if (opponentAttackBoosts > 1) bashScore *= 0.8;
+  if (shouldPrioritizeStatSync || isLowDefense) bashScore *= 0.5;
   if (currentMood === "aggressive") bashScore *= 1.2;
   if (currentMood === "defensive") bashScore *= 0.8;
+  if (moveHistory.player === "guardpulse") bashScore *= 1.2;
+  if (moveHistory.player === "statsync") bashScore *= 0.8;
   moveScores.push({
     move: "bash",
     score: bashScore,
     expectedDamage: bashDamage,
   });
+
   const hexSmashDodgeRisk = assessDodgeRisk("hexsmash");
   const hexSmashDamage = calculateHexSmashDamage();
   let hexSmashScore =
-    ((hexSmashDamage *
+    (hexSmashDamage *
       (1 - hexSmashDodgeRisk) *
       (attackAdvantage + magicAdvantage)) /
-      2) *
-    repeatedMovePenalty;
+    2;
   if (magicAdvantage > 1.3) hexSmashScore *= 1.4;
   if (damageDealtRatio > 0.6) hexSmashScore *= 0.85;
   if (opponentDefenseBoosts > 1) hexSmashScore *= 1.2;
+  if (shouldPrioritizeStatSync || isLowDefense) hexSmashScore *= 0.5;
   if (currentMood === "aggressive") hexSmashScore *= 1.25;
   if (currentMood === "defensive") hexSmashScore *= 0.75;
+  if (moveHistory.player === "guardpulse") hexSmashScore *= 1.2;
+  if (moveHistory.player === "statsync") hexSmashScore *= 0.8;
   moveScores.push({
     move: "hexsmash",
     score: hexSmashScore,
     expectedDamage: hexSmashDamage,
   });
+
   const fluxStrikeDodgeRisk = assessDodgeRisk("fluxstrike");
   const fluxStrikeDamage = calculateFluxStrikeDamage();
   let fluxStrikeScore =
     fluxStrikeDamage *
     (1 - fluxStrikeDodgeRisk) *
     attackAdvantage *
-    (targetHPPercent / 100) *
-    repeatedMovePenalty;
+    (targetHPPercent / 100);
   if (targetHPPercent > 60) fluxStrikeScore *= 1.3;
   if (isEndgame && targetHPPercent < 35) fluxStrikeScore *= 1.5;
   if (opponentAttackBoosts > 2) fluxStrikeScore *= 0.9;
+  if (shouldPrioritizeStatSync || isLowDefense) fluxStrikeScore *= 0.5;
   if (currentMood === "aggressive") fluxStrikeScore *= 1.2;
   if (currentMood === "defensive") fluxStrikeScore *= 0.8;
+  if (moveHistory.player === "guardpulse") fluxStrikeScore *= 1.2;
+  if (moveHistory.player === "statsync") fluxStrikeScore *= 0.8;
   moveScores.push({
     move: "fluxstrike",
     score: fluxStrikeScore,
     expectedDamage: fluxStrikeDamage,
   });
+
   const chaosBoltDodgeRisk = assessDodgeRisk("chaosbolt");
   const chaosBoltDamage = calculateChaosBoltDamage();
   let chaosBoltScore =
     chaosBoltDamage *
     (1 - chaosBoltDodgeRisk) *
-    Math.max(attackAdvantage, magicAdvantage / 2) *
-    repeatedMovePenalty;
+    Math.max(attackAdvantage, magicAdvantage / 2);
   const chaosCriticalChance = Math.min(
-    ((activePet.ATK + activePet.atkModifier + activePet.MAGIC) /
-      (targetPet.DF + targetPet.defModifier || 1)) *
-      0.25,
+    ((activePet.ATK + activePet.MAGIC) / (targetPet.DF || 1)) * 0.25,
     0.35
   );
   chaosBoltScore *= 1 + chaosCriticalChance * 0.6;
   if (isEarlyGame && levelDifference < -2) chaosBoltScore *= 0.6;
   if (isEndgame && targetHPPercent < 20) chaosBoltScore *= 1.8;
   if (opponentDefenseBoosts > 2) chaosBoltScore *= 1.3;
+  if (shouldPrioritizeStatSync || isLowDefense) chaosBoltScore *= 0.5;
   if (currentMood === "aggressive") chaosBoltScore *= 1.3;
   if (currentMood === "defensive") chaosBoltScore *= 0.7;
+  if (moveHistory.player === "guardpulse") chaosBoltScore *= 1.2;
+  if (moveHistory.player === "statsync") chaosBoltScore *= 0.8;
   moveScores.push({
     move: "chaosbolt",
     score: chaosBoltScore,
     expectedDamage: chaosBoltDamage,
   });
+
   const vitalSurgeHeal = calculateVitalSurgeHeal();
   let vitalSurgeScore =
     vitalSurgeHeal * healEfficiency * (1 - currentHPPercent / 100);
   if (assessCriticalSituation()) vitalSurgeScore *= 2.5;
+  if (assessUrgentSituation()) vitalSurgeScore *= 3.0;
   if (petStats.healsPerformed >= 4) vitalSurgeScore *= 0.5;
   if (magicAdvantage < 0.7) vitalSurgeScore *= 0.7;
   if (opponentDamageDealtRatio > 0.5) vitalSurgeScore *= 1.4;
+  if (vitalSurgeHeal < opponentAvgDamage && !assessUrgentSituation())
+    vitalSurgeScore *= 0.5;
   if (currentMood === "defensive") vitalSurgeScore *= 1.3;
   if (currentMood === "aggressive") vitalSurgeScore *= 0.8;
+  if (moveHistory.player === "vitalsurge") vitalSurgeScore *= 0.8;
+  if (
+    ["bash", "hexsmash", "fluxstrike", "chaosbolt"].includes(moveHistory.player)
+  )
+    vitalSurgeScore *= 1.2;
   moveScores.push({
     move: "vitalsurge",
     score: vitalSurgeScore,
     expectedHeal: vitalSurgeHeal,
   });
+
   const guardPulseBoost = calculateGuardPulseBoost();
   let guardPulseScore =
     guardPulseBoost * defenseBoostEfficiency * (1 - defenseDisadvantage);
   if (petStats.defenseBoosts >= DEFENSE_BOOST_CAP) guardPulseScore = 0;
   if (damageTakenRatio > 0.6) guardPulseScore *= 1.6;
   if (isEarlyGame && defenseDisadvantage < 0.9) guardPulseScore *= 1.3;
-  if (opponentAttackBoosts >= 2 || targetPet.atkModifier > activePet.level * 2)
-    guardPulseScore *= 1.5;
+  if (opponentAttackBoosts >= 2) guardPulseScore *= 1.5;
+  if (isLowDefense && petStats.defenseBoosts < DEFENSE_BOOST_CAP)
+    guardPulseScore *= 2.0;
   if (opponentDamageDealtRatio > 0.4) guardPulseScore *= 1.3;
   if (currentMood === "defensive") guardPulseScore *= 1.4;
   if (currentMood === "aggressive") guardPulseScore *= 0.7;
+  if (
+    ["bash", "hexsmash", "fluxstrike", "chaosbolt"].includes(moveHistory.player)
+  )
+    guardPulseScore *= 1.3;
+  if (moveHistory.player === "statsync") guardPulseScore *= 1.4;
   moveScores.push({
     move: "guardpulse",
     score: guardPulseScore,
     boostType: "defense",
     boostAmount: guardPulseBoost,
   });
+
   const statSyncBoost = calculateStatSyncBoost();
   let statSyncScore = statSyncBoost * attackBoostEfficiency * attackAdvantage;
   if (petStats.attackBoosts >= ATTACK_BOOST_CAP) statSyncScore = 0;
   if (attackAdvantage < 0.9) statSyncScore *= 1.4;
   if (isEndgame) statSyncScore *= 0.7;
-  if (opponentDefenseBoosts >= 2 || targetPet.defModifier > activePet.level * 2)
-    statSyncScore *= 1.5;
+  if (opponentDefenseBoosts >= 2) statSyncScore *= 1.5;
   if (opponentDamageTakenRatio < 0.3) statSyncScore *= 1.2;
+  if (shouldPrioritizeStatSync && petStats.attackBoosts < ATTACK_BOOST_CAP)
+    statSyncScore *= 2.0;
   if (currentMood === "aggressive") statSyncScore *= 1.3;
   if (currentMood === "defensive") statSyncScore *= 0.8;
+  if (moveHistory.player === "guardpulse") statSyncScore *= 1.4;
+  if (moveHistory.player === "statsync") statSyncScore *= 0.8;
   moveScores.push({
     move: "statsync",
     score: statSyncScore,
     boostType: "attack",
     boostAmount: statSyncBoost,
   });
+
   const equilibriumEffect = calculateEquilibriumEffect();
   let equilibriumScore =
     (equilibriumEffect.damage + equilibriumEffect.heal) * (hpDifference / 100);
@@ -564,15 +630,25 @@ function generateAIMove(
   if (hpDifference > HP_DIFF_THRESHOLD) equilibriumScore *= 1.6;
   if (isEndgame && equilibriumEffect.damage > targetPet.HP)
     equilibriumScore *= 2.2;
+  if (assessCriticalSituation() && !assessUrgentSituation())
+    equilibriumScore *= 2.0;
+  if (equilibriumEffect.heal < opponentAvgDamage && !assessUrgentSituation())
+    equilibriumScore *= 0.5;
   if (opponentAttackBoosts > 1) equilibriumScore *= 0.9;
   if (currentMood === "balanced") equilibriumScore *= 1.2;
   if (currentMood === "aggressive") equilibriumScore *= 0.9;
+  if (moveHistory.player === "vitalsurge") equilibriumScore *= 0.8;
+  if (
+    ["bash", "hexsmash", "fluxstrike", "chaosbolt"].includes(moveHistory.player)
+  )
+    equilibriumScore *= 1.2;
   moveScores.push({
     move: "equilibrium",
     score: equilibriumScore,
     expectedDamage: equilibriumEffect.damage,
     expectedHeal: equilibriumEffect.heal,
   });
+
   const predictedOpponentMove = predictOpponentMove();
   if (
     ["bash", "hexsmash", "fluxstrike", "chaosbolt"].includes(
@@ -611,6 +687,7 @@ function generateAIMove(
       }
     });
   }
+
   if (isEndgame) {
     moveScores.forEach((move) => {
       if (move.expectedDamage) {
@@ -622,6 +699,7 @@ function generateAIMove(
       }
     });
   }
+
   if (isEarlyGame && damageTakenRatio < 0.25) {
     moveScores.forEach((move) => {
       if (move.boostType) {
@@ -629,6 +707,13 @@ function generateAIMove(
       }
     });
   }
+
+  moveScores.forEach((move) => {
+    if (move.move === moveHistory.ai) {
+      move.score = 0;
+    }
+  });
+
   const assessMoveRisk = (move: MoveScore): number => {
     let risk = 0;
     if (move.expectedDamage) {
@@ -646,6 +731,7 @@ function generateAIMove(
     }
     return Math.max(-0.5, Math.min(0.5, risk));
   };
+
   const moodModifiers = {
     aggressive: (move: MoveScore) =>
       move.expectedDamage ? 1.2 : move.boostType === "attack" ? 1.1 : 0.8,
@@ -657,35 +743,43 @@ function generateAIMove(
         : 0.8,
     balanced: () => 1,
   };
+
   moveScores.forEach((move) => {
     move.score *= moodModifiers[currentMood](move);
   });
+
   const unpredictabilityFactor = Math.random() * 0.2 + 0.8;
   moveScores.forEach((move) => {
     move.score *= unpredictabilityFactor + (Math.random() * 0.1 - 0.05);
   });
+
   const maxScore = Math.max(...moveScores.map((m) => m.score), 1);
   moveScores.forEach((move) => {
     move.score = (move.score / maxScore) * 100;
     move.score *= 1 - assessMoveRisk(move);
     move.score = Math.max(0, move.score);
   });
+
   if (Math.random() < randomnessFactor) {
     const nonZeroMoves = moveScores.filter((m) => m.score > 0);
     return nonZeroMoves.length > 0
       ? nonZeroMoves[Math.floor(Math.random() * nonZeroMoves.length)].move
       : moves[Math.floor(Math.random() * moves.length)];
   }
-  if (assessCriticalSituation() && vitalSurgeHeal > 0 && Math.random() < 0.9) {
+
+  if (assessUrgentSituation() && vitalSurgeHeal > 0 && Math.random() < 0.95) {
     return "vitalsurge";
   }
+
   if (
+    assessCriticalSituation() &&
     hpDifference > HP_DIFF_THRESHOLD &&
     equilibriumEffect.damage > 0 &&
-    Math.random() < 0.85
+    Math.random() < 0.9
   ) {
     return "equilibrium";
   }
+
   if (
     isEndgame &&
     targetHPPercent < 20 &&
@@ -695,24 +789,29 @@ function generateAIMove(
   ) {
     return "chaosbolt";
   }
+
   if (
-    opponentAttackBoosts >= 3 &&
+    isLowDefense &&
     petStats.defenseBoosts < DEFENSE_BOOST_CAP &&
     guardPulseBoost > activePet.level &&
-    Math.random() < 0.8
+    Math.random() < 0.85
   ) {
     return "guardpulse";
   }
+
   if (
-    opponentDefenseBoosts >= 3 &&
+    shouldPrioritizeStatSync &&
     petStats.attackBoosts < ATTACK_BOOST_CAP &&
     statSyncBoost > activePet.level &&
-    Math.random() < 0.8
+    Math.random() < 0.85
   ) {
     return "statsync";
   }
+
   const validMoves = moveScores.filter((m) => m.score > 0);
-  if (validMoves.length === 0) return "bash";
+  if (validMoves.length === 0)
+    return moves[Math.floor(Math.random() * moves.length)];
+
   const totalScore = validMoves.reduce((sum, m) => sum + m.score, 0);
   let randomScore = Math.random() * totalScore;
   for (const move of validMoves.sort((a, b) => b.score - a.score)) {
@@ -721,8 +820,10 @@ function generateAIMove(
       return move.move;
     }
   }
+
   return (
-    validMoves[Math.floor(Math.random() * validMoves.length)].move || "bash"
+    validMoves[Math.floor(Math.random() * validMoves.length)].move ||
+    moves[Math.floor(Math.random() * moves.length)]
   );
 }
 

@@ -5,7 +5,7 @@ import { abbreviateNumber } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.2",
+  version: "2.0.5",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -977,8 +977,60 @@ export class PetPlayer {
     const df = enemyDef;
     return Math.max(
       1,
-      Math.floor((atk + Math.floor(Math.random() * 15)) * 2.2) - df / 5
+      this.calculateReducedDamage(
+        Math.floor((atk + Math.floor(Math.random() * 15)) * 2.2),
+        df
+      )
     );
+  }
+  /**
+   *
+   * @param {number} enemyDef
+   * @param {number} atk
+   * @returns
+   */
+  calculateAttackLinear(enemyDef, atk = this.ATK) {
+    atk ??= this.ATK;
+    const df = enemyDef;
+    return Math.max(
+      1,
+      this.calculateReducedDamageLinear(
+        Math.floor((atk + Math.floor(Math.random() * 15)) * 2.2),
+        df
+      )
+    );
+  }
+
+  /**
+   * Calculate reduced damage with diminishing returns on defense,
+   * where the soft cap scales with the incoming damage.
+   *
+   * @param {number} damage - The incoming base damage
+   * @param {number} [def=this.DF] - The defense value, defaults to pet's DF
+   * @returns {number} - The reduced damage
+   */
+  calculateReducedDamage(damage, def = this.DF, factor_ = 0) {
+    const k = 5;
+    const factor = factor_ || 0.3;
+
+    const C = damage / factor;
+
+    const defReduction = def / (1 + def / C) / k;
+
+    let reducedDamage = damage - defReduction;
+
+    return Math.max(Math.floor(reducedDamage), 1);
+  }
+
+  /**
+   * @param {number} damage - The incoming base damage
+   * @param {number} [def=this.DF] - The defense value, defaults to pet's DF
+   * @returns {number} - The reduced damage
+   */
+  calculateReducedDamageLinear(damage, def = this.DF) {
+    const def5 = def / 5;
+    let reducedDamage = damage - def5;
+    return Math.max(Math.floor(reducedDamage), 1);
   }
 
   getCounterableEnemyDef(atk = this.ATK) {
