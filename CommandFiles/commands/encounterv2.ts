@@ -14,12 +14,13 @@ import {
 } from "@cass-modules/Encounter";
 import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
+import { formatCash } from "@cass-modules/ArielUtils";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
-  version: "2.1.3",
+  version: "2.1.4",
   usage: "{prefix}{name}",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -136,6 +137,12 @@ export async function entry({
   const infoBegin = await output.replyStyled(
     `🔎 **Random Encounter**:
 Your opponent is ${currentEnc.wildIcon} ${currentEnc.wildName}
+
+🪙 **Rewards**:
+
+⚔️ Attacked: More than ${formatCash(currentEnc.goldFled, "💷", true)}
+💗 Spared: More than ${formatCash(currentEnc.goldSpared, "💷", true)}
+💎 Gems: Approx. **${(currentEnc.winDias ?? 0) * 10}**💎
 
 Please **reply** with the names of minimum of **${MIN_PETS} pets**, maximum of **${MAX_PETS} pets**, separated by |, you cannot use same type of pet twice.
 **Example:** ${[
@@ -1023,7 +1030,7 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**`,
           isGood
             ? gameState.opponent.spareText()
             : gameState.opponent.fledText()
-        }\nObtained **${pts} 💷 Battle Points!**\n${
+        }\nObtained **${formatCash(pts, "💷", true)} Battle Points!**\n${
           wonDias && collectibles.has("gems")
             ? `You also won **${wonDias}** 💎!`
             : ""
