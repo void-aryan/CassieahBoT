@@ -8,16 +8,16 @@ export class MultiMap<K, V> {
    * Internal array of key-value pair entries.
    * @private
    */
-  private _entries: [K, V][];
+  #_entries: [K, V][];
 
   /**
    * Creates a new MultiMap instance.
    * @param entries An iterable of key-value pair entries to initialize the map.
    */
   constructor(entries: Iterable<readonly [K, V]> = []) {
-    this._entries = [];
+    this.#_entries = [];
     for (const [key, value] of entries) {
-      this._entries.push([key, value]);
+      this.#_entries.push([key, value]);
     }
   }
 
@@ -28,7 +28,7 @@ export class MultiMap<K, V> {
    * @returns This MultiMap instance for chaining.
    */
   addOne(key: K, value: V): this {
-    this._entries.push([key, value]);
+    this.#_entries.push([key, value]);
     return this;
   }
 
@@ -39,9 +39,9 @@ export class MultiMap<K, V> {
    * @returns This MultiMap instance for chaining.
    */
   set(key: K, values: V[]): this {
-    this._entries = this._entries.filter(([k]) => k !== key);
+    this.#_entries = this.#_entries.filter(([k]) => k !== key);
     for (const value of values) {
-      this._entries.push([key, value]);
+      this.#_entries.push([key, value]);
     }
     return this;
   }
@@ -53,9 +53,9 @@ export class MultiMap<K, V> {
    * @returns This MultiMap instance for chaining.
    */
   setRef(entry: [K, V], newValue: V): this {
-    const index = this._entries.findIndex((e) => e === entry);
+    const index = this.#_entries.findIndex((e) => e === entry);
     if (index !== -1) {
-      this._entries[index] = [this._entries[index][0], newValue];
+      this.#_entries[index] = [this.#_entries[index][0], newValue];
     }
     return this;
   }
@@ -66,7 +66,7 @@ export class MultiMap<K, V> {
    * @returns An array of values associated with the key.
    */
   get(key: K): V[] {
-    return this._entries.filter(([k]) => k === key).map(([, v]) => v);
+    return this.#_entries.filter(([k]) => k === key).map(([, v]) => v);
   }
 
   /**
@@ -75,7 +75,7 @@ export class MultiMap<K, V> {
    * @returns The first value associated with the key, or undefined if none exists.
    */
   getOne(key: K): V | undefined {
-    const entry = this._entries.find(([k]) => k === key);
+    const entry = this.#_entries.find(([k]) => k === key);
     return entry ? entry[1] : undefined;
   }
 
@@ -85,7 +85,7 @@ export class MultiMap<K, V> {
    * @returns The first key-value pair entry, or undefined if none exists.
    */
   getRef(key: K): [K, V] | undefined {
-    return this._entries.find(([k]) => k === key);
+    return this.#_entries.find(([k]) => k === key);
   }
 
   /**
@@ -94,7 +94,7 @@ export class MultiMap<K, V> {
    * @returns An array of [key, value] entry references.
    */
   getRefs(key: K): [K, V][] {
-    return this._entries.filter(([k]) => k === key);
+    return this.#_entries.filter(([k]) => k === key);
   }
 
   /**
@@ -103,9 +103,9 @@ export class MultiMap<K, V> {
    * @returns True if any entries were removed, false otherwise.
    */
   delete(key: K): boolean {
-    const initialLength = this._entries.length;
-    this._entries = this._entries.filter(([k]) => k !== key);
-    return initialLength !== this._entries.length;
+    const initialLength = this.#_entries.length;
+    this.#_entries = this.#_entries.filter(([k]) => k !== key);
+    return initialLength !== this.#_entries.length;
   }
 
   /**
@@ -114,9 +114,9 @@ export class MultiMap<K, V> {
    * @returns True if an entry was removed, false otherwise.
    */
   deleteOne(key: K): boolean {
-    const index = this._entries.findIndex(([k]) => k === key);
+    const index = this.#_entries.findIndex(([k]) => k === key);
     if (index !== -1) {
-      this._entries.splice(index, 1);
+      this.#_entries.splice(index, 1);
       return true;
     }
     return false;
@@ -128,9 +128,9 @@ export class MultiMap<K, V> {
    * @returns True if the entry was removed, false otherwise.
    */
   deleteRef(entry: [K, V]): boolean {
-    const index = this._entries.findIndex((e) => e === entry);
+    const index = this.#_entries.findIndex((e) => e === entry);
     if (index !== -1) {
-      this._entries.splice(index, 1);
+      this.#_entries.splice(index, 1);
       return true;
     }
     return false;
@@ -144,9 +144,9 @@ export class MultiMap<K, V> {
   deleteRefs(entries: [K, V][]): number {
     let count = 0;
     for (const entry of entries) {
-      const index = this._entries.findIndex((e) => e === entry);
+      const index = this.#_entries.findIndex((e) => e === entry);
       if (index !== -1) {
-        this._entries.splice(index, 1);
+        this.#_entries.splice(index, 1);
         count++;
       }
     }
@@ -159,14 +159,14 @@ export class MultiMap<K, V> {
    * @returns True if the key exists, false otherwise.
    */
   has(key: K): boolean {
-    return this._entries.some(([k]) => k === key);
+    return this.#_entries.some(([k]) => k === key);
   }
 
   /**
    * Removes all entries from the map.
    */
   clear(): void {
-    this._entries = [];
+    this.#_entries = [];
   }
 
   /**
@@ -174,7 +174,7 @@ export class MultiMap<K, V> {
    * @returns The number of entries.
    */
   get size(): number {
-    return this._entries.length;
+    return this.#_entries.length;
   }
 
   /**
@@ -182,7 +182,7 @@ export class MultiMap<K, V> {
    * @returns An array of key-value pair entries.
    */
   entries(): [K, V][] {
-    return this._entries.slice();
+    return this.#_entries.slice();
   }
 
   /**
@@ -190,7 +190,7 @@ export class MultiMap<K, V> {
    * @returns An array of keys.
    */
   keys(): K[] {
-    return this._entries.map(([key]) => key);
+    return this.#_entries.map(([key]) => key);
   }
 
   /**
@@ -198,7 +198,7 @@ export class MultiMap<K, V> {
    * @returns An array of values.
    */
   values(): V[] {
-    return this._entries.map(([, value]) => value);
+    return this.#_entries.map(([, value]) => value);
   }
 
   /**
@@ -206,7 +206,7 @@ export class MultiMap<K, V> {
    * @returns An iterator of key-value pair entries.
    */
   [Symbol.iterator](): Iterator<[K, V]> {
-    return this._entries[Symbol.iterator]();
+    return this.#_entries[Symbol.iterator]();
   }
 
   /**
@@ -218,7 +218,7 @@ export class MultiMap<K, V> {
     callback: (value: V, key: K, map: this) => void,
     thisArg?: any
   ): void {
-    this._entries.forEach(([key, value]) => {
+    this.#_entries.forEach(([key, value]) => {
       callback.call(thisArg, value, key, this);
     });
   }
@@ -229,7 +229,7 @@ export class MultiMap<K, V> {
    * @returns An array of matching entries.
    */
   find(predicate: (key: K, value: V, map: this) => boolean): [K, V][] {
-    return this._entries.filter(([k, v]) => predicate(k, v, this));
+    return this.#_entries.filter(([k, v]) => predicate(k, v, this));
   }
 
   /**
@@ -240,7 +240,7 @@ export class MultiMap<K, V> {
   findOne(
     predicate: (key: K, value: V, map: this) => boolean
   ): [K, V] | undefined {
-    return this._entries.find(([k, v]) => predicate(k, v, this));
+    return this.#_entries.find(([k, v]) => predicate(k, v, this));
   }
 
   /**
@@ -252,7 +252,7 @@ export class MultiMap<K, V> {
     const newMap = new MultiMap<K, V>();
     const seen = new Set<T | V>();
 
-    for (const [key, value] of this._entries) {
+    for (const [key, value] of this.#_entries) {
       const identifier: T | V = predicate ? predicate(value) : value;
       if (!seen.has(identifier)) {
         seen.add(identifier);
@@ -271,7 +271,7 @@ export class MultiMap<K, V> {
     const newMap = new MultiMap<K, V>();
     const seenKeys: K[] = [];
 
-    for (const [key, value] of this._entries) {
+    for (const [key, value] of this.#_entries) {
       if (!seenKeys.includes(key)) {
         newMap.addOne(key, value);
         seenKeys.push(key);
@@ -288,7 +288,7 @@ export class MultiMap<K, V> {
     const newMap = new MultiMap<K, V>();
     const seenValues: V[] = [];
 
-    for (const [key, value] of this._entries) {
+    for (const [key, value] of this.#_entries) {
       if (!seenValues.includes(value)) {
         newMap.addOne(key, value);
         seenValues.push(value);
@@ -304,7 +304,7 @@ export class MultiMap<K, V> {
    * @returns An array of keys that have the specified value.
    */
   getKeys(value: V): K[] {
-    return this._entries.filter(([_, v]) => v === value).map(([k]) => k);
+    return this.#_entries.filter(([_, v]) => v === value).map(([k]) => k);
   }
 
   /**
@@ -313,7 +313,7 @@ export class MultiMap<K, V> {
    * @returns A new MultiMap containing the key-value pairs for that specific key.
    */
   getMap(key: K): MultiMap<K, V> {
-    const entriesForKey = this._entries.filter(([k]) => k === key);
+    const entriesForKey = this.#_entries.filter(([k]) => k === key);
     return new MultiMap<K, V>(entriesForKey);
   }
 
@@ -323,7 +323,7 @@ export class MultiMap<K, V> {
    * @returns A new MultiMap containing the matching entries.
    */
   findAndGetMap(predicate: (key: K, value: V) => boolean): MultiMap<K, V> {
-    const matchingEntries = this._entries.filter(([key, value]) =>
+    const matchingEntries = this.#_entries.filter(([key, value]) =>
       predicate(key, value)
     );
     return new MultiMap<K, V>(matchingEntries);
