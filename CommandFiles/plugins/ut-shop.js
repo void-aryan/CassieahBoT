@@ -438,6 +438,13 @@ const treasuresCopy = [...treasures];
  * @param {CommandContext} obj
  */
 export async function use(obj) {
+  const commandLoots = Cassidy.multiCommands.values().reduce((arr, val) => {
+    const { treasuresTable = [] } = val;
+    if (Array.isArray(treasuresTable)) {
+      arr.push(...treasuresTable);
+    }
+    return arr;
+  }, []);
   const treasures = [
     ...treasuresCopy,
     generateTrashOld(),
@@ -445,6 +452,7 @@ export async function use(obj) {
     generateTrash(),
     generateTrash(),
     generateTrash(),
+    ...commandLoots,
   ];
   /**
    *

@@ -789,6 +789,8 @@ declare global {
       entry: CommandEntry;
       ID?: number;
       fileName?: string;
+      treasuresTable?: Cass.InventoryItem[];
+      briefcaseUsage?: Record<string, BreifcaseUsagePlugin>;
       filePath?: string;
       /**
        * @deprecated
@@ -1115,6 +1117,7 @@ import { NeaxScript } from "@cass-modules/NeaxScript";
 import type * as SmartSpectra from "@cass-modules/SmartSpectra";
 import { ConsoleArray } from "@cass-modules/ConsoleArray";
 import { MultiMap } from "@cass-modules/Multimap";
+import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {

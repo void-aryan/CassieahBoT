@@ -10,7 +10,25 @@ import {
 import { InventoryItem } from "./cassidyUser";
 import { UNISpectra } from "./unisym";
 import { parseBet } from "./ArielUtils";
+import { MultiMap } from "./Multimap";
+import { inspect } from "util";
 const { parseCurrency: pCy } = global.utils;
+
+export interface BreifcaseUsagePlugin {
+  (
+    arg: BreifcaseUsagePluginArg,
+    ctx: CommandContext,
+    bcContext: BriefcaseAPIContext,
+    extra: Extra
+  ): string | false | Promise<string | false>;
+}
+
+export interface BreifcaseUsagePluginArg {
+  item: InventoryItem;
+  customInventory: Inventory;
+  uid: string;
+  propertyKey: string;
+}
 
 export function listItem(
   item: Partial<InventoryItem> = {},
@@ -401,8 +419,15 @@ export class BriefcaseAPI {
           "Uses or activates a specific item for its intended effect.",
         aliases: ["activate", "consume", "equip", "-u"],
         args: ["<item_id | index>"],
-        async handler() {
+        async handler(_, extra) {
           const [key] = actionArgs;
+          const usagePlugins = new MultiMap(
+            Cassidy.multiCommands
+              .entries()
+              .map((i) => Object.entries(i[1].briefcaseUsage ?? {}))
+              .filter((i) => i?.length)
+              .flat()
+          );
 
           if (!key) {
             return output.reply(
@@ -687,163 +712,207 @@ export class BriefcaseAPI {
                 }`
             );
           }
-          if (item.type !== "treasure") {
-            const flavorText =
-              item.useText ||
-              `You fiddled with ${item.icon} **${item.name}**, but the magic fizzled out.`;
-            return output.reply(
-              `👤 **${
-                userData.name || "Unregistered"
-              }** (${inventoryName})\n\n` + `✅ ${flavorText}`
-            );
-          }
-          let diaCost = 2;
-          let tresCount = Number(item.tresCount) || 20;
-          const author = input.senderID;
-          let chosenNumbers = [];
-          async function handleTriple(ctx) {
-            const { input, output, money } = ctx;
-            if (author !== ctx.input.senderID) return;
-            const userData = await ctx.money.get(ctx.input.senderID);
-            const { inventory, collectibles } = getDatas(userData);
-            const { treasures, paidMode } = ctx.repObj;
 
-            if (paidMode && !collectibles.hasAmount("gems", diaCost)) {
-              return output.replyStyled(
+          if (item.type === "treasure") {
+            let diaCost = 2;
+            let tresCount = Number(item.tresCount) || 20;
+            const author = input.senderID;
+            let chosenNumbers = [];
+            async function handleTriple(ctx) {
+              const { input, output, money } = ctx;
+              if (author !== ctx.input.senderID) return;
+              const userData = await ctx.money.get(ctx.input.senderID);
+              const { inventory, collectibles } = getDatas(userData);
+              const { treasures, paidMode } = ctx.repObj;
+
+              if (paidMode && !collectibles.hasAmount("gems", diaCost)) {
+                return output.replyStyled(
+                  `👤 **${
+                    userData.name || "Unregistered"
+                  }** (${inventoryName})\n\n` +
+                    `❌ Out of gems! Need **${diaCost} 💎** to retry.`,
+                  style
+                );
+              }
+              if (paidMode && String(input.words[0]).toLowerCase() !== "retry")
+                return;
+              if (paidMode) input.words.shift();
+
+              if (!inventory.has(item.key) && !paidMode) {
+                return output.replyStyled(
+                  `👤 **${
+                    userData.name || "Unregistered"
+                  }** (${inventoryName})\n\n` +
+                    `❌ The treasure’s gone! Did it slip out of your ${inventoryIcon}?`,
+                  style
+                );
+              }
+              let number = parseInt(input.words[0]);
+              if (chosenNumbers.includes(number)) {
+                return output.reply(
+                  `👤 **${
+                    userData.name || "Unregistered"
+                  }** (${inventoryName})\n\n` +
+                    `❌ Already picked **${number}**! Choose another.`
+                );
+              }
+              if (chosenNumbers.length >= tresCount) {
+                return output.reply(
+                  `👤 **${
+                    userData.name || "Unregistered"
+                  }** (${inventoryName})\n\n` +
+                    `❌ All treasures claimed! Nothing left to open.`
+                );
+              }
+              if (isNaN(number) || number < 1 || number > tresCount) {
+                return output.reply(
+                  `👤 **${
+                    userData.name || "Unregistered"
+                  }** (${inventoryName})\n\n` +
+                    `❌ Pick a number between **1** and **${tresCount}**!`
+                );
+              }
+              const treasure = treasures[number - 1];
+              if (!treasure) {
+                return output.reply(
+                  `👤 **${
+                    userData.name || "Unregistered"
+                  }** (${inventoryName})\n\n` +
+                    `❌ Treasure fizzled out! Something’s off...`
+                );
+              }
+              if (inventory.getAll().length >= invLimit) {
+                return output.reply(
+                  `👤 **${
+                    userData.name || "Unregistered"
+                  }** (${inventoryName})\n\n` +
+                    `❌ Your ${inventoryIcon} is full! Toss something with "${prefix}${commandName} toss".`
+                );
+              }
+              inventory.addOne(treasure);
+              if (paidMode) collectibles.raise("gems", -diaCost);
+              const treasureItem = treasure;
+              if (!paidMode) inventory.deleteOne(key);
+              input.delReply(ctx.detectID);
+
+              await money.set(input.senderID, {
+                [ikey]: Array.from(inventory),
+                collectibles: Array.from(collectibles),
+              });
+              chosenNumbers.push(number);
+
+              const infoDone = await output.replyStyled(
                 `👤 **${
                   userData.name || "Unregistered"
                 }** (${inventoryName})\n\n` +
-                  `❌ Out of gems! Need **${diaCost} 💎** to retry.`,
+                  `${UNIRedux.arrow} ***Treasure Opened!***\n\n` +
+                  `${item.icon} Cracked open **${item.name}**!\n\n` +
+                  ` ${treasures
+                    .map((i, index) =>
+                      (index + 1) % 5 === 0 ? `${i.icon}\n` : i.icon
+                    )
+                    .join(" ")
+                    .trim()}\n` +
+                  `${
+                    collectibles.hasAmount("gems", diaCost)
+                      ? `✦ Retry for **${diaCost} 💎**? Reply "retry <number>"!\n`
+                      : ""
+                  }\n` +
+                  `${UNIRedux.arrow} ***Reward***\n` +
+                  `${treasureItem.icon} **${treasureItem.name}**\n` +
+                  `✦ ${treasureItem.flavorText}\n\n` +
+                  `Check it out with "${prefix}${commandName} check ${treasureItem.key}"!\n` +
+                  `Gems: **${pCy(collectibles.getAmount("gems"))} 💎** ${
+                    paidMode ? `(-${diaCost})` : ""
+                  }`,
                 style
               );
+              treasures[number - 1] = { icon: "✅", isNothing: true };
+              input.setReply(infoDone.messageID, {
+                key: "inventory",
+                callback: handleTriple,
+                paidMode: true,
+                treasures,
+              });
             }
-            if (paidMode && String(input.words[0]).toLowerCase() !== "retry")
-              return;
-            if (paidMode) input.words.shift();
 
-            if (!inventory.has(item.key) && !paidMode) {
-              return output.replyStyled(
-                `👤 **${
-                  userData.name || "Unregistered"
-                }** (${inventoryName})\n\n` +
-                  `❌ The treasure’s gone! Did it slip out of your ${inventoryIcon}?`,
-                style
-              );
+            let treasures = [];
+            for (let i = 0; i < tresCount; i++) {
+              let newTreasure;
+              do {
+                newTreasure = generateTreasure(String(item.treasureKey));
+              } while (false);
+              treasures.push(newTreasure);
             }
-            let number = parseInt(input.words[0]);
-            if (chosenNumbers.includes(number)) {
-              return output.reply(
-                `👤 **${
-                  userData.name || "Unregistered"
-                }** (${inventoryName})\n\n` +
-                  `❌ Already picked **${number}**! Choose another.`
-              );
-            }
-            if (chosenNumbers.length >= tresCount) {
-              return output.reply(
-                `👤 **${
-                  userData.name || "Unregistered"
-                }** (${inventoryName})\n\n` +
-                  `❌ All treasures claimed! Nothing left to open.`
-              );
-            }
-            if (isNaN(number) || number < 1 || number > tresCount) {
-              return output.reply(
-                `👤 **${
-                  userData.name || "Unregistered"
-                }** (${inventoryName})\n\n` +
-                  `❌ Pick a number between **1** and **${tresCount}**!`
-              );
-            }
-            const treasure = treasures[number - 1];
-            if (!treasure) {
-              return output.reply(
-                `👤 **${
-                  userData.name || "Unregistered"
-                }** (${inventoryName})\n\n` +
-                  `❌ Treasure fizzled out! Something’s off...`
-              );
-            }
-            if (inventory.getAll().length >= invLimit) {
-              return output.reply(
-                `👤 **${
-                  userData.name || "Unregistered"
-                }** (${inventoryName})\n\n` +
-                  `❌ Your ${inventoryIcon} is full! Toss something with "${prefix}${commandName} toss".`
-              );
-            }
-            inventory.addOne(treasure);
-            if (paidMode) collectibles.raise("gems", -diaCost);
-            const treasureItem = treasure;
-            if (!paidMode) inventory.deleteOne(key);
-            input.delReply(ctx.detectID);
-
-            await money.set(input.senderID, {
-              [ikey]: Array.from(inventory),
-              collectibles: Array.from(collectibles),
-            });
-            chosenNumbers.push(number);
-
-            const infoDone = await output.replyStyled(
+            treasures = treasures.sort(() => Math.random() - 0.5);
+            const info = await output.reply(
               `👤 **${
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
-                `${UNIRedux.arrow} ***Treasure Opened!***\n\n` +
-                `${item.icon} Cracked open **${item.name}**!\n\n` +
-                ` ${treasures
-                  .map((i, index) =>
-                    (index + 1) % 5 === 0 ? `${i.icon}\n` : i.icon
-                  )
+                `${UNIRedux.arrow} ***Treasure Hunt***\n\n` +
+                `✦ Pick a chest to unlock from **${item.name}**!\n\n` +
+                ` ${Array(tresCount)
+                  .fill(item.icon)
+                  .map((i, index) => ((index + 1) % 5 === 0 ? `${i}\n` : i))
                   .join(" ")
-                  .trim()}\n` +
-                `${
-                  collectibles.hasAmount("gems", diaCost)
-                    ? `✦ Retry for **${diaCost} 💎**? Reply "retry <number>"!\n`
-                    : ""
-                }\n` +
-                `${UNIRedux.arrow} ***Reward***\n` +
-                `${treasureItem.icon} **${treasureItem.name}**\n` +
-                `✦ ${treasureItem.flavorText}\n\n` +
-                `Check it out with "${prefix}${commandName} check ${treasureItem.key}"!\n` +
-                `Gems: **${pCy(collectibles.getAmount("gems"))} 💎** ${
-                  paidMode ? `(-${diaCost})` : ""
-                }`,
-              style
+                  .trim()}\n\n` +
+                `Reply with a number from **1** to **${tresCount}**!`
             );
-            treasures[number - 1] = { icon: "✅", isNothing: true };
-            input.setReply(infoDone.messageID, {
+            input.setReply(info.messageID, {
               key: "inventory",
               callback: handleTriple,
-              paidMode: true,
               treasures,
             });
+            return;
           }
-
-          let treasures = [];
-          for (let i = 0; i < tresCount; i++) {
-            let newTreasure;
-            do {
-              newTreasure = generateTreasure(String(item.treasureKey));
-            } while (false);
-            treasures.push(newTreasure);
+          const targetUsages = usagePlugins.get(item.type);
+          let errs: Error[];
+          let responses: string[] = [];
+          if (targetUsages.length > 0) {
+            for (const usage of targetUsages) {
+              try {
+                const flag = await usage(
+                  {
+                    item,
+                    customInventory,
+                    propertyKey: bcContext.iKey,
+                    uid: input.sid,
+                  },
+                  ctx,
+                  bcContext,
+                  extra
+                );
+                if (flag === false) {
+                  continue;
+                } else {
+                  responses.push(flag);
+                  continue;
+                }
+              } catch (error) {
+                if (error instanceof Error) {
+                  errs.push(error);
+                } else {
+                  errs.push(new Error(inspect(error, { depth: null })));
+                }
+              }
+            }
+            if (errs.length > 0 || responses.length > 0) {
+              return output.reply(
+                `${responses.join("\n\n")}${
+                  errs.length > 0
+                    ? `\n\n${errs.map((i) => i.stack).join("\n\n")}`
+                    : ""
+                }`
+              );
+            }
           }
-          treasures = treasures.sort(() => Math.random() - 0.5);
-          const info = await output.reply(
+          const flavorText =
+            item.useText ||
+            `✅ You tried to figure out how ${item.icon} **${item.name}** is used, but you failed.`;
+          return output.reply(
             `👤 **${userData.name || "Unregistered"}** (${inventoryName})\n\n` +
-              `${UNIRedux.arrow} ***Treasure Hunt***\n\n` +
-              `✦ Pick a chest to unlock from **${item.name}**!\n\n` +
-              ` ${Array(tresCount)
-                .fill(item.icon)
-                .map((i, index) => ((index + 1) % 5 === 0 ? `${i}\n` : i))
-                .join(" ")
-                .trim()}\n\n` +
-              `Reply with a number from **1** to **${tresCount}**!`
+              `✅ ${flavorText}`
           );
-          input.setReply(info.messageID, {
-            key: "inventory",
-            callback: handleTriple,
-            treasures,
-          });
         },
       },
       {
@@ -1523,13 +1592,18 @@ export class BriefcaseAPI {
           return output.reply(response);
         },
       },
-    ].filter((i) => !this.extraConfig.ignoreFeature.includes(i.key));
+    ];
     const home = new SpectralCMDHome(
       {
         isHypen: false,
         ...this.extraConfig,
       },
-      [...defaultFeatures, ...mappedExtra]
+      [
+        ...defaultFeatures.filter(
+          (i) => !this.extraConfig.ignoreFeature.includes(i.key)
+        ),
+        ...mappedExtra,
+      ]
     );
     return home.runInContext(ctx);
   }

@@ -11,7 +11,7 @@ export const meta = {
   expect: ["Users", "Threads"],
 };
 
-function createUsers({ api, ctx }) {
+export function createUsers({ api, ctx }) {
   const { writeFileSync, existsSync } = require("fs");
   const path = `${__dirname}/data/botpack-usersData.json`;
 
@@ -168,13 +168,12 @@ function createUsers({ api, ctx }) {
   };
 }
 
-
 /**
- * 
- * @param {{ api: any, ctx: CommandContext }} param0 
- * @returns 
+ *
+ * @param {{ api: any, ctx: CommandContext }} param0
+ * @returns
  */
-function createThreads({ api, ctx }) {
+export function createThreads({ api, ctx }) {
   const Users = createUsers({ api, ctx });
   const { writeFileSync, existsSync } = require("fs");
   const path = `${__dirname}/data/threadsData.json`;

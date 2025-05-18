@@ -29,5 +29,3 @@ export function splitStr<Sep extends string, Str extends string>(
 ): SplitRecursive<Sep, Str> {
   return str.split(separator) as SplitRecursive<Sep, Str>;
 }
-
-const result = splitStr(".", process.version);
