@@ -5,7 +5,7 @@ import { abbreviateNumber } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.8",
+  version: "2.0.10",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -889,13 +889,18 @@ export class PetPlayer {
     return result;
   }
 
-  calculateTakenDamage(damage) {
-    let result = damage;
+  /**
+   *
+   * @param {number} damage
+   * @param {boolean} scale
+   * @returns
+   */
+  calculateTakenDamage(damage, scale = false) {
+    let result = Math.floor(this.calculateAttack(this.DF, damage) / 1.2);
 
-    result = Math.floor(this.calculateReducedDamage(damage, this.DF * 2));
     const scalingFactor = PetPlayer.calculateExtraTakenDamage(this.HP);
 
-    result = Math.floor(result * scalingFactor);
+    result = Math.floor(result * (scale ? scalingFactor : 1));
     result = Math.max(result, 1);
 
     return result;
@@ -905,17 +910,35 @@ export class PetPlayer {
     return (this.HP / this.maxHP) * 100;
   }
 
+  /**
+   *
+   * @param {PetPlayer} pet
+   * @returns {number}
+   */
+  static calculatePetStrength(pet) {
+    const extra = Math.round((pet.sellPrice ?? 0) / 200) * 17;
+    const max = Math.floor(20 + 5 * (pet.level - 1)) + extra;
+    return (
+      (pet.ATK +
+        Math.round(pet.DF / 10) +
+        pet.MAGIC +
+        max +
+        Math.round(pet.ATK * 2.1)) *
+      3.5
+    );
+  }
+
   maxHPModifier = 0;
 
   get maxHP() {
-    return PetPlayer.getHPOf(this.level, this.sellPrice) + this.maxHPModifier;
+    return PetPlayer.getHPOf(this) + this.maxHPModifier;
   }
 
   /**
    * @param {number} hp
    */
   set maxHP(hp) {
-    const baseHP = PetPlayer.getHPOf(this.level, this.sellPrice);
+    const baseHP = PetPlayer.getHPOf(this);
     this.maxHPModifier = hp - baseHP;
   }
   get level() {
@@ -1024,7 +1047,7 @@ export class PetPlayer {
    */
   calculateReducedDamage(damage, def = this.DF, factor_ = 0) {
     const k = 5;
-    const factor = factor_ || 0.3;
+    const factor = factor_ || 0.1;
 
     const C = damage / factor;
 
@@ -1081,7 +1104,7 @@ export class PetPlayer {
 
     const rawMagic = cappedGearMagic + extra + this.magicModifier;
 
-    const statCap = Math.max(this.maxHP * 2, this.ATK * 3, this.level * 10);
+    const statCap = Math.max(this.ATK * 3, this.level * 10);
 
     return Math.round(Math.min(rawMagic, statCap));
   }
@@ -1199,9 +1222,12 @@ export class PetPlayer {
     const extra = Math.round((sellPrice ?? 0) / 700) * 10;
     return Math.floor(20 + 4 * (level - 1)) + extra;
   }
-  static getHPOf(level, sellPrice) {
+  static getHPOfOld3(level, sellPrice) {
     const extra = Math.round((sellPrice ?? 0) / 200) * 17;
     return Math.floor(20 + 5 * (level - 1)) + extra;
+  }
+  static getHPOf(player) {
+    return Math.floor(this.calculatePetStrength(player));
   }
   static getExtraDFOf(level) {
     return Math.floor((level - 1) / 2);

@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.3.3",
+  version: "1.3.5",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -156,11 +156,11 @@ async function generateAIPet(
 
   selectedPet.atkModifier += 5;
   selectedPet.defModifier += 25;
-  selectedPet.magicModifier += 16;
+  selectedPet.magicModifier += 163;
 
-  selectedPet.atkModifier = +Math.floor(player1Pet.ATK / 2);
-  selectedPet.defModifier = +Math.floor(player1Pet.DF / 2);
-  selectedPet.magicModifier = +Math.floor(player1Pet.MAGIC / 2);
+  selectedPet.atkModifier += Math.floor(player1Pet.ATK / 1.5);
+  selectedPet.defModifier += Math.floor(player1Pet.DF / 1.5);
+  selectedPet.magicModifier += Math.floor(player1Pet.MAGIC / 1.5);
 
   return { pet: selectedPet, author: `AI_${Date.now()}` };
 }
@@ -931,19 +931,19 @@ export async function entry({
     gameState.player2Pet = aiPet;
     gameState.player2Author = aiAuthor;
 
-    const player1StatSum = calculatePetStrength(player1Pet);
-    const player2StatSum = calculatePetStrength(aiPet);
-    const boost = Math.max(player1StatSum, player2StatSum) / 2;
+    // const player1StatSum = calculatePetStrength(player1Pet);
+    // const player2StatSum = calculatePetStrength(aiPet);
+    // const boost = Math.max(player1StatSum, player2StatSum) / 2;
 
-    const player1HpBoost = Math.round(boost);
-    player1Pet.hpModifier += player1HpBoost;
-    player1Pet.maxHPModifier += player1HpBoost;
-    player1Pet.HP = player1Pet.maxHP;
+    // const player1HpBoost = Math.round(boost);
+    // player1Pet.hpModifier += player1HpBoost;
+    // player1Pet.maxHPModifier += player1HpBoost;
+    // player1Pet.HP = player1Pet.maxHP;
 
-    const player2HpBoost = Math.round(boost);
-    aiPet.hpModifier += player2HpBoost;
-    aiPet.maxHPModifier += player2HpBoost;
-    aiPet.HP = aiPet.maxHP;
+    // const player2HpBoost = Math.round(boost);
+    // aiPet.hpModifier += player2HpBoost;
+    // aiPet.maxHPModifier += player2HpBoost;
+    // aiPet.HP = aiPet.maxHP;
 
     gameState.flavorCache = `Arena battle begins! ${
       gameState.activePlayer === 1 ? player1Data.name : "AI Opponent"
@@ -1033,19 +1033,19 @@ export async function entry({
       ? 1
       : 2;
 
-    const player1StatSum = calculatePetStrength(player1Pet);
-    const player2StatSum = calculatePetStrength(player2Pet);
-    const boost = Math.max(player1StatSum, player2StatSum) / 2;
+    // const player1StatSum = calculatePetStrength(player1Pet);
+    // const player2StatSum = calculatePetStrength(player2Pet);
+    // const boost = Math.max(player1StatSum, player2StatSum) / 2;
 
-    const player1HpBoost = Math.round(boost);
-    player1Pet.hpModifier += player1HpBoost;
-    player1Pet.maxHPModifier += player1HpBoost;
-    player1Pet.HP = player1Pet.maxHP;
+    // const player1HpBoost = Math.round(boost);
+    // player1Pet.hpModifier += player1HpBoost;
+    // player1Pet.maxHPModifier += player1HpBoost;
+    // player1Pet.HP = player1Pet.maxHP;
 
-    const player2HpBoost = Math.round(boost);
-    player2Pet.hpModifier += player2HpBoost;
-    player2Pet.maxHPModifier += player2HpBoost;
-    player2Pet.HP = player2Pet.maxHP;
+    // const player2HpBoost = Math.round(boost);
+    // player2Pet.hpModifier += player2HpBoost;
+    // player2Pet.maxHPModifier += player2HpBoost;
+    // player2Pet.HP = player2Pet.maxHP;
 
     gameState!.flavorCache = `Arena battle begins! ${
       gameState!.activePlayer === 1 ? player1Data.name : player2Data.name
@@ -1575,7 +1575,7 @@ export async function entry({
 
     const winnerData = await ctx.money.getItem(winnerId);
     const winnerName =
-      winner === 1 && gameState.isAIMode ? winnerData.name : "AI Opponent";
+      winner === 2 && gameState.isAIMode ? "AI Opponent" : winnerData.name;
     const loserData: Partial<UserData> = loserId
       ? await ctx.money.getItem(loserId)
       : { name: "AI Opponent", battlePoints: 0 };
