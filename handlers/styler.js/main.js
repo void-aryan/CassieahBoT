@@ -383,7 +383,10 @@ export function autoBold(text) {
     fonts.bold_italic(text)
   );
   text = text.replace(/\*\*(.*?)\*\*/g, (_, text) => fonts.bold(text));
-  return text;
+
+  text = text.replace(/`(.*?)`/g, (_, code) => fonts.typewriter(code));
+
+  return String(text);
 }
 export function extraWhiteLine(text) {
   text = String(text);
