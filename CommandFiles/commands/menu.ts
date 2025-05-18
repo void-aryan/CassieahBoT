@@ -11,7 +11,7 @@ export const meta: CassidySpectra.CommandMeta = {
   author: "Liane Cagara",
   description:
     "Acts as a central hub, like a Start Menu, providing users with an overview of available commands, their functionalities, and access to specific command details. Helps users quickly navigate the bot's features.",
-  version: "3.0.5",
+  version: "3.0.6",
   usage: "{prefix}{name} [commandName]",
   category: "System",
   role: 0,
@@ -84,7 +84,7 @@ export async function entry({
     let result = ``;
 
     for (const category of sortedCategories) {
-      result += `${UNISpectra.arrow} ***${category}*** 📁\n`;
+      result += `${UNISpectra.arrow} ***${category}*** 📁 (${categorizedCommands[category].length})\n`;
       for (const command of categorizedCommands[category]) {
         const { name, icon, shopPrice = 0 } = command.meta;
         const role = await extractCommandRole(command);
@@ -103,9 +103,10 @@ export async function entry({
 
         let isAllowed =
           (!shopPrice || shop.isUnlocked(name)) && input.hasRole(role);
-        result += `${statusIcon} ${
-          isAllowed ? `**${toTitleCase(name)}**` : `${toTitleCase(name)}`
-        }, `;
+        if (!isAllowed) {
+          continue;
+        }
+        result += `${statusIcon} ${toTitleCase(name)}, `;
       }
       result += `\n\n`;
     }
@@ -113,7 +114,7 @@ export async function entry({
 
     result += `\n\n${UNISpectra.arrow} Command details: **${prefix}${commandName} <command>**\n`;
 
-    const resultStr = `🔍 | **Available Commands** 🧰\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
+    const resultStr = `🔍 | **Available Commands** 🧰 (${commands.size})\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
     return output.reply(resultStr);
   } else if (args.length > 0 && isNaN(parseInt(args[0]))) {
     const commandName = args[0];
@@ -280,7 +281,7 @@ export async function entry({
     let preff = "│ ";
 
     for (const category of pageCategories) {
-      result += `\n╭─────────────❍\n${preff} ${UNISpectra.arrow} ***${category}*** 📁\n${preff}\n`;
+      result += `\n╭─────────────❍\n${preff} ${UNISpectra.arrow} ***${category}*** 📁 (${categorizedCommands[category].length})\n${preff}\n`;
       for (const command of categorizedCommands[category]) {
         const { name, icon, shopPrice = 0 } = command.meta;
         const role = await extractCommandRole(command);
@@ -324,7 +325,7 @@ export async function entry({
     }**\n`;
     result += `${UNISpectra.arrow} Command details: **${prefix}${commandName} <command>**\n`;
 
-    const resultStr = `🔍 | **Available Commands** 🧰\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
+    const resultStr = `🔍 | **Available Commands** 🧰 (${commands.size})\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
     return output.reply(resultStr);
   } else {
     const basicCommands = {
@@ -335,6 +336,7 @@ export async function entry({
       bank: "Wanna store your coins somewhere? Try ***BANK**",
       quiz: "Grind ***MORE*** coins by guessing!",
       wordgame: "Grind ***MORE & MORE*** coins by guessing words too!",
+      buy: "Unlock ***HIDDEN*** commands by purchasing them!",
       rosashop:
         "Purchase items from shopkeepers and unlock ***NEW POSSIBILITIES***",
       pet: "Buy, Feed, and sell, or even battle using your ***PETS***",
@@ -347,15 +349,35 @@ export async function entry({
       encounter:
         "Prepare your ***PETS*** for true danger and earn ***GEMS*** too!",
     };
-    const basicStr = `${Object.entries(basicCommands)
-      .filter((i) => commands.get(i[0]).length > 0)
+    const entries = Object.entries(basicCommands);
+
+    const filteredEntries = await Promise.all(
+      entries.map(async (i) => {
+        const command = commands.getOne(i[0]);
+        if (!command) {
+          return null;
+        }
+        const role = await extractCommandRole(command);
+
+        const isAllowed =
+          (!command.meta.shopPrice || shop.isUnlocked(command.meta.name)) &&
+          input.hasRole(role);
+
+        return isAllowed ? i : null;
+      })
+    );
+
+    const validEntries = filteredEntries.filter(Boolean);
+
+    const basicStr = validEntries
       .map(
         (i) =>
-          `${commands.getOne(i[0])?.meta?.icon ?? "📁"} ${prefix}**${i[0]}** ${
+          `${commands.getOne(i[0])?.meta?.icon ?? "📁"} ${prefix}${i[0]} ${
             UNISpectra.arrowFromT
           } ${i[1]}`
       )
-      .join("\n")}`;
+      .join("\n");
+
     let strs = [
       `${UNISpectra.arrow} Are you new to the game? Here are the ***BASICS***`,
       ``,
