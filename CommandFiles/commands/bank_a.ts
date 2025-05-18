@@ -11,7 +11,7 @@ const ABANK = fonts.serif("AC-BANK");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.0",
+  version: "3.0.1",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
@@ -42,7 +42,11 @@ export const style: CassidySpectra.CommandStyle = {
 const NOTIF = `🏦 ${fonts.bold("ARIEL-CASS NOTIF")} 👩🏻‍💼`;
 
 export const notifStyle: CassidySpectra.CommandStyle = {
-  title: `🏦 ${NOTIF} ®`,
+  title: {
+    content: `🏦 ${NOTIF} ®`,
+    text_font: "none",
+    line_bottom: "default",
+  },
   titleFont: "none",
   contentFont: "fancy",
   footer: {
