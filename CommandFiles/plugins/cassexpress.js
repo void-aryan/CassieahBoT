@@ -1,7 +1,7 @@
 export const meta = {
   name: "cassexpress",
   author: "Liane Cagara",
-  version: "1.0.0",
+  version: "2.0.0",
   description: "Logic for cass express..?",
   supported: "^1.0.0",
   order: 1,
@@ -91,7 +91,9 @@ export class CustomAI {
     prompt += `Your interact in the style of communication is "${this.style}".\n\n `;
 
     if (this.languages.length > 0) {
-      prompt += `You as ${this.name}, can communicate in "${this.languages.join(", ")}."\n\n `;
+      prompt += `You as ${this.name}, can communicate in "${this.languages.join(
+        ", "
+      )}."\n\n `;
     }
 
     if (nameOfUserOptional) {
@@ -99,10 +101,18 @@ export class CustomAI {
     }
 
     if (this.constraints.length > 0) {
-      prompt += `You, as ${this.name}, must adhere to the following constraints: "${this.constraints.join(", ")}".\n\n `;
+      prompt += `You, as ${
+        this.name
+      }, must adhere to the following constraints: "${this.constraints.join(
+        ", "
+      )}".\n\n `;
     }
     if (this.stockKnowledge.length > 0) {
-      prompt += `You as ${this.name}, has stock knowledges that you can use during discussions are: \n${this.stockKnowledge.map((i, j) => `${j + 1}. ${i}`).join("\n\n")}\n`;
+      prompt += `You as ${
+        this.name
+      }, has stock knowledges that you can use during discussions are: \n${this.stockKnowledge
+        .map((i, j) => `${j + 1}. ${i}`)
+        .join("\n\n")}\n`;
     }
 
     prompt +=
@@ -132,10 +142,10 @@ export class CassExpress {
   constructor(cassExpress) {
     this.cassExpress = JSON.parse(JSON.stringify(cassExpress));
     this.cassExpress.mailList = (this.cassExpress.mailList || []).filter(
-      Boolean,
+      Boolean
     );
     this.cassExpress.bankLogs = (this.cassExpress.bankLogs || []).filter(
-      Boolean,
+      Boolean
     );
   }
   static reduceObj({ ...obj } = {}) {
@@ -148,12 +158,11 @@ export class CassExpress {
   }
   static farmMultiplier(obj) {
     const acc = CassExpress.reduceObj(obj);
-    return acc / 1000;
-  
+    return acc / 500;
   }
   static farmUP(price, obj) {
     const m = CassExpress.farmMultiplier(obj);
-    return Math.round(price + (price * m));
+    return Math.round(price + price * m);
   }
 
   static parseAbbrIng(str) {
@@ -253,7 +262,9 @@ export class CassExpress {
   }
 
   static stringMail(mail) {
-    return `💌 **${mail.title}** ${CassExpress.formatDate(mail.timeStamp)}\n\n${mail.body}\n\n${logo}`;
+    return `💌 **${mail.title}** ${CassExpress.formatDate(mail.timeStamp)}\n\n${
+      mail.body
+    }\n\n${logo}`;
   }
 
   stringMailList() {
@@ -261,7 +272,9 @@ export class CassExpress {
   }
 
   setMailReceived({ name, uid, amount, author }) {
-    const body = `You received $**${pCy(amount)}**💵 from **${name}** (${uid}), if you think this is a mistake, please contact the owner.`;
+    const body = `You received $**${pCy(
+      amount
+    )}**💵 from **${name}** (${uid}), if you think this is a mistake, please contact the owner.`;
     return this.createMail({
       body,
       timeStamp: Date.now(),
@@ -271,7 +284,9 @@ export class CassExpress {
   }
 
   setMailSent({ name, uid, amount, author }) {
-    const body = `You successfully sent $**${pCy(amount)}**💵 to **${name}** (${uid}), keep in mind that extra charges may occur, thank you for using our service.`;
+    const body = `You successfully sent $**${pCy(
+      amount
+    )}**💵 to **${name}** (${uid}), keep in mind that extra charges may occur, thank you for using our service.`;
     return this.createMail({
       body,
       timeStamp: Date.now(),
@@ -318,7 +333,7 @@ export class CassExpress {
       timeZone: "Asia/Manila",
     };
     const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
-      date,
+      date
     );
     const formattedTime = new Intl.DateTimeFormat("en-US", {
       hour: "2-digit",
