@@ -895,7 +895,7 @@ export class PetPlayer {
    * @param {boolean} scale
    * @returns
    */
-  calculateTakenDamage(damage, scale = false) {
+  calculateTakenDamage(damage, scale = true) {
     let result = Math.floor(this.calculateAttack(this.DF, damage) / 1.2);
 
     const scalingFactor = PetPlayer.calculateExtraTakenDamage(this.HP);
