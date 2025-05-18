@@ -12,7 +12,11 @@ const command = defineCommand({
     usage: "appleshot <bet> | appleshot cooldown",
   },
   style: {
-    title: "〘 🍎🏹 〙 APPLE SHOT",
+    title: {
+      text_font: "bold",
+      content: "〘 🍎🏹 〙 APPLE SHOT",
+      line_bottom: "default",
+    },
     footer: {
       content: "**Developed by**: Francis Loyd Raval",
       text_font: "fancy",
