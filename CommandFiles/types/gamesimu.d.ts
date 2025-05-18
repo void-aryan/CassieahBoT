@@ -20,7 +20,7 @@ interface GameSimulatorProps {
 }
 
 declare class GameSimulator {
-  static instances: Record<string, GameSimulator> = {};
+  static instances: Record<string, GameSimulator>;
   key: string;
   verb: string;
   verbing: string;
@@ -33,17 +33,17 @@ declare class GameSimulator {
 
   constructor({
     key,
-    verb = key.charAt(0).toUpperCase() + key.slice(1),
-    verbing = verb + "ing",
-    pastTense = verb + "ed",
-    checkIcon = "✓",
-    initialStorage = 30,
-    itemData = [],
-    actionEmoji = "🔖",
+    verb,
+    verbing,
+    pastTense,
+    checkIcon,
+    initialStorage,
+    itemData,
+    actionEmoji,
     stoData,
   }: GameSimulatorProps);
 
-  async simulateAction(context: CommandContext): Promise<void>;
+  simulateAction(context: CommandContext): Promise<void>;
 }
 
 export { GameSimulator, Item, GameSimulatorProps };

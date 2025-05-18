@@ -563,11 +563,6 @@ declare global {
     ItemPrompt?: AnyConstructor;
 
     /**
-     * @deprecated Provides access to the GameSimulatorRedux utility.
-     */
-    GameSimulatorRedux?: AnyConstructor;
-
-    /**
      * @deprecated Checks if a specific time is available.
      */
     isTimeAvailable?: typeof isTimeAvailable;

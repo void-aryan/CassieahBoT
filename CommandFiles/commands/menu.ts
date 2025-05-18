@@ -401,7 +401,7 @@ export async function entry({
       `${UNISpectra.arrow} View all: **${prefix}${commandName} all**`,
       `${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`,
     ].join("\n");
-    if (input.isWeb) {
+    if (1) {
       return output.replyStyled(strs, {
         ...style,
         content: {

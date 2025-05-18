@@ -10,9 +10,9 @@ export type Extra = {
   self: SpectralCMDHome;
 } & Record<string, unknown>;
 
-export interface Handler {
+export type Handler = {
   (this: Config, ctx?: CommandContext, extra?: Extra): Promise<any> | any;
-}
+};
 
 export type Config = {
   key: string;

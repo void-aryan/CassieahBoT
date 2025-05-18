@@ -47,7 +47,7 @@ const NOTIF = `🏦 ${fonts.bold("ARIEL-CASS NOTIF")} 👩🏻‍💼`;
 
 export const notifStyle: CassidySpectra.CommandStyle = {
   title: {
-    content: `🏦 ${NOTIF} ®`,
+    content: `${NOTIF}`,
     text_font: "none",
     line_bottom: "default",
   },
