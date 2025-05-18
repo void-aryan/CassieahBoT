@@ -216,9 +216,7 @@ export async function entry({
           trophys.length > 0 && !isPeek
             ? `\n${UNIRedux.arrow} You can still withdraw your old bank if you have **zero** bank balance. It will also remove your trophy.`
             : ""
-        }\n${UNIRedux.arrowBW} Items 🛍️\n\n${itemStr || "No items."}\n${
-          UNIRedux.standardLine
-        }\n`,
+        }\n${UNIRedux.arrowBW} Items 🛍️\n\n${itemStr || "No items."}`,
         style
       );
     },

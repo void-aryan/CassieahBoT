@@ -5,7 +5,7 @@ import { abbreviateNumber } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.10",
+  version: "2.0.12",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -734,6 +734,7 @@ export class PetPlayer {
     this.extras = {};
     this.mode = "default";
     this.hpModifier = -this.getHungryModifier();
+    this.maxHPOrig = PetPlayer.getHPOf(this);
   }
   isDuel() {
     return this.mode === "duel";
@@ -862,6 +863,11 @@ export class PetPlayer {
     return result;
   }
   static calculateExtraTakenDamage(maxHP) {
+    const baseHP = 300;
+    const scalingFactor = Math.sqrt(maxHP / baseHP);
+    return scalingFactor;
+  }
+  static calculateExtraTakenDamageOld(maxHP) {
     const baseHP = 20;
     const scalingFactor = Math.sqrt(maxHP / baseHP);
     return scalingFactor;
@@ -924,21 +930,21 @@ export class PetPlayer {
         pet.MAGIC +
         max +
         Math.round(pet.ATK * 2.1)) *
-      3.5
+      1.75
     );
   }
 
   maxHPModifier = 0;
 
   get maxHP() {
-    return PetPlayer.getHPOf(this) + this.maxHPModifier;
+    return this.maxHPOrig + this.maxHPModifier;
   }
 
   /**
    * @param {number} hp
    */
   set maxHP(hp) {
-    const baseHP = PetPlayer.getHPOf(this);
+    const baseHP = this.maxHPOrig;
     this.maxHPModifier = hp - baseHP;
   }
   get level() {
