@@ -233,7 +233,7 @@ export interface OutputProps {
   attach(
     form: OutputForm,
     stream: string | Readable[] | Readable | any,
-    style?: any
+    style?: CassidySpectra.CommandStyle
   ): Promise<OutputResultNew>;
 
   /**

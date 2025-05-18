@@ -16,9 +16,9 @@ import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 
 export const meta: CassidySpectra.CommandMeta = {
-  name: "encounterv2",
+  name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
-  otherNames: ["encv2", "encounter", "enc"],
+  otherNames: ["encv2", "encounterv2", "enc"],
   version: "2.1.3",
   usage: "{prefix}{name}",
   category: "Spinoff Games",
