@@ -174,7 +174,7 @@ type UserData = {
     items?: InventoryItem[];
   };
   links?: [string, string][];
-  defaultCommands: [string, string][];
+  defaultCommands?: [string, string][];
 };
 
 type NullableUserData = {

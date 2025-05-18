@@ -940,28 +940,48 @@ declare global {
       | "none"
       | "moody"
       | "double_struck";
-    export interface CommandStyle {
+
+    export type LineStyle =
+      | "hidden"
+      | "whiteline"
+      | "default"
+      | "akhiro"
+      | `${number}chars`;
+
+    export type LineDecoration = "none" | "cross" | "text";
+
+    export type KerningStyle = "none" | "1" | "2" | "3";
+
+    export interface CommandStyleBase {
       title?: string | StylerItem;
       titleFont?: FontTypes;
+      content?: StylerItem;
       contentFont?: FontTypes;
-      preset?: string[] | StylerItem;
-      [key: string]: StylerItem | string | string[];
+      preset?: string | string[];
+      titleStyle?: Partial<StylerItem>;
+      contentStyle?: Partial<StylerItem>;
     }
+
+    export type CommandStyle = CommandStyleBase & {
+      [key: string]: StylerItem | unknown;
+    };
 
     export interface StylerItem {
       preset?: string | string[];
+      content?: string | null;
       content_template?: (string | number)[] | Record<string, string | number>;
-      number_font?: FontTypes;
-      new_line?: boolean;
-      line_top?: "hidden" | "whiteline" | string;
-      line_bottom?: "hidden" | "whiteline" | string;
-      line_bottom_inside_x?: string;
       text_font?: FontTypes;
+      number_font?: FontTypes;
       text_trim?: boolean;
-      text?: string | null;
+      text_kerning?: KerningStyle;
+      text_prefix?: string;
+      text_suffix?: string;
+      new_line?: boolean;
+      line_top?: LineStyle;
+      line_bottom?: LineStyle;
+      line_bottom_inside_x?: LineDecoration;
       line_replacer?: string;
       line_replace?: string;
-      content?: string | null;
     }
 
     export type CommandHandler = (
