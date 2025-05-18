@@ -79,8 +79,7 @@ export async function entry({
         let role = await extractCommandRole(command, true, input.tid);
 
         if (commandsFound.length !== 1) {
-          str.push(`
-╭─── ${cmdIcon} **${toTitleCase(name)}** ───
+          str.push(`╭─── ${cmdIcon} **${toTitleCase(name)}** ───
 │   📜 **Name**:
 │   ${UNISpectra.charm} ${name}
 │ 
@@ -93,8 +92,7 @@ export async function entry({
 │   🔎 See **${prefix}${cmdn} ${name}** for more info.
 ╰────────────────`);
         } else {
-          str.push(`
-╭─── ${cmdIcon} **${toTitleCase(name)}** ───
+          str.push(`╭─── ${cmdIcon} **${toTitleCase(name)}** ───
 │   📜 **Name**:
 │   ${UNISpectra.charm} ${name}
 │ 
@@ -260,7 +258,9 @@ export async function entry({
   }**\n`;
   result += `${UNISpectra.arrow} Command details: **${prefix}${commandName} <command>**\n`;
 
-  return output.reply(
-    `🔍 | **Available Commands** 🧰\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`
-  );
+  const resultStr = `🔍 | **Available Commands** 🧰\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
+  if (input.isWeb) {
+    return output.reply(resultStr);
+  }
+  return output.attach(resultStr, "http://localhost:8000/start.png");
 }

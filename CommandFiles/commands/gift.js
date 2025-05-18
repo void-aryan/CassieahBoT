@@ -177,7 +177,7 @@ export async function entry({
       const minutesRemaining = Math.floor((timeRemaining / (1000 * 60)) % 60);
       const secondsRemaining = Math.floor((timeRemaining / 1000) % 60);
 
-      const info = await output.reply(
+      const info = await output[input.isWeb ? "reply" : "attach"](
         getLang(
           "alreadyClaimed",
           String(hoursRemaining),
@@ -185,7 +185,8 @@ export async function entry({
           secondsRemaining,
           diaCost,
           pCy(collectibles.getAmount("gems"))
-        )
+        ),
+        input.isWeb ? undefined : "http://localhost:8000/gift.png"
       );
       info.atReply(handlePaid);
       return;
@@ -202,6 +203,12 @@ export async function entry({
       lastGiftClaim: currentTime,
     });
 
-    return output.reply(getLang("claimedGift", prefix));
+    if (input.isWeb) {
+      return output.reply(getLang("claimedGift", prefix));
+    }
+    return output.attach(
+      getLang("claimedGift", prefix),
+      "http://localhost:8000/gift.png"
+    );
   }
 }
