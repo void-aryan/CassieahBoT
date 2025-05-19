@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import { ObjectKey } from "./unitypes";
 
 export namespace Datum {
   /**
@@ -304,4 +305,151 @@ export namespace Datum {
     const val = parentObj[key];
     return val !== undefined ? val : null;
   }
+
+  type ObjectKey = string | number | symbol;
+
+  export function makeMapPlain<T extends Record<ObjectKey, any>>(
+    plainObj: T = {} as T
+  ) {
+    const internalMap = new Map<keyof T, T[keyof T]>(
+      Object.entries(plainObj) as [keyof T, T[keyof T]][]
+    );
+
+    const target: T = Object.create(Object.getPrototypeOf(plainObj));
+
+    const handler: ProxyHandler<T> = {
+      get(target, prop, receiver) {
+        if (prop === Symbol.iterator) {
+          return function* () {
+            for (const [key, value] of internalMap) {
+              yield [key, value];
+            }
+          };
+        }
+        if (typeof prop === "symbol" || prop in Object.prototype) {
+          return Reflect.get(target, prop, receiver);
+        }
+        return internalMap.get(prop as keyof T);
+      },
+      set(_target, prop, value, _receiver) {
+        internalMap.set(prop as keyof T, value);
+        return true;
+      },
+      deleteProperty(_target, prop) {
+        return internalMap.delete(prop as keyof T);
+      },
+      has(_target, prop) {
+        return internalMap.has(prop as keyof T);
+      },
+      ownKeys(_target) {
+        return Array.from(internalMap.keys()) as Array<string | symbol>;
+      },
+      getOwnPropertyDescriptor(_target, prop) {
+        if (internalMap.has(prop as keyof T)) {
+          return {
+            value: internalMap.get(prop as keyof T),
+            writable: true,
+            enumerable: true,
+            configurable: true,
+          };
+        }
+        return undefined;
+      },
+      defineProperty(_target, prop, descriptor) {
+        if ("value" in descriptor && descriptor.value !== undefined) {
+          internalMap.set(prop as keyof T, descriptor.value);
+        } else if (!descriptor.get && !descriptor.set) {
+          internalMap.delete(prop as keyof T);
+        }
+        return true;
+      },
+      getPrototypeOf(target) {
+        return Object.getPrototypeOf(target);
+      },
+      setPrototypeOf(target, proto) {
+        Object.setPrototypeOf(target, proto);
+        return true;
+      },
+      isExtensible(_target) {
+        return true;
+      },
+      preventExtensions(_target) {
+        return false;
+      },
+    };
+
+    const proxied = new Proxy(target, handler);
+    return { map: internalMap, proxied };
+  }
+}
+
+// ---------------------------
+// Benchmark Function
+// ---------------------------
+
+export function benchmark() {
+  const size = 3000;
+  const keys = Array.from(
+    { length: size },
+    (_, i) => `key${i}`
+  ) as (keyof Record<string, number>)[];
+
+  const plainObj: Record<string, number> = {};
+  keys.forEach((k) => (plainObj[k] = 0));
+
+  const { proxied } = Datum.makeMapPlain(plainObj);
+
+  function measure(fn: () => void): number {
+    const start = performance.now();
+    fn();
+    return performance.now() - start;
+  }
+
+  const plainGet = measure(() => {
+    for (const key of keys) {
+      const v = plainObj[key];
+    }
+  });
+
+  const proxyGet = measure(() => {
+    for (const key of keys) {
+      const v = proxied[key];
+    }
+  });
+
+  const plainSet = measure(() => {
+    for (const key of keys) {
+      plainObj[key] = 123;
+    }
+  });
+
+  const proxySet = measure(() => {
+    for (const key of keys) {
+      proxied[key] = 123;
+    }
+  });
+
+  const plainDelete = measure(() => {
+    for (const key of keys) {
+      delete plainObj[key];
+    }
+  });
+
+  const proxyDelete = measure(() => {
+    for (const key of keys) {
+      delete proxied[key];
+    }
+  });
+
+  console.log(`Performance results for ${size} records (ms):`);
+  console.log(
+    `Plain Object - get: ${plainGet.toFixed(2)} | set: ${plainSet.toFixed(
+      2
+    )} | delete: ${plainDelete.toFixed(2)}`
+  );
+  console.log(
+    `Proxy + Map  - get: ${proxyGet.toFixed(2)} | set: ${proxySet.toFixed(
+      2
+    )} | delete: ${proxyDelete.toFixed(2)}`
+  );
 }
