@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
-  version: "2.1.9",
+  version: "2.1.10",
   usage: "{prefix}{name} [id | 'new']",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -157,9 +157,11 @@ export async function entry({
             value.level ?? 1
           }**\n🔎 ***ID***: ${key}\n⚔️ ***ATK***: ${value.ATK}\n🔰 ***DEF***: ${
             value.DF
-          }\n🗃️ ***Type***: ${value.wildType}\n🪙 **Attacked**: ${
-            (formatCash(getReM(value.goldFled).re), "💷", true)
-          }\n💗 **Spared**: ${formatCash(
+          }\n🗃️ ***Type***: ${value.wildType}\n🪙 **Attacked**: ${formatCash(
+            getReM(value.goldFled).re,
+            "💷",
+            true
+          )}\n💗 **Spared**: ${formatCash(
             getReM(value.goldFled).mercy,
             "💷",
             true
