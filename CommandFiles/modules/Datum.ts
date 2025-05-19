@@ -263,4 +263,45 @@ export namespace Datum {
       return true;
     });
   }
+
+  /**
+   * Returns the key or keys in the object that match the given value.
+   * @param value - The value to search for.
+   * @param parentObj - The object to search within.
+   * @returns The first matching key as a string, or an array of matching keys, or null if none found.
+   */
+  export function keyOf<T extends object>(
+    value: unknown,
+    parentObj: T
+  ): string | string[] | null {
+    const keys = Object.entries(parentObj)
+      .filter(([_, v]) => v === value)
+      .map(([k]) => k);
+
+    if (keys.length === 0) return null;
+    return keys.length === 1 ? keys[0] : keys;
+  }
+
+  /**
+   * Returns the value or values from the object for the given key(s).
+   * @param key - A single key or an array of keys.
+   * @param parentObj - The object to retrieve values from.
+   * @returns The value for a single key, an array of values for multiple keys, or null if not found.
+   */
+  export function valueOf<T extends object>(
+    key: keyof T | (keyof T)[],
+    parentObj: T
+  ): T[keyof T] | T[keyof T][] | null {
+    if (Array.isArray(key)) {
+      const values = key
+        .map((k) => parentObj[k])
+        .filter((v) => v !== undefined);
+
+      if (values.length === 0) return null;
+      return values;
+    }
+
+    const val = parentObj[key];
+    return val !== undefined ? val : null;
+  }
 }

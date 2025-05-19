@@ -15,13 +15,14 @@ import {
 import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 import { formatCash } from "@cass-modules/ArielUtils";
+import { Datum } from "@cass-modules/Datum";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
-  version: "2.1.6",
-  usage: "{prefix}{name}",
+  version: "2.1.7",
+  usage: "{prefix}{name} [boss_name | 'new']",
   category: "Spinoff Games",
   author: "Liane Cagara",
   permissions: [0],
@@ -148,7 +149,10 @@ export async function entry({
   const mercy = Math.round(re * 1.7);
   const infoBegin = await output.replyStyled(
     `🔎 **Random Encounter**:
-Your opponent is ${targetEnc.wildIcon} ${targetEnc.wildName}
+Your opponent is: ${targetEnc.wildIcon} ${targetEnc.wildName} [${Datum.keyOf(
+      targetEnc,
+      encounters
+    )}]
 
 🪙 **Rewards**:
 
@@ -169,7 +173,9 @@ Please **reply** with the names of minimum of **${MIN_PETS} pets**, maximum of *
       .map((i: { name: string } & Record<string, any>) => i.name)
       .join(" | ")}
 
-The first **pet** will become the leader, which who can use the 🔊 **Act**`,
+The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n🎲 Type **${
+      input.words[0]
+    } new** to find new opponent.`,
     style
   );
 
