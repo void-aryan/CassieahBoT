@@ -11,6 +11,8 @@ import axios from "axios";
 import FormData from "form-data";
 import { randomInt } from "crypto";
 import { join } from "path";
+import { TMessageSendFunc, XaviaCommandContext } from "./XaviaTypes";
+import { ReflectiveMap } from "@cassidy/polyfills/goatbot";
 
 export function request(url: string, options = {}, callback = null) {
   if (typeof options === "function") {
@@ -371,4 +373,150 @@ export function buildCachePath(path: string) {
 
 export function buildAssetesPath(path: string) {
   return join(global.assetsPath, path);
+}
+
+export function createXaviaMessage(
+  event: CommandContext["event"],
+  { type, commandName },
+  ctx: CommandContext
+): XaviaCommandContext["message"] {
+  const { api } = ctx;
+  const { threadID, messageID, senderID } = event;
+  const isReaction = (_type: string = type): _type is "reaction" =>
+    _type === "reaction";
+  const extraEventProperties: Partial<XaviaCommandContext["message"]> = {
+    send: function (message, c_threadID = null, c_messageID = null) {
+      return new Promise((resolve, reject) => {
+        const targetSendID = c_threadID || threadID;
+        api.sendMessage(
+          message,
+          targetSendID,
+          (err, data) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(messageFunctionCallback(data as any, targetSendID));
+            }
+          },
+          c_messageID || null
+        );
+      });
+    },
+    reply: function (message) {
+      return new Promise((resolve, reject) => {
+        api.sendMessage(
+          message,
+          threadID,
+          (err, data) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(messageFunctionCallback(data as any, threadID));
+            }
+          },
+          messageID
+        );
+      });
+    },
+    react: function (emoji) {
+      return new Promise(async (resolve, reject) => {
+        await api.setMessageReaction(
+          emoji,
+          messageID,
+          // @ts-ignore
+          (err, data) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(data);
+            }
+          },
+          true
+        );
+        resolve(undefined);
+      });
+    },
+  };
+
+  if (isReaction) {
+    delete extraEventProperties.reply;
+    delete extraEventProperties.react;
+  }
+
+  const messageFunctionCallback = (
+    data: Awaited<ReturnType<TMessageSendFunc>>,
+    targetSendID: string
+  ) => {
+    const baseInput = {
+      threadID: targetSendID,
+      messageID: data.messageID,
+      author: isReaction && "userID" in event ? event.userID : senderID,
+      author_only: true,
+      name: commandName,
+    };
+
+    data.addReplyEvent = function (
+      data = {
+        author: null,
+        author_only: null,
+        callback: null,
+        messageID: null,
+        name: null,
+        threadID: null,
+      },
+      standbyTime = 60000
+    ) {
+      if (typeof data !== "object" || Array.isArray(data)) return;
+      if (typeof data.callback !== "function") return;
+
+      const input = Object.assign(baseInput, data);
+      const repliesMap = new ReflectiveMap(global.Cassidy.replies);
+      repliesMap.set(input.messageID, input as any);
+      if (standbyTime > 0) {
+        setTimeout(() => {
+          if (repliesMap.has(input.messageID)) {
+            repliesMap.delete(input.messageID);
+          }
+        }, standbyTime);
+      }
+    };
+    data.addReactEvent = function (
+      data = {
+        author: null,
+        author_only: null,
+        callback: null,
+        messageID: null,
+        name: null,
+        threadID: null,
+      },
+      standbyTime = 60000
+    ) {
+      if (typeof data !== "object" || Array.isArray(data)) return;
+      if (typeof data.callback !== "function") return;
+      const reactsMap = new ReflectiveMap(global.Cassidy.reacts);
+
+      const input = Object.assign(baseInput, data);
+      reactsMap.set(input.messageID, input as any);
+      if (standbyTime > 0) {
+        setTimeout(() => {
+          if (reactsMap.has(input.messageID)) {
+            reactsMap.delete(input.messageID);
+          }
+        }, standbyTime);
+      }
+    };
+    data.unsend = function (delay = 0) {
+      const input = Object.assign(baseInput, data);
+      setTimeout(
+        () => {
+          api.unsendMessage(input.messageID);
+        },
+        delay > 0 ? delay : 0
+      );
+    };
+
+    return data;
+  };
+
+  return extraEventProperties as XaviaCommandContext["message"];
 }

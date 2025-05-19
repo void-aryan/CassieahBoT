@@ -178,6 +178,8 @@ export type TOnCallCommand = (props: {
   prefix: string;
 }) => void | Promise<void>;
 
+export type XaviaCommandContext = Parameters<TOnCallOnMessage>[0];
+
 export type TOnCallOnMessage = (props: {
   message: TMessageObject & {
     send: TMessageSendFunc;

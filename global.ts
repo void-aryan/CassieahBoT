@@ -166,7 +166,7 @@ declare global {
 
     /**
      * Provides access to the API for external operations.
-     * @deprecated
+     * Uses XaviaBot Types.
      */
     api: API & IFCAU_API;
 
@@ -174,7 +174,7 @@ declare global {
      * Represents the event data for the current command.
      * Uses XaviaBot Types.
      */
-    event: IFCAU_ListenMessage;
+    event: Extract<IFCAU_ListenMessage, { type: "message" | "messageReply" }>;
 
     /**
      * Contains all loaded plugins.
