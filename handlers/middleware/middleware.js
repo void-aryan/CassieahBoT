@@ -247,17 +247,23 @@ export async function middleware({ allPlugins }) {
   await handleStat.connect();
   await threadsDB.connect();
   await globalDB.connect();
-  console.log({
-    usersDB: handleStat,
-    threadsDB,
-    globalDB,
-  });
+  // console.log({
+  //   usersDB: handleStat,
+  //   threadsDB,
+  //   globalDB,
+  // });
+  logger("Database Initialized!", "DATABASE");
   sortPlugin(allPlugins);
   global.Cassidy.databases = {
     usersDB: handleStat,
     threadsDB,
     globalDB,
   };
+  logger("Loading/saving all cache...", "DATABASE");
+  await handleStat.getAllCache();
+  await threadsDB.getAllCache();
+  await globalDB.getAllCache();
+  logger("All cache loaded!", "DATABASE");
 
   return handleMiddleWare;
 }
