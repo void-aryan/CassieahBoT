@@ -1,16 +1,6 @@
 {
   "orders": [
     {
-      "name": "xavia-support",
-      "status": "processed",
-      "isCircular": false,
-      "computedOrder": -100050,
-      "originalOrder": -100050,
-      "before": [],
-      "after": [],
-      "orderLast": 0
-    },
-    {
       "name": "extra-ctx",
       "status": "processed",
       "isCircular": false,
@@ -183,6 +173,18 @@
       "before": [],
       "after": [
         "input",
+        "output"
+      ],
+      "orderLast": 0
+    },
+    {
+      "name": "xavia-support",
+      "status": "processed",
+      "isCircular": false,
+      "computedOrder": 4,
+      "originalOrder": 4,
+      "before": [],
+      "after": [
         "output"
       ],
       "orderLast": 0

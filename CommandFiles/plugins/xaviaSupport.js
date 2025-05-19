@@ -10,7 +10,8 @@ export const meta = {
   version: "1.0.0",
   description: "Just adds some xavia compatibility",
   supported: "^1.0.0",
-  order: -100050,
+  order: 4,
+  after: ["output"],
   type: "plugin",
 };
 
@@ -33,7 +34,7 @@ export async function use(ctx) {
   const assets_ = Assets.gI();
   const assets = {
     from: assets_.from,
-    ...assets_.from(ctx.command.meta.name),
+    ...assets_.from(ctx.command?.meta?.name),
   };
   ctx.assets = assets;
   return ctx.next();

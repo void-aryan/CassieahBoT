@@ -142,6 +142,8 @@ export class InputClass extends String implements InputProps {
           commandKey: key,
           detectID,
         };
+        logger(`Reply Detector Added: ${detectID}`, "INPUT");
+
         return replies[detectID] as RepliesObj<T>;
       },
       delete<T extends StandardReplyArg>(detectID: string): RepliesObj<T> {
@@ -153,6 +155,8 @@ export class InputClass extends String implements InputProps {
         }
         const backup = replies[detectID];
         delete replies[detectID];
+        logger(`Reply Detector Removed: ${detectID}`, "INPUT");
+
         return backup as RepliesObj<T>;
       },
       get<T extends StandardReplyArg>(detectID: string): RepliesObj<T> {
@@ -196,6 +200,7 @@ export class InputClass extends String implements InputProps {
           commandKey: key,
           detectID,
         };
+        logger(`Reaction Detector Added: ${detectID}`, "INPUT");
         return reacts[detectID] as ReactObj<T>;
       },
       delete<T extends StandardReactArg>(detectID: string): ReactObj<T> {
@@ -207,6 +212,8 @@ export class InputClass extends String implements InputProps {
         }
         const backup = reacts[detectID];
         delete reacts[detectID];
+        logger(`Reaction Detector Removed: ${detectID}`, "INPUT");
+
         return backup as ReactObj<T>;
       },
       get<T extends StandardReactArg>(detectID: string): ReactObj<T> {

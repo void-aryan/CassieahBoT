@@ -31,7 +31,7 @@ export class Assets {
   }
 
   #init() {
-    const assetsDir = global.assetsPath;
+    const assetsDir = global.assetsPath ?? process.cwd() + "/temp";
 
     this.#linksPath = path.join(assetsDir, "links.json");
     this.#linksBackupPath = path.join(assetsDir, "links.bak.json");

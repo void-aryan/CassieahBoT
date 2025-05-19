@@ -381,61 +381,30 @@ export function createXaviaMessage(
   ctx: CommandContext
 ): XaviaCommandContext["message"] {
   const { api } = ctx;
-  const { threadID, messageID, senderID } = event;
+  const { threadID, senderID } = event;
   const isReaction = (_type: string = type): _type is "reaction" =>
     _type === "reaction";
   const extraEventProperties: Partial<XaviaCommandContext["message"]> = {
     ...event,
-    send: function (message, c_threadID = null, c_messageID = null) {
-      return new Promise((resolve, reject) => {
-        const targetSendID = c_threadID || threadID;
-        api.sendMessage(
-          message,
-          targetSendID,
-          (err, data) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(messageFunctionCallback(data as any, targetSendID));
-            }
-          },
-          c_messageID || null
-        );
+    async reply(message) {
+      const info = await ctx.output.dispatch(message, {
+        isReply: true,
       });
+      return messageFunctionCallback(info.result as any, threadID);
     },
-    reply: function (message) {
-      return new Promise((resolve, reject) => {
-        api.sendMessage(
-          message,
-          threadID,
-          (err, data) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(messageFunctionCallback(data as any, threadID));
-            }
-          },
-          messageID
-        );
+    async send(message, c_threadID = undefined, c_messageID = undefined) {
+      const info = await ctx.output.dispatch(message, {
+        threadID: c_threadID,
+        isReply: true,
+        messageID: c_messageID,
       });
+      return messageFunctionCallback(
+        info.result as any,
+        c_threadID || threadID
+      );
     },
-    react: function (emoji) {
-      return new Promise(async (resolve, reject) => {
-        await api.setMessageReaction(
-          emoji,
-          messageID,
-          // @ts-ignore
-          (err, data) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(data);
-            }
-          },
-          true
-        );
-        resolve(undefined);
-      });
+    react(emoji) {
+      return ctx.output.reaction(emoji);
     },
   };
 
@@ -471,16 +440,15 @@ export function createXaviaMessage(
       if (typeof data.callback !== "function") return;
 
       const input = Object.assign(baseInput, data);
-      const repliesMap = new ReflectiveMap(global.Cassidy.replies);
-      repliesMap.set(input.messageID, {
-        repObj: input as any,
-        commandKey: "",
-        detectID: input.messageID,
+
+      ctx.input.setReply(input.messageID, {
+        ...data,
+        callback: data.callback as any,
       });
       if (standbyTime > 0) {
         setTimeout(() => {
-          if (repliesMap.has(input.messageID)) {
-            repliesMap.delete(input.messageID);
+          if (ctx.input.getReply(input.messageID)) {
+            ctx.input.delReply(input.messageID);
           }
         }, standbyTime);
       }
@@ -498,18 +466,18 @@ export function createXaviaMessage(
     ) {
       if (typeof data !== "object" || Array.isArray(data)) return;
       if (typeof data.callback !== "function") return;
-      const reactsMap = new ReflectiveMap(global.Cassidy.reacts);
 
       const input = Object.assign(baseInput, data);
-      reactsMap.set(input.messageID, {
-        reactObj: input as any,
-        commandKey: "",
-        detectID: input.messageID,
+
+      ctx.input.setReact(input.messageID, {
+        ...data,
+        callback: data.callback as any,
       });
+
       if (standbyTime > 0) {
         setTimeout(() => {
-          if (reactsMap.has(input.messageID)) {
-            reactsMap.delete(input.messageID);
+          if (ctx.input.getReact(input.messageID)) {
+            ctx.input.delReact(input.messageID);
           }
         }, standbyTime);
       }
