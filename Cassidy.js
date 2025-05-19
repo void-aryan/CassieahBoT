@@ -578,6 +578,7 @@ import bodyParser from "body-parser";
 import fetchMeta from "./CommandFiles/modules/fetchMeta.js";
 import { TempFile } from "./handlers/page/sendMessage";
 import { inspect } from "util";
+import getCUser from "@cass-modules/XaviaSupport/User";
 const { UTYPlayer } = global.utils;
 
 const limit = {
@@ -599,6 +600,9 @@ const fake502 = rateLimit(limit);
  * @param {unknown} _
  */
 function web(api, funcListen, _) {
+  global.controllers = {
+    Users: getCUser(api),
+  };
   global.api = api;
   const app = express();
   app.use(cors());

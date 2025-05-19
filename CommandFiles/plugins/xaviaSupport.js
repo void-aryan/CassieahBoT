@@ -1,7 +1,7 @@
 // @ts-check
 
 import { Assets } from "@cass-modules/XaviaSupport/Assets";
-import { Balance, makeBalanceCTX } from "@cass-modules/XaviaSupport/Balance";
+import { makeBalanceCTX } from "@cass-modules/XaviaSupport/Balance";
 import { createXaviaMessage } from "@cass-modules/XaviaSupport/utils";
 
 export const meta = {

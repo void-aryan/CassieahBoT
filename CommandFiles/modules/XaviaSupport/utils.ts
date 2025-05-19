@@ -363,8 +363,8 @@ export function getAvatarURL(uid: any) {
   return `https://graph.facebook.com/${uid}/picture?type=large&width=500&height=500&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
 }
 
-export function isAcceptableNumber(num: string) {
-  return !isNaN(parseInt(num));
+export function isAcceptableNumber(num: string | number) {
+  return !isNaN(Math.floor(Number(num)));
 }
 
 export function buildCachePath(path: string) {

@@ -24,7 +24,7 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   info?: IFCAU_User & { id: string; thumbSrc: string };
-  data?: Record<string, any>;
+  data?: UserData;
 }
 
 export interface Thread {

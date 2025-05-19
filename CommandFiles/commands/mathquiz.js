@@ -56,7 +56,10 @@ async function onCall({ message, args }) {
 
       data.addReplyEvent({
         callback: getMathReply,
-        myData: { correctAnswer, userBet, messageId, timerId },
+        correctAnswer,
+        userBet,
+        messageId,
+        timerId,
       });
     })
     .catch((err) => console.error(err));

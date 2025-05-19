@@ -20,6 +20,9 @@ import type * as UNIUtils from "@cass-modules/unisym";
 import * as _CassidyUser from "./CommandFiles/modules/cassidyUser";
 
 declare global {
+  var controllers: {
+    Users: ReturnType<typeof getCUser>;
+  };
   export import Datum = _Datum;
   var api: CommandContext["api"];
   export type TOnCallCommand = XaviaTypes.TOnCallCommand;
@@ -1132,6 +1135,7 @@ import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
 import { Datum as _Datum } from "@cass-modules/Datum";
 import { IFCAU_API, IFCAU_ListenMessage } from "@xaviabot/fca-unofficial";
 import * as XaviaTypes from "@cass-modules/XaviaSupport/XaviaTypes";
+import getCUser from "@cass-modules/XaviaSupport/User";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {
