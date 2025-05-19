@@ -438,7 +438,7 @@ export function createXaviaMessage(
     },
   };
 
-  if (isReaction) {
+  if (isReaction(event.type)) {
     delete extraEventProperties.reply;
     delete extraEventProperties.react;
   }
