@@ -385,6 +385,7 @@ export function createXaviaMessage(
   const isReaction = (_type: string = type): _type is "reaction" =>
     _type === "reaction";
   const extraEventProperties: Partial<XaviaCommandContext["message"]> = {
+    ...event,
     send: function (message, c_threadID = null, c_messageID = null) {
       return new Promise((resolve, reject) => {
         const targetSendID = c_threadID || threadID;
