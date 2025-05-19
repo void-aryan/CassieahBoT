@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
-  version: "2.1.4",
+  version: "2.1.6",
   usage: "{prefix}{name}",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -133,16 +133,28 @@ export async function entry({
       style
     );
   }
+  if (input.arguments[0] === "new") {
+    currentEnc = generateEnc();
+  }
+  let targetEnc =
+    input.arguments[0] !== "new"
+      ? encounters[input.arguments[0]] ?? currentEnc
+      : currentEnc;
+  if (!targetEnc) {
+    targetEnc = currentEnc;
+  }
 
+  const re = Math.round((targetEnc.goldFled / 15) * 1);
+  const mercy = Math.round(re * 1.7);
   const infoBegin = await output.replyStyled(
     `🔎 **Random Encounter**:
-Your opponent is ${currentEnc.wildIcon} ${currentEnc.wildName}
+Your opponent is ${targetEnc.wildIcon} ${targetEnc.wildName}
 
 🪙 **Rewards**:
 
-⚔️ Attacked: More than ${formatCash(currentEnc.goldFled, "💷", true)}
-💗 Spared: More than ${formatCash(currentEnc.goldSpared, "💷", true)}
-💎 Gems: Approx. **${(currentEnc.winDias ?? 0) * 10}**💎
+⚔️ Attacked: More than ${formatCash(re, "💷", true)} per pet.
+💗 Spared: More than ${formatCash(mercy, "💷", true)} per pet.
+💎 Gems: Approx. **${(targetEnc.winDias ?? 0) * 10}**💎
 
 Please **reply** with the names of minimum of **${MIN_PETS} pets**, maximum of **${MAX_PETS} pets**, separated by |, you cannot use same type of pet twice.
 **Example:** ${[
@@ -222,18 +234,18 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**`,
 
     const opponent = new WildPlayer(
       {
-        ...currentEnc,
+        ...targetEnc,
         HP:
-          currentEnc.HP +
+          targetEnc.HP +
           Math.round(pets.reduce((acc, pet) => acc + pet.ATK * 2.1, 0)),
         ATK:
-          currentEnc.ATK +
+          targetEnc.ATK +
           Math.round(pets.reduce((acc, pet) => acc + pet.DF / 10, 0)),
         goldFled:
-          currentEnc.goldFled +
+          targetEnc.goldFled +
           Math.round(pets.reduce((acc, pet) => acc + pet.ATK * 20, 0)),
         goldSpared:
-          currentEnc.goldSpared +
+          targetEnc.goldSpared +
           Math.floor(pets.reduce((acc, pet) => acc + pet.ATK * 50, 0)),
       },
       [...pets]
