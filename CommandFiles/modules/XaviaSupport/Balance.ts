@@ -54,7 +54,7 @@ export class Balance {
           ? Balance.MAX_BALANCE_LIMIT
           : newAmount;
     }
-    targetUser[BIG_MONEY_KEY] = newAmount < 0 ? 0 : newAmount;
+    targetUser[BIG_MONEY_KEY] = Number(newAmount < 0 ? 0 : newAmount);
     return global.Cassidy.databases.usersDB.setItem(userID, {
       [BIG_MONEY_KEY]: Number(targetUser[BIG_MONEY_KEY]),
     });
@@ -83,7 +83,7 @@ export class Balance {
           ? Balance.MAX_BALANCE_LIMIT
           : newAmount;
     }
-    targetUser[BIG_MONEY_KEY] = newAmount < 0 ? 0 : newAmount;
+    targetUser[BIG_MONEY_KEY] = Number(newAmount < 0 ? 0 : newAmount);
     return global.Cassidy.databases.usersDB.setItem(userID, {
       [BIG_MONEY_KEY]: Number(targetUser[BIG_MONEY_KEY]),
     });
@@ -129,8 +129,8 @@ export class Balance {
 
     const isLimitExceed =
       Balance.MAX_BALANCE_LIMIT != -1n && amount > Balance.MAX_BALANCE_LIMIT;
-    targetUser[BIG_MONEY_KEY] = Balance.make(
-      isLimitExceed ? Balance.MAX_BALANCE_LIMIT : amount
+    targetUser[BIG_MONEY_KEY] = Number(
+      Balance.make(isLimitExceed ? Balance.MAX_BALANCE_LIMIT : amount)
     );
     return global.Cassidy.databases.usersDB.setItem(userID, {
       [BIG_MONEY_KEY]: Number(targetUser[BIG_MONEY_KEY]),
@@ -170,7 +170,7 @@ export class BalanceError extends Error {
   }
 }
 
-export const BIG_MONEY_KEY = "money_xavia";
+export const BIG_MONEY_KEY = "money";
 
 export function makeBalanceCTX(userID: string): BalanceMake {
   return {
