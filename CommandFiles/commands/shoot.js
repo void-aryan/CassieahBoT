@@ -77,7 +77,7 @@ export async function entry({
       cancelCooldown();
       return output.reply("⚠️ We do not allow money bets!");
     }
-    if (!KEY || !isNaN(parseBet(KEY, Infinity)) || !bet.length) {
+    if (!KEY || !isNaN(parseBet(KEY, Infinity)) || !bet?.length) {
       cancelCooldown();
       return output.reply(
         `⚠️ Wrong syntax!\n\n**Guide**: ${input.words[0]} <mtls_key> <bet>\n\nYou can check your **collectibles** or visit **MTLS** to mint one!\nMTLS Key should have no "mtls_" prefix.`
@@ -86,7 +86,7 @@ export async function entry({
     infoT = getTokensInfo(KEY, userData);
   } else {
     [bet] = input.arguments;
-    if (!bet.length) {
+    if (!bet?.length) {
       cancelCooldown();
       return output.reply(
         `⚠️ Wrong syntax!\n\n**Guide**: ${input.words[0]} <bet>`
