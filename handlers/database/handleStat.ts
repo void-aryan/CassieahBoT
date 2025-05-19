@@ -162,7 +162,7 @@ export default class UserStatsManager {
         data.nameMeta = norm;
       }
     }
-
+    data.money = Math.floor(data.money);
     return data;
   }
 

@@ -471,7 +471,11 @@ export function createXaviaMessage(
 
       const input = Object.assign(baseInput, data);
       const repliesMap = new ReflectiveMap(global.Cassidy.replies);
-      repliesMap.set(input.messageID, input as any);
+      repliesMap.set(input.messageID, {
+        repObj: input as any,
+        commandKey: "",
+        detectID: input.messageID,
+      });
       if (standbyTime > 0) {
         setTimeout(() => {
           if (repliesMap.has(input.messageID)) {
@@ -496,7 +500,11 @@ export function createXaviaMessage(
       const reactsMap = new ReflectiveMap(global.Cassidy.reacts);
 
       const input = Object.assign(baseInput, data);
-      reactsMap.set(input.messageID, input as any);
+      reactsMap.set(input.messageID, {
+        reactObj: input as any,
+        commandKey: "",
+        detectID: input.messageID,
+      });
       if (standbyTime > 0) {
         setTimeout(() => {
           if (reactsMap.has(input.messageID)) {
