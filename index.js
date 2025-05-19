@@ -17,7 +17,6 @@ if (!themed) {
   can result in severe consequences, including a global ban from my server.
   Proceed with extreme caution and refrain from any unauthorized actions.
 */
-
 const axios = require("axios").default;
 
 /**

@@ -21,6 +21,8 @@ import type * as UNIUtils from "@cass-modules/unisym";
 import * as _CassidyUser from "./CommandFiles/modules/cassidyUser";
 
 declare global {
+  export import Datum = _Datum;
+
   var package: typeof import("./package.json");
   var logger: typeof import("./Cassidy.js").logger;
 
@@ -1054,10 +1056,6 @@ declare global {
   var Cassidy: CassidySpectra.GlobalCassidy;
   var handleStat: UserStatsManager;
 
-  var require: NodeRequire & {
-    url(url: string): Promise<any>;
-  };
-
   var cassMongoManager: CassMongoManager | undefined;
 
   interface API extends FCALianeAPI {}
@@ -1113,6 +1111,7 @@ import type * as SmartSpectra from "@cass-modules/SmartSpectra";
 import { ConsoleArray } from "@cass-modules/ConsoleArray";
 import { MultiMap } from "@cass-modules/Multimap";
 import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
+import { Datum as _Datum } from "@cass-modules/Datum";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {
@@ -1555,9 +1554,11 @@ declare global {
     ): { returned: ReturnType<T>; error: unknown }[];
   }
 
-  interface NodeRequire {
-    url(url: string): Promise<any>;
-    ensure(id: string): any;
+  namespace NodeJS {
+    interface Require {
+      url?: (url: string) => Promise<any>;
+      ensure?: (id: string) => any;
+    }
   }
 
   interface OutputJSX {

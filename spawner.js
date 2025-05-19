@@ -27,7 +27,6 @@ require.extensions[".txt"] = function (module, filename) {
   const file = fs.readFileSync(filename, "utf8");
   module.exports = file;
 };
-
 require.url = async function (url) {
   try {
     if (typeof url !== "string") {
@@ -232,5 +231,7 @@ if (require("./settings.json").verboseErrorStacks) {
   };
 }
 require("./hidestate");
+
+global.Datum = require("@cass-modules/Datum").Datum;
 
 require("./Cassidy");
