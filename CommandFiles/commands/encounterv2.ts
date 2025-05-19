@@ -21,8 +21,8 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
-  version: "2.1.7",
-  usage: "{prefix}{name} [boss_name | 'new']",
+  version: "2.1.9",
+  usage: "{prefix}{name} [id | 'new']",
   category: "Spinoff Games",
   author: "Liane Cagara",
   permissions: [0],
@@ -124,15 +124,56 @@ export async function entry({
   input,
   output,
   user,
+  Slicer,
 }: CommandContext): Promise<any> {
   const statMap = new Map<string, PersistentStats>();
   let gameState: GameState | null = null;
   let isDefeat = false;
+
   if ((user.petsData ?? []).length < MIN_PETS) {
     return output.replyStyled(
       `You must have at least **${MIN_PETS} pets** to proceed.`,
       style
     );
+  }
+  if (input.arguments[0] === "list") {
+    const entries = Object.entries(encounters);
+    const slicer = new Slicer(entries, 7);
+    let page = Math.min(
+      Number(input.arguments[1]) || 1,
+      slicer.pagesLength + 1
+    );
+
+    const getReM = (gold: number) => {
+      const re = Math.round((gold / 15) * 1);
+      const mercy = Math.round(re * 1.7);
+      return { re, mercy };
+    };
+
+    const str = (slicer.getPage(page) as [string, Encounter][])
+      .map(
+        ([key, value]) =>
+          `${UNIRedux.charm} ${value.wildIcon} **${value.wildName}** **LV${
+            value.level ?? 1
+          }**\n🔎 ***ID***: ${key}\n⚔️ ***ATK***: ${value.ATK}\n🔰 ***DEF***: ${
+            value.DF
+          }\n🗃️ ***Type***: ${value.wildType}\n🪙 **Attacked**: ${
+            (formatCash(getReM(value.goldFled).re), "💷", true)
+          }\n💗 **Spared**: ${formatCash(
+            getReM(value.goldFled).mercy,
+            "💷",
+            true
+          )}\n💎 **Gems**: **${(value.winDias ?? 0) * 10}💎**`
+      )
+      .join("\n\n");
+    await output.reply(
+      `🌏 Page **${page}** of **${
+        slicer.pagesLength + 1
+      }**\n\n${str}\n\n📁 ***NEXT PAGE***, type: ${input.words[0]} ${
+        input.words[1]
+      } ${page + 1}`
+    );
+    return;
   }
   if (input.arguments[0] === "new") {
     currentEnc = generateEnc();
@@ -175,7 +216,9 @@ Please **reply** with the names of minimum of **${MIN_PETS} pets**, maximum of *
 
 The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n🎲 Type **${
       input.words[0]
-    } new** to find new opponent.`,
+    } new** to find new opponent.\n🌏 Type **${
+      input.words[0]
+    } list** to check all bosses.`,
     style
   );
 
