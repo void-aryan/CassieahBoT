@@ -100,13 +100,13 @@ export class LangParser {
     return (key_: string, ...replacers_: any[]) => {
       const replacers = replacers_.map(String);
       let key = String(key_);
-      if (!(key in langs) && !this.get(key)) {
-        key = Object.keys(langs)[0];
-      }
+
       const item =
         langs?.[k1]?.[key] ||
         langs?.[global.Cassidy.config.defaultLang]?.[key] ||
-        this.get(key);
+        langs?.[k1]?.["en"] ||
+        langs?.[k1]?.["en_US"];
+      this.get(key);
 
       if (!item) {
         return `❌ Cannot find language properties: "${key}"`;
