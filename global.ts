@@ -21,6 +21,12 @@ import * as _CassidyUser from "./CommandFiles/modules/cassidyUser";
 
 declare global {
   export import Datum = _Datum;
+  var api: CommandContext["api"];
+  export type TOnCallCommand = XaviaTypes.TOnCallCommand;
+  export type TOnCallEvents = XaviaTypes.TOnCallEvents;
+  export type TOnCallOnMessage = XaviaTypes.TOnCallOnMessage;
+  export type TReplyCallback = XaviaTypes.TReplyCallback;
+  export type TReactCallback = XaviaTypes.TReactCallback;
 
   var package: typeof import("./package.json");
   var logger: typeof import("./Cassidy.js").logger;
@@ -710,6 +716,11 @@ declare global {
 
     defCommand: CassidySpectra.CassidyCommand | undefined;
     supposedCommand: CassidySpectra.CassidyCommand | undefined;
+
+    message: XaviaTypes.XaviaCommandContext["message"];
+    balance: XaviaTypes.XaviaCommandContext["balance"];
+    assets: XaviaTypes.XaviaCommandContext["assets"];
+    xDB: XaviaTypes.XaviaCommandContext["xDB"];
   }
 
   type CommandContext = CommandContextOG & { [key: string]: unknown };
@@ -782,7 +793,9 @@ declare global {
 
     export interface CassidyCommand {
       meta: CommandMeta;
+      config?: CommandMeta;
       entry: CommandEntry;
+      onCall: CommandEntry;
       ID?: number;
       fileName?: string;
       treasuresTable?: Cass.InventoryItem[];
@@ -817,6 +830,7 @@ declare global {
        */
       awaiting?: CommandHandler;
       langs?: Record<string, Record<string, string>>;
+      langData?: Record<string, Record<string, string>>;
       indivMeta?: ConstructorParameters<
         typeof SpectralCMDHome
       >["0"]["entryInfo"];
@@ -911,6 +925,11 @@ declare global {
        */
       params?: any[];
       legacyMode?: boolean;
+      // Xavia
+      aliases?: string[];
+      cooldown?: number;
+      credits?: string;
+
       [name: string]: any;
       cmdType?: CommandTypes;
     }
@@ -1112,6 +1131,7 @@ import { MultiMap } from "@cass-modules/Multimap";
 import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
 import { Datum as _Datum } from "@cass-modules/Datum";
 import { IFCAU_API, IFCAU_ListenMessage } from "@xaviabot/fca-unofficial";
+import * as XaviaTypes from "@cass-modules/XaviaSupport/XaviaTypes";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {

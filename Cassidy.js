@@ -594,11 +594,12 @@ const fake502 = rateLimit(limit);
 
 /**
  *
- * @param {API?} api
+ * @param {CommandContext["api"]} api
  * @param {(err: any, event: any, extra: any) => any} funcListen
  * @param {unknown} _
  */
 function web(api, funcListen, _) {
+  global.api = api;
   const app = express();
   app.use(cors());
   app.use(express.json({ limit: "200mb" }));

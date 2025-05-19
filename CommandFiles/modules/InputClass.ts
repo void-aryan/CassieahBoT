@@ -314,6 +314,7 @@ export class InputClass extends String implements InputProps {
         console.log(Reflect.ownKeys(this.#__context), new Error());
         this.replier = new InputClass({
           ...this.#__context,
+          // @ts-ignore
           event: event.messageReply,
         });
         this.messageReply = this.replier;
@@ -432,6 +433,7 @@ export class InputClass extends String implements InputProps {
     const { ADMINBOT, WEB_PASSWORD } = global.Cassidy?.config ?? {};
     const webPassword = process.env.WEB_PASSWORD ?? WEB_PASSWORD;
     return (
+      // @ts-ignore
       this.#__context.event.password === webPassword ||
       ADMINBOT?.includes(this.senderID)
     );
@@ -673,6 +675,7 @@ export class InputClass extends String implements InputProps {
               ...obj,
               repObj,
               detectID,
+              eventData: repObj,
               commandName: commandKey,
               command,
             });
@@ -707,6 +710,7 @@ export class InputClass extends String implements InputProps {
               ...obj,
               reactObj,
               detectID,
+              eventData: reactObj,
               commandName: commandKey,
               command,
             });

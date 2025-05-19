@@ -131,7 +131,28 @@ export async function loadCommand(
       }
       return;
     }
+    if (command.config) {
+      command.meta = command.config;
+      delete command.config;
+    }
+    if (command.langData) {
+      command.langs = command.langData;
+      delete command.langData;
+    }
+
     command.meta = { ...defaultMeta, ...(command.meta ?? {}) };
+    if (command.meta.cooldown) {
+      command.meta.waitingTime = command.meta.cooldown;
+    }
+    if (command.meta.aliases) {
+      command.meta.otherNames = command.meta.aliases;
+    }
+    if (command.meta.credits) {
+      command.meta.author = command.meta.credits;
+    }
+    if (command.onCall) {
+      command.entry = command.onCall;
+    }
     fileName = String(fileName);
     const { meta, entry, duringLoad, noPrefix, reply } = command;
     const verRegex = /,?\s*version:\s*"([^"]*)"\s*,/;

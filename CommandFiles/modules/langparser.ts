@@ -92,13 +92,17 @@ export class LangParser {
 
   public createGetLang(
     langs?: Record<string, Record<string, string>>,
-    k1?: string
+    k1?: string | number
   ) {
     langs ??= {};
     k1 ||= global.Cassidy.config.defaultLang ?? "en";
+
     return (key_: string, ...replacers_: any[]) => {
       const replacers = replacers_.map(String);
       let key = String(key_);
+      if (!(key in langs) && !this.get(key)) {
+        key = Object.keys(langs)[0];
+      }
       const item =
         langs?.[k1]?.[key] ||
         langs?.[global.Cassidy.config.defaultLang]?.[key] ||

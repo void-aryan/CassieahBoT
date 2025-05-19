@@ -17,7 +17,7 @@ import {
 } from "./utils";
 
 export class Assets {
-  static #instance = null;
+  static #instance: Assets = null;
   #linksPath;
   #linksBackupPath;
   #data: { name: string; links: { [key: string]: string } }[];
