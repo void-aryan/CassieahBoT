@@ -9,7 +9,6 @@ import type {
   generateTrashOld,
 } from "./CommandFiles/plugins/ut-shop.js";
 
-// import type InputX from "input-cassidy";
 import type { ReplySystem, ReactSystem } from "input-cassidy";
 
 import type OutputX from "output-cassidy";
@@ -169,13 +168,13 @@ declare global {
      * Provides access to the API for external operations.
      * @deprecated
      */
-    api: API;
+    api: API & IFCAU_API;
 
     /**
      * Represents the event data for the current command.
-     * @deprecated
+     * Uses XaviaBot Types.
      */
-    event: any;
+    event: IFCAU_ListenMessage;
 
     /**
      * Contains all loaded plugins.
@@ -1112,6 +1111,7 @@ import { ConsoleArray } from "@cass-modules/ConsoleArray";
 import { MultiMap } from "@cass-modules/Multimap";
 import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
 import { Datum as _Datum } from "@cass-modules/Datum";
+import { IFCAU_API, IFCAU_ListenMessage } from "@xaviabot/fca-unofficial";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {
