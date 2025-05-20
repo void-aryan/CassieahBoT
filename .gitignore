@@ -11,6 +11,13 @@ node_modules
 .env
 dist-commandfiles
 
+trans.js
+2.0.json
+trans2.js
+
+temp/links.json
+temp/links.bak.json
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 

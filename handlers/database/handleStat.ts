@@ -157,7 +157,7 @@ export default class UserStatsManager {
 
     if (typeof data.name === "string") {
       const norm = this.normalizeName(data.name);
-      data.name = norm.finalName;
+      // data.name = norm.finalName;
       if (data.name) {
         data.nameMeta = norm;
       }

@@ -13,7 +13,7 @@ export const meta = {
   permissions: [0],
   noPrefix: false,
   waitingTime: 5,
-  otherNames: ["changename"],
+  otherNames: ["changename", "register"],
   linkTo: "identity-setname",
 };
 

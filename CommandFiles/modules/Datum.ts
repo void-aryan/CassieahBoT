@@ -308,6 +308,34 @@ export namespace Datum {
 
   type ObjectKey = string | number | symbol;
 
+  export function decodeGameID(input: string) {
+    input = input.replace(GAME_ID_PREFIX, "");
+    const pad = input.length % 4;
+    if (pad > 0) {
+      input += "=".repeat(4 - pad);
+    }
+    try {
+      return Buffer.from(input, "base64")
+        .toString("utf8")
+        .replaceAll("custom_", "");
+    } catch (e) {
+      return input;
+    }
+  }
+
+  export const GAME_ID_PREFIX = "web:";
+
+  export function encodeGameID(input: string) {
+    try {
+      const encodedIP = Buffer.from(input)
+        .toString("base64")
+        .replace(/[+/=]/g, (match) => ({ "+": "0", "/": "1", "=": "" }[match]));
+      return `${GAME_ID_PREFIX}${encodedIP}`;
+    } catch (error) {
+      return input;
+    }
+  }
+
   export function makeMapPlain<T extends Record<ObjectKey, any>>(
     plainObj: T = {} as T
   ) {

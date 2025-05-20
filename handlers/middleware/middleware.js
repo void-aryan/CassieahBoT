@@ -580,6 +580,7 @@ api.${
       foundCommands,
       supposedCommand: undefined,
       defCommand,
+      extra: {},
     };
     if (Cassidy.config.DEBUG) {
       function makeProxy(a, pref = "") {
@@ -661,6 +662,7 @@ api.${
     const styler = new CassidyResponseStylerControl(
       runObjects.command?.style ?? {}
     );
+    runObjects.extra = runObjects.command?.meta?.extra ?? {};
     const stylerDummy = new CassidyResponseStylerControl({});
     styler.activateAllPresets();
     runObjects.styler = styler;

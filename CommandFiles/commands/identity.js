@@ -4,12 +4,15 @@ import { ReduxCMDHome } from "@cassidy/redux-home";
 import { UNIRedux } from "@cassidy/unispectra";
 import { PasteClient } from "pastebin-api";
 
+/**
+ * @type {CassidySpectra.CommandMeta}
+ */
 export const meta = {
   name: "identity",
   description:
     "Changes your identity or persona, allowing you to update your display name or alter how you are represented in the system. This command provides you with options to personalize your name, nickname, and other profile aspects.",
   author: "Liane | JenicaDev",
-  version: "1.1.1",
+  version: "1.1.2",
   usage: "{prefix}setname <newName>",
   category: "User Management",
 
@@ -21,6 +24,9 @@ export const meta = {
   icon: "💬",
 };
 
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
 export const style2 = {
   title: "🍃 Change User",
   titleFont: "fancy",
@@ -29,6 +35,9 @@ export const style2 = {
 
 const { parseCurrency: pCy } = global.utils;
 
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
 export const style = {
   title: "Identity Dashboard 💬",
   titleFont: "bold",
@@ -115,9 +124,9 @@ const home = new ReduxCMDHome(
         let userData = allData[input.senderID] ?? { ...money.defaults };
         let { usernameHistory = [], cassExpress = {} } = userData;
         const oldName = userData.name || "Unregistered";
-        const newName = money.normalizeName(args[0] || "").finalName;
+        const newName = args.join(" ");
 
-        if (!newName || newName.length < 3 || newName.length > 20) {
+        if (!newName || newName.length < 3 || newName.length > 40) {
           return output.replyStyled(
             {
               body:

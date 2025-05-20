@@ -720,10 +720,12 @@ declare global {
     defCommand: CassidySpectra.CassidyCommand | undefined;
     supposedCommand: CassidySpectra.CassidyCommand | undefined;
 
-    message: XaviaTypes.XaviaCommandContext["message"];
-    balance: XaviaTypes.XaviaCommandContext["balance"];
-    assets: XaviaTypes.XaviaCommandContext["assets"];
-    xDB: XaviaTypes.XaviaCommandContext["xDB"];
+    message?: XaviaTypes.XaviaCommandContext["message"];
+    balance?: XaviaTypes.XaviaCommandContext["balance"];
+    assets?: XaviaTypes.XaviaCommandContext["assets"];
+    xDB?: XaviaTypes.XaviaCommandContext["xDB"];
+
+    extra: CommandMeta["extra"];
   }
 
   type CommandContext = CommandContextOG & { [key: string]: unknown };
@@ -932,6 +934,7 @@ declare global {
       aliases?: string[];
       cooldown?: number;
       credits?: string;
+      extra?: Record<ObjectKey, any>;
 
       [name: string]: any;
       cmdType?: CommandTypes;
@@ -1136,6 +1139,7 @@ import { Datum as _Datum } from "@cass-modules/Datum";
 import { IFCAU_API, IFCAU_ListenMessage } from "@xaviabot/fca-unofficial";
 import * as XaviaTypes from "@cass-modules/XaviaSupport/XaviaTypes";
 import getCUser from "@cass-modules/XaviaSupport/User";
+import { ObjectKey } from "@cass-modules/unitypes";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {
