@@ -7,7 +7,7 @@ export const meta = {
   description: "Manage your items.",
   author: "Liane Cagara | JenicaDev",
   version: "1.3.1",
-  usage: "{prefix}inventory <action> [args]",
+  usage: "{prefix}{name} <action> [args]",
   category: "Inventory",
   permissions: [0],
   noPrefix: false,
