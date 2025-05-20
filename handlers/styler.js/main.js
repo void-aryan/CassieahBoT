@@ -513,8 +513,8 @@ export function applyLine(text, styling) {
     if (etc[0] === "inside") {
       switch (etc[1]) {
         case "x":
-          const newLength = Math.floor(length / 2);
-          line = `${"━".repeat(newLength)} ✕ ${"━".repeat(newLength - 1)}`;
+          const newLength = Math.max(0, Math.floor(length / 2));
+          line = `${"━".repeat(newLength)} ✕ ${"━".repeat(newLength)}`;
           break;
         case "text":
           line = `━━━ ${field} ━━━`;

@@ -1,12 +1,12 @@
 import { SpectralCMDHome, CassCheckly, Config } from "@cassidy/spectral-home";
-import { abbreviateNumber, UNIRedux } from "@cassidy/unispectra";
+import { abbreviateNumber, emojiEnd, UNIRedux } from "@cassidy/unispectra";
 import utils from "@cassidy/utils";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "balance",
   description: "Check your virtual cash",
   otherNames: ["bal", "money"],
-  version: "3.2.0",
+  version: "3.2.6",
   usage: "{prefix}{name}",
   category: "Finance",
   author: "Liane Cagara",
@@ -16,11 +16,12 @@ export const meta: CassidySpectra.CommandMeta = {
   requirement: "3.0.0",
   icon: "💰",
   cmdType: "cplx_g",
+  noRibbonUI: true,
 };
 
 export const style: CassidySpectra.CommandStyle = {
-  title: "Balance 💵",
   titleFont: "bold",
+  title: "💵 Balance",
   contentFont: "fancy",
 };
 
@@ -47,6 +48,15 @@ function sortUsers(
   for (const key of sortedKeys) result[key] = users[key];
   return result;
 }
+function sortUsersNotTotal(users: { [x: string]: any }, top: number) {
+  let result = {};
+  let sortedKeys = Object.keys(users).sort(
+    (a, b) => users[b].money - users[a].money
+  );
+  if (top) sortedKeys = sortedKeys.slice(0, top);
+  for (const key of sortedKeys) result[key] = users[key];
+  return result;
+}
 
 export function getBehindAhead(
   id: string,
@@ -68,9 +78,83 @@ export function getTop(id: string, users: any, money: any) {
 const configs: Config[] = [
   {
     key: "home",
-    description: "Your balance homepage.",
+    description: "Your minimal balance overview.",
     args: ["[uid]"],
     aliases: ["-h"],
+    icon: "💸",
+    validator: new CassCheckly([
+      { index: 0, type: "string", required: false, name: "userID" },
+    ]),
+    async handler(
+      { money, input, output, prefix, commandName },
+      { spectralArgs }
+    ) {
+      let senderID = input.senderID;
+      if (input.replier) senderID = input.replier.senderID;
+      if (input.hasMentions) senderID = input.firstMention.senderID;
+      if (spectralArgs[0]) senderID = spectralArgs[0];
+
+      let playerMoney: UserData = await money.getCache(senderID);
+      if (!playerMoney || !playerMoney.name) {
+        return output.reply("❌ This user is a ghost!");
+      }
+
+      const name =
+        input.hasMentions || input.replier || spectralArgs[0]
+          ? playerMoney.name
+          : `${playerMoney.name} (You)`;
+      output.setUIName(name);
+
+      const outputText = [
+        `👤 **${name}**`,
+        ``,
+        `💰 ${formatCash(playerMoney.money, "💵", false)}`,
+        `${UNIRedux.standardLine}`,
+        `Type **${prefix}${commandName} all** for full balance info.`,
+      ].join("\n");
+
+      return output.replyStyled(outputText, {
+        ...style,
+        content: {
+          text_font: "none",
+          line_bottom_inside_x: "default",
+        },
+      });
+    },
+  },
+  {
+    key: "raw",
+    description: "Your raw balance overview.",
+    args: ["[uid]"],
+    aliases: ["-r"],
+    icon: "💸",
+    validator: new CassCheckly([
+      { index: 0, type: "string", required: false, name: "userID" },
+    ]),
+    async handler({ money, input, output }, { spectralArgs }) {
+      let senderID = input.senderID;
+      if (input.replier) senderID = input.replier.senderID;
+      if (input.hasMentions) senderID = input.firstMention.senderID;
+      if (spectralArgs[0]) senderID = spectralArgs[0];
+
+      let playerMoney: UserData = await money.getCache(senderID);
+      if (!playerMoney || !playerMoney.name) {
+        return output.reply("❌ This user is a ghost!");
+      }
+
+      return output.reply({
+        body: `${playerMoney.money}`,
+        noStyle: true,
+        noLevelUI: true,
+        noRibbonUI: true,
+      });
+    },
+  },
+  {
+    key: "all",
+    description: "Your complete balance details.",
+    args: ["[uid]"],
+    aliases: ["-a"],
     icon: "💸",
     validator: new CassCheckly([
       { index: 0, type: "string", required: false, name: "userID" },
@@ -136,6 +220,52 @@ const configs: Config[] = [
     cooldown: 5,
     description: "See the Top 10 richest",
     aliases: ["-t", "leaders"],
+    icon: "🏆",
+    async handler({ money, input, output, prefix, commandName }) {
+      const users = await money.getAllCache();
+      const topUsers = sortUsersNotTotal(users, 10);
+      const participantIDs = Array.isArray(input.participantIDs)
+        ? input.participantIDs
+        : [];
+
+      let result = [`🏆 **Top 10 Balance** 🏆\n`];
+      let index = 1;
+      for (const key in topUsers) {
+        const user: UserData = topUsers[key];
+
+        result.push(
+          [
+            `${
+              index === 1
+                ? `👑 ${UNIRedux.charm} ${FontSystem.applyFonts(
+                    String(user.name).toUpperCase(),
+                    "double_struck"
+                  )} ${UNIRedux.charm}`
+                : index < 10
+                ? `0${index}. **${user.name}**`
+                : `${index}. **${user.name}**`
+            }`,
+            ``,
+            `💰 ${formatCash(user.money)}`,
+
+            participantIDs.includes(key) ? `✅ In Group` : "",
+          ]
+            .join("\n")
+            .trim()
+        );
+        index++;
+      }
+      output.reply(
+        result.filter(Boolean).join(`\n${UNIRedux.standardLine}\n`) +
+          `\n${UNIRedux.standardLine}\n🔎 Use **${prefix}${commandName} toptotal** to view total ranking.`
+      );
+    },
+  },
+  {
+    key: "toptotal",
+    cooldown: 5,
+    description: "See the Top 10 richest",
+    aliases: ["-tt", "leaderstotal", "topt"],
     icon: "🏆",
     async handler({ money, input, output, Collectibles }) {
       const users = await money.getAllCache();

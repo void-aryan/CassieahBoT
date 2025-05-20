@@ -1,5 +1,6 @@
 import { UID_LINKS_KEY } from "@root/handlers/middleware/middleware";
 import * as nodeUtil from "util";
+import { parseBet } from "./ArielUtils";
 
 export namespace NeaxScript {
   const { Cassidy } = global;
@@ -156,6 +157,7 @@ export namespace NeaxScript {
   Displays all linked users.`,
     uincr: `Increments a numeric property on a user's record. Usage: uincr::<targetID> <property> <value> Example: uincr::100012345678901 money 100000 Arguments: - targetID: ID of the user - property: property name to increment - value: numeric value to increment by (can be positive or negative, integer or decimal) Requirements: - Author must have permission or be an admin`,
     tincr: `Increments a numeric property on a thread's record. Usage: tincr::<threadID> <property> <value> Example: tincr::1234567890 points -1000 Arguments: - threadID: thread ID - property: property name to increment - value: numeric value to increment by (can be positive or negative, integer or decimal) Requirements: - Author must have permission or be an admin`,
+    num: `Converts number abbr and percents to relative balance and expanded form. Usage: num:: 5T`,
   };
 
   export enum Codes {
@@ -170,6 +172,17 @@ export namespace NeaxScript {
   }
 
   export const Commands: Record<string, Command> = {
+    async *num({ nsxuCreated, nsxAuthor, usersDB, nsxTarget }) {
+      const { money = 0 } = await usersDB.queryItem(nsxAuthor, "money");
+      const numx = nsxuCreated.args[0] || nsxTarget;
+      if (!numx) {
+        yield "0";
+        return Codes.MissingOrInvalidArgs;
+      }
+      const num = parseBet(numx, money);
+      yield `${num}`;
+      return Codes.Success;
+    },
     async *uincr({
       usersDB,
       nsxuCreated,

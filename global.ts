@@ -1002,7 +1002,7 @@ declare global {
       new_line?: boolean;
       line_top?: LineStyle;
       line_bottom?: LineStyle;
-      line_bottom_inside_x?: LineDecoration;
+      line_bottom_inside_x?: LineStyle;
       line_replacer?: string;
       line_replace?: string;
     }
