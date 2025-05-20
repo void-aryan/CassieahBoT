@@ -25,7 +25,7 @@ export const meta: CassidySpectra.CommandMeta = {
   otherNames: ["p", "pet", "petgauxy", "pgauxy", "pa", "petariel"],
   version: "1.0.0",
   usage: "{prefix}{name} <command> [args]",
-  category: "Idle Investment Games",
+  category: "Xavia Economy",
   author: "original idea by Gauxy, recreated by Liane Cagara",
   permissions: [0],
   noPrefix: false,

@@ -1,6 +1,6 @@
 // @ts-check
-import { CassEXP } from "../modules/cassEXP.js";
-import { clamp, UNIRedux } from "../modules/unisym.js";
+import { CassEXP } from "../../modules/cassEXP.js";
+import { clamp, UNIRedux } from "../../modules/unisym.js";
 import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
 
 /**

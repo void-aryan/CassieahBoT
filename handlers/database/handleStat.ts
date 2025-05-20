@@ -4,8 +4,8 @@ import { CassMongo, CassMongoManager } from "./cass-mongo";
 type UserData = import("cassidy-userData").UserData;
 
 type Nullable = import("cassidy-userData").NullableUserData;
-import * as carSys from "@cass-commands/car";
-import * as petSys from "@cass-commands/pet";
+import * as carSys from "@cass-commands/car_nostalgia";
+import * as petSys from "@cass-commands/pet_nostalgia";
 
 import mongoose from "mongoose";
 
