@@ -464,7 +464,7 @@ export async function entry({
             commands.getOne(i[0])?.meta?.usage ?? "{prefix}{name}"
           )
             .replaceAll("{prefix}", prefix)
-            .replaceAll("name", i[0])}`
+            .replaceAll("{name}", i[0])}`
       )
       .join("\n");
 
