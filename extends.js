@@ -4,6 +4,7 @@ import { CassTypes } from "@cass-modules/type-validator";
 import __f from "./handlers/styler.js/fonts.js";
 const { fonts } = __f;
 import { createCallable } from "@cass-modules/callable-obj";
+import formatFunc from "@cass-modules/format-with";
 const { ExtendClass, randArrValue, randArrIndex } = global.utils;
 
 function extend() {
@@ -276,21 +277,7 @@ function extend() {
     "formatWith",
     function (...replacers) {
       let result = this.toString();
-      for (let i = replacers.length; i >= 1; i--) {
-        const placeholder = `%${i}`;
-        const replacer = replacers[i - 1];
-        if (replacer !== undefined) {
-          let replacement;
-          if (typeof replacer === "function") {
-            // @ts-ignore
-            replacement = String(replacer(i));
-          } else {
-            replacement = String(replacer);
-          }
-          result = result.replaceAll(placeholder, replacement);
-        }
-      }
-      return result;
+      return formatFunc(result, ...replacers);
     },
     String
   );
@@ -387,9 +374,6 @@ function extend() {
     }
     return deep;
   });
-
-
- 
 }
 
 export default extend;

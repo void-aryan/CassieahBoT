@@ -165,7 +165,7 @@ export type TOnCallCommand = (props: {
     make: BalanceMakeMethod;
     makeSafe: BalanceMakeSafeMethod;
   };
-  getLang: (key: string, objectData: { [p: string]: any }) => string;
+  getLang: (key: string, objectData?: { [p: string]: any }) => string;
   extra: {
     [p: string]: any;
   };
@@ -176,7 +176,7 @@ export type TOnCallCommand = (props: {
   xDB: XDatabase;
   userPermissions: number[];
   prefix: string;
-}) => void | Promise<void>;
+}) => any | Promise<any>;
 
 export type XaviaCommandContext = Parameters<TOnCallOnMessage>[0];
 

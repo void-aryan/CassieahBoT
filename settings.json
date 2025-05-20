@@ -94,6 +94,6 @@
   ],
   "disableUIDLinks": false,
   "ignoreUIDLinksOfAdminBOT": true,
-  "disabledCategories": [],
+  "disabledCategories": ["Xavia Economy"],
   "showAuthorOnStyle": false
 }

@@ -1,4 +1,4 @@
-import formatWith from "@cass-modules/format-with";
+import formatWith, { FormatArgs } from "@cass-modules/format-with";
 
 export class LangParser {
   private readonly parsedData: Map<string, string> = new Map();
@@ -97,27 +97,40 @@ export class LangParser {
     langs ??= {};
     k1 ||= global.Cassidy.config.defaultLang ?? "en";
 
-    return (key_: string, ...replacers_: any[]) => {
-      const replacers = replacers_.map(String);
+    return (key_: string, ...replacers: FormatArgs[]) => {
       let key = String(key_);
 
-      const item =
+      let item =
         langs?.[k1]?.[key] ||
         langs?.[global.Cassidy.config.defaultLang]?.[key] ||
-        langs?.[k1]?.["en"] ||
         langs?.[k1]?.["en_US"];
-      this.get(key);
+
+      if (!item) {
+        for (const [langKey, langData] of Object.entries(langs || {})) {
+          if (langKey.startsWith("en_") && langData?.[key]) {
+            item = langData[key];
+            break;
+          }
+        }
+      }
+
+      if (!item) {
+        for (const langData of Object.values(langs || {})) {
+          if (langData?.[key]) {
+            item = langData[key];
+            break;
+          }
+        }
+      }
+
+      if (!item) {
+        item = this.get?.(key);
+      }
 
       if (!item) {
         return `❌ Cannot find language properties: "${key}"`;
       }
 
-      if (
-        "formatWith" in String.prototype &&
-        typeof String.prototype.formatWith === "function"
-      ) {
-        return item.formatWith(...replacers);
-      }
       return formatWith(item, ...replacers);
     };
   }

@@ -1140,6 +1140,7 @@ import { IFCAU_API, IFCAU_ListenMessage } from "@xaviabot/fca-unofficial";
 import * as XaviaTypes from "@cass-modules/XaviaSupport/XaviaTypes";
 import getCUser from "@cass-modules/XaviaSupport/User";
 import { ObjectKey } from "@cass-modules/unitypes";
+import { FormatArgs } from "@cass-modules/format-with";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {
@@ -1358,7 +1359,7 @@ declare global {
      * @warning May cause side effects outside CassidySpectra; avoid in other codebases
      * @reusable Safe within CassidySpectra projects
      */
-    formatWith(...replacers: (string | ((position: number) => any))[]): string;
+    formatWith(...replacers: FormatArgs[]): string;
   }
 
   interface Function {

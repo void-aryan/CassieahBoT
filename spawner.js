@@ -231,6 +231,7 @@ if (require("./settings.json").verboseErrorStacks) {
   };
 }
 require("./hidestate");
+global.assetsPath = path.join(process.cwd(), "temp");
 
 global.Datum = require("@cass-modules/Datum").Datum;
 

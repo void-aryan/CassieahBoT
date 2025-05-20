@@ -5,6 +5,7 @@ const config = {
   aliases: ["mq"],
   description: "Answer a challenging math question to win money.",
   usage: "",
+  category: "Xavia Economy",
   cooldown: 10,
   credits: "Rue, Security Patched by Liane (eval to mathjs evaluate)",
 };
