@@ -87,14 +87,14 @@ const command = defineCommand({
       );
     }
 
-    const hitChance = 0.5;
+    const hitChance = 0.3;
     const isHit = Math.random() < hitChance;
     let resultMessage: string[] = [];
     let finalBalance = money;
     let newAppleWins = appleWins;
 
     if (isHit) {
-      const multiplier = Math.random() < 0.5 ? 2 : 3;
+      const multiplier = Math.random() < 0.9 ? 2 : 3;
       const winnings = bet * multiplier;
       finalBalance += winnings;
       newAppleWins += 1;

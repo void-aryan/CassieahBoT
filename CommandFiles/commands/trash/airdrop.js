@@ -1,7 +1,7 @@
 // @ts-check
 import { CassExpress } from "@cass-plugins/cassexpress.js";
-import { UNIRedux } from "../modules/unisym.js";
-import { Inventory, Collectibles } from "../plugins/ut-shop.js";
+import { UNIRedux } from "../../modules/unisym.js";
+import { Inventory, Collectibles } from "../../plugins/ut-shop.js";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 
 /**

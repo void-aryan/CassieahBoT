@@ -800,7 +800,7 @@ declare global {
       meta: CommandMeta;
       config?: CommandMeta;
       entry: CommandEntry;
-      onCall: CommandEntry;
+      onCall?: CommandEntry;
       ID?: number;
       fileName?: string;
       treasuresTable?: Cass.InventoryItem[];

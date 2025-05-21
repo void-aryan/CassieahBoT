@@ -9,7 +9,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
-  version: "1.6.6",
+  version: "1.6.7",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -1111,6 +1111,7 @@ export async function entry(ctx: CommandContext) {
     generateGift,
     prefix,
     args,
+    commandName,
   } = ctx;
   const {
     name = "Chara",
@@ -1128,168 +1129,6 @@ export async function entry(ctx: CommandContext) {
       isHypen: true,
     },
     [
-      {
-        key: "gear",
-        description: "View pet gear and stats",
-        aliases: ["-g"],
-        args: ["[pet_name]"],
-        async handler(_, __) {
-          const petsData = new Inventory(rawPetsData);
-          const gearsData = new GearsManage(rawGearsData);
-          petsData
-            .getAll()
-            .sort(
-              (a, b) => (Number(b.lastExp) || 0) - (Number(a.lastExp) || 0)
-            );
-          const spellMap = PetPlayer.petSpellMap;
-
-          if (args[0]) {
-            const pet = petsData
-              .getAll()
-              .find(
-                (pet) =>
-                  String(pet.name).toLowerCase().trim() ===
-                  String(args[0]).toLowerCase().trim()
-              );
-            if (!pet) {
-              return output.reply(`🐾 You don't have a pet named "${args[0]}"`);
-            }
-            const gearData = gearsData.getGearData(pet.key);
-            const targetMap = spellMap[pet.petType] ?? [];
-            const petPlayer = new PetPlayer(pet, gearData.toJSON());
-            const elementals = petPlayer.getElementals();
-
-            let result =
-              `${petPlayer.getPlayerUI()}\n\n` +
-              `${UNIRedux.charm} ***Total Stats***\n\n` +
-              `**ATK**: **${petPlayer.ATK}** (+${petPlayer.gearATK})\n` +
-              `**DEF**: **${petPlayer.DF}** (+${petPlayer.gearDF})\n` +
-              `**Magic**: **${petPlayer.MAGIC}**\n\n` +
-              `${UNIRedux.charm} ***Gears***\n\n` +
-              `⚔️ ${gearData.getWeaponUI()}\n` +
-              `🔰 ${gearData.getArmorUI(0)}\n` +
-              `🔰 ${gearData.getArmorUI(1)}\n\n` +
-              `${UNIRedux.charm} ***Elemental Info***\n\n` +
-              `${petPlayer.petIcon} **${petPlayer.petName}** (${
-                petPlayer.petType
-              }) belongs to **${elementals.elements
-                .map((i) => `${i.name} (${i.class})`)
-                .join(", ")}**\n\n`;
-            result += `***Weak Against***: ${elementals
-              .getAllWeaks()
-              .join(", ")}\n`;
-            result += `***Strong Against***: ${elementals
-              .getAllStrongs()
-              .join(", ")}\n\n`;
-            const gaps = elementals
-              .getGapPets()
-              .map(({ ...i }) => {
-                if (i.status === "stronger") i.acc = -i.acc;
-                return i;
-              })
-              .sort((a, b) => b.acc - a.acc);
-            for (const gap of gaps) {
-              result += `${
-                gap.status === "stronger" ? "⚠️" : "⚡"
-              } ${Math.round(Math.abs(gap.acc * 100))}% **${
-                gap.status === "weaker" ? "stronger" : "weaker"
-              }** vs ${gap.type}\n`;
-            }
-            result += `\n${UNIRedux.charm} ***Spells (Coming Soon)***\n\n`;
-            for (const spell of targetMap) {
-              const spellData = PetPlayer.spells[spell] ?? {};
-              result += `${spellData.icon ?? "⚡"} **${
-                spellData.name ?? "Unknown"
-              }** [ ${spellData.tp ?? 0}% ***TP*** ]\n${UNIRedux.charm} ${
-                spellData.flavorText ?? "We don't know what this does..?"
-              }\n\n`;
-            }
-            return output.reply(result);
-          }
-
-          let result = ``;
-          for (const pet of petsData.getAll()) {
-            const gearData = gearsData.getGearData(pet.key);
-            const petPlayer = new PetPlayer(pet, gearData.toJSON());
-            result += `${petPlayer.getPlayerUI()}\n`;
-            result += `⚔️ ***ATK***: ${petPlayer.ATK} (+${petPlayer.gearATK})
-🔰 ***DEF***: ${petPlayer.DF} (+${petPlayer.gearDF})
-🔥 ***MAGIC***: ${petPlayer.MAGIC}
-🗃️ ***Type***: ${pet.petType ?? "Unknown"}
-🧭 ***Level***: ${pet.level ?? 1}
-✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
-          }
-          result += `Type **${prefix}pet-gear <pet name>** to view the stats, gears, and spells of a specific pet.`;
-          return output.reply(result);
-        },
-      },
-      {
-        key: "sell",
-        description: "Sell a pet",
-        aliases: ["-s"],
-        args: ["<pet_name>"],
-        async handler(_, __) {
-          const petsData = new Inventory(rawPetsData);
-          const gearsData = new GearsManage(rawGearsData);
-          const nameToSell = String(args[0]);
-          if (!nameToSell) {
-            return output.reply(`🐾 Please specify a name of pet to sell.`);
-          }
-
-          const petToSell =
-            petsData
-              .getAll()
-              .find(
-                (pet) =>
-                  pet?.name?.toLowerCase?.().trim() ===
-                  nameToSell.toLowerCase().trim()
-              ) || petsData.getOne(nameToSell);
-          if (!petToSell) {
-            return output.reply(
-              `🐾 You don't have a pet named "${nameToSell}"`
-            );
-          }
-          const updatedPet = autoUpdatePetData(petToSell);
-          const gearData = gearsData.getGearData(updatedPet.key);
-          if (gearData.hasGear()) {
-            return output.reply(
-              `🐾 You cannot sell this pet, it has armors and weapons equipped.`
-            );
-          }
-          if (updatedPet.level < 5) {
-            return output.reply(
-              `🐾 Your pet is currently at level ${petToSell.level}, it must be at least level 5 to be sold.`
-            );
-          }
-
-          const price = calculateWorth(updatedPet);
-          const newMoney = playerMoney + price;
-          const code = global.utils.generateCaptchaCode(12);
-          const newPetSells = petSells + price;
-          const i = await output.reply(
-            `🛡️ Please reply this 12-digit **code** to confirm the sale, make sure to type it **without fonts**.
-
-[font=typewriter]${code}[:font=typewriter]
-
-You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
-              price
-            )}`
-          );
-          input.setReply(i.messageID, {
-            petsData,
-            newMoney,
-            code,
-            price,
-            petSells: newPetSells,
-            author: input.senderID,
-            petToSell: updatedPet,
-            key: "pet",
-            // @ts-ignore
-            callback: confirmSell,
-          });
-        },
-      },
       {
         key: "shop",
         description: "Visit the basic pet shop",
@@ -1322,69 +1161,100 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
         },
       },
       {
-        key: "shopx",
-        description: "Visit the advanced pet shop",
-        aliases: ["-sx"],
+        key: "uncage",
+        description: "Uncage a pet from your inventory",
+        aliases: ["-u"],
         async handler(_, __) {
-          const bundle = {
-            icon: "⭐",
-            name: "Pet Bundle ☆ (Tier 2)",
-            key: "petBundleII",
-            flavorText: "A bundle of pets for sale!",
-            price: 6000,
-            onPurchase({ moneySet }) {
-              const gift = generateGift();
-              Object.assign(gift, {
-                name: "Tier 2 Pet Bundle ☆",
-                icon: "🐾",
-                flavorText: "A bundle of pets for sale! Use inv use to open.",
-                sellPrice: 6100,
-                treasureKey: "randomGrouped_petsII",
-                key: "petBundleII",
-              });
-              moneySet.inventory.push(gift);
-            },
-          };
-          const bundle2 = {
-            icon: "🌟",
-            name: "Pet Bundle ☆ (Tier 3)",
-            key: "petBundleIII",
-            flavorText: "A bundle of pets for sale!",
-            price: 12000,
-            onPurchase({ moneySet }) {
-              const gift = generateGift();
-              Object.assign(gift, {
-                name: "Tier 3 Pet Bundle ☆",
-                icon: "🐾",
-                flavorText: "A bundle of pets for sale! Use inv use to open.",
-                sellPrice: 12100,
-                treasureKey: "randomGrouped_petsIII",
-                key: "petBundleIII",
-              });
-              moneySet.inventory.push(gift);
-            },
-          };
-          const shop = new UTShop({
-            ...petShop,
-            itemData: [bundle, bundle2, ...petFoodsII],
+          const inventory = new Inventory(rawInventory);
+          const petVentory = new Inventory(
+            rawInventory.filter((item) => item.type === "pet")
+          );
+          const pets = petVentory.getAll();
+          if (pets.length === 0) {
+            return output.reply(
+              [
+                `🐾 You don't have any pets to uncage, try using a bundle if you have purchased one.`,
+                ``,
+                `🔎 **To buy bundles:**`,
+                `Type **${prefix}${commandName}-shop** without fonts.`,
+                `You will see this:`,
+                ``,
+                `1. 🐾 **Pet Bundle** ☆ (**Basic**)`,
+                `- **3,000**$ 💰`,
+                `${UNIRedux.charm} A bundle of pets for sale!`,
+                ``,
+                `💌 Reply to the **bot's message** with a **number**:`,
+                ``,
+                `1 3`,
+                ``,
+                `✅ This will buy you **3 bundles**!`,
+                ``,
+                `🧰 **To open bundles:**`,
+                `Type **${prefix}bc use petBundle** without fonts.`,
+                `💌 Reply to the **bot's message** with a **number**.`,
+                `After getting your pet, type **${prefix}${commandName}-uncage** without fonts.`,
+              ].join("\n")
+            );
+          }
+
+          let petList = ``;
+          pets.forEach((pet, index) => {
+            petList += `${index + 1}. ${pet.icon} **${pet.name}** (${
+              pet.key
+            })\n${UNIRedux.charm} ${pet.flavorText}\n`;
           });
-          await shop.onPlay();
+          const i = await output.reply(
+            `🐾 Here are your caged pets:\n\n${petList}\n\n🐾 Which pet would you like to uncage? Reply with a number!`
+          );
+          input.setReply(i.messageID, {
+            author: input.senderID,
+            // @ts-ignore
+            callback: uncageReply,
+            key: "pet",
+            inventory,
+            petVentory,
+            type: "uncaging",
+            detectID: i.messageID,
+          });
         },
       },
       {
-        key: "debugexp",
-        description: "Debug pet EXP (admin only)",
-        aliases: ["-dx"],
-        args: ["<exp_value>"],
-        async handler() {
-          if (!input.isAdmin) {
-            return output.reply(`🐾 Gotcha you werent even an admin!`);
+        key: "list",
+        description: "List your pets",
+        aliases: ["-l"],
+        async handler(_, __) {
+          const gearsData = new GearsManage(rawGearsData);
+          const petsData = new Inventory(rawPetsData);
+          const pets = petsData.getAll();
+          let result = `**${name}'s** Pets:\n\n`;
+          for (let pet of pets) {
+            pet = autoUpdatePetData(pet);
+            const hungryAfter = petHungryAfter(pet);
+            const gearData = gearsData.getGearData(pet.key);
+            const player = new PetPlayer(pet, gearData.toJSON());
+            result += `${UNIRedux.charm} ${player.getPlayerUI(
+              isPetHungry(pet) ? { upperPop: "Hungry" } : {}
+            )}
+🗃️ ***Type***: ${pet.petType}
+🧭 ***Level***: ${pet.level}
+✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
+💵 **Worth**: ${formatCash(calculateWorth(pet))}
+🍽️ ***Hungry ${
+              hungryAfter >= 0 ? `After` : `Since`
+            }***: ${global.utils.convertTimeSentence(
+              global.utils.formatTimeDiff(Math.abs(hungryAfter))
+            )}${
+              isPetHungry(pet)
+                ? `\n⚠️ **WARN**: Please feed ${pet.name} immediately.`
+                : ""
+            }
+🔎 ***ID***: ${pet.key}\n\n`;
           }
-          const expValue = parseInt(args[0]);
-          if (isNaN(expValue)) {
-            return output.reply(`🐾 Please provide a valid exp.`);
+          if (pets.length === 0) {
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
           }
-          return output.reply(`${PetPlayer.debugForEXP(expValue)}`);
+          return output.reply(result);
         },
       },
       {
@@ -1395,7 +1265,17 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
         async handler(_, __) {
           const petsData = new Inventory(rawPetsData);
           const inventory = new Inventory(rawInventory);
+
           const cassEXP = new CassEXP(cxp);
+
+          const pets = petsData.getAll();
+
+          if (pets.length === 0) {
+            let result = "";
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
+            return output.reply(result);
+          }
           const [targetPet, foodKey] = args;
           if (!targetPet || !foodKey) {
             return output.reply(
@@ -1570,6 +1450,234 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         },
       },
       {
+        key: "gear",
+        description: "View pet gear and stats",
+        aliases: ["-g"],
+        args: ["[pet_name]"],
+        async handler(_, __) {
+          const petsData = new Inventory(rawPetsData);
+          const gearsData = new GearsManage(rawGearsData);
+          const pets = petsData.getAll();
+
+          if (pets.length === 0) {
+            let result = "";
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
+            return output.reply(result);
+          }
+          petsData
+            .getAll()
+            .sort(
+              (a, b) => (Number(b.lastExp) || 0) - (Number(a.lastExp) || 0)
+            );
+          const spellMap = PetPlayer.petSpellMap;
+
+          if (args[0]) {
+            const pet = petsData
+              .getAll()
+              .find(
+                (pet) =>
+                  String(pet.name).toLowerCase().trim() ===
+                  String(args[0]).toLowerCase().trim()
+              );
+            if (!pet) {
+              return output.reply(`🐾 You don't have a pet named "${args[0]}"`);
+            }
+            const gearData = gearsData.getGearData(pet.key);
+            const targetMap = spellMap[pet.petType] ?? [];
+            const petPlayer = new PetPlayer(pet, gearData.toJSON());
+            const elementals = petPlayer.getElementals();
+
+            let result =
+              `${petPlayer.getPlayerUI()}\n\n` +
+              `${UNIRedux.charm} ***Total Stats***\n\n` +
+              `**ATK**: **${petPlayer.ATK}** (+${petPlayer.gearATK})\n` +
+              `**DEF**: **${petPlayer.DF}** (+${petPlayer.gearDF})\n` +
+              `**Magic**: **${petPlayer.MAGIC}**\n\n` +
+              `${UNIRedux.charm} ***Gears***\n\n` +
+              `⚔️ ${gearData.getWeaponUI()}\n` +
+              `🔰 ${gearData.getArmorUI(0)}\n` +
+              `🔰 ${gearData.getArmorUI(1)}\n\n` +
+              `${UNIRedux.charm} ***Elemental Info***\n\n` +
+              `${petPlayer.petIcon} **${petPlayer.petName}** (${
+                petPlayer.petType
+              }) belongs to **${elementals.elements
+                .map((i) => `${i.name} (${i.class})`)
+                .join(", ")}**\n\n`;
+            result += `***Weak Against***: ${elementals
+              .getAllWeaks()
+              .join(", ")}\n`;
+            result += `***Strong Against***: ${elementals
+              .getAllStrongs()
+              .join(", ")}\n\n`;
+            const gaps = elementals
+              .getGapPets()
+              .map(({ ...i }) => {
+                if (i.status === "stronger") i.acc = -i.acc;
+                return i;
+              })
+              .sort((a, b) => b.acc - a.acc);
+            for (const gap of gaps) {
+              result += `${
+                gap.status === "stronger" ? "⚠️" : "⚡"
+              } ${Math.round(Math.abs(gap.acc * 100))}% **${
+                gap.status === "weaker" ? "stronger" : "weaker"
+              }** vs ${gap.type}\n`;
+            }
+            result += `\n${UNIRedux.charm} ***Spells (Coming Soon)***\n\n`;
+            for (const spell of targetMap) {
+              const spellData = PetPlayer.spells[spell] ?? {};
+              result += `${spellData.icon ?? "⚡"} **${
+                spellData.name ?? "Unknown"
+              }** [ ${spellData.tp ?? 0}% ***TP*** ]\n${UNIRedux.charm} ${
+                spellData.flavorText ?? "We don't know what this does..?"
+              }\n\n`;
+            }
+            return output.reply(result);
+          }
+
+          let result = ``;
+          for (const pet of petsData.getAll()) {
+            const gearData = gearsData.getGearData(pet.key);
+            const petPlayer = new PetPlayer(pet, gearData.toJSON());
+            result += `${petPlayer.getPlayerUI()}\n`;
+            result += `⚔️ ***ATK***: ${petPlayer.ATK} (+${petPlayer.gearATK})
+🔰 ***DEF***: ${petPlayer.DF} (+${petPlayer.gearDF})
+🔥 ***MAGIC***: ${petPlayer.MAGIC}
+🗃️ ***Type***: ${pet.petType ?? "Unknown"}
+🧭 ***Level***: ${pet.level ?? 1}
+✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
+💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
+          }
+          result += `Type **${prefix}pet-gear <pet name>** to view the stats, gears, and spells of a specific pet.`;
+          return output.reply(result);
+        },
+      },
+      {
+        key: "sell",
+        description: "Sell a pet",
+        aliases: ["-s"],
+        args: ["<pet_name>"],
+        async handler(_, __) {
+          const petsData = new Inventory(rawPetsData);
+          const gearsData = new GearsManage(rawGearsData);
+          const pets = petsData.getAll();
+
+          if (pets.length === 0) {
+            let result = "";
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
+            return output.reply(result);
+          }
+          const nameToSell = String(args[0]);
+          if (!nameToSell) {
+            return output.reply(`🐾 Please specify a name of pet to sell.`);
+          }
+
+          const petToSell =
+            petsData
+              .getAll()
+              .find(
+                (pet) =>
+                  pet?.name?.toLowerCase?.().trim() ===
+                  nameToSell.toLowerCase().trim()
+              ) || petsData.getOne(nameToSell);
+          if (!petToSell) {
+            return output.reply(
+              `🐾 You don't have a pet named "${nameToSell}"`
+            );
+          }
+          const updatedPet = autoUpdatePetData(petToSell);
+          const gearData = gearsData.getGearData(updatedPet.key);
+          if (gearData.hasGear()) {
+            return output.reply(
+              `🐾 You cannot sell this pet, it has armors and weapons equipped.`
+            );
+          }
+          if (updatedPet.level < 5) {
+            return output.reply(
+              `🐾 Your pet is currently at level ${petToSell.level}, it must be at least level 5 to be sold.`
+            );
+          }
+
+          const price = calculateWorth(updatedPet);
+          const newMoney = playerMoney + price;
+          const code = global.utils.generateCaptchaCode(12);
+          const newPetSells = petSells + price;
+          const i = await output.reply(
+            `🛡️ Please reply this 12-digit **code** to confirm the sale, make sure to type it **without fonts**.
+
+[font=typewriter]${code}[:font=typewriter]
+
+You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
+              price
+            )}`
+          );
+          input.setReply(i.messageID, {
+            petsData,
+            newMoney,
+            code,
+            price,
+            petSells: newPetSells,
+            author: input.senderID,
+            petToSell: updatedPet,
+            key: "pet",
+            // @ts-ignore
+            callback: confirmSell,
+          });
+        },
+      },
+      {
+        key: "shopx",
+        description: "Visit the advanced pet shop",
+        aliases: ["-sx"],
+        async handler(_, __) {
+          const bundle = {
+            icon: "⭐",
+            name: "Pet Bundle ☆ (Tier 2)",
+            key: "petBundleII",
+            flavorText: "A bundle of pets for sale!",
+            price: 6000,
+            onPurchase({ moneySet }) {
+              const gift = generateGift();
+              Object.assign(gift, {
+                name: "Tier 2 Pet Bundle ☆",
+                icon: "🐾",
+                flavorText: "A bundle of pets for sale! Use inv use to open.",
+                sellPrice: 6100,
+                treasureKey: "randomGrouped_petsII",
+                key: "petBundleII",
+              });
+              moneySet.inventory.push(gift);
+            },
+          };
+          const bundle2 = {
+            icon: "🌟",
+            name: "Pet Bundle ☆ (Tier 3)",
+            key: "petBundleIII",
+            flavorText: "A bundle of pets for sale!",
+            price: 12000,
+            onPurchase({ moneySet }) {
+              const gift = generateGift();
+              Object.assign(gift, {
+                name: "Tier 3 Pet Bundle ☆",
+                icon: "🐾",
+                flavorText: "A bundle of pets for sale! Use inv use to open.",
+                sellPrice: 12100,
+                treasureKey: "randomGrouped_petsIII",
+                key: "petBundleIII",
+              });
+              moneySet.inventory.push(gift);
+            },
+          };
+          const shop = new UTShop({
+            ...petShop,
+            itemData: [bundle, bundle2, ...petFoodsII],
+          });
+          await shop.onPlay();
+        },
+      },
+      {
         key: "top",
         description: "View top pets leaderboard",
         aliases: ["-t"],
@@ -1667,95 +1775,25 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         },
       },
       {
-        key: "list",
-        description: "List your pets",
-        aliases: ["-l"],
-        async handler(_, __) {
-          const gearsData = new GearsManage(rawGearsData);
-          const petsData = new Inventory(rawPetsData);
-          const pets = petsData.getAll();
-          let result = `**${name}'s** Pets:\n\n`;
-          for (let pet of pets) {
-            pet = autoUpdatePetData(pet);
-            const hungryAfter = petHungryAfter(pet);
-            const gearData = gearsData.getGearData(pet.key);
-            const player = new PetPlayer(pet, gearData.toJSON());
-            result += `${UNIRedux.charm} ${player.getPlayerUI(
-              isPetHungry(pet) ? { upperPop: "Hungry" } : {}
-            )}
-🗃️ ***Type***: ${pet.petType}
-🧭 ***Level***: ${pet.level}
-✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${formatCash(calculateWorth(pet))}
-🍽️ ***Hungry ${
-              hungryAfter >= 0 ? `After` : `Since`
-            }***: ${global.utils.convertTimeSentence(
-              global.utils.formatTimeDiff(Math.abs(hungryAfter))
-            )}${
-              isPetHungry(pet)
-                ? `\n⚠️ **WARN**: Please feed ${pet.name} immediately.`
-                : ""
-            }
-🔎 ***ID***: ${pet.key}\n\n`;
-          }
-          if (pets.length === 0) {
-            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
-          }
-          return output.reply(result);
-        },
-      },
-      {
-        key: "uncage",
-        description: "Uncage a pet from your inventory",
-        aliases: ["-u"],
-        async handler(_, __) {
-          const inventory = new Inventory(rawInventory);
-          const petVentory = new Inventory(
-            rawInventory.filter((item) => item.type === "pet")
-          );
-          const pets = petVentory.getAll();
-          if (pets.length === 0) {
-            return output.reply(
-              `🐾 You don't have any pets to uncage, try using a bundle if you have purchased one.`
-            );
-          }
-
-          let petList = ``;
-          pets.forEach((pet, index) => {
-            petList += `${index + 1}. ${pet.icon} **${pet.name}** (${
-              pet.key
-            })\n${UNIRedux.charm} ${pet.flavorText}\n`;
-          });
-          const i = await output.reply(
-            `🐾 Here are your caged pets:\n\n${petList}\n\n🐾 Which pet would you like to uncage? Reply with a number!`
-          );
-          input.setReply(i.messageID, {
-            author: input.senderID,
-            // @ts-ignore
-            callback: uncageReply,
-            key: "pet",
-            inventory,
-            petVentory,
-            type: "uncaging",
-            detectID: i.messageID,
-          });
-        },
-      },
-      {
         key: "rename",
         description: "Rename a pet using a Dog Tag",
         aliases: ["-r"],
         async handler(_, __) {
           const inventory = new Inventory(rawInventory);
           const petsData = new Inventory(rawPetsData);
+
           if (!inventory.has("dogTag")) {
             return output.reply(
               `A 🏷️ **Dog Tag** is required to perform this action.`
             );
           }
           const pets = petsData.getAll();
+
           if (pets.length === 0) {
-            return output.reply(`🐾 You don't have any pets to rename`);
+            let result = "";
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
+            return output.reply(result);
           }
 
           let petList = "";
@@ -1788,6 +1826,15 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         async handler(_, __) {
           const petsData = new Inventory(rawPetsData || []);
           const carsData = new Inventory(rawCarsData || []);
+          const pets = petsData.getAll();
+
+          if (pets.length === 0) {
+            let result = "";
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
+            return output.reply(result);
+          }
+
           const [carName, ...petNames] = args;
 
           if (!carName || petNames.length === 0) {
@@ -1891,6 +1938,14 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
         async handler(_, __) {
           const petsData = new Inventory(rawPetsData || []);
           const carsData = new Inventory(rawCarsData || []);
+          const pets = petsData.getAll();
+
+          if (pets.length === 0) {
+            let result = "";
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
+            return output.reply(result);
+          }
           const gearsData = new GearsManage(rawGearsData || []);
           const carName = args[0];
 

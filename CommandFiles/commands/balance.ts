@@ -1,12 +1,12 @@
 import { SpectralCMDHome, CassCheckly, Config } from "@cassidy/spectral-home";
-import { abbreviateNumber, emojiEnd, UNIRedux } from "@cassidy/unispectra";
+import { abbreviateNumber, UNIRedux } from "@cassidy/unispectra";
 import utils from "@cassidy/utils";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "balance",
   description: "Check your virtual cash",
   otherNames: ["bal", "money"],
-  version: "3.2.6",
+  version: "3.2.8",
   usage: "{prefix}{name}",
   category: "Finance",
   author: "Liane Cagara",
@@ -35,7 +35,7 @@ function isBrokenMoney(amount: number) {
 }
 
 function sortUsers(
-  users: { [x: string]: any },
+  users: { [x: string]: UserData },
   top: number,
   money: typeof global.handleStat
 ) {
@@ -48,7 +48,7 @@ function sortUsers(
   for (const key of sortedKeys) result[key] = users[key];
   return result;
 }
-function sortUsersNotTotal(users: { [x: string]: any }, top: number) {
+function sortUsersNotTotal(users: { [x: string]: UserData }, top: number) {
   let result = {};
   let sortedKeys = Object.keys(users).sort(
     (a, b) => users[b].money - users[a].money
@@ -60,7 +60,7 @@ function sortUsersNotTotal(users: { [x: string]: any }, top: number) {
 
 export function getBehindAhead(
   id: string,
-  users: any,
+  users: { [x: string]: UserData },
   money: typeof global.handleStat
 ) {
   const sorted = sortUsers(users, undefined, money);
@@ -71,7 +71,11 @@ export function getBehindAhead(
     : { ahead: keys.slice(0, index), behind: keys.slice(index + 1) };
 }
 
-export function getTop(id: string, users: any, money: any) {
+export function getTop(
+  id: string,
+  users: { [x: string]: UserData },
+  money: typeof global.handleStat
+) {
   return Object.keys(sortUsers(users, undefined, money)).indexOf(id) + 1;
 }
 
@@ -95,8 +99,12 @@ const configs: Config[] = [
       if (spectralArgs[0]) senderID = spectralArgs[0];
 
       let playerMoney: UserData = await money.getCache(senderID);
-      if (!playerMoney || !playerMoney.name) {
-        return output.reply("❌ This user is a ghost!");
+      if (
+        !playerMoney ||
+        !playerMoney.name ||
+        !(await money.exists(senderID))
+      ) {
+        return output.reply(`❌ User ${senderID} does not exist!`);
       }
 
       const name =
@@ -105,20 +113,29 @@ const configs: Config[] = [
           : `${playerMoney.name} (You)`;
       output.setUIName(name);
 
+      const allCache = await money.getAllCache();
+
       const outputText = [
-        `👤 **${name}**`,
+        `You have ${formatCash(
+          playerMoney.money,
+          "💵",
+          false
+        )} in the cassidy chatbot system.`,
         ``,
-        `💰 ${formatCash(playerMoney.money, "💵", false)}`,
-        `${UNIRedux.standardLine}`,
-        `Type **${prefix}${commandName} all** for full balance info.`,
+        `🏆 **${name}** Top #${getTop(input.sid, allCache, money)}`,
+        `✓ You can **check** by typing **${prefix}bal topall**.`,
+        ``,
+        `**Disclaimer**: This is not a real balance, it is all virtual, this cannot be converted into real money.`,
+        ``,
+        `**Tip:** Type **${prefix}${commandName} all** for full balance info.`,
       ].join("\n");
 
       return output.replyStyled(outputText, {
         ...style,
-        content: {
-          text_font: "none",
-          line_bottom_inside_x: "default",
-        },
+        // content: {
+        //   text_font: "none",
+        //   line_bottom_inside_x: "default",
+        // },
       });
     },
   },
@@ -138,8 +155,12 @@ const configs: Config[] = [
       if (spectralArgs[0]) senderID = spectralArgs[0];
 
       let playerMoney: UserData = await money.getCache(senderID);
-      if (!playerMoney || !playerMoney.name) {
-        return output.reply("❌ This user is a ghost!");
+      if (
+        !playerMoney ||
+        !playerMoney.name ||
+        !(await money.exists(senderID))
+      ) {
+        return output.reply(`❌ User ${senderID} does not exist!`);
       }
 
       return output.reply({
@@ -170,8 +191,12 @@ const configs: Config[] = [
 
       let warn = "";
       let playerMoney: UserData = await money.getCache(senderID);
-      if (!playerMoney || !playerMoney.name) {
-        return output.reply("❌ This user is a ghost!");
+      if (
+        !playerMoney ||
+        !playerMoney.name ||
+        !(await money.exists(senderID))
+      ) {
+        return output.reply(`❌ User ${senderID} does not exist!`);
       }
       const cll = new Collectibles(playerMoney?.collectibles || []);
 
@@ -228,7 +253,7 @@ const configs: Config[] = [
         ? input.participantIDs
         : [];
 
-      let result = [`🏆 **Top 10 Balance** 🏆\n`];
+      let result = [`🏆 **Top 10 Balance** 🏆`];
       let index = 1;
       for (const key in topUsers) {
         const user: UserData = topUsers[key];
@@ -245,8 +270,7 @@ const configs: Config[] = [
                 ? `0${index}. **${user.name}**`
                 : `${index}. **${user.name}**`
             }`,
-            ``,
-            `💰 ${formatCash(user.money)}`,
+            `💰 Coin(s): **${formatCash(user.money)}**`,
 
             participantIDs.includes(key) ? `✅ In Group` : "",
           ]
@@ -257,7 +281,7 @@ const configs: Config[] = [
       }
       output.reply(
         result.filter(Boolean).join(`\n${UNIRedux.standardLine}\n`) +
-          `\n${UNIRedux.standardLine}\n🔎 Use **${prefix}${commandName} toptotal** to view total ranking.`
+          `\n${UNIRedux.standardLine}\n🔎 Use **${prefix}${commandName} topall** to view total ranking.`
       );
     },
   },
@@ -265,7 +289,7 @@ const configs: Config[] = [
     key: "toptotal",
     cooldown: 5,
     description: "See the Top 10 richest",
-    aliases: ["-tt", "leaderstotal", "topt"],
+    aliases: ["-tt", "leaderstotal", "topt", "topall"],
     icon: "🏆",
     async handler({ money, input, output, Collectibles }) {
       const users = await money.getAllCache();
