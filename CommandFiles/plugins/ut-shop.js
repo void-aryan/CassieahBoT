@@ -1588,6 +1588,9 @@ export class Inventory {
    * @returns {CInventoryItem}
    */
   getOne(key) {
+    if (!key) {
+      return;
+    }
     return this.inv.find((item) => item.key === key) || this.at(Number(key));
   }
 
@@ -1597,6 +1600,9 @@ export class Inventory {
    * @returns {CInventoryItem[]}
    */
   get(key) {
+    if (!key) {
+      return [];
+    }
     return this.inv.filter(
       (item) => item.key === key || item.key === this.keyAt(key)
     );
@@ -1730,6 +1736,9 @@ export class Inventory {
    * @returns {boolean}
    */
   has(key) {
+    if (!key) {
+      return false;
+    }
     return this.inv.some(
       (item) => item.key === key || item.key === this.keyAt(key)
     );

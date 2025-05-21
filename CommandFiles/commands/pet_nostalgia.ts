@@ -4,12 +4,13 @@ import { clamp, UNIRedux } from "../modules/unisym.js";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { InventoryItem } from "@cass-modules/cassidyUser";
 import { formatCash } from "@cass-modules/ArielUtils";
+import { SmartPet } from "@cass-modules/SmartSpectra";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
-  version: "1.6.7",
+  version: "1.6.8",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -1261,72 +1262,115 @@ export async function entry(ctx: CommandContext) {
         key: "feed",
         description: "Feed a pet",
         aliases: ["-f"],
-        args: ["<pet_name>", "<food_key | --auto>"],
+        args: ["[pet_name]", "[food_key | --auto]"],
         async handler(_, __) {
-          const petsData = new Inventory(rawPetsData);
-          const inventory = new Inventory(rawInventory);
+          let mctx = ctx;
 
-          const cassEXP = new CassEXP(cxp);
+          let petsData = new Inventory(rawPetsData);
+          let inventory = new Inventory(rawInventory);
 
-          const pets = petsData.getAll();
+          let cassEXP = new CassEXP(cxp);
+
+          let pets = petsData.getAll();
 
           if (pets.length === 0) {
             let result = "";
             result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
             result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
-            return output.reply(result);
+            return mctx.output.replyStyled(result, style);
           }
-          const [targetPet, foodKey] = args;
-          if (!targetPet || !foodKey) {
-            return output.reply(
-              `🐾 Here's a **guide**!
-${input.splitBody(" ")[0]} <pet name> <food key | --auto>
+          const [targetPet = "", foodKey = ""] = args;
 
-The pet name must be the **exact name** of the pet you want to feed, while the food key is the **item key** of the pet food that was in your **inventory**.`
-            );
-          }
+          //           if (!targetPet || !foodKey) {
+          //             return output.reply(
+          //               `🐾 Here's a **guide**!
+          // ${input.splitBody(" ")[0]} <pet name> <food key | --auto>
 
-          const targetPetData = petsData
+          // The pet name must be the **exact name** of the pet you want to feed, while the food key is the **item key** of the pet food that was in your **inventory**.`
+          //             );
+          //           }
+
+          let targetPetData = petsData
             .getAll()
             .find(
               (pet) =>
                 pet.name === targetPet ||
                 pet.name?.toLowerCase() === targetPet?.toLowerCase()
             );
+          if (!targetPetData || !targetPet) {
+            const result = await mctx.output.selectItem({
+              items: SmartPet.findHungryPets(petsData),
+              style,
+              validationDBProperty: "petsData",
+            });
+            if (result.item) {
+              targetPetData = result.item;
+              mctx = result.ctx;
+              petsData = new Inventory(mctx.user.petsData);
+              inventory = new Inventory(mctx.user.inventory);
+
+              cassEXP = new CassEXP(mctx.user.cassEXP);
+
+              pets = petsData.getAll();
+            }
+          }
+          if (!targetPetData && !targetPet) {
+            return mctx.output.replyStyled(`🐾 No hungry pets.`, style);
+          }
           if (!targetPetData) {
-            return output.reply(
-              `❌ You don't have a pet named "${targetPet}"!`
+            return mctx.output.replyStyled(
+              `❌ You don't have a pet named "${targetPet}"!`,
+              style
             );
           }
           const originalPet = autoUpdatePetData(
             JSON.parse(JSON.stringify(targetPetData))
           );
           if (!isPetHungry(targetPetData)) {
-            return output.reply(`❌ **${targetPetData.name}** is not hungry!`);
+            return mctx.output.replyStyled(
+              `❌ **${targetPetData.name}** is not hungry!`,
+              style
+            );
           }
 
           let targetFood =
             foodKey === "--auto"
-              ? inventory
-                  .getAll()
-                  .find((item) => item.type === `${targetPetData.petType}_food`)
-              : inventory.getOne(foodKey) ||
-                inventory.getOne(foodKey.toLowerCase()) ||
-                inventory
-                  .getAll()
-                  .find((item) => item.name === args.slice(1).join(" "));
-          if (!targetFood) {
+              ? SmartPet.findFoods(targetPetData, inventory)[0]
+              : inventory.getOne(foodKey);
+
+          if (!targetFood || !foodKey) {
+            const result = await mctx.output.selectItem({
+              items: SmartPet.findFoods(targetPetData, inventory),
+              style,
+              validationDBProperty: "inventory",
+            });
+            if (result.item) {
+              targetFood = result.item;
+              mctx = result.ctx;
+              petsData = new Inventory(mctx.user.petsData);
+              inventory = new Inventory(mctx.user.inventory);
+
+              cassEXP = new CassEXP(mctx.user.cassEXP);
+
+              pets = petsData.getAll();
+            }
+          }
+          if (!targetFood && !foodKey) {
             return output.reply(
-              `❌ You don't have an inventory item that has key "${foodKey}"`
+              `🐾 You do not have **food** for this pet. You may **buy** foods from the **${prefix}${commandName}-shop** or other places.`
             );
           }
-          if (
-            targetFood.type !== `${targetPetData.petType}_food` &&
-            targetFood.type !== "anypet_food" &&
-            targetFood.type !== "food"
-          ) {
-            return output.reply(
-              `❌ You can only feed a ${targetPetData.petType} with a food that has type: "${targetPetData.petType}_food", **${targetPetData.name}** will obviously not eat "${targetFood.type}" typed food.`
+          if (!targetFood) {
+            return mctx.output.replyStyled(
+              `❌ You don't have an inventory item that has key "${foodKey}"`,
+              style
+            );
+          }
+
+          if (!SmartPet.isFeedable(targetPetData, targetFood)) {
+            return mctx.output.replyStyled(
+              `❌ You can only feed a ${targetPetData.petType} with a food that has type: "${targetPetData.petType}_food", **${targetPetData.name}** will obviously not eat "${targetFood.type}" typed food.`,
+              style
             );
           }
           if (
@@ -1337,8 +1381,9 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
             (Number(targetFood.saturation) < 0 &&
               Number(targetPetData.lastExp) < 0)
           ) {
-            return output.reply(
-              `${UNIRedux.charm} ${targetPetData.icon} **${targetPetData.name}** no longer likes ${targetFood.icon} **${targetFood.name}**!\nPlease feed them **something else** before feeding it this **same food** again.\n\n(Did I bold too many words?)`
+            return mctx.output.replyStyled(
+              `${UNIRedux.charm} ${targetPetData.icon} **${targetPetData.name}** no longer likes ${targetFood.icon} **${targetFood.name}**!\nPlease feed them **something else** before feeding it this **same food** again.\n\n(Did I bold too many words?)`,
+              style
             );
           }
 
@@ -1349,7 +1394,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
             );
           }
           if (isNaN(Number(targetFood.saturation))) {
-            return output.wentWrong();
+            return mctx.output.wentWrong();
           }
 
           targetPetData.lastSaturation = targetFood.saturation;
@@ -1407,7 +1452,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
               : ` **(${diff})**`;
           }
 
-          await money.setItem(input.senderID, {
+          await money.setItem(mctx.input.senderID, {
             // @ts-ignore
             petsData: Array.from(petsData),
             inventory: Array.from(inventory),
@@ -1436,7 +1481,7 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
               : ""
           }
 🔎 ***ID***: ${updatedPet.key}`;
-          return output.reply(
+          return mctx.output.replyStyled(
             `✅ **${targetPetData.name}** has been fed with ${
               targetFood.icon === updatedPet.icon ? "" : `${targetFood.icon} `
             }**${
@@ -1445,7 +1490,8 @@ The pet name must be the **exact name** of the pet you want to feed, while the f
               targetFood.type === "food"
                 ? (Number(targetFood.saturation) / 60 / 1000) * 2
                 : Number(targetFood.saturation) / 60 / 1000
-            )} minutes.\n\n${petText}\n\nThank you **${name}** for taking care of this pet!`
+            )} minutes.\n\n${petText}\n\nThank you **${name}** for taking care of this pet!`,
+            style
           );
         },
       },

@@ -126,7 +126,7 @@ export class BriefcaseAPI {
       inventoryLimit,
       inventoryLimit: invLimit,
     } = this.extraConfig;
-    const { input, output, money, prefix, generateTreasure, commandName } = ctx;
+    let { input, output, money, prefix, generateTreasure, commandName } = ctx;
     const ikey = this.extraConfig.inventoryKey;
 
     let userData = await money.getCache(input.senderID);
@@ -147,6 +147,16 @@ export class BriefcaseAPI {
       petsData,
       gearsData,
     } = getDatas(userData);
+
+    const refreshData = (mctx: CommandContext) => {
+      ({
+        petsData,
+        inventory: customInventory,
+        gearsData,
+      } = getDatas(mctx.user));
+      ({ output } = mctx);
+      output.setStyle(ctx.command?.style);
+    };
 
     const userDataCopy = userData;
 
@@ -358,17 +368,17 @@ export class BriefcaseAPI {
         key: "inspect",
         description: "Shows detailed information about a specific item.",
         aliases: ["examine", "check", "look", "-i"],
-        args: ["<item_id | index>"],
+        args: ["[item_id | index]"],
         async handler() {
-          const keyToCheck = actionArgs[0];
-          if (!keyToCheck) {
-            return output.reply(
-              `👤 **${
-                userData.name || "Unregistered"
-              }** (${inventoryName})\n\n` +
-                `❌ No item specified! Reply with an **item key** to inspect.`
-            );
-          }
+          let keyToCheck = actionArgs[0];
+          // if (!keyToCheck) {
+          //   return output.reply(
+          //     `👤 **${
+          //       userData.name || "Unregistered"
+          //     }** (${inventoryName})\n\n` +
+          //       `❌ No item specified! Reply with an **item key** to inspect.`
+          //   );
+          // }
           const altKey = actionArgs
             .map((key, index) => {
               if (index !== 0) {
@@ -383,11 +393,34 @@ export class BriefcaseAPI {
           const lastKey = customInventory
             .getAll()
             .find((item) => item.name === actionArgs.join(" "))?.key;
-          const item =
+          let item =
             customInventory.getOne(keyToCheck) ||
             customInventory.getOne(altKey) ||
             customInventory.getOne(lastKey);
+
+          let mctx = ctx;
+          if (!item || !keyToCheck) {
+            const result = await mctx.output.selectItem({
+              items: customInventory.getAll(),
+              style,
+              validationDBProperty: ikey,
+            });
+            if (result.item) {
+              mctx = result.ctx;
+              refreshData(mctx);
+              item = result.item;
+              keyToCheck = item.key;
+            }
+          }
           if (!item) {
+            if (!keyToCheck) {
+              return output.reply(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `❌ You do not have any valid items.`
+              );
+            }
             return output.reply(
               `👤 **${
                 userData.name || "Unregistered"
@@ -421,9 +454,10 @@ export class BriefcaseAPI {
         description:
           "Uses or activates a specific item for its intended effect.",
         aliases: ["activate", "consume", "equip", "-u"],
-        args: ["<item_id | index>"],
+        args: ["[item_id | index]"],
         async handler(_, extra) {
-          const [key] = actionArgs;
+          let [key] = actionArgs;
+          let mctx = ctx;
           const usagePlugins = new MultiMap(
             Cassidy.multiCommands
               .entries()
@@ -432,17 +466,39 @@ export class BriefcaseAPI {
               .flat()
           );
 
-          if (!key) {
-            return output.reply(
-              `👤 **${
-                userData.name || "Unregistered"
-              }** (${inventoryName})\n\n` +
-                `❌ No item chosen! Use an **item key** to activate something from your ${inventoryIcon}!`
-            );
-          }
+          // if (!key) {
+          //   return output.reply(
+          //     `👤 **${
+          //       userData.name || "Unregistered"
+          //     }** (${inventoryName})\n\n` +
+          //       `❌ No item chosen! Use an **item key** to activate something from your ${inventoryIcon}!`
+          //   );
+          // }
           const eKey = "--unequip";
+          const style = ctx.command?.style;
           let item = customInventory.getOne(key);
+          if ((!item || !key) && !String(key).startsWith(eKey)) {
+            const result = await mctx.output.selectItem({
+              items: customInventory.getAll(),
+              style,
+              validationDBProperty: ikey,
+            });
+            if (result.item) {
+              mctx = result.ctx;
+              refreshData(mctx);
+              item = result.item;
+              key = item.key;
+            }
+          }
           if (!item && !String(key).startsWith(eKey)) {
+            if (!key) {
+              return output.reply(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `❌ You do not have any valid items.`
+              );
+            }
             return output.reply(
               `👤 **${
                 userData.name || "Unregistered"
@@ -795,7 +851,7 @@ export class BriefcaseAPI {
               inventory.addOne(treasure);
               if (paidMode) collectibles.raise("gems", -diaCost);
               const treasureItem = treasure;
-              if (!paidMode) inventory.deleteOne(key);
+              if (!paidMode) inventory.deleteOne(item.key);
               input.delReply(ctx.detectID);
 
               await money.set(input.senderID, {
@@ -1668,8 +1724,10 @@ export namespace BriefcaseAPI {
     callback?: BCSelectItemCallback
   ): Promise<SelectItemPromise> {
     const {
-      processText = ({ str }) =>
-        `🔎 **Select an item**:\n\n${str}\n\n💌 Please **reply** with a **number** that corresponds to the item you want to use for this action.`,
+      processText = ({ str, items }) =>
+        items.length > 0
+          ? `🔎 **Select an item**:\n\n${str}\n\n💌 Please **reply** with a **number** that corresponds to the item you want to use for this action.`
+          : "🔎 You do not have the **required** item.",
       items = [],
     } = config;
     try {
@@ -1679,9 +1737,18 @@ export namespace BriefcaseAPI {
         items,
         str: itemStr,
       });
+      if (items.length === 0) {
+        return Promise.resolve({
+          ctx: this,
+          item: undefined,
+          items: maps,
+        });
+      }
       const info = config.style
         ? await this.output.replyStyled(itemStr, config.style)
         : await this.output.reply(itemStr);
+      const self = this;
+
       return new Promise<SelectItemPromise>((res) => {
         info.atReply(async (replyCtx) => {
           const num = Number(replyCtx.input.words[0]);
@@ -1691,6 +1758,9 @@ export namespace BriefcaseAPI {
             }
             return replyCtx.output.reply(replyCtx);
           };
+          if (replyCtx.uid !== self.uid) {
+            return;
+          }
           if (isNaN(num)) {
             return rep("❌ | Please go back and reply a **number**.");
           }

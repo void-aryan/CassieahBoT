@@ -107,6 +107,12 @@ export interface OutputProps {
   ): Promise<T>;
 
   /**
+   * Changes the current recognized style in a single output instance. Only same events were affected.
+   * @param style - Style object.
+   */
+  setStyle(style: CassidySpectra.CommandStyle): void;
+
+  /**
    * Sets the UI name for the output.
    * @param name - The name to set for the UI.
    * @deprecated

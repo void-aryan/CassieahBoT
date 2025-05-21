@@ -278,6 +278,8 @@ export async function use(obj) {
       return options.body;
     }
 
+    let STYLE = null;
+
     /**
      *
      * @param {import("output-cassidy").OutputForm} text
@@ -341,10 +343,20 @@ export async function use(obj) {
         options.body = `${prepend}\n${options.body}\n${append}`;
         options.body = options.body.trim();
 
-        const stylerShallow = styler.shallowMake(
-          Object.assign({}, options.defStyle ?? {}, input.defStyle ?? {}),
-          Object.assign({}, options.style ?? {}, input.style ?? {})
-        );
+        const stylerShallow = STYLE
+          ? obj.stylerDummy.shallowMake(
+              Object.assign({}, options.defStyle ?? {}, input.defStyle ?? {}),
+              Object.assign(
+                {},
+                options.style ?? {},
+                input.style ?? {},
+                STYLE ?? {}
+              )
+            )
+          : styler.shallowMake(
+              Object.assign({}, options.defStyle ?? {}, input.defStyle ?? {}),
+              Object.assign({}, options.style ?? {}, input.style ?? {})
+            );
 
         if (options.body) {
           options.body = await processOutput(options);
@@ -514,6 +526,9 @@ export async function use(obj) {
      * @type {Partial<import("output-cassidy").OutputProps>}
      */
     const outputProps = {
+      setStyle(style) {
+        STYLE = style;
+      },
       selectItem: BriefcaseAPI.selectItem.bind(obj),
       async req(url, params = {}, configOrMethod = "GET") {
         let finalUrl = url;
