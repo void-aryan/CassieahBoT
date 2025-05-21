@@ -1619,6 +1619,7 @@ export namespace BriefcaseAPI {
     showDescription?: boolean;
     style?: CassidySpectra.CommandStyle;
     validationDBProperty?: string;
+    page?: number;
   }
 
   export interface BSProcessText {
@@ -1634,12 +1635,13 @@ export namespace BriefcaseAPI {
 
   export function formatSelectItems({
     items,
-    itemsPerPage = 8,
+    itemsPerPage = 36,
+    page = 1,
     showDescription = false,
   }: BCSelectItemConfig): { maps: InventoryItem[]; str: string } {
     const uniqueItems = Datum.toUniqueArray(items, (i) => i.key);
-    const slicer = new Slicer(uniqueItems);
-    const paged = slicer.getPage(itemsPerPage);
+    const slicer = new Slicer(uniqueItems, itemsPerPage);
+    const paged = slicer.getPage(page);
     const inv = new Inventory(items, Infinity);
     const str = paged
       .map(
