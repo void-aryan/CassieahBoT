@@ -514,7 +514,7 @@ export function applyLine(text, styling) {
       switch (etc[1]) {
         case "x":
           const newLength = Math.max(0, Math.floor(length / 2));
-          line = `${"━".repeat(newLength)} ✕ ${"━".repeat(newLength)}`;
+          line = `${"━".repeat(newLength)} ✕ ${"━".repeat(newLength - 1)}`;
           break;
         case "text":
           line = `━━━ ${field} ━━━`;
