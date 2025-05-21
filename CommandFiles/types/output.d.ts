@@ -5,6 +5,8 @@
   Proceed with extreme caution and refrain from any unauthorized actions.
 */
 
+import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
+
 type Readable = import("stream").Readable;
 type OutputResultNew = import("@cass-plugins/output").OutputResult;
 
@@ -107,6 +109,7 @@ export interface OutputProps {
   /**
    * Sets the UI name for the output.
    * @param name - The name to set for the UI.
+   * @deprecated
    */
   setUIName(name: string): void;
 
@@ -117,7 +120,11 @@ export interface OutputProps {
    * @param destination - Optional destination for the contact.
    * @returns A promise resolving to a boolean indicating success.
    */
-  contact(text: string, id?: string, destination?: string): Promise<boolean>;
+  contact(
+    text: string,
+    id?: string,
+    destination?: string
+  ): Promise<OutputResultNew>;
 
   /**
    * Handles an error by sending it with an optional callback.
@@ -189,11 +196,13 @@ export interface OutputProps {
 
   /**
    * A string to prepend to messages.
+   * @deprecated
    */
   prepend: string;
 
   /**
    * A string to append to messages.
+   * @deprecated
    */
   append: string;
 
@@ -238,6 +247,7 @@ export interface OutputProps {
 
   /**
    * A class for creating styled messages.
+   * @deprecated
    */
   Styled: {
     /**
@@ -289,6 +299,7 @@ export interface OutputProps {
   /**
    * Handles a syntax error in a command.
    * @param commandX - Optional command context or details.
+   * @deprecated
    * @returns A promise resolving to the result of the operation.
    */
   syntaxError(commandX?: any): Promise<OutputResultNew>;
@@ -316,12 +327,14 @@ export interface OutputProps {
   /**
    * Creates frames from the specified arguments.
    * @param args - The arguments to create frames from.
+   * @deprecated
    * @returns A promise resolving to the result of the operation.
    */
   frames(...args: (string | number)[]): Promise<any>;
 
   /**
    * Alias for the `reaction` method.
+   * @deprecated
    */
   react: OutputProps["reaction"];
 
@@ -329,6 +342,7 @@ export interface OutputProps {
    * Formats an error into a string representation.
    * @param err - The error to format.
    * @returns A string representation of the error.
+   * @deprecated
    */
   formatError(err: string | Error): string;
 
@@ -350,6 +364,7 @@ export interface OutputProps {
    * @param mid - The ID of the message to listen for replies.
    * @param callback - Optional callback to handle the reply context.
    * @returns A promise resolving to the generic type `T`.
+   * @deprecated
    */
   addReplyListener?: <T>(
     mid: string,
@@ -364,6 +379,7 @@ export interface OutputProps {
    * Adds a reaction listener for a specific message ID.
    * @param mid - The ID of the message to listen for reactions.
    * @param callback - Optional callback to handle the reaction context.
+   * @deprecated
    * @returns A promise resolving to the generic type `T`.
    */
   addReactionListener?: <T>(
@@ -380,6 +396,7 @@ export interface OutputProps {
    * @param body - The content of the message to wait for a reply to.
    * @param callback - Optional callback to handle the reply context.
    * @returns A promise resolving to the input of the command context.
+   * @deprecated
    */
   waitForReply?: <T>(
     body: string,
@@ -397,6 +414,7 @@ export interface OutputProps {
    * @param body - The content of the message to wait for a reaction to.
    * @param callback - Optional callback to handle the reaction context.
    * @returns A promise resolving to the input of the command context.
+   * @deprecated
    */
   waitForReaction?: <T>(
     body: string,
@@ -414,6 +432,7 @@ export interface OutputProps {
    * @param body - The content of the message to wait for a reaction to.
    * @param options - Options for the quick reaction.
    * @returns A promise resolving to the input of the command context.
+   * @deprecated
    */
   quickWaitReact?: (
     body: string,
@@ -424,6 +443,8 @@ export interface OutputProps {
       emoji?: string;
     }
   ) => Promise<CommandContext["input"]>;
+
+  selectItem: BriefcaseAPI.BoundSelectItem;
 }
 export interface StandardReplyArg {
   key?: string | undefined;

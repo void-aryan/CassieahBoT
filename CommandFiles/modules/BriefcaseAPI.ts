@@ -12,6 +12,9 @@ import { UNISpectra } from "./unisym";
 import { parseBet } from "./ArielUtils";
 import { MultiMap } from "./Multimap";
 import { inspect } from "util";
+import { Slicer } from "@cass-plugins/utils-liane";
+import { Datum } from "./Datum";
+import { OutputForm } from "output-cassidy";
 const { parseCurrency: pCy } = global.utils;
 
 export interface BreifcaseUsagePlugin {
@@ -1607,4 +1610,127 @@ export class BriefcaseAPI {
     );
     return home.runInContext(ctx);
   }
+}
+export namespace BriefcaseAPI {
+  export interface BCSelectItemConfig {
+    processText?: ({ items, str }: BSProcessText) => string | Promise<string>;
+    items: InventoryItem[];
+    itemsPerPage?: number;
+    showDescription?: boolean;
+    style?: CassidySpectra.CommandStyle;
+    validationDBProperty?: string;
+  }
+
+  export interface BSProcessText {
+    items: InventoryItem[];
+    str: string;
+  }
+
+  export interface BCSelectItemCallback {
+    (ctx: CommandContext, item: InventoryItem, items: InventoryItem[]):
+      | any
+      | Promise<any>;
+  }
+
+  export function formatSelectItems({
+    items,
+    itemsPerPage = 8,
+    showDescription = false,
+  }: BCSelectItemConfig): { maps: InventoryItem[]; str: string } {
+    const uniqueItems = Datum.toUniqueArray(items, (i) => i.key);
+    const slicer = new Slicer(uniqueItems);
+    const paged = slicer.getPage(itemsPerPage);
+    const inv = new Inventory(items, Infinity);
+    const str = paged
+      .map(
+        (i, j) =>
+          `${j + 1}. ${listItem(i, inv.getAmount(i.key))}${
+            showDescription && i.flavorText
+              ? `\n${UNISpectra.charm} ${i.flavorText}`
+              : ""
+          }`
+      )
+      .join(showDescription ? "\n\n" : "\n");
+    return { maps: paged, str };
+  }
+
+  export interface SelectItemPromise {
+    item: InventoryItem;
+    ctx: CommandContext;
+    items: InventoryItem[];
+  }
+
+  export async function selectItem(
+    this: CommandContext,
+    config: BCSelectItemConfig,
+    callback?: BCSelectItemCallback
+  ): Promise<SelectItemPromise> {
+    const {
+      processText = ({ str }) =>
+        `🔎 **Select an item**:\n\n${str}\n\n💌 Please **reply** with a **number** that corresponds to the item you want to use for this action.`,
+      items = [],
+    } = config;
+    try {
+      const { maps, str } = formatSelectItems(config);
+      let itemStr = str;
+      itemStr = await processText({
+        items,
+        str: itemStr,
+      });
+      const info = config.style
+        ? await this.output.replyStyled(itemStr, config.style)
+        : await this.output.reply(itemStr);
+      return new Promise<SelectItemPromise>((res) => {
+        info.atReply(async (replyCtx) => {
+          const num = Number(replyCtx.input.words[0]);
+          const rep = (form: OutputForm) => {
+            if (config.style) {
+              return replyCtx.output.replyStyled(form, config.style);
+            }
+            return replyCtx.output.reply(replyCtx);
+          };
+          if (isNaN(num)) {
+            return rep("❌ | Please go back and reply a **number**.");
+          }
+          const item = maps[num - 1];
+          if (!item) {
+            return rep(
+              `❌ | Please go back and reply a **number** between **1 and ${maps.length}**`
+            );
+          }
+
+          if (config.validationDBProperty) {
+            const userData = await replyCtx.usersDB.getCache(
+              replyCtx.input.sid
+            );
+            const inv = new Inventory(
+              userData[config.validationDBProperty] ?? []
+            );
+            if (!inv.has(item.key)) {
+              return rep(
+                `❌ | This item does **not exist** anymore. Tf did you do?`
+              );
+            }
+          }
+
+          info.removeAtReply();
+          await callback?.(replyCtx, item, maps);
+
+          res({
+            ctx: replyCtx,
+            item,
+            items: maps,
+          });
+        });
+      });
+    } catch (error) {
+      return this.output.error(error);
+    }
+  }
+
+  export function createSelectItem(ctx: CommandContext) {
+    return selectItem.bind(ctx);
+  }
+
+  export type BoundSelectItem = ReturnType<typeof createSelectItem>;
 }

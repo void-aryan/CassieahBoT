@@ -2,7 +2,7 @@
 export const meta = {
   name: "utils-liane",
   author: "Liane Cagara",
-  version: "3.0.0",
+  version: "3.0.5",
   description:
     "Helpful but optional utilities that isn't used by default, DO NOT OWN THESE",
   supported: "^1.0.0",
@@ -88,38 +88,73 @@ export class ItemLister {
     return Array.from(this.inventory);
   }
 }
+
+/**
+ * @template {any} T
+ */
 export class Slicer {
+  /**
+   *
+   * @param {T[]} array
+   * @param {number} limit
+   */
   constructor(array = [], limit = 10) {
     this.array = Array.from(array);
     this.limit = limit;
   }
+  /**
+   *
+   * @param {number} page
+   */
   getPage(page) {
     return Slicer.byPageArray(this.array, page, this.limit);
   }
+
+  /**
+   * @readonly
+   * @type {number}
+   */
   get pagesLength() {
     return Math.floor(this.array.length / (this.limit || 10));
   }
+
+  /**
+   *
+   * @param {string} page
+   * @returns {number}
+   */
   static parseNum(page) {
-    page = parseInt(page);
-    if (isNaN(page)) {
-      page = 1;
+    let _page = Math.floor(Number(page));
+    if (isNaN(_page)) {
+      _page = 1;
     }
-    return page;
+    return _page;
   }
 
+  /**
+   * @param {number | string} page
+   * @param {string | number} limit
+   * @returns {[number, number]}
+   */
   static byPage(page, limit) {
-    page = parseInt(page);
-    if (isNaN(page)) {
-      page = 1;
+    let _page = Math.floor(Number(page));
+    if (isNaN(_page)) {
+      _page = 1;
     }
-    limit = parseInt(limit);
-    if (isNaN(limit)) {
-      limit = 10;
+    let _limit = Math.floor(Number(limit));
+    if (isNaN(Number(limit))) {
+      _limit = 10;
     }
-    const sliceA = (page - 1) * limit;
-    const sliceB = page * limit;
+    const sliceA = (_page - 1) * _limit;
+    const sliceB = _page * _limit;
     return [sliceA, sliceB];
   }
+  /**
+   * @template {any} T
+   * @param {T[]} array
+   * @param {number} page
+   * @param {number} limit
+   */
   static byPageArray(array, page, limit) {
     return array.slice(...this.byPage(page, limit));
   }

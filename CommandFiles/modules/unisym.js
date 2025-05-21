@@ -1019,7 +1019,7 @@ export async function handleDefaultCommand(
         defaultCommands: [...defMap],
       });
       info.removeAtReply();
-      return output.replyStyled(
+      return ctx2.output.replyStyled(
         `✅ Successfully used **${name}** as the default command for **${xName}**! You can always change this setting by using the **${ctx2.prefix}defaults <alias>** without the fonts.`,
         cassStyle
       );

@@ -1,3 +1,4 @@
+// @ts-check
 /*
   WARNING: This source code is created by Liane Cagara.
   Any unauthorized modifications or attempts to tamper with this code 
@@ -11,9 +12,9 @@ import { translate, UNIRedux, UNISpectra } from "@cassidy/unispectra";
 import { PagePayload } from "@cass-modules/PageButton";
 import { TempFile } from "../../handlers/page/sendMessage";
 import { base64ToStream, streamToBase64 } from "../../webSystem";
-import { NeaxScript } from "@cass-modules/NeaxScript";
 import InputClass from "@cass-modules/InputClass";
 import { inspect } from "util";
+import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
 
 export const meta = {
   name: "output",
@@ -34,9 +35,13 @@ export const style = {
   contentFont: "fancy",
   titleFont: "bold",
 };
+/**
+ * @typedef {import("output-cassidy").OutputResultInf} OutputResultInf
+ */
 
 /**
- * @implements {import("output-cassidy").OutputResultInf}
+ *
+ * @implements {OutputResultInf}
  */
 export class OutputResult {
   /**
@@ -140,6 +145,7 @@ export class CassidyIO {
    * @param {string | undefined} sendID
    */
   async out(text, sendID = undefined) {
+    // @ts-ignore
     text = String(text.body ?? text);
     let info;
     if (sendID) {
@@ -152,16 +158,24 @@ export class CassidyIO {
   }
   async in({
     messageID: optionalID = this.lastMessageID,
+    // @ts-ignore
     full,
+    // @ts-ignore
     dontUpdate,
     callback: c = (ctx) => ctx.repObj.resolve(ctx),
+    // @ts-ignore
+
     test,
+    // @ts-ignore
+
     testFail,
   } = {}) {
     let callback = c;
 
     if (test) {
       callback = async (ctx) => {
+        // @ts-ignore
+
         let { repObj, input } = ctx;
         if (await test(input)) {
           await c(ctx);
@@ -199,6 +213,7 @@ export async function use(obj) {
      *
      * @param {import("output-cassidy").StrictOutputForm} options     */
     async function processOutput({ ...options }) {
+      // @ts-ignore
       const { UserStatsLocal, money, CassEncoder } = obj;
       const command = cmd;
       if (
@@ -234,12 +249,20 @@ export async function use(obj) {
         const {
           cassEXP,
           name,
+          // @ts-ignore
+
           money: userMoney,
+          // @ts-ignore
+
           inventory = [],
+          // @ts-ignore
+
           boxItems = [],
         } = await obj.money.getCache(options.threadID ?? input.senderID);
         const inst = new CassEXP(cassEXP);
         const finalName = uiName || name;
+        // @ts-ignore
+
         let isOther = finalName !== name;
 
         options.body =
@@ -259,7 +282,7 @@ export async function use(obj) {
      *
      * @param {import("output-cassidy").OutputForm} text
      * @param {import("output-cassidy").OutputForm} options
-     * @returns {Promise<import("output-cassidy").OutputResult>}
+     * @returns {Promise<OutputResult>}
      */
     async function output(text, options = { body: "" }) {
       const styler = obj.input.isCommand ? obj.styler : obj.stylerDummy;
@@ -290,6 +313,7 @@ export async function use(obj) {
           }
         }
         if (PagePayload.isPageButton(options.attachment) && !obj.input.isPage) {
+          // @ts-ignore
           const buttons = PagePayload.fromPayload(options.attachment);
           options.body = buttons.toString();
         }
@@ -300,6 +324,7 @@ export async function use(obj) {
           options.body = input.censor(options.body);
         }
         // console.log(options);
+        // @ts-ignore
         const { UserStatsLocal, money, CassEncoder } = obj;
         const { replies = {} } = global.Cassidy;
         // @ts-ignore
@@ -311,6 +336,7 @@ export async function use(obj) {
             commands[commandKey] || commands[commandKey.toLowerCase()];
         }
 
+        // @ts-ignore
         let command = cmd || repCommand || currData;
         options.body = `${prepend}\n${options.body}\n${append}`;
         options.body = options.body.trim();
@@ -362,7 +388,8 @@ export async function use(obj) {
         }
         if (
           !options.body ||
-          (options.body === "") | (String(options.body).trim() === "") ||
+          options.body === "" ||
+          String(options.body).trim() === "" ||
           options.body === "undefined"
         ) {
           delete options.body;
@@ -372,13 +399,9 @@ export async function use(obj) {
           options.body = resultInfo.originalOptionsBody;
         }
 
-        //console.log(options);
-
         if (options.referenceQ === input.webQ) {
         }
         if (input.isWeb) {
-          // console.log("Q", input.webQ, global.webQuery);
-
           let url = null;
           if (
             typeof options.attachment === "object" &&
@@ -386,8 +409,7 @@ export async function use(obj) {
             "_readableState" in options.attachment
           ) {
             const temp = new TempFile();
-            const { fileTypeFromStream, fileTypeFromBuffer } =
-              await global.fileTypePromise;
+            const { fileTypeFromBuffer } = await global.fileTypePromise;
             const base64_ = await streamToBase64(options.attachment);
             const buffer = Buffer.from(base64_, "base64");
             const type = await fileTypeFromBuffer(buffer);
@@ -440,6 +462,8 @@ export async function use(obj) {
               optionsCopy.threadID || event.threadID
             );
             res(
+              // @ts-ignore
+
               new OutputResult(obj, {
                 ...options,
                 ...resultInfo,
@@ -451,10 +475,14 @@ export async function use(obj) {
             return;
           }
           api.sendMessage(
+            // @ts-ignore
+
             options,
             optionsCopy.threadID || event.threadID,
             async (err, info) => {
               if (typeof optionsCopy.callback === "function") {
+                // @ts-ignore
+
                 await optionsCopy.callback(info);
               }
 
@@ -486,6 +514,7 @@ export async function use(obj) {
      * @type {Partial<import("output-cassidy").OutputProps>}
      */
     const outputProps = {
+      selectItem: BriefcaseAPI.selectItem.bind(obj),
       async req(url, params = {}, configOrMethod = "GET") {
         let finalUrl = url;
 
@@ -516,7 +545,13 @@ export async function use(obj) {
           );
         }
       },
-      async reply(body, callback) {
+      /**
+       *
+       * @param {import("output-cassidy").OutputForm | ((ctx: CommandContext & { repObj: import("output-cassidy").PromiseStandardReplyArg<any>; }) => any | Promise<any>)} body
+       * @param {any} callback
+       * @returns
+       */
+      async reply(body, callback = (_err, _info) => {}) {
         if (typeof body === "function") {
           if (!LASTID) {
             throw new Error("No last output to attach to.");
@@ -551,7 +586,7 @@ export async function use(obj) {
       async setUIName(name) {
         uiName = String(name);
       },
-      async contact(text, id, destination) {
+      async contact(text, id = undefined, destination = undefined) {
         return output({
           body: text,
           contactID: id,
@@ -581,13 +616,13 @@ export async function use(obj) {
         return await output(body, { callback, threadID: id });
       },
       async add(user, thread = event.threadID) {
-        api.addUserToGroup(user, thread, (err) => {});
+        api.addUserToGroup(user, thread, (_err) => {});
       },
       async kick(user, thread = event.threadID) {
-        api.removeUserFromGroup(user, thread, (err) => {});
+        api.removeUserFromGroup(user, thread, (_err) => {});
       },
       async unsend(mid) {
-        api.unsendMessage(mid, (err) => {});
+        api.unsendMessage(mid, (_err) => {});
       },
       async reaction(emoji, mid = event.messageID) {
         if (typeof emoji === "function") {
@@ -596,7 +631,7 @@ export async function use(obj) {
           }
           return obj.output.addReactionListener(LASTID, emoji);
         }
-        api.setMessageReaction(emoji, mid, (err) => {}, true);
+        api.setMessageReaction(emoji, mid, (_err) => {}, true);
       },
       dispatch: output,
       get prepend() {
@@ -631,7 +666,7 @@ export async function use(obj) {
           ? await this.replyStyled(text, sstyle)
           : await this.reply(text);
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
           input.setReply(info.messageID, {
             author: input.senderID,
 
@@ -661,6 +696,7 @@ export async function use(obj) {
         });
       },
     };
+    // @ts-ignore
     outputProps.Styled = class {
       constructor(style) {
         this.style = style;
@@ -698,15 +734,13 @@ export async function use(obj) {
         } to see how it works.`
       );
     };
-    //Only works to Fca of NicaBoT:
     outputProps.edit = async function edit(
       text,
       mid,
-      delay,
+      _delay,
       style = {},
       options = {}
     ) {
-      //const refStyle = { ...(cmd && cmd.style ? cmd.style : {}), ...style };
       const { styler } = obj;
       const stylerShallow = styler.shallowMake({}, style);
 
@@ -717,9 +751,6 @@ export async function use(obj) {
         result = obj.input.censor(result);
       }
 
-      /*if (Object.keys(refStyle).length > 0) {
-        result = await styled(result, refStyle);
-      }*/
       result = await processOutput({ ...options, body: result });
 
       result = input.isWss
@@ -728,6 +759,7 @@ export async function use(obj) {
       return new Promise((res) => {
         const aa = api.editMessage(result, mid, () => res(true));
         if (aa instanceof Promise) {
+          // @ts-ignore
           aa.then(res);
         } else {
           res(false);
@@ -883,8 +915,10 @@ export class EasyOutput {
    */
   getBound(key) {
     if (typeof this[key] !== "function") {
+      // @ts-ignore
       return this[key];
     }
+    // @ts-ignore
     return this[key].bind(this);
   }
 
@@ -938,6 +972,7 @@ export class EasyOutput {
    * @returns {OutputResult}
    */
   getMessageWaiter() {
+    // @ts-ignore
     return new Promise((res) => {
       if (this.lastMessage) {
         return res(this.lastMessage);
@@ -1016,21 +1051,12 @@ export class EasyOutput {
   }
 }
 
-function assignProp(func, obj) {
-  const wrapper = (...args) => {
-    return func(...args);
-  };
-
-  for (let key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      wrapper[key] = obj[key];
-    }
-  }
-
-  return wrapper;
-}
-
-function formatError(error) {
+/**
+ *
+ * @param {any} error
+ * @returns
+ */
+export function formatError(error) {
   let errorMessage = "❌ | An error has occurred:\n";
 
   if (error instanceof Error) {

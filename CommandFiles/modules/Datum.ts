@@ -306,6 +306,47 @@ export namespace Datum {
     return val !== undefined ? val : null;
   }
 
+  /**
+   * Returns a new array containing only unique elements from the input array.
+   *
+   * - If no callback is provided, uniqueness is determined using strict equality (`===`).
+   * - If a callback is provided, it is used to derive a value from each item for uniqueness comparison.
+   *
+   * @template T - Type of items in the input array
+   * @template K - Type of key returned by the callback function (if provided)
+   *
+   * @param array - The input array to filter.
+   * @param callback - Optional function to generate a comparison key for each item.
+   *
+   * @returns A new array containing only unique items.
+   *
+   * @example
+   * toUniqueArray([1, 2, 2, 3]); // [1, 2, 3]
+   *
+   * @example
+   * toUniqueArray(['one', 'two', 'three'], str => str.length); // ['one', 'three']
+   *
+   * @example
+   * toUniqueArray([{ id: 1 }, { id: 2 }, { id: 1 }], obj => obj.id); // [{ id: 1 }, { id: 2 }]
+   */
+  export function toUniqueArray<T, K = T>(
+    array: T[],
+    callback?: (item: T) => K
+  ): T[] {
+    const seen = new Set<K | T>();
+    const result: T[] = [];
+
+    for (const item of array) {
+      const key = callback ? callback(item) : item;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(item);
+      }
+    }
+
+    return result;
+  }
+
   type ObjectKey = string | number | symbol;
 
   export function decodeGameID(input: string) {
