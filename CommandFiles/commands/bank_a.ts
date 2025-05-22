@@ -9,7 +9,7 @@ const ABANK = fonts.serif("AC-BANK");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.6",
+  version: "3.0.7",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
@@ -141,7 +141,7 @@ export async function entry({
     money: userMoney,
     bankData = { bank: 0, nickname: null, items: null },
   } = userData;
-  const bankDataItems = new Inventory(bankData.items ?? [], 100);
+  let bankDataItems = new Inventory(bankData.items ?? [], 100);
   const inventory = new Inventory(userData.inventory ?? [], invLimit);
 
   bankData.bank = Math.min(bankData.bank, Number.MAX_VALUE);
@@ -225,8 +225,9 @@ export async function entry({
           notifStyle
         );
       }
+      const bdataItems = new Inventory(targetData.bankData?.items ?? [], 100);
 
-      const itemStr = listABANKItems(bankDataItems);
+      const itemStr = listABANKItems(bdataItems);
 
       return output.replyStyled(
         `${

@@ -4,11 +4,9 @@ import type {
   generateTrash,
   generateChequeGift,
   generateTrashOld,
+  treasureInv,
 } from "./CommandFiles/plugins/ut-shop.js";
-import type {
-  Inventory,
-  Collectibles, treasureInv
-} from "@cass-modules/InventoryEnhanced";
+import type { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 
 import type { ReplySystem, ReactSystem } from "input-cassidy";
 
