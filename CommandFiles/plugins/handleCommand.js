@@ -10,6 +10,8 @@ global.listener = {};
 import stringSimilarity from "string-similarity";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { handleDefaultCommand, UNISpectra } from "@cassidy/unispectra";
+import { CassidyResponseStylerControl } from "@cassidy/styler";
+import { formatCash } from "@cass-modules/ArielUtils";
 
 function getSuggestedCommand(input, commands) {
   const commandNames = Object.keys(commands);
@@ -28,7 +30,7 @@ export const meta = {
   author: "Liane Cagara",
   description:
     "This is where commands are usually handled, and it is handled at the last",
-  version: "1.0.0",
+  version: "1.0.1",
   supported: "^1.0.0",
   IMPORTANT: true,
   type: "plugin",
@@ -237,27 +239,48 @@ export async function use(obj) {
         return;
       }
 
-      const price = await shop.getPrice(meta.name);
+      const price = shop.getPrice(meta.name);
       shopLabel: {
         if (price <= 0) {
           break shopLabel;
         }
-        const isAffordable = await shop.canPurchase(
-          meta.name,
-          userDataCache.money
-        );
+        const isAffordable = shop.canPurchase(meta.name, userDataCache.money);
 
         if (isFn(shopLocked)) {
           obj.isAffordable = isAffordable;
           obj.thisPrice = price;
           return shopLocked(obj);
         }
-        let text = `🔒 | The command "${meta.name}" is available in the **shop** with a price of ${price}$`;
+        // @ts-ignore
+        let _oldtext = `🔒 | The command "${meta.name}" is available in the **shop** with a price of ${price}$`;
+
         if (isAffordable) {
-          text += `\n\n✨ You have enough money to **purchase** this command!\n\n**Example**: ${prefix}buy ${meta.name}`;
+          shop.purchase(args[0], userDataCache.money);
+
+          await money.setItem(input.senderID, {
+            shopInv: shop.raw(),
+            money: userDataCache.money - price,
+          });
+        } else {
+          const cashGames = new CassidyResponseStylerControl({
+            preset: ["cash_games_new.json"],
+          });
+          cashGames.activateAllPresets();
+
+          const cashField = cashGames.getField("cashField");
+          const resultText = cashGames.getField("resultText");
+
+          cashField.applyTemplate({
+            cash: formatCash(price),
+          });
+
+          resultText.changeContent("You need:");
+          output.setStyle(cashGames.getFields());
+          await output.reply(
+            `💰 You do not have enough money to unlock this command!`
+          );
+          return;
         }
-        await output.reply(text);
-        return;
       }
     }
     function handleArgs() {

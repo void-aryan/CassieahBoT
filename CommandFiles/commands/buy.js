@@ -16,13 +16,14 @@ export const meta = {
   permissions: [0],
   noPrefix: false,
   waitingTime: 0.01,
+  icon: "🛒",
 };
 
 /**
  * @type {CassidySpectra.CommandStyle}
  */
 export const style = {
-  title: "💵 Buy Command",
+  title: "🛒 Buy Command",
   titleFont: "fancy",
   contentFont: "fancy",
 };
