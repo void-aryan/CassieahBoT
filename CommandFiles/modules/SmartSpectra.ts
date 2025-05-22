@@ -141,9 +141,9 @@ export namespace SmartPet {
         let ind = !gear.armors[1] && gear.armors[0] ? 1 : 0;
         const exi1 = gear.armors[0];
         const exi2 = gear.armors[1];
-        if (exi2.def > exi1.def) {
+        if ((exi2?.def ?? 0) > (exi1?.def ?? 0)) {
           ind = 0;
-        } else if (exi1.def > exi2.def) {
+        } else if ((exi1?.def ?? 0) > (exi2?.def ?? 0)) {
           ind = 1;
         }
         gear.equipArmor(ind, item);
