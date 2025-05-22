@@ -162,6 +162,8 @@ async function generateAIPet(
   selectedPet.defModifier += Math.floor(player1Pet.DF / 1.5);
   selectedPet.magicModifier += Math.floor(player1Pet.MAGIC / 1.5);
 
+  selectedPet.HP = selectedPet.maxHP;
+
   return { pet: selectedPet, author: `AI_${Date.now()}` };
 }
 
