@@ -5,7 +5,7 @@ import { abbreviateNumber } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.13",
+  version: "2.0.14",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -1123,7 +1123,7 @@ export class PetPlayer {
 
     const rawMagic = cappedGearMagic + extra + this.magicModifier;
 
-    const statCap = Math.max(this.ATK * 3, this.level * 50);
+    const statCap = Math.max(this.ATK * 3, this.level * 10);
 
     return Math.round(Math.min(rawMagic, statCap));
   }

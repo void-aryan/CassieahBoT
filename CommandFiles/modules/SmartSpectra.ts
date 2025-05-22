@@ -114,21 +114,27 @@ export namespace SmartPet {
     return sortedResult;
   }
 
+  export interface StatDiffs {
+    atk: number;
+    def: number;
+    magic: number;
+    hp: number;
+    str: string;
+    strs: string[];
+  }
+
   export function calculateAddedStat<
     P extends UserData["petsData"],
     E extends ArmorInventoryItem | WeaponInventoryItem,
     G extends UserData["gearsData"]
-  >(pets: P, gears: G, item: E) {
+  >(pets: P, gears: G, item: E): StatDiffs[] {
     const gearsManage = new GearsManage(gears);
+
     const playersBefore = pets.map(
       (i) => new PetPlayer(i, gearsManage.getGearData(i.key))
     );
-    const playersAfter = pets.map(
-      (i) => new PetPlayer(i, gearsManage.getGearData(i.key))
-    );
-
-    for (const player of playersAfter) {
-      const gear = player.gearInstance();
+    const playersAfter = pets.map((i) => {
+      const gear = gearsManage.getGearData(i.key);
       if (item.type === "weapon") {
         gear.equipWeapon(item);
       } else if (item.type === "armor") {
@@ -142,6 +148,47 @@ export namespace SmartPet {
         }
         gear.equipArmor(ind, item);
       }
+      return new PetPlayer(i, gear);
+    });
+
+    const diffs: StatDiffs[] = [];
+
+    for (const playerAfter of playersAfter) {
+      const playerBefore = playersBefore.find(
+        (i) => i.OgpetData.key === playerAfter.OgpetData.key
+      );
+
+      let sub = (key: keyof PetPlayer, dis: string) => {
+        const a = playerAfter[key];
+        const b = playerBefore[key];
+        const diff =
+          (typeof a === "number" ? a : 0) - (typeof b === "number" ? b : 0);
+        return {
+          diff,
+          str: `${playerAfter.petIcon} ${
+            diff > 0 ? `+**${diff}** **${dis}**` : `-${Math.abs(diff)} ${dis}`
+          }`,
+        };
+      };
+
+      const atkSub = sub("ATK", "ATK");
+      const defSub = sub("DF", "DEF");
+      const magicSub = sub("MAGIC", "MAGIC");
+      const hpSub = sub("HP", "MAX HP");
+
+      diffs.push({
+        atk: atkSub.diff,
+        def: defSub.diff,
+        magic: magicSub.diff,
+        hp: hpSub.diff,
+        strs: [atkSub, defSub, magicSub, hpSub].map((i) => i.str),
+        str: [atkSub, defSub, magicSub, hpSub]
+          .filter((i) => i.diff)
+          .map((i) => i.str)
+          .join("\n"),
+      });
     }
+
+    return diffs;
   }
 }
