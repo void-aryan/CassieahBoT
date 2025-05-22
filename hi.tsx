@@ -4,7 +4,7 @@ import { CassTypes } from "@cass-modules/type-validator";
 
 import { defineEntry } from "@cass/define";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 
 export const meta = {
   name: "hi",

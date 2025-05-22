@@ -1,5 +1,5 @@
 import { GearsManage, PetPlayer } from "@cass-plugins/pet-fight";
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 import { PersistentStats, PetSchema } from "@cass-modules/Encounter";

@@ -1,4 +1,4 @@
-import { Collectibles } from "@cassidy/ut-shop";
+import { Collectibles } from "@cass-modules/InventoryEnhanced";
 import { formatCash, formatValue } from "./ArielUtils";
 import { CollectibleItem, UserStatsManager } from "./cassidyUser";
 import { formatTime } from "./unisym";

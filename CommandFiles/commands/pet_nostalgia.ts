@@ -1,8 +1,12 @@
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { CassEXP } from "../modules/cassEXP.js";
 import { clamp, UNIRedux } from "../modules/unisym.js";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
-import { InventoryItem } from "@cass-modules/cassidyUser";
+import {
+  InventoryItem,
+  PetFoodItem,
+  RandFoodItem,
+} from "@cass-modules/cassidyUser";
 import { formatCash } from "@cass-modules/ArielUtils";
 import { SmartPet } from "@cass-modules/SmartSpectra";
 
@@ -10,7 +14,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
-  version: "1.6.8",
+  version: "1.6.9",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -99,12 +103,16 @@ async function uncageReply({
 
     petsData.addOne({
       ...item,
+      type: "pet",
       name: newName,
       petType: item.key,
       key: "pet:" + item.key + "_" + Date.now(),
       level: 1,
       lastFeed: Date.now(),
       lastExp: 0,
+      cannotToss: false,
+      lastSaturation: 0,
+      lastFoodEaten: "",
     });
     inventory.deleteOne(item.key);
     await money.set(input.senderID, {
@@ -1333,10 +1341,11 @@ export async function entry(ctx: CommandContext) {
             );
           }
 
-          let targetFood =
+          let targetFood = (
             foodKey === "--auto"
               ? SmartPet.findFoods(targetPetData, inventory)[0]
-              : inventory.getOne(foodKey);
+              : inventory.getOne(foodKey)
+          ) as PetFoodItem | RandFoodItem;
 
           if (!targetFood || !foodKey) {
             const result = await mctx.output.selectItem({
@@ -1345,7 +1354,7 @@ export async function entry(ctx: CommandContext) {
               validationDBProperty: "inventory",
             });
             if (result.item) {
-              targetFood = result.item;
+              targetFood = result.item as PetFoodItem | RandFoodItem;
               mctx = result.ctx;
               petsData = new Inventory(mctx.user.petsData);
               inventory = new Inventory(mctx.user.inventory);
@@ -1399,24 +1408,18 @@ export async function entry(ctx: CommandContext) {
 
           targetPetData.lastSaturation = targetFood.saturation;
           if (targetFood.type === "food")
-            // @ts-ignore
             targetPetData.lastSaturation += targetFood.saturation;
           targetPetData.lastFeed = Math.min(
-            // @ts-ignore
             (targetPetData.lastFeed ?? Date.now()) +
-              // @ts-ignore
               targetFood.saturation * 360,
             Date.now()
           );
           targetPetData.lastFoodEaten = targetFood.key;
           targetPetData.lastExp =
-            // @ts-ignore
             (targetPetData.lastExp ?? 0) +
-            // @ts-ignore
             Math.floor(targetFood.saturation / 60 / 1000);
           const userAddedExp = clamp(
             3,
-            // @ts-ignore
             Math.floor(targetPetData.lastExp / 1000),
             50
           );

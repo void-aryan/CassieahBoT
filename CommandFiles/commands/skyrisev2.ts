@@ -2,7 +2,7 @@
 import { InventoryItem } from "@cass-modules/cassidyUser";
 import { CassEXP } from "../modules/cassEXP.js";
 import { UNIRedux } from "../modules/unisym.js";
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { abbreviateNumber, formatCash } from "@cass-modules/ArielUtils";
 

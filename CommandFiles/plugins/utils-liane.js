@@ -104,7 +104,7 @@ export class Slicer {
   }
   /**
    *
-   * @param {number} page
+   * @param {number | string} page
    */
   getPage(page) {
     return Slicer.byPageArray(this.array, page, this.limit);
@@ -152,7 +152,7 @@ export class Slicer {
   /**
    * @template {any} T
    * @param {T[]} array
-   * @param {number} page
+   * @param {number | string} page
    * @param {number} limit
    */
   static byPageArray(array, page, limit) {

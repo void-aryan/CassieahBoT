@@ -16,7 +16,7 @@ global.cassMongoManager = cassMongoManager;
 import type { InventoryItem } from "cassidy-userData";
 import fetchMeta from "../../CommandFiles/modules/fetchMeta";
 import { UNISpectra } from "@cassidy/unispectra";
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 import axios from "axios";
 import { queryObjects } from "@cass-modules/OBJQuery";
 

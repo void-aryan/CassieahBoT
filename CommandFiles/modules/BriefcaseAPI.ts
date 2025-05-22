@@ -1,5 +1,5 @@
 import { GearsManage, PetPlayer } from "@cass-plugins/pet-fight";
-import { Inventory, Collectibles } from "@cassidy/ut-shop";
+import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 import { UNIRedux } from "cassidy-styler";
 import {
   Config,
@@ -1668,9 +1668,9 @@ export class BriefcaseAPI {
   }
 }
 export namespace BriefcaseAPI {
-  export interface BCSelectItemConfig {
+  export interface BCSelectItemConfig<I extends InventoryItem> {
     processText?: ({ items, str }: BSProcessText) => string | Promise<string>;
-    items: InventoryItem[];
+    items: I[];
     itemsPerPage?: number;
     showDescription?: boolean;
     style?: CassidySpectra.CommandStyle;
@@ -1683,18 +1683,16 @@ export namespace BriefcaseAPI {
     str: string;
   }
 
-  export interface BCSelectItemCallback {
-    (ctx: CommandContext, item: InventoryItem, items: InventoryItem[]):
-      | any
-      | Promise<any>;
+  export interface BCSelectItemCallback<I extends InventoryItem> {
+    (ctx: CommandContext, item: I, items: I[]): any | Promise<any>;
   }
 
-  export function formatSelectItems({
+  export function formatSelectItems<I extends InventoryItem>({
     items,
     itemsPerPage = 36,
     page = 1,
     showDescription = false,
-  }: BCSelectItemConfig): { maps: InventoryItem[]; str: string } {
+  }: BCSelectItemConfig<I>): { maps: I[]; str: string } {
     const uniqueItems = Datum.toUniqueArray(items, (i) => i.key);
     const slicer = new Slicer(uniqueItems, itemsPerPage);
     const paged = slicer.getPage(page);
@@ -1712,17 +1710,17 @@ export namespace BriefcaseAPI {
     return { maps: paged, str };
   }
 
-  export interface SelectItemPromise {
-    item: InventoryItem;
+  export interface SelectItemPromise<I extends InventoryItem> {
+    item: I;
     ctx: CommandContext;
     items: InventoryItem[];
   }
 
-  export async function selectItem(
+  export async function selectItem<I extends InventoryItem>(
     this: CommandContext,
-    config: BCSelectItemConfig,
-    callback?: BCSelectItemCallback
-  ): Promise<SelectItemPromise> {
+    config: BCSelectItemConfig<I>,
+    callback?: BCSelectItemCallback<I>
+  ): Promise<SelectItemPromise<I>> {
     const {
       processText = ({ str, items }) =>
         items.length > 0
@@ -1749,7 +1747,7 @@ export namespace BriefcaseAPI {
         : await this.output.reply(itemStr);
       const self = this;
 
-      return new Promise<SelectItemPromise>((res) => {
+      return new Promise<SelectItemPromise<I>>((res) => {
         info.atReply(async (replyCtx) => {
           const num = Number(replyCtx.input.words[0]);
           const rep = (form: OutputForm) => {
@@ -1801,8 +1799,13 @@ export namespace BriefcaseAPI {
   }
 
   export function createSelectItem(ctx: CommandContext) {
-    return selectItem.bind(ctx);
+    return selectItem.bind(ctx) as BoundSelectItem;
   }
 
-  export type BoundSelectItem = ReturnType<typeof createSelectItem>;
+  export interface BoundSelectItem {
+    <I extends InventoryItem>(
+      config: BCSelectItemConfig<I>,
+      callback?: BCSelectItemCallback<I>
+    ): Promise<SelectItemPromise<I>>;
+  }
 }

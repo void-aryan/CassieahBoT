@@ -1,7 +1,7 @@
 // @ts-check
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { UNIRedux } from "../modules/unisym.js";
-import { Collectibles } from "../plugins/ut-shop.js";
+import { Collectibles } from "@cass-modules/InventoryEnhanced";
 
 export const meta = {
   name: "collectibles",

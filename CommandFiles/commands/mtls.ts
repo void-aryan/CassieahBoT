@@ -3,7 +3,7 @@ import { defineEntry } from "@cass/define";
 import { formatTime, UNISpectra } from "@cassidy/unispectra";
 import { formatCash, parseBet } from "@cass-modules/ArielUtils";
 import { FontSystem } from "cassidy-styler";
-import { Collectibles } from "@cassidy/ut-shop";
+import { Collectibles } from "@cass-modules/InventoryEnhanced";
 import {
   convertMintToCll,
   formatMint,

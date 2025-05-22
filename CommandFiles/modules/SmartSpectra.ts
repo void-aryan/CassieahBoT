@@ -1,6 +1,6 @@
 import { FontSystem } from "cassidy-styler";
 import { InventoryItem } from "./cassidyUser";
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 
 export const smartSpectra = `🎓 ${FontSystem.fonts.bold_italic(
   "SMART"
@@ -18,7 +18,7 @@ export namespace SmartPet {
     return [satMin, satMax];
   }
 
-  export function getFoodPts(item: InventoryItem) {
+  export function getFoodPts<I extends InventoryItem>(item: I) {
     if (typeof item.heal === "number") {
       const satus = convertHealToSaturationRange(item.heal);
       if (satus.some((i) => isNaN(i))) {
@@ -32,7 +32,7 @@ export namespace SmartPet {
     return 0;
   }
 
-  export function findHungryPets(pets: Inventory) {
+  export function findHungryPets<I extends InventoryItem>(pets: Inventory<I>) {
     return Array.from(pets).sort((petA, petB) => {
       const {
         lastFeed: lastFeedA = Date.now(),
@@ -53,7 +53,10 @@ export namespace SmartPet {
     });
   }
 
-  export function isFeedable(pet: InventoryItem, food: InventoryItem): boolean {
+  export function isFeedable<P extends InventoryItem, F extends InventoryItem>(
+    pet: P,
+    food: F
+  ): boolean {
     return (
       food.type === `${pet.petType}_food` ||
       food.type === "anypet_food" ||
@@ -61,18 +64,27 @@ export namespace SmartPet {
     );
   }
 
-  export function findFoods(pet: InventoryItem, inv: Inventory) {
+  export function findFoods<P extends InventoryItem, I extends InventoryItem>(
+    pet: P,
+    inv: Inventory<I>
+  ) {
     const sorted = Array.from(inv)
       .filter((i) => isFeedable(pet, i))
       .toSorted((a, b) => getFoodPts(b) - getFoodPts(a));
     return sorted;
   }
 
-  export function findFood(pet: InventoryItem, inv: Inventory) {
+  export function findFood<P extends InventoryItem, I extends InventoryItem>(
+    pet: P,
+    inv: Inventory<I>
+  ) {
     return findFoods(pet, inv)[0];
   }
 
-  export function findHungryFeedable(pets: Inventory, inv: Inventory) {
+  export function findHungryFeedable<
+    P extends InventoryItem,
+    I extends InventoryItem
+  >(pets: Inventory<P>, inv: Inventory<I>) {
     const hungryPets = findHungryPets(pets);
 
     const sortedHungryPetsWithFood = hungryPets.map((pet) => {

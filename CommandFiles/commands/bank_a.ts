@@ -3,7 +3,7 @@ import { abbreviateNumber, UNIRedux } from "@cassidy/unispectra";
 import { parseBet } from "@cass-modules/ArielUtils";
 import { FontSystem } from "cassidy-styler";
 import { UserData } from "@cass-modules/cassidyUser";
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { listItem, groupItems } from "@cass-modules/BriefcaseAPI";
 const { fonts } = FontSystem;
 

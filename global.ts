@@ -1,13 +1,14 @@
 import type * as Cass from "cassidy-userData";
 import type {
-  Inventory,
-  Collectibles,
   generateGift,
   generateTrash,
-  treasureInv,
   generateChequeGift,
   generateTrashOld,
 } from "./CommandFiles/plugins/ut-shop.js";
+import type {
+  Inventory,
+  Collectibles, treasureInv
+} from "@cass-modules/InventoryEnhanced";
 
 import type { ReplySystem, ReactSystem } from "input-cassidy";
 

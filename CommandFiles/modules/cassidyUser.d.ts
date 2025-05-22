@@ -58,7 +58,7 @@ export interface UserStatsManagerOld {
 export type BaseInventoryItem = {
   key: string;
   name: string;
-  flavorText: string;
+  flavorText?: string;
   icon: string;
   sellPrice?: number;
   type: InventoryTypes;
@@ -82,6 +82,20 @@ export type ArmorInventoryItem = BaseInventoryItem & {
   type: "armor";
 };
 
+export type RandFoodItem = BaseInventoryItem & {
+  heal: number;
+  type: "food";
+  saturation?: number;
+  picky?: boolean;
+};
+
+export type PetFoodItem = BaseInventoryItem & {
+  saturation: number;
+  type: `${string}_food`;
+  heal?: number;
+  picky?: boolean;
+};
+
 export type ChequeItem = {
   chequeAmount: number;
   type: "cheque";
@@ -90,11 +104,11 @@ export type ChequeItem = {
 export type PetUncaged = {
   name: string;
   key: string;
-  flavorText: string;
+  flavorText?: string;
   icon: string;
   type: "pet";
-  sellPrice: number;
-  cannotToss: false;
+  sellPrice?: number;
+  cannotToss?: false;
   petType: string;
   level: number;
   lastFeed: number;
@@ -116,7 +130,7 @@ export type CollectibleItem = {
     name: string;
     icon: string;
     type: string;
-    limit: number | null;
+    limit?: number | null;
     [key: string]: any;
   };
   amount: number;

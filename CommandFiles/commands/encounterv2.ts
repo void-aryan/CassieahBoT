@@ -4,7 +4,7 @@ import {
   randArr,
   WildPlayer,
 } from "@cass-plugins/pet-fight";
-import { Inventory } from "@cassidy/ut-shop";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 import fs from "fs-extra";
 import {
   Encounter,
