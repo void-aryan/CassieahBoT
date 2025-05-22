@@ -785,7 +785,7 @@ declare global {
       accessToken: string | null;
       readonly redux: boolean;
       readonly spectra: boolean;
-      readonly highRoll: 10_000_000;
+      readonly highRoll: (typeof Number)["MAX_SAFE_INTEGER"];
       hostedFilenames: (undefined | TempFile)[];
       databases?: {
         usersDB: UserStatsManager;

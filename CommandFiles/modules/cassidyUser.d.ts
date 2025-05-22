@@ -115,6 +115,10 @@ export type PetUncaged = {
   lastExp: number;
   lastSaturation: number;
   lastFoodEaten: string;
+  lastQuest?: number;
+  questCount?: number;
+  lastQuestDay?: number;
+  questStreak?: number;
 };
 
 type InventoryItem = (

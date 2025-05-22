@@ -3,12 +3,13 @@ import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
 import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 import { PersistentStats, PetSchema } from "@cass-modules/Encounter";
+import { formatCash } from "@cass-modules/ArielUtils";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.3.6",
+  version: "1.3.7",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -1571,11 +1572,11 @@ export async function entry({
         10) *
         1.5
     );
-    const winnerCash = Math.max(0, Math.pow(winnerPts * 1000, 1.2));
+    const winnerCash = Math.round(Math.max(0, Math.pow(winnerPts * 1000, 1.2)));
     const loserPts = Math.round(
       statMap.get(`${loserId}_${loserPet.OgpetData.key}`)!.totalDamageDealt / 10
     );
-    const loserCash = Math.max(0, Math.pow(winnerPts * 100, 1.1));
+    const loserCash = Math.round(Math.max(0, Math.pow(winnerPts * 100, 1.1)));
     const winnerData = await ctx.money.getItem(winnerId);
     const winnerName =
       winner === 2 && gameState.isAIMode ? "AI Opponent" : winnerData.name;
@@ -1637,22 +1638,36 @@ export async function entry({
               winnerPet.petIcon
             } **${winnerPet.petName}** had more health than ${
               loserPet.petIcon
-            } **${
-              loserPet.petName
-            }**.\n${winnerName} earned **${winnerPts} 💷, and **${winnerCash} 💵****${
+            } **${loserPet.petName}**.\n${winnerName} earned ${formatCash(
+              winnerPts,
+              "💷",
+              true
+            )}, and ${formatCash(winnerCash, true)} **${
               wonDias
                 ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate`
                 : ""
-            }, ${loserName} earned **${loserPts} 💷** and **${loserCash} 💵**.`
+            }, ${loserName} earned ${formatCash(
+              loserPts,
+              "💷",
+              true
+            )} and ${formatCash(loserCash, true)}.`
           : `${UNIRedux.charm} ${winnerName} wins!\n${winnerPet.petIcon} **${
               winnerPet.petName
             }** defeated ${loserPet.petIcon} **${
               loserPet.petName
-            }**!\n${winnerName} earned **${winnerPts} 💷, and **${winnerCash} 💵****${
+            }**!\n${winnerName} earned ${formatCash(
+              winnerPts,
+              "💷",
+              true
+            )}, and ${formatCash(winnerCash, true)} **${
               wonDias
                 ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate!`
                 : ""
-            }, ${loserName} earned **${loserPts} 💷** and **${loserCash} 💵**.`),
+            }, ${loserName} earned ${formatCash(
+              loserPts,
+              "💷",
+              true
+            )} and ${formatCash(loserCash, true)}.`),
       style
     );
 

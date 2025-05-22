@@ -270,11 +270,12 @@ async function generateAIPet(
 
   return { pet: selectedPet, author: `AI_${Date.now()}` };
 }
-
 export async function entry({
   input,
   output,
   money,
+  prefix,
+  commandName,
   user,
 }: CommandContext): Promise<any> {
   const gameState: OneShotGameState = {
@@ -286,7 +287,10 @@ export async function entry({
 
   const betAmount = parseBet(input.arguments[0], user.money);
   if (isNaN(betAmount) || betAmount <= 0) {
-    return output.replyStyled(`Please specify a valid bet amount.`, style);
+    return output.replyStyled(
+      `**Example**: ${prefix}${commandName} 100M Doggo`,
+      style
+    );
   }
   gameState.betAmount = betAmount;
 
@@ -305,7 +309,10 @@ export async function entry({
 
   const player1PetName = input.arguments[1];
   if (!player1PetName) {
-    return output.replyStyled(`Specify one pet name.`, style);
+    return output.replyStyled(
+      `**Example**: ${prefix}${commandName} 100M Doggo`,
+      style
+    );
   }
 
   const player1PetData = petsData
@@ -374,6 +381,7 @@ export async function entry({
   const aiHPRemaining = Math.max(0, aiPet.getPercentHP());
   const playerHPPercent = player1Pet.getPercentHP();
   const aiHPPercent = aiPet.getPercentHP();
+  const hpDifference = playerHPPercent - aiHPPercent;
   let outcomeText = "";
   let moneyChange = 0;
 
@@ -381,8 +389,14 @@ export async function entry({
     const baseWinnings = Math.round(
       (aiPet.maxHP - (aiHPPercent * aiPet.maxHP) / 100) * 2 * betAmount
     );
-    const strengthBonus = Math.pow(calculatePetStrength(player1Pet) / 100, 1.1);
-    const winnings = Math.round(baseWinnings * strengthBonus);
+    const strengthBonus = Math.max(
+      Math.pow(calculatePetStrength(player1Pet) / 1000, 1.0005),
+      1
+    );
+    const hpDiffMultiplier = Math.max(0.1, hpDifference / 100);
+    const winnings = Math.round(
+      baseWinnings * strengthBonus * hpDiffMultiplier
+    );
     moneyChange = winnings;
     outcomeText = `${UNIRedux.charm} ${player1Pet.petIcon} **${
       player1Pet.petName
@@ -390,18 +404,26 @@ export async function entry({
     outcomeText += `${UNIRedux.charm} You won ${formatCash(
       winnings,
       true
-    )} (including ATK, DEF, MAGIC bonus)!`;
+    )} (including **${strengthBonus.toFixed(
+      2
+    )}x** ATK/DEF/MAGIC bonus and **${hpDiffMultiplier.toFixed(
+      2
+    )}x** HP difference bonus)!`;
     await money.setItem(input.sid, {
       money: playerData.money + winnings,
     });
   } else if (aiHPRemaining > playerHPRemaining) {
     const lossPercent = playerHPPercent / 100;
-    const lossAmount = Math.abs(Math.round(betAmount * lossPercent));
+    const hpDiffMultiplier = Math.max(0.1, Math.abs(hpDifference) / 100);
+    const lossAmount = -Math.round(betAmount * lossPercent * hpDiffMultiplier);
     moneyChange = -lossAmount;
     outcomeText = `${UNIRedux.charm} ${aiPet.petIcon} **${
       aiPet.petName
     }** wins with **${aiHPPercent.toFixed(1)}% HP** remaining!\n`;
-    outcomeText += `${UNIRedux.charm} You lost ${formatCash(lossAmount, true)}`;
+    outcomeText += `${UNIRedux.charm} You lost ${formatCash(
+      lossAmount,
+      true
+    )} (scaled by **${hpDiffMultiplier.toFixed(2)}x** HP difference).`;
     await money.setItem(input.sid, {
       money: playerData.money - lossAmount,
     });

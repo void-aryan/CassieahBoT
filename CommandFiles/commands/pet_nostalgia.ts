@@ -14,7 +14,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
-  version: "1.6.9",
+  version: "1.6.10",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -834,18 +834,23 @@ function petHungryAfter(pet) {
   return lastSaturation - timeSinceLastFeed;
 }
 
-/**
- *
- * @param {any} petData
- * @returns {UserData["petsData"][number]}
- */
-export function autoUpdatePetData(petData: any): UserData["petsData"][number] {
+export function autoUpdatePetData(
+  petData: UserData["petsData"][number]
+): UserData["petsData"][number] {
+  if (!petData) {
+    return null;
+  }
   const { lastExp = 0 } = petData;
 
   petData.level = lastExp < 10 ? 1 : Math.floor(Math.log2(lastExp / 10)) + 1;
-  // @ts-ignore
+
+  petData.lastQuest = petData.lastQuest ?? 0;
+  petData.questCount = petData.questCount ?? 0;
+  petData.lastQuestDay = petData.lastQuestDay ?? 0;
+  petData.questStreak = petData.questStreak ?? 0;
   return petData;
 }
+
 function calculateNextExp(petData) {
   const { lastExp = 0 } = petData;
 
@@ -1307,7 +1312,9 @@ export async function entry(ctx: CommandContext) {
             );
           if (!targetPetData || !targetPet) {
             const result = await mctx.output.selectItem({
-              items: SmartPet.findHungryPets(petsData),
+              items: SmartPet.findHungryPets(petsData).filter((i) =>
+                isPetHungry(i)
+              ),
               style,
               validationDBProperty: "petsData",
             });
@@ -1793,7 +1800,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
                   calculateWorth(b) +
                   (Number(b.lastExp) || 0) -
                   (Number(calculateWorth(a)) + (Number(a.lastExp) ?? 0))
-              )[0] || {}
+              )[0]
             );
             const gearsManage = new GearsManage(gearsData);
             const gearData = gearsManage.getGearData(pet.key);
@@ -2094,8 +2101,180 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
           return output.reply(result);
         },
       },
+      {
+        key: "quest",
+        description: "Send a pet on a quest to earn money",
+        aliases: ["-q"],
+        args: ["[pet_name]"],
+        async handler(_, __) {
+          let mctx = ctx;
+          let petsData = new Inventory(rawPetsData);
+          let pets = petsData.getAll();
+
+          if (pets.length === 0) {
+            return output.replyStyled(
+              `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`,
+              style
+            );
+          }
+
+          let targetPetData: (typeof petsData.inv)[number];
+          if (args[0]) {
+            targetPetData = petsData
+              .getAll()
+              .find(
+                (pet) =>
+                  String(pet.name).toLowerCase().trim() ===
+                  String(args[0]).toLowerCase().trim()
+              );
+            if (!targetPetData) {
+              return mctx.output.replyStyled(
+                `❌ You don't have a pet named "${args[0]}"!`,
+                style
+              );
+            }
+          } else {
+            const result = await mctx.output.selectItem({
+              items: findQuestEligiblePets(petsData),
+              style,
+              validationDBProperty: "petsData",
+            });
+            if (result.item) {
+              targetPetData = result.item;
+              mctx = result.ctx;
+              petsData = new Inventory(mctx.user.petsData);
+              pets = petsData.getAll();
+            } else {
+              return mctx.output.replyStyled(
+                `🐾 No pets are eligible for a quest right now.`,
+                style
+              );
+            }
+          }
+
+          const updatedPet = autoUpdatePetData(targetPetData);
+          const currentTime = Date.now();
+          const dayStart = new Date().setUTCHours(0, 0, 0, 0);
+
+          if (updatedPet.lastQuestDay !== dayStart) {
+            updatedPet.questCount = 0;
+            updatedPet.lastQuestDay = dayStart;
+          }
+          if (updatedPet.questCount >= QUEST_CONFIG.DAILY_QUEST_LIMIT) {
+            return mctx.output.replyStyled(
+              `🐾 **${updatedPet.name}** has reached the daily quest limit (${QUEST_CONFIG.DAILY_QUEST_LIMIT}). Try again tomorrow!`,
+              style
+            );
+          }
+
+          const timeSinceLastQuest = currentTime - updatedPet.lastQuest;
+          const timeFactor = Math.min(
+            timeSinceLastQuest / QUEST_CONFIG.COOLDOWN,
+            1
+          );
+
+          if (timeSinceLastQuest > QUEST_CONFIG.STREAK_RESET_THRESHOLD) {
+            updatedPet.questStreak = 0;
+          }
+          updatedPet.questStreak = Math.min(
+            updatedPet.questStreak + 1,
+            QUEST_CONFIG.MAX_STREAK
+          );
+
+          const worth = calculateWorth(updatedPet);
+          const baseReward = Math.floor(
+            worth * QUEST_CONFIG.REWARD_MULTIPLIER * timeFactor
+          );
+          const bonus =
+            QUEST_CONFIG.BASE_BONUS +
+            QUEST_CONFIG.STREAK_INCREMENT * updatedPet.questStreak;
+          const reward = Math.round((baseReward + bonus) ** 1.005);
+
+          updatedPet.lastQuest = currentTime;
+          updatedPet.questCount += 1;
+          petsData.deleteOne(updatedPet.key);
+          petsData.addOne(updatedPet);
+
+          const newMoney =
+            (await money.queryItem(mctx.input.senderID, "money")).money +
+            reward;
+          await money.setItem(mctx.input.senderID, {
+            money: newMoney,
+            petsData: Array.from(petsData),
+          });
+
+          const questResults = [
+            `${updatedPet.icon} **${
+              updatedPet.name
+            }** found a treasure chest worth ${formatCash(reward)}!`,
+            `${updatedPet.icon} **${
+              updatedPet.name
+            }** won a pet show, earning ${formatCash(reward)}!`,
+            `${updatedPet.icon} **${
+              updatedPet.name
+            }** completed a daring task for ${formatCash(reward)}!`,
+          ];
+          const resultText =
+            questResults[Math.floor(Math.random() * questResults.length)];
+
+          const timeUntilReady = QUEST_CONFIG.COOLDOWN - timeSinceLastQuest;
+          const nextQuestText =
+            timeUntilReady <= 0
+              ? `Available now`
+              : `In ${global.utils.convertTimeSentence(
+                  global.utils.formatTimeDiff(timeUntilReady)
+                )}`;
+
+          return mctx.output.replyStyled(
+            `✅ ${resultText}\n\n` +
+              `💵 **Reward**: ${formatCash(reward)} (Base: ${formatCash(
+                baseReward
+              )} + Streak Bonus: ${formatCash(bonus)})\n` +
+              `⏳ ***Readiness***: ${(timeFactor * 100).toFixed(
+                0
+              )}% (Full reward ${nextQuestText})\n` +
+              `🔄 ***Streak***: ${
+                updatedPet.questStreak
+              } (Next bonus: ${formatCash(
+                bonus + QUEST_CONFIG.STREAK_INCREMENT
+              )})\n` +
+              `📅 **Daily Quests Left**: ${
+                QUEST_CONFIG.DAILY_QUEST_LIMIT - updatedPet.questCount
+              }/${QUEST_CONFIG.DAILY_QUEST_LIMIT}\n` +
+              `**New Balance**: ${formatCash(newMoney)}`,
+            style
+          );
+        },
+      },
     ]
   );
 
   return home.runInContext(ctx);
 }
+
+export function findQuestEligiblePets(
+  petsData: Inventory<UserData["petsData"][number]>
+) {
+  const dayStart = new Date().setUTCHours(0, 0, 0, 0);
+  return petsData
+    .getAll()
+    .filter((pet) => {
+      const updatedPet = autoUpdatePetData(pet);
+      const isUnderDailyLimit =
+        updatedPet.lastQuestDay !== dayStart
+          ? true
+          : updatedPet.questCount < QUEST_CONFIG.DAILY_QUEST_LIMIT;
+      return isUnderDailyLimit;
+    })
+    .map((pet) => autoUpdatePetData(pet));
+}
+
+const QUEST_CONFIG = {
+  COOLDOWN: 60 * 60 * 1000,
+  REWARD_MULTIPLIER: 0.1,
+  BASE_BONUS: 50,
+  STREAK_INCREMENT: 10,
+  MAX_STREAK: 10,
+  DAILY_QUEST_LIMIT: 3,
+  STREAK_RESET_THRESHOLD: 24 * 60 * 60 * 1000,
+};

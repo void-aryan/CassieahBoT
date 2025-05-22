@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
-  version: "2.1.11",
+  version: "2.1.12",
   usage: "{prefix}{name} [id | 'new']",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -1062,7 +1062,7 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n
     if (mercyMode) {
       pts = Math.round(pts * 1.7);
     }
-    const winnerCash = Math.pow(pts * 1000, 1.2);
+    const winnerCash = Math.round(Math.pow(pts * 1000, 1.2));
     if (isGood) {
       dialogue = `${gameState.opponent.wildIcon} **${
         gameState.opponent.wildName

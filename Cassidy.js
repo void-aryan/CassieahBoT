@@ -175,7 +175,7 @@ global.Cassidy = {
     commands = data;
   },
   invLimit: 36,
-  highRoll: 10_000_000,
+  highRoll: Math.floor(Number.MAX_SAFE_INTEGER),
   presets: new Map(),
   loadCommand: null,
   loadPlugins: null,
