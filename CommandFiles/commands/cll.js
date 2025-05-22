@@ -34,7 +34,7 @@ const { parseCurrency: pCy } = global.utils;
  */
 export async function entry(ctx) {
   const { input, output, money, args, prefix } = ctx;
-  let userData = await money.get(input.senderID);
+  let userData = await money.getItem(input.senderID);
   let collectibles = new Collectibles(userData.collectibles ?? []);
 
   collectibles.removeEmpty();

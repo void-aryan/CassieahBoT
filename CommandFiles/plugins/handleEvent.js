@@ -1,3 +1,4 @@
+// @ts-check
 export const meta = {
   name: "handleEvent",
   author: "Liane Cagara",
@@ -16,14 +17,14 @@ export const meta = {
 export async function use(obj) {
   try {
     let done = [];
-    const { commands } = obj;
-    const userCache = await obj.money.get(obj.input.sid);
-    for (const key in commands) {
+    const { multiCommands } = obj;
+    const userCache = await obj.money.getCache(obj.input.sid);
+    for (const command of multiCommands.values()) {
       try {
         if (userCache.isBanned) {
           continue;
         }
-        const command = commands[key];
+
         if (done.includes(command.meta.name)) {
           continue;
         }

@@ -96,9 +96,9 @@ export function creatorX(handleMessage, handlePostback = () => {}) {
               !convertedEvent.messageReply
             ) {
               const [commandName] = convertedEvent.body.split(" ");
-              const commandExists = Object.keys(global.Cassidy.commands).some(
-                (key) => key.toLowerCase() === commandName.toLowerCase()
-              );
+              const commandExists = Cassidy.multiCommands
+                .keys()
+                .some((key) => key.toLowerCase() === commandName.toLowerCase());
               if (commandExists) {
                 convertedEvent.body =
                   global.Cassidy.config.PREFIX + convertedEvent.body;

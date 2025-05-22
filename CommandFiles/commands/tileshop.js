@@ -34,7 +34,7 @@ global.stoData = stoData;
  */
 const entryConfig = {
   async tiles({ input, output, args, money, prefix }) {
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     /**
      * @type {UserData}
      */
@@ -152,6 +152,7 @@ const entryConfig = {
  * @returns
  */
 export async function entry(ctx) {
+  // @ts-ignore
   return entryConfig.tiles(ctx);
 }
 

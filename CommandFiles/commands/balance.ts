@@ -356,7 +356,7 @@ const configs: Config[] = [
     aliases: ["-f"],
     icon: "🔧",
     handler: async ({ money, input, output }) => {
-      const { money: amount } = await money.get(input.senderID);
+      const { money: amount } = await money.getItem(input.senderID);
       if (isBrokenMoney(amount)) {
         await money.setItem(input.senderID, { money: 0 });
         output.reply(

@@ -1097,7 +1097,7 @@ export async function entry(ctx) {
     money: playerMoney = 0,
     petSells = 0,
     cassEXP: cxp,
-  } = await money.get(input.senderID);
+  } = await money.getItem(input.senderID);
 
   const home = new BriefcaseAPI(
     {

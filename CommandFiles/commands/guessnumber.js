@@ -81,7 +81,7 @@ export async function reply({ input, output, repObj, detectID, money }) {
   gameState.attempts++;
 
   if (guess === gameState.secretNumber) {
-    const { money: cash } = await money.get(gameState.author);
+    const { money: cash } = await money.getItem(gameState.author);
     await money.set(gameState.author, { money: cash + prize });
     await output.reply(
       `Congratulations! You guessed the number ${gameState.secretNumber} in ${gameState.attempts} attempts!

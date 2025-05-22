@@ -79,7 +79,7 @@ export async function entry({ input, output, money }) {
         return `error: invalid UID. Please provide a valid UID or 'self'.`;
       }
 
-      const data = uid === input.senderID ? userData : await money.get(uid);
+      const data = uid === input.senderID ? userData : await money.getItem(uid);
 
       if (!data) {
         return `error: no data found for user with UID: ${uid}.`;

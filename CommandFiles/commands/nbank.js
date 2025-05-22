@@ -67,7 +67,7 @@ export async function entry({
   api,
 }) {
   return message.reply("Bruh it is deprecated, use a different bank");
-  const { money: userMoney, name = "Chara" } = await usersData.get(
+  const { money: userMoney, name = "Chara" } = await usersData.getItem(
     event.senderID
   );
   async function loadAllBankData() {
@@ -86,7 +86,7 @@ export async function entry({
   const getUserInfo = async (_, userID) => {
     try {
       if (String(userID) !== user) {
-        const { name = "Chara" } = await usersData.get(String(userID));
+        const { name = "Chara" } = await usersData.getItem(String(userID));
         return name;
       }
       return name;
@@ -129,7 +129,7 @@ export async function entry({
     const messageText = `𝓣𝓸𝓹 𝟙𝟘 𝓡𝓲𝓬𝓱𝓮𝓼𝓽 👑🤴🏻 \n\n${(
       await Promise.all(
         topTen.map(async ([userID, data], index) => {
-          const userData = await usersData.get(userID);
+          const userData = await usersData.getItem(userID);
           return `${index + start + 1}. ${userData.name ?? "Chara"}:\n Bal: $${
             data.bank
           }`;
@@ -294,7 +294,7 @@ export async function entry({
 
     if (bankData[userIDToCheck]) {
       const userBankBalance = bankData[userIDToCheck].bank || 0;
-      const userDataToCheck = await usersData.get(userIDToCheck);
+      const userDataToCheck = await usersData.getItem(userIDToCheck);
       const userNameToCheck = userDataToCheck.name;
       return message.reply(
         `✧ User: ${userNameToCheck}\n✧ Bank Balance: ${userBankBalance}💵`

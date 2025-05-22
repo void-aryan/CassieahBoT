@@ -10,7 +10,7 @@ export const meta = {
   description:
     "A personal storage system for extra items. Store, retrieve, and manage inventory beyond your main limit. Upgrade for more space!",
   author: "JenicaDev || Fixed by Liane",
-  version: "1.1.0",
+  version: "1.1.1",
   usage: "{prefix}ndrive <action> [arguments]",
   category: "Inventory",
   permissions: [0],
@@ -27,6 +27,9 @@ const { invLimit } = global.Cassidy;
 const ndriveLimit = 100;
 const proLimit = 1000;
 
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
 export const style = {
   title: "NicaDrive™ 💾",
   titleFont: "bold_italic",
@@ -74,7 +77,7 @@ export async function entry({
   let [sub, ...subArgs] = args;
   subArgs = normalizeArgAmount(subArgs);
 
-  const userData = await money.get(input.senderID);
+  const userData = await money.getItem(input.senderID);
 
   let { ndrive } = userData;
   const userInventory = new Inventory(userData.inventory ?? []);
@@ -163,6 +166,7 @@ export async function entry({
   /**
    * @param {typeof nicaItems} items
    */
+  // @ts-ignore
   async function createItemMenuOld(items = nicaItems) {
     const ndriveItemsList = items.getAll();
     let pushedKeys = [];
@@ -246,6 +250,7 @@ export async function entry({
     /**
      * @param {import("cassidy-userData").InventoryItem[]} items
      */
+    // @ts-ignore
     function group(items) {
       /**
        * @type {Array<(import("cassidy-userData").InventoryItem) & { count: number }>}
@@ -288,10 +293,12 @@ export async function entry({
     )}\n\n***👤 ${
       userData.name
     }*** (${userInventory.size()}/${invLimit})\n\n${render(
+      // @ts-ignore
       invSlicer.getPage(page)
     )}${page < invSlicer.pagesLength ? more : ""}\n${
       UNIRedux.standardLine
     }\n***💾 ${ndrive.name}*** (${nicaItems.size()}/${limit})\n\n${render(
+      // @ts-ignore
       ndriveSlicer.getPage(page)
     )}${page < ndriveSlicer.pagesLength ? more : ""}`;
   }

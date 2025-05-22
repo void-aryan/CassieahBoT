@@ -1,6 +1,11 @@
 import { FontSystem } from "cassidy-styler";
-import { InventoryItem } from "./cassidyUser";
+import {
+  ArmorInventoryItem,
+  InventoryItem,
+  WeaponInventoryItem,
+} from "./cassidyUser";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
+import { GearData, GearsManage, PetPlayer } from "@cass-plugins/pet-fight";
 
 export const smartSpectra = `🎓 ${FontSystem.fonts.bold_italic(
   "SMART"
@@ -107,5 +112,36 @@ export namespace SmartPet {
     });
 
     return sortedResult;
+  }
+
+  export function calculateAddedStat<
+    P extends UserData["petsData"],
+    E extends ArmorInventoryItem | WeaponInventoryItem,
+    G extends UserData["gearsData"]
+  >(pets: P, gears: G, item: E) {
+    const gearsManage = new GearsManage(gears);
+    const playersBefore = pets.map(
+      (i) => new PetPlayer(i, gearsManage.getGearData(i.key))
+    );
+    const playersAfter = pets.map(
+      (i) => new PetPlayer(i, gearsManage.getGearData(i.key))
+    );
+
+    for (const player of playersAfter) {
+      const gear = player.gearInstance();
+      if (item.type === "weapon") {
+        gear.equipWeapon(item);
+      } else if (item.type === "armor") {
+        let ind = !gear.armors[1] && gear.armors[0] ? 1 : 0;
+        const exi1 = gear.armors[0];
+        const exi2 = gear.armors[1];
+        if (exi2.def > exi1.def) {
+          ind = 0;
+        } else if (exi1.def > exi2.def) {
+          ind = 1;
+        }
+        gear.equipArmor(ind, item);
+      }
+    }
   }
 }

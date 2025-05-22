@@ -128,15 +128,15 @@ export class InputClass extends String implements InputProps {
         }
         let key = repObj.key || self.#__context.commandName;
         if (
-          !self.#__context.commands[key] &&
-          !self.#__context.commands[key.toLowerCase()] &&
+          !self.#__context.multiCommands.getOne(key) &&
+          !self.#__context.multiCommands.getOne(key.toLowerCase()) &&
           !repObj.callback
         ) {
           return;
         }
         global.currData =
-          self.#__context.commands[key] ||
-          self.#__context.commands[key.toLowerCase()];
+          self.#__context.multiCommands.getOne(key) ||
+          self.#__context.multiCommands.getOne(key.toLowerCase());
         replies[detectID] = {
           repObj,
           commandKey: key,
@@ -187,14 +187,14 @@ export class InputClass extends String implements InputProps {
         }
         let key = reactObj.key || self.#__context.commandName;
         if (
-          !self.#__context.commands[key] &&
-          !self.#__context.commands[key.toLowerCase()]
+          !self.#__context.multiCommands.getOne(key) &&
+          !self.#__context.multiCommands.getOne(key.toLowerCase())
         ) {
           throw new Error("Command not found.");
         }
         global.currData =
-          self.#__context.commands[key] ||
-          self.#__context.commands[key.toLowerCase()];
+          self.#__context.multiCommands.getOne(key) ||
+          self.#__context.multiCommands.getOne(key.toLowerCase());
         reacts[detectID] = {
           reactObj,
           commandKey: key,
@@ -661,7 +661,7 @@ export class InputClass extends String implements InputProps {
     let isCancelCommand = false;
     try {
       const input = this;
-      const { commands } = this.#__context;
+      const { multiCommands } = this.#__context;
       const obj = this.#__context;
       const { replies } = global.Cassidy;
 
@@ -672,7 +672,9 @@ export class InputClass extends String implements InputProps {
         console.log("ReplySystem", replies[input.replier.messageID]);
         const { callback } = repObj;
         const command: Partial<CassidySpectra.CassidyCommand> =
-          (commands[commandKey] || commands[commandKey.toLowerCase()]) ?? {};
+          (multiCommands.getOne(commandKey) ||
+            multiCommands.getOne(commandKey.toLowerCase())) ??
+          {};
 
         obj.repCommand = command;
         const targetFunc = callback || command.reply;
@@ -700,7 +702,7 @@ export class InputClass extends String implements InputProps {
   public async detectAndProcessReactions() {
     try {
       const input = this;
-      const { commands } = this.#__context;
+      const { multiCommands } = this.#__context;
       const obj = this.#__context;
       const { reacts } = global.Cassidy;
       if (input.type == "message_reaction" && reacts[input.messageID]) {
@@ -708,7 +710,9 @@ export class InputClass extends String implements InputProps {
         const { reactObj, commandKey, detectID } = reacts[input.messageID];
         const { callback } = reactObj;
         const command: Partial<CassidySpectra.CassidyCommand> =
-          commands[commandKey] || commands[commandKey.toLowerCase()] || {};
+          multiCommands.getOne(commandKey) ||
+          multiCommands.getOne(commandKey.toLowerCase()) ||
+          {};
         obj.reactCommand = command;
         const targetFunc = callback || command.reaction;
         if (typeof targetFunc === "function") {

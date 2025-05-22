@@ -119,7 +119,7 @@ Test your luck and number-guessing skills with our Number Game! Guess the hidden
 ---
 `);
   }
-  let { lastNumberGame } = await moneyH.get(input.senderID);
+  let { lastNumberGame } = await moneyH.getItem(input.senderID);
   lastNumberGame ??= {
     number: null,
     timeStamp: null,

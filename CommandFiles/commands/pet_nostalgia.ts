@@ -148,7 +148,7 @@ async function renameReply({
     name = "Unregistered",
     petsData: rawPetsData = [],
     inventory: rawInventory = [],
-  } = await money.get(input.senderID);
+  } = await money.getItem(input.senderID);
   const inventory = new Inventory(rawInventory);
   const petsData = new Inventory(rawPetsData);
 

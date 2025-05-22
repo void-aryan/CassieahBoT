@@ -46,9 +46,9 @@ export const meta = {
 const { randArrValue } = global.utils;
 
 /**
- * 
- * @param {CommandContext} param0 
- * @returns 
+ *
+ * @param {CommandContext} param0
+ * @returns
  */
 export async function entry({
   input,
@@ -63,9 +63,9 @@ export async function entry({
     cancelCooldown();
   }*/
 
- /**
-  * @type {Array<string | number>}
-  */
+  /**
+   * @type {Array<string | number>}
+   */
   let [inf, bet, ...additionalArgs] = input.arguments;
   const game = Object.keys(gamesInfo).find(
     (i) => String(i).toLowerCase() === String(inf).toLowerCase()
@@ -79,7 +79,7 @@ export async function entry({
     loseStreak = 0,
     inventory: rawInv,
     casinoLuck = false,
-  } = await money.get(senderID);
+  } = await money.getItem(senderID);
   const { invLimit } = global.Cassidy;
 
   if (casinoLuck) cancelCooldown();

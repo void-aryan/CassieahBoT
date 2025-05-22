@@ -74,7 +74,7 @@ export async function reply({
 
     let userAnswer = input.words.join(" ").trim().toLowerCase();
 
-    let userData = await moneyH.get(input.senderID);
+    let userData = await moneyH.getItem(input.senderID);
 
     const cassEXP = new CassEXP(userData.cassEXP);
     let lastFeudGame = userData.lastFeudGame;
@@ -289,7 +289,7 @@ Test your knowledge and try to guess the most popular answers in our Family Feud
     ffRunStamp,
     ffStamp = Date.now() - 10 * 60 * 1000,
     inventory: inv = [],
-  } = await moneyH.get(input.senderID);
+  } = await moneyH.getItem(input.senderID);
   const inventory = new Inventory(inv);
   let isPendantUsed = false;
   limitCheck: {

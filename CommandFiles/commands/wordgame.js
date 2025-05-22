@@ -51,7 +51,7 @@ export async function reply({
   if (input?.words[0]?.toLowerCase().trim() === receive.word) {
     api.unsendMessage(receive.mid);
     input.delReply(receive.mid);
-    const userInfo = await moneyH.get(input.senderID);
+    const userInfo = await moneyH.getCache(input.senderID);
     const { money = 0, wordGameWins = 0, name, wordGameStole = 0 } = userInfo;
     if (input.senderID !== receive.author) {
       await moneyH.set(input.senderID, {
@@ -77,7 +77,7 @@ export async function reply({
       style
     );
   } else {
-    const userInfo = await moneyH.get(input.senderID);
+    const userInfo = await moneyH.getCache(input.senderID);
     return output.replyStyled(
       `❌ | Wrong ${userInfo?.name?.split(" ")[0]}! Try again.`,
       style
@@ -130,7 +130,7 @@ Test your vocabulary skills with our engaging word game! Unscramble the shuffled
 ---
 `);
   }
-  let { lastWordGame } = await moneyH.get(input.senderID);
+  let { lastWordGame } = await moneyH.getItem(input.senderID);
   lastWordGame ??= {
     word: null,
     timeStamp: null,

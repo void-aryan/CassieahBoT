@@ -35,6 +35,7 @@ declare global {
 
   interface CommandMeta extends CassidySpectra.CommandMeta {}
   interface Command extends CassidySpectra.CassidyCommand {}
+  interface CommandStyle extends CassidySpectra.CommandStyle {}
   interface CassidyCommand extends CassidySpectra.CassidyCommand {}
 
   type InventoryConstructor = typeof Inventory;
@@ -128,7 +129,7 @@ declare global {
     /**
      * Stores all available commands.
      */
-    commands: { [key: string]: CassidySpectra.CassidyCommand };
+    commands: CassidySpectra.GlobalCassidy["commands"];
 
     /**
      * Represents the current command being executed.
@@ -750,10 +751,17 @@ declare global {
   export namespace CassidySpectra {
     export interface CommandContext extends CommandContextOG {}
     export interface GlobalCassidy {
+      /**
+       * @deprecated
+       */
       consoleDisplay: ConsoleArray;
       config: typeof import("./settings.json");
       uptime: number;
       plugins: Record<string, any>;
+      /**
+       * @deprecated
+       * use multiCommands instead.
+       */
       commands: Record<string, CassidySpectra.CassidyCommand>;
       invLimit: number;
       replies: Record<
@@ -768,11 +776,11 @@ declare global {
           import("input-cassidy").StandardReactArg
         >
       >;
-      presets: Map<any, any>;
+      presets: Map<string, CommandStyle>;
       loadCommand: typeof loadCommand;
       loadPlugins: typeof loadPlugins;
       loadAllCommands: typeof loadAllCommands;
-      readonly logo: any;
+      readonly logo: string;
       oldLogo: string;
       accessToken: string | null;
       readonly redux: boolean;

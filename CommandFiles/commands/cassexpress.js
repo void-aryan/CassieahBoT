@@ -50,7 +50,7 @@ export async function entry({
   getInflationRate,
   CustomAI,
 }) {
-  const userData = await money.get(input.senderID);
+  const userData = await money.getItem(input.senderID);
   const cassExpress = new CassExpress(userData.cassExpress ?? {});
   let {
     name,

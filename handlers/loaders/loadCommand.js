@@ -284,7 +284,8 @@ export async function loadCommand(
       const cmds2 = Cassidy.multiCommands
         .entries()
         .filter((i) => i[1].fileName === fileName);
-      for (const [key, cmd] of [...cmds, ...cmds2]) {
+      Cassidy.multiCommands.deleteRefs(cmds2);
+      for (const [key, cmd] of [...cmds]) {
         global.logger(
           `Deleted ${cmd.meta.name} (${key}) at ${cmd.filePath}`,
           "Force Load"

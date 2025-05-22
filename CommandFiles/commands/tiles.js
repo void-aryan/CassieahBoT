@@ -78,7 +78,7 @@ export async function entry({
     tilesStamp = Date.now() - 10 * 60 * 1000,
     tilesRunStamp,
     inventory: iR,
-  } = await money.get(input.senderID);
+  } = await money.getItem(input.senderID);
   const inventory = new Inventory(iR);
   if (inventory.has("tilesBomb")) {
     const txt = `❌ | There are bombs in your inventory, you cannot play right now!`;
@@ -255,7 +255,7 @@ ${board}`;
 
     if (code === "BOMB") {
       explodes++;
-      let { inventory: iR } = await money.get(input.senderID);
+      let { inventory: iR } = await money.getCache(input.senderID);
       const inventory = new Inventory(iR);
       if (inventory.getAll().length < invLimit) {
         inventory.addOne({
@@ -308,7 +308,7 @@ ${revealBoard}`);
       return;
     }
     if (code === "COIN") {
-      const { money: userMoney } = await money.get(author);
+      const { money: userMoney } = await money.getCache(author);
       const reward = randomCoin();
       coins += reward;
       await money.set(author, {
@@ -328,7 +328,7 @@ ${makeText()}`);
       // ${makeText()}`);
       //       handleAgain(id);
 
-      const userData = await money.get(author);
+      const userData = await money.getCache(author);
       const reward = clamp(10, Math.floor(randomCoin() / 20), 100);
       const cassEXP = new CassEXP(userData.cassEXP);
       cassEXP.expControls.raise(reward);

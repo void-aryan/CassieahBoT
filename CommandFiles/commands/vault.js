@@ -37,7 +37,7 @@ export const style = {
  */
 export async function entry(ctx) {
   const { input, output, money, args, Inventory } = ctx;
-  const userData = await money.get(input.senderID);
+  const userData = await money.getCache(input.senderID);
   let userInventory = new Inventory(userData.inventory);
 
   let [...actionArgs] = args;
@@ -143,7 +143,7 @@ export async function entry(ctx) {
             inventory = [],
             boxItems = [],
             name: name2 = "Unregistered",
-          } = await money.get(actionArgs[0]);
+          } = await money.getCache(actionArgs[0]);
           vaultInventory = new Inventory(boxItems, 100);
           userInventory = new Inventory(inventory);
           name = name2;

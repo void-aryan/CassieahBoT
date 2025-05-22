@@ -312,7 +312,7 @@ const configs = [
     description: "Fix and recover corrupted money data",
     aliases: ["-f"],
     async handler({ money, input, output, icon, prefix, clearCurrStack }) {
-      const { money: playerMoney } = await money.get(input.senderID);
+      const { money: playerMoney } = await money.getItem(input.senderID);
       if (isBrokenMoney(playerMoney)) {
         await money.set(input.senderID, { money: 0 });
         return output.reply(

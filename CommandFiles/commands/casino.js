@@ -82,7 +82,7 @@ export async function entry({
     loseStreak = 0,
     inventory: rawInv,
     casinoLuck = false,
-  } = await money.get(senderID);
+  } = await money.getItem(senderID);
   const { invLimit } = global.Cassidy;
 
   if (casinoLuck) cancelCooldown();

@@ -5,7 +5,7 @@ import { abbreviateNumber } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.12",
+  version: "2.0.13",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -710,7 +710,17 @@ export class PetPlayer {
   getDamageTaken() {
     return this.#damageTaken;
   }
-  constructor(petData = {}, gearData = {}) {
+  /**
+   *
+   * @param {Partial<UserData["petsData"][number]>} petData
+   * @param {UserData["gearsData"][number]} gearData
+   */
+  constructor(
+    petData = {},
+    gearData = {
+      key: "",
+    }
+  ) {
     petData = JSON.parse(JSON.stringify(petData));
     gearData = JSON.parse(JSON.stringify(gearData));
     this.exp = petData.lastExp ?? 0;
@@ -735,6 +745,9 @@ export class PetPlayer {
     this.mode = "default";
     this.hpModifier = -this.getHungryModifier();
     this.maxHPOrig = PetPlayer.getHPOf(this);
+  }
+  gearInstance() {
+    return new GearData(this.OggearData);
   }
   isDuel() {
     return this.mode === "duel";
@@ -972,7 +985,7 @@ export class PetPlayer {
     const armorDfs = this.armors.reduce((acc, weapon) => {
       return acc + (weapon.key === "temArmor" ? 65 : weapon.def);
     }, 0);
-    const weaponDf = this.weapon[0].def;
+    const weaponDf = this.weapon.reduce((acc, weapon) => acc + weapon.def, 0);
     return armorDfs + weaponDf + extra + this.defModifier;
   }
   get extraDF() {
@@ -1099,9 +1112,9 @@ export class PetPlayer {
   magicModifier = 0;
   get MAGIC() {
     const gearMagic =
-      this.weapon[0].magic +
-      this.armors.reduce((acc, weapon) => {
-        return acc + weapon.magic;
+      this.weapon.reduce((acc, weapon) => acc + weapon.magic, 0) +
+      this.armors.reduce((acc, armor) => {
+        return acc + armor.magic;
       }, 0);
 
     const cappedGearMagic = Math.min(gearMagic, 50 + this.level * 5);
@@ -1110,7 +1123,7 @@ export class PetPlayer {
 
     const rawMagic = cappedGearMagic + extra + this.magicModifier;
 
-    const statCap = Math.max(this.ATK * 3, this.level * 10);
+    const statCap = Math.max(this.ATK * 3, this.level * 50);
 
     return Math.round(Math.min(rawMagic, statCap));
   }
@@ -1124,28 +1137,30 @@ export class PetPlayer {
    * @returns {import("@cass-modules/cassidyUser").WeaponInventoryItem[]}
    */
   static sanitizeWeapon(weapon) {
-    let { atk = 0, def = 0, magic = 0 } = weapon[0] ?? {};
-    weapon[0] ??= {
-      atk: 0,
-      flavorText: "",
-      icon: "",
-      key: "",
-      name: "",
-      type: "weapon",
-    };
-    atk = Math.floor(atk);
-    def = Math.floor(def);
-    magic = Math.floor(magic);
-    if (isNaN(atk)) {
-      atk = 0;
-    }
-    if (isNaN(def)) {
-      def = 0;
-    }
-    if (isNaN(magic)) {
-      magic = 0;
-    }
-    return [{ ...weapon[0], atk, def, magic }];
+    return weapon.map((i) => {
+      let { atk = 0, def = 0, magic = 0 } = i ?? {};
+      i ??= {
+        atk: 0,
+        flavorText: "",
+        icon: "",
+        key: "",
+        name: "",
+        type: "weapon",
+      };
+      atk = Math.floor(atk);
+      def = Math.floor(def);
+      magic = Math.floor(magic);
+      if (isNaN(atk)) {
+        atk = 0;
+      }
+      if (isNaN(def)) {
+        def = 0;
+      }
+      if (isNaN(magic)) {
+        magic = 0;
+      }
+      return { ...i, atk, def, magic };
+    });
   }
   /**
    *
@@ -1173,7 +1188,7 @@ export class PetPlayer {
   }
 
   static getExtraMagicOf(magic, lastExp) {
-    const expFactor = Math.min(lastExp / 300, 5);
+    const expFactor = lastExp / 300;
     return Math.floor((magic + 1) * (1 + expFactor)) + (-magic + 1);
   }
   static getLevelOf(lastExp) {
@@ -1250,7 +1265,15 @@ export class PetPlayer {
 }
 
 export class GearData {
-  constructor(gearData = {}) {
+  /**
+   *
+   * @param {UserData["gearsData"][number]} gearData
+   */
+  constructor(
+    gearData = {
+      key: "",
+    }
+  ) {
     gearData = JSON.parse(JSON.stringify(gearData));
     this.key = gearData.key;
     this.weaponArray = gearData.weapon ?? [];
@@ -1258,6 +1281,12 @@ export class GearData {
     this.items = gearData.items ?? [];
   }
 
+  /**
+   *
+   * @param {number} index
+   * @param {import("@cass-modules/cassidyUser").ArmorInventoryItem} armor
+   * @returns {import("@cass-modules/cassidyUser").ArmorInventoryItem}
+   */
   equipArmor(index, armor) {
     if (index !== 0 && index !== 1) {
       throw new Error("Invalid armor index");
@@ -1270,6 +1299,11 @@ export class GearData {
     return backup;
   }
 
+  /**
+   *
+   * @param {import("@cass-modules/cassidyUser").WeaponInventoryItem} weapon
+   * @returns {import("@cass-modules/cassidyUser").WeaponInventoryItem}
+   */
   equipWeapon(weapon) {
     if (this.weaponArray.length > 1) {
       throw new Error("No weapon slot available");
@@ -1314,6 +1348,11 @@ export class GearData {
     return armor.length + weapon.length !== 0;
   }
 
+  /**
+   *
+   * @param {number} index
+   * @returns
+   */
   getArmorUI(index) {
     const armor = this.armors[index];
     if (!armor || !armor.name) {
@@ -1340,16 +1379,33 @@ export class GearData {
 }
 
 export class GearsManage {
+  /**
+   *
+   * @param {UserData["gearsData"]} gearsData
+   */
   constructor(gearsData = []) {
-    this.gearsData = JSON.parse(JSON.stringify(gearsData)).map(
-      (gearData) => new GearData(gearData)
-    );
+    /**
+     * @type {UserData["gearsData"]}
+     */
+    const clone = JSON.parse(JSON.stringify(gearsData));
+    this.gearsData = clone.map((gearData) => new GearData(gearData));
   }
 
+  /**
+   *
+   * @param {string} key
+   * @returns
+   */
   getGearData(key) {
     return this.gearsData.find((i) => i.key === key) ?? new GearData({ key });
   }
 
+  /**
+   *
+   * @param {string} key
+   * @param {GearData} gearData
+   * @returns
+   */
   setGearData(key, gearData) {
     const index = this.gearsData.findIndex((i) => i.key === key);
     if (index !== -1) {
@@ -1374,6 +1430,11 @@ export class GearsManage {
   *[Symbol.iterator]() {
     yield* this.toJSON();
   }
+
+  /**
+   *
+   * @param {string} jsonString
+   */
   static fromJSONString(jsonString) {
     return new GearsManage(JSON.parse(jsonString));
   }

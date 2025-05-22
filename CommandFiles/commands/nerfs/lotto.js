@@ -34,9 +34,9 @@ function hasDuplicate(args) {
 }
 
 /**
- * 
- * @param {CommandContext} ctx 
- * @returns 
+ *
+ * @param {CommandContext} ctx
+ * @returns
  */
 export async function entry({ input, output, money, cancelCooldown }) {
   const lottoLen = 3;
@@ -46,7 +46,7 @@ export async function entry({ input, output, money, cancelCooldown }) {
     lastLottoWin,
     lottoLooses = 0,
     inventory: inv,
-  } = await money.get(input.senderID);
+  } = await money.getItem(input.senderID);
 
   const inventory = new Inventory(inv ?? []);
 

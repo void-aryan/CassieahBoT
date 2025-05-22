@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   noWeb: true,
 };
 
-export const style = {
+export const style: CassidySpectra.CommandStyle = {
   title: "👑 Roles",
   titleFont: "bold",
   contentFont: "fancy",

@@ -96,7 +96,7 @@ export async function entry({ output, usersDB, threadsDB, input }) {
     `😆 **Reaction Listeners**: ${Reflect.ownKeys(Cassidy.reacts).length}`,
     `🗑️ **Users Cache**: ${Reflect.ownKeys(usersDB.cache).length}`,
     `🗑️ **Threads Cache**: ${Reflect.ownKeys(threadsDB.cache).length}`,
-    `🗃️ **Commands**: ${Reflect.ownKeys(Cassidy.commands).length}`,
+    `🗃️ **Commands**: ${Cassidy.multiCommands.size}`,
     `📥 **Plugins**: ${Reflect.ownKeys(Cassidy.plugins).length}`,
     `🎨 **Style Presets**: ${Cassidy.presets.size}`,
     ``,

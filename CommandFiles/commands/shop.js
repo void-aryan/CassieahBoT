@@ -120,7 +120,7 @@ export const entryConfig = {
         shopInv = {},
         money: userMoney,
         name,
-      } = await money.get(input.senderID);
+      } = await money.getItem(input.senderID);
       const shop = new ShopClass(shopInv);
       if (!name) {
         return output.reply(
@@ -171,7 +171,7 @@ export const entryConfig = {
       });
       return buyReply(`"${args[1]}"`, price);
     } else {
-      const { shopInv = {}, money: userMoney } = await money.get(
+      const { shopInv = {}, money: userMoney } = await money.getItem(
         input.senderID
       );
       const shop = new ShopClass(shopInv);
@@ -200,7 +200,7 @@ export const entryConfig = {
   async storage({ input, output, args, money, prefix, Inventory }) {
     if (args[0] !== "buy") {
       let text = "";
-      const userData = await money.get(input.senderID);
+      const userData = await money.getItem(input.senderID);
       if (!userData.name) {
         return output.reply(
           "❌ Please register first using the identity-setname command."
@@ -248,7 +248,7 @@ Type ${prefix}**shop.storage buy <item name>** fo buy an upgrade.`
       [`${data.key}_upgrades`]: upgrades = 0,
       inventory,
       name,
-    } = await money.get(input.senderID);
+    } = await money.getItem(input.senderID);
     inventory = new Inventory(inventory);
     let hasDiscount = inventory.has("silkRibbon");
     let multiplier = 1;
@@ -299,7 +299,7 @@ Type ${prefix}**shop.storage buy <item name>** fo buy an upgrade.`
     );
   },
   async tiles({ input, output, args, money, prefix }) {
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     /**
      * @type {UserData}
      */
@@ -449,7 +449,7 @@ const home = new ReduxCMDHome({
 export async function entry(ctx) {
   // home.runInContext(ctx);
   return ctx.output.reply(
-    `✨ We were moving away!\n\n**Buy** - unlock a command.\n**Tileshop** - Buy tiles themes!`
+    `✨ We were moving away!\n\n${ctx.prefix}**buy** - unlock a command.\n${ctx.prefix}**tileshop** - Buy tiles themes!`
   );
 }
 

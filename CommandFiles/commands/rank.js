@@ -125,7 +125,7 @@ export async function entry({ money, input, output, CassEXP }) {
     senderID = input.arguments[0];
   }
 
-  const data = await money.get(input.senderID);
+  const data = await money.getItem(input.senderID);
   if (!data) {
     return output.reply(
       `${UNIRedux.arrow} ${

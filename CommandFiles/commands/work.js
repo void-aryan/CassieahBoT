@@ -39,7 +39,7 @@ export const style = {
 export async function entry({ output, input, money }) {
   const { min, max, delay } = extra;
   try {
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     if (!userData) return output.reply("Your data is not ready");
 
     if (!userData.hasOwnProperty("work") || typeof userData.work !== "object")

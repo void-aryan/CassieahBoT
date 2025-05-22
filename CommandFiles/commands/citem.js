@@ -28,15 +28,14 @@ export const style = {
 
 const { invLimit } = global.Cassidy;
 
-
 /**
- * 
- * @param {CommandContext} octx 
- * @returns 
+ *
+ * @param {CommandContext} octx
+ * @returns
  */
 export async function entry(octx) {
   const { input, output, args, Inventory, money, cassIO, VirtualFiles } = octx;
-  let userData = await money.get(input.senderID);
+  let userData = await money.getItem(input.senderID);
   let userInventory = new Inventory(userData.inventory);
   const vf = new VirtualFiles(userData.virtualFiles);
 
@@ -72,15 +71,11 @@ ${vf}`
   }
 
   /**
-   * 
-   * @param {CommandContext} ctx 
-   * @returns 
+   *
+   * @param {CommandContext} ctx
+   * @returns
    */
-  async function mainCB({
-    output,
-    args,
-    cassIO,
-  }) {
+  async function mainCB({ output, args, cassIO }) {
     try {
       itemData ??= JSON.parse(args.join(" "));
     } catch (e) {
@@ -106,12 +101,7 @@ ${icon} **${name}** (c_${key})
       test(i) {
         return i.body.startsWith("yes");
       },
-      async callback({
-        input,
-        Inventory,
-        money,
-        cassIO,
-      }) {
+      async callback({ input, Inventory, money, cassIO }) {
         userData = await money.get(input.senderID);
         userInventory = new Inventory(userData.inventory);
 

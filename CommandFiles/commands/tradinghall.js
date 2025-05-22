@@ -31,7 +31,7 @@ export const style = {
 
 export const entry = defineEntry({
   async sell({ input, output, money, Inventory, args }) {
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     const guide = `**Guide**: ${input.words[0]} <item key> <price> <amount ?? 1>`;
     const tradeVentory = new Inventory(userData.tradeVentory ?? []);
     const inventory = new Inventory(userData.inventory ?? []);
@@ -88,6 +88,7 @@ export const entry = defineEntry({
         .join("\n")}`
     );
   },
+  // @ts-ignore
   async buy({
     input,
     output,
@@ -337,7 +338,7 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
     }
   },
   async list({ input, output, args, money, Inventory }) {
-    const userData = await money.get(args[0] || input.senderID);
+    const userData = await money.getItem(args[0] || input.senderID);
     const tradeVentory = new Inventory(userData.tradeVentory ?? []);
     const { name = "Unregistered" } = userData;
     let result = `**${name}'s** Trading Hall\n\n`;
@@ -347,7 +348,7 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
     return output.reply(result);
   },
   async cancel({ input, output, args, money, Inventory }) {
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     const tradeVentory = new Inventory(userData.tradeVentory ?? []);
     const inventory = new Inventory(userData.inventory ?? []);
     const key = args[0];

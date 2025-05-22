@@ -500,7 +500,7 @@ export async function entry(ctx) {
     inventory: rawInventory = [],
     money: playerMoney = 0,
     cassEXP: cxp,
-  } = await money.get(input.senderID);
+  } = await money.getItem(input.senderID);
 
   const home = new SpectralCMDHome(
     {

@@ -17,6 +17,9 @@ export const meta = {
 
 const reward = 200;
 
+/**
+ * @type {CommandStyle}
+ */
 export const style = {
   title: "Quiz 🎉",
   titleFont: "bold",
@@ -54,7 +57,7 @@ export async function reply({
   if (input?.words[0]?.toLowerCase().trim() === recieve.correct?.toString()) {
     api.unsendMessage(recieve.mid);
     input.delReply(recieve.mid);
-    const userInfo = await moneyH.get(input.senderID);
+    const userInfo = await moneyH.getItem(input.senderID);
     const { name } = userInfo;
     const { money = 0, quizWins = 0 } = userInfo;
     const finalReward = reward - Math.floor((curr - recieve.timestamp) / 500);

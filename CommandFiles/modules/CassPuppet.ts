@@ -171,8 +171,10 @@ export namespace CassPuppetNS {
 
     private async execute() {
       try {
-        const { commands } = global.Cassidy;
-        const target = commands[this.config.commandName];
+        const { commands, multiCommands } = global.Cassidy;
+        const target =
+          commands[this.config.commandName] ||
+          multiCommands.getOne(this.config.commandName);
         if (typeof target.entry === "function") {
           // @ts-ignore
           if (typeof target.entry.hooklet === "function") {

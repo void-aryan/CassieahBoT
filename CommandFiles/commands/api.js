@@ -230,7 +230,7 @@ const handlers = {
   },
   async invjson({ input, money, output, args, Inventory, langParser }) {
     const getLang = langParser.createGetLang(langs);
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     const inventory = new Inventory(userData.inventory);
     const targetItem = inventory.getOne(args[0]);
     if (!targetItem) {
@@ -249,7 +249,7 @@ const handlers = {
   },
   async petjson({ input, money, output, args, Inventory, langParser }) {
     const getLang = langParser.createGetLang(langs);
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     const petsData = new Inventory(userData.petsData);
     const targetPet = petsData
       .getAll()
@@ -264,10 +264,11 @@ const handlers = {
     const jsonStr = JSON.stringify(targetPet, null, 2);
     return output.reply(getLang("petjsonResult", jsonStr));
   },
-  async cmdmetajson({ output, commands, args, langParser }) {
+  async cmdmetajson({ output, multiCommands, args, langParser }) {
     const getLang = langParser.createGetLang(langs);
     const command =
-      commands[args[0]] ?? commands[String(args[0]).toLowerCase()];
+      multiCommands.getOne(args[0]) ??
+      multiCommands.getOne(String(args[0]).toLowerCase());
     if (!command) {
       return output.reply(getLang("cmdmetajsonNoCommand"));
     }
@@ -282,7 +283,7 @@ const handlers = {
     if (!args[0]) {
       return output.reply(getLang("allpetsjsonNoUser"));
     }
-    const userData = await money.get(userID);
+    const userData = await money.getItem(userID);
     const petsData = new Inventory(userData.petsData);
     const jsonStr = JSON.stringify(petsData, null, 2);
     return output.reply(getLang("allpetsjsonResult", jsonStr));
@@ -296,7 +297,7 @@ const handlers = {
   },
   async reqitem({ input, output, args, money, langParser }) {
     const getLang = langParser.createGetLang(langs);
-    const adminData = await money.get("wss:admin");
+    const adminData = await money.getItem("wss:admin");
     if (args.length === 0) {
       return output.reply(getLang("reqitemNoJson"));
     }
@@ -332,7 +333,7 @@ const handlers = {
   },
   async reqitemlist({ output, money, Slicer, args, langParser }) {
     const getLang = langParser.createGetLang(langs);
-    const adminData = await money.get("wss:admin");
+    const adminData = await money.getItem("wss:admin");
     const allData = await money.getAll();
     const items = Array.from(adminData.requestItems);
     let result = "";
@@ -380,7 +381,12 @@ ${item.flavorText ?? "Not Configured"}
     langParser,
   }) {
     const getLang = langParser.createGetLang(langs);
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
+    /**
+     *
+     * @param {UserData} data
+     * @returns
+     */
     function getInfos(data) {
       const gearsManage = new GearsManage(data.gearsData);
       const petsData = new Inventory(data.petsData);

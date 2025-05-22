@@ -2,7 +2,7 @@
 export const meta = {
   name: "utils-liane",
   author: "Liane Cagara",
-  version: "3.0.6",
+  version: "3.0.7",
   description:
     "Helpful but optional utilities that isn't used by default, DO NOT OWN THESE",
   supported: "^1.0.0",
@@ -120,7 +120,7 @@ export class Slicer {
 
   /**
    *
-   * @param {string} page
+   * @param {string | number} page
    * @returns {number}
    */
   static parseNum(page) {

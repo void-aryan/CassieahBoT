@@ -144,12 +144,12 @@ export async function entry({ ...ctx }) {
          */
         async function handleAirdropSend(ctx) {
           if (ctx.input.senderID !== input.senderID) return;
-          let userData = await ctx.money.get(ctx.input.senderID);
+          let userData = await ctx.money.getCache(ctx.input.senderID);
           const { inventory, collectibles } = getDatas(userData);
           // @ts-ignore
           const { dropData, recipientID } = ctx.repObj;
           const words = ctx.input.words;
-          let rData = await money.get(recipientID);
+          let rData = await money.getCache(recipientID);
           let rInventory = new Inventory(rData.inventory || []);
           let rCollectibles = new Collectibles(rData.collectibles || []);
           let rCassExpress = new CassExpress(rData.cassExpress || {});

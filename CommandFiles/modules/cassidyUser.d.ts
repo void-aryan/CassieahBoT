@@ -189,6 +189,12 @@ type UserData = {
   };
   links?: [string, string][];
   defaultCommands?: [string, string][];
+  gearsData?: Array<{
+    items?: InventoryItem[];
+    key: string;
+    weapon?: WeaponInventoryItem[];
+    armors?: ArmorInventoryItem[];
+  }>;
 };
 
 type NullableUserData = {

@@ -305,6 +305,7 @@ function loadCookie() {
 export async function loadAllCommands(callback = async () => {}) {
   commands = {};
   global.Cassidy.commands = {};
+  global.Cassidy.multiCommands.clear();
 
   /**
    * @type {Record<string, Error>}
@@ -1000,7 +1001,7 @@ export async function logSummary(api, config, cookie = [], loginErr) {
   await cl(databases.usersDB, "Users");
   await cl(databases.threadsDB, "Threads");
   await cl(databases.globalDB, "Globals");
-  logger(`${Object.values(Cassidy.commands).length}`, "Commands");
+  logger(`${Cassidy.multiCommands.size}`, "Commands");
   logger(`${Object.values(Cassidy.plugins).length}`, "Plugins");
   logger(`${Cassidy.presets.size}`, "Presets");
   logger(`Setup complete!`, "Info");

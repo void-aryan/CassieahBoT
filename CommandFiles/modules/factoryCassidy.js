@@ -242,7 +242,7 @@ export class CassFactory {
    */
   async runInContext(ctx) {
     const { money, input, output } = ctx;
-    const userData = await money.get(input.senderID);
+    const userData = await money.getItem(input.senderID);
     const userFactory = new FactoryData(
       userData[`${this.config.key}_state`],
       this.config

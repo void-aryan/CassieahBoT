@@ -258,7 +258,7 @@ const home = new ReduxCMDHome(
       async handler({ input, output, money, args }) {
         const ID = args.length > 0 ? args[0] : input.detectID || input.senderID;
 
-        const userData = await money.get(ID);
+        const userData = await money.getItem(ID);
 
         if (!userData.name) {
           return output.reply(`User not found.`);

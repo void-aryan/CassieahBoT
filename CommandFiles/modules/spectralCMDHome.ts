@@ -444,7 +444,7 @@ export class SpectralCMDHome {
     const cooldown: number =
       (customCooldown ||
         this.options.globalCooldown ||
-        ctx.commands[ctx.commandName]?.meta?.waitingTime ||
+        ctx.multiCommands.getOne(ctx.commandName)?.meta?.waitingTime ||
         0) * 1000;
     if (cooldown > 0) {
       const userCooldowns =

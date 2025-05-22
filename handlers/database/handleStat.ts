@@ -621,7 +621,7 @@ export default class UserStatsManager {
     removedProperties: string[] = []
   ): Promise<UserData> {
     if (this.isMongo) {
-      const user = await this.get(key);
+      const user = await this.getItem(key);
       for (const item of removedProperties) {
         delete user[item];
       }

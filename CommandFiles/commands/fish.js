@@ -113,7 +113,7 @@ const { invLimit } = global.Cassidy;
  * @returns
  */
 export async function entry({ input, output, money, Inventory }) {
-  const { inventory = [], fishStamp } = await money.get(input.senderID);
+  const { inventory = [], fishStamp } = await money.getItem(input.senderID);
   let updatedInventory = new Inventory(inventory);
 
   if (updatedInventory.size() >= invLimit) {

@@ -171,7 +171,7 @@ export async function reply({ input, output, repObj, detectID, money }) {
   const slot = parseInt(input.body) - 1;
   const reply = game.playRound(slot, async (i) => {
     if (i == X) {
-      const { money: playerMoney } = await money.get(input.senderID);
+      const { money: playerMoney } = await money.getCache(input.senderID);
       await money.set(input.senderID, {
         money: playerMoney + reward,
       });

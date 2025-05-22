@@ -38,7 +38,7 @@ const configs = [
     description: "Donate money to charity",
     args: ["<amount>"],
     aliases: ["-s", "charity"],
-    async handler({ money, input, output, }) {
+    async handler({ money, input, output }) {
       const { arguments: args, senderID } = input;
 
       if (args.length < 1) {
@@ -54,7 +54,7 @@ const configs = [
         );
       }
 
-      const senderMoney = await money.get(senderID);
+      const senderMoney = await money.getItem(senderID);
       if (senderMoney.money < amount) {
         return output.reply(
           `❌ | Insufficient funds. You currently have $**${abbreviateNumber(

@@ -45,7 +45,7 @@ async function handlePaid({
   langParser,
 }) {
   const getLang = langParser.createGetLang(langs);
-  let { inventory: rawInv = [], collectibles: rawCll = [] } = await money.get(
+  let { inventory: rawInv = [], collectibles: rawCll = [] } = await money.getItem(
     input.senderID
   );
   if (String(input.words[0]).toLowerCase() !== "buy") {

@@ -1,11 +1,9 @@
 import { convertDiscordEvent } from "./convertDiscordEvent.js";
 import { DiscordAPI } from "./API.js";
 
-const { createRequire } = require('module');
+const { createRequire } = require("module");
 
 const { originalRequire = createRequire(__filename) } = global;
-
-
 
 export function isValidDiscordCmd(name) {
   const regex = /^[a-z0-9]+$/;
@@ -65,9 +63,9 @@ export async function createDiscordListener(funcListen) {
 
   client.on(Events.ClientReady, async () => {
     const commands = [];
-    const originalCommands = global.Cassidy.commands;
-    for (const name in originalCommands) {
-      const { meta, entry } = originalCommands[name];
+    const originalCommands = global.Cassidy.multiCommands;
+    for (const [name, command] of originalCommands) {
+      const { meta, entry } = command;
       const newName = String(name).toLowerCase();
       if (!isValidDiscordCmd(newName)) {
         continue;
@@ -119,7 +117,10 @@ export async function createDiscordListener(funcListen) {
   });
 
   client.on("shardError", (error) => {
-    global.logger(`A websocket connection encountered an error: ${error}`, "discord");
+    global.logger(
+      `A websocket connection encountered an error: ${error}`,
+      "discord"
+    );
     restartBot();
   });
 

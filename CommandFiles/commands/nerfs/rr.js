@@ -62,7 +62,7 @@ export async function entry({
     rrWins = 0,
     rrLooses = 0,
     prizePool = 0,
-  } = await money.get(input.senderID);
+  } = await money.getItem(input.senderID);
   const inventory = new Inventory(r);
   let hasPass = inventory.has("highRollPass");
 
@@ -131,6 +131,6 @@ export async function entry({
     `💥 ` +
       outcome.replace("<amount>", String(amount)) +
       xText +
-      ` Your new balance is $${(await money.get(input.senderID)).money}💵`
+      ` Your new balance is $${(await money.getCache(input.senderID)).money}💵`
   );
 }

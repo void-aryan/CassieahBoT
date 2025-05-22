@@ -40,7 +40,7 @@ const home = new ReduxCMDHome(
       args: ["<amount>"],
       description: "Create a cheque of the specified amount.",
       async handler({ input, output, money, args, Inventory }) {
-        const userData = await money.get(input.senderID);
+        const userData = await money.getItem(input.senderID);
         let userInventory = new Inventory(userData.inventory);
         userData.shadowPower ??= 0;
 
@@ -119,7 +119,7 @@ ${
       description:
         " Cash a cheque using the specified key and add it to your balance.",
       async handler({ input, output, money, args, Inventory }) {
-        const userData = await money.get(input.senderID);
+        const userData = await money.getItem(input.senderID);
         let userInventory = new Inventory(userData.inventory);
         userData.shadowPower ??= 0;
 

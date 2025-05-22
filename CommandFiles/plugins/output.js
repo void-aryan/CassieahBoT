@@ -529,6 +529,7 @@ export async function use(obj) {
       setStyle(style) {
         STYLE = style;
       },
+      // @ts-ignore
       selectItem: BriefcaseAPI.selectItem.bind(obj),
       async req(url, params = {}, configOrMethod = "GET") {
         let finalUrl = url;

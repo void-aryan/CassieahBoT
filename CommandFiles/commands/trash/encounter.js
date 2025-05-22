@@ -148,7 +148,7 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**`);
       }
       return;
     }*/
-    const userData = await money.get(input.senderID);
+    const userData = await money.getCache(input.senderID);
     const { petsData, playersMap } = getInfos(userData);
     let turnOption = String(input.words[0]).toLowerCase();
     const { type, author } = repObj;

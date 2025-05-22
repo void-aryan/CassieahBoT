@@ -16,6 +16,9 @@ export const meta = {
   cmdType: "cplx_g",
 };
 
+/**
+ * @type {CommandStyle}
+ */
 export const style = {
   title: "Russian Roulette 💥",
   titleFont: "bold",
@@ -64,7 +67,7 @@ export async function reply(cctx) {
   if (!receive) return;
 
   if (input.words[0].toLowerCase() === "accept") {
-    const opponentInfo = await moneyH.get(input.senderID);
+    const opponentInfo = await moneyH.getItem(input.senderID);
     const { money: opponentMoney = 0 } = opponentInfo;
 
     if (opponentMoney < receive.bet) {
@@ -133,12 +136,12 @@ export async function reply(cctx) {
                 style
               );
 
-              loserInfo = await moneyH.get(currentPlayer);
+              loserInfo = await moneyH.getItem(currentPlayer);
 
               await moneyH.set(currentPlayer, {
                 money: loserInfo.money - bet,
               });
-              winnerInfo = await moneyH.get(nextPlayer);
+              winnerInfo = await moneyH.getItem(nextPlayer);
               await moneyH.set(nextPlayer, {
                 money: winnerInfo.money + bet,
               });

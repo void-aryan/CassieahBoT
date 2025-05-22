@@ -32,7 +32,7 @@ export const style = {
  * @returns
  */
 export async function cooldown({ input, output, cooldown, money: botData }) {
-  const data = await botData.get(input.senderID);
+  const data = await botData.getItem(input.senderID);
   const { diceWins } = data;
 
   if (cooldown) {
@@ -57,7 +57,7 @@ export async function entry({
   commandName,
 }) {
   const times = parseInt(input.arguments[1]);
-  const data = await botData.get(input.senderID);
+  const data = await botData.getItem(input.senderID);
   const bet = parseBet(input.arguments[0], data.money);
   const { money, diceWins } = data;
 
