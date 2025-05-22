@@ -1,5 +1,6 @@
 import { CollectibleItem, InventoryItem } from "@cass-modules/cassidyUser";
 import { readFileSync } from "fs";
+import { Datum } from "./Datum";
 
 export class Inventory<T extends InventoryItem = InventoryItem> {
   limit: number;
@@ -122,6 +123,18 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
 
   size(): number {
     return this.inv.length;
+  }
+
+  uniqueSize(): number {
+    return this.toUnique().length;
+  }
+
+  toUnique(callback?: (item: T) => any) {
+    return Datum.toUniqueArray<T, any>(this.inv, callback ?? ((i) => i.key));
+  }
+
+  toUniqueInventory(callback?: (item: T) => any) {
+    return new Inventory<T>(this.toUnique(callback));
   }
 
   clone(): Inventory<T> {

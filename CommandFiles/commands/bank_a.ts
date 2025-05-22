@@ -1,18 +1,15 @@
-// @ts-check
 import { abbreviateNumber, UNIRedux, UNISpectra } from "@cassidy/unispectra";
 import { parseBet } from "@cass-modules/ArielUtils";
 import { FontSystem } from "cassidy-styler";
 import { InventoryItem, UserData } from "@cass-modules/cassidyUser";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
-import { listItem, groupItems } from "@cass-modules/BriefcaseAPI";
-import { Datum } from "@cass-modules/Datum";
 const { fonts } = FontSystem;
 
 const ABANK = fonts.serif("AC-BANK");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.3",
+  version: "3.0.6",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
@@ -32,12 +29,12 @@ export interface Award {
 }
 
 const { invLimit } = Cassidy;
-export const ABANK_ITEM_SLOT = 8;
-export const ABANK_ITEM_STACK = 10;
+export const ABANK_ITEM_SLOT = 5;
+export const ABANK_ITEM_STACK = 20;
 export const ABANK_EMPTY_SLOT = "_".repeat(15);
 
 export function listABANKItems(bankDataItems: Inventory<InventoryItem>) {
-  const uniqueItems = Datum.toUniqueArray(bankDataItems.getAll(), (i) => i.key);
+  const uniqueItems = bankDataItems.toUnique();
   const paddingNeeded = ABANK_ITEM_SLOT - uniqueItems.length;
 
   const itemLines = uniqueItems.map((i) =>
@@ -54,11 +51,9 @@ export function listABANKItem(
   count: number,
   limit: number = ABANK_ITEM_STACK
 ) {
-  return `${
-    typeof count === "number" && count > 1
-      ? `[x${count}/${limit}] ${UNISpectra.arrowBW} `
-      : ""
-  }${item.icon} ${item.name} (${item.key})`;
+  return `${item.icon} ${item.name} (${item.key}) ${
+    typeof count === "number" && count > 1 ? `「 ${count}/${limit} 」` : ""
+  }`;
 }
 
 export const style: CassidySpectra.CommandStyle = {
@@ -147,6 +142,7 @@ export async function entry({
     bankData = { bank: 0, nickname: null, items: null },
   } = userData;
   const bankDataItems = new Inventory(bankData.items ?? [], 100);
+  const inventory = new Inventory(userData.inventory ?? [], invLimit);
 
   bankData.bank = Math.min(bankData.bank, Number.MAX_VALUE);
   if (!name) {
@@ -263,6 +259,57 @@ export async function entry({
       let funds = !isRemoveT ? bankData.bank : Number.MAX_VALUE;
 
       let amount = parseBet(bet, funds);
+      if (isNaN(amount) && args[1]) {
+        if (isNaN(amount) && bet) {
+          const split = bet.split("*");
+          const itemKey = split[0];
+          const maxAmount = bankDataItems.getAmount(itemKey);
+          if (maxAmount === 0) {
+            return output.replyStyled(
+              `You do not have an item with "${itemKey}" in your ${ABANK} ® account.`,
+              notifStyle
+            );
+          }
+          const itemAmount = Math.min(
+            maxAmount,
+            Math.max(1, parseBet(split[1] || "1", maxAmount) || 1)
+          );
+          if (itemAmount === 0) {
+            return output.replyStyled(
+              `No items were deposited into your ${ABANK} ® account.`,
+              notifStyle
+            );
+          }
+          const itemsToDeposit = bankDataItems
+            .get(itemKey)
+            .slice(0, itemAmount);
+          if (itemsToDeposit.length === 0) {
+            return output.wentWrong();
+          }
+
+          bankDataItems.deleteRefs(itemsToDeposit);
+          inventory.add(itemsToDeposit);
+          bankData.items = bankDataItems.raw();
+          await saveData(
+            {
+              inventory: inventory.raw(),
+              bankData,
+            },
+            input.senderID
+          );
+          const itemStr = listABANKItems(bankDataItems);
+
+          return output.replyStyled(
+            `${fonts.bold("Successfully")} withdrew:\n${listABANKItem(
+              itemsToDeposit[0],
+              itemAmount
+            )}\nFrom your ${ABANK} ® account.\n${UNIRedux.standardLine}\n${
+              UNIRedux.arrowBW
+            } Items 🛍️\n\n${itemStr || "No items."}`,
+            style
+          );
+        }
+      }
       if (amount < funds * percentLimit) {
         return output.replyStyled(
           `You cannot withdraw a value lower than ${formatCash(
@@ -325,6 +372,72 @@ export async function entry({
       }
       const bet = args[1];
       let amount = parseBet(bet, userMoney);
+      if (isNaN(amount) && bet) {
+        const split = bet.split("*");
+        const itemKey = split[0];
+        if (bankDataItems.uniqueSize() >= ABANK_ITEM_SLOT) {
+          return output.replyStyled(
+            `The item slots in your ${ABANK} ® account are full.`,
+            notifStyle
+          );
+        }
+        const maxAmount = inventory.getAmount(itemKey);
+        if (maxAmount === 0) {
+          return output.replyStyled(
+            `You do not have an item with "${itemKey}" in your inventory.`,
+            notifStyle
+          );
+        }
+        const maxDepositPossible =
+          ABANK_ITEM_STACK - bankDataItems.getAmount(itemKey);
+
+        if (maxDepositPossible <= 0) {
+          return output.replyStyled(
+            `Your ${ABANK} ® account is full for "${itemKey}". Cannot deposit more.`,
+            notifStyle
+          );
+        }
+
+        let itemAmount = Math.min(
+          maxAmount,
+          Math.max(1, parseBet(split[1] || "1", maxAmount) || 1)
+        );
+
+        itemAmount = Math.min(itemAmount, maxDepositPossible);
+
+        if (itemAmount === 0) {
+          return output.replyStyled(
+            `No items were deposited into your ${ABANK} ® account.`,
+            notifStyle
+          );
+        }
+        const itemsToDeposit = inventory.get(itemKey).slice(0, itemAmount);
+        if (itemsToDeposit.length === 0) {
+          return output.wentWrong();
+        }
+
+        inventory.deleteRefs(itemsToDeposit);
+        bankDataItems.add(itemsToDeposit);
+        bankData.items = bankDataItems.raw();
+        await saveData(
+          {
+            inventory: inventory.raw(),
+            bankData,
+          },
+          input.senderID
+        );
+        const itemStr = listABANKItems(bankDataItems);
+
+        return output.replyStyled(
+          `${fonts.bold("Successfully")} deposited:\n${listABANKItem(
+            itemsToDeposit[0],
+            itemAmount
+          )}\nTo your ${ABANK} ® account.\n${UNIRedux.standardLine}\n${
+            UNIRedux.arrowBW
+          } Items 🛍️\n\n${itemStr || "No items."}`,
+          style
+        );
+      }
       amount = Math.min(amount, Number.MAX_VALUE - amount);
       if (amount < userMoney * percentLimit) {
         return output.replyStyled(
@@ -629,7 +742,7 @@ export async function entry({
     return output.replyStyled(
       `${fonts.bold(
         "Usages"
-      )}:\n➥ \`${prefix}${commandName} register/r <nickname>\` - Create a ${ABANK} ® account.\n➥ \`${prefix}${commandName} check/c <uid | reply | nickname>\` - Check your ${ABANK} ® balance.\n➥ \`${prefix}${commandName} withdraw/w <amount>\` - Withdraw money from your ${ABANK} ® account.\n➥ \`${prefix}${commandName} deposit/d <amount>\` - Deposit money to your ${ABANK} ® account.\n➥ \`${prefix}${commandName} transfer/t <nickName> <amount>\` - Transfer money to another user.\n➥ \`${prefix}${commandName} rename/rn\` - Rename your ${ABANK} ® nickname.\n➥ \`${prefix}${commandName} top <page=1>\` - Check the top 10 richest users of ${ABANK} ®.\n➥ \`${prefix}${commandName} stalk\` - Check someone's ${ABANK} ® balance.`,
+      )}:\n➥ \`${prefix}${commandName} register/r <nickname>\` - Create a ${ABANK} ® account.\n➥ \`${prefix}${commandName} check/c <uid | reply | nickname>\` - Check your ${ABANK} ® balance.\n➥ \`${prefix}${commandName} withdraw/w <amount>\` - Withdraw money or items (ex: apple*5) from your ${ABANK} ® account.\n➥ \`${prefix}${commandName} deposit/d <amount>\` - Deposit money or items (ex: apple*5) to your ${ABANK} ® account.\n➥ \`${prefix}${commandName} transfer/t <nickName> <amount>\` - Transfer money to another user.\n➥ \`${prefix}${commandName} rename/rn\` - Rename your ${ABANK} ® nickname.\n➥ \`${prefix}${commandName} top <page=1>\` - Check the top 10 richest users of ${ABANK} ®.\n➥ \`${prefix}${commandName} stalk\` - Check someone's ${ABANK} ® balance.`,
       style
     );
   }

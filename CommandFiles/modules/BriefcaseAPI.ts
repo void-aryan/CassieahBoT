@@ -235,7 +235,7 @@ export class BriefcaseAPI {
       {
         key: "list",
         description: "Displays all items in the user's inventory.",
-        aliases: ["-l"],
+        aliases: ["-l", "liat"],
         args: ["<optional uid>"],
         async handler() {
           let userData = userDataCopy;
