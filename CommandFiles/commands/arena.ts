@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.3.5",
+  version: "1.3.6",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -1569,10 +1569,11 @@ export async function entry({
         10) *
         1.5
     );
+    const winnerCash = Math.max(0, Math.pow(winnerPts * 1000, 1.2));
     const loserPts = Math.round(
       statMap.get(`${loserId}_${loserPet.OgpetData.key}`)!.totalDamageDealt / 10
     );
-
+    const loserCash = Math.max(0, Math.pow(winnerPts * 100, 1.1));
     const winnerData = await ctx.money.getItem(winnerId);
     const winnerName =
       winner === 2 && gameState.isAIMode ? "AI Opponent" : winnerData.name;
@@ -1613,12 +1614,14 @@ export async function entry({
       await ctx.money.setItem(winnerId, {
         ...winnerData,
         collectibles: Array.from(cll),
+        money: (winnerData.money || 0) + winnerCash,
         battlePoints: (winnerData.battlePoints || 0) + winnerPts,
       });
     }
     if (!gameState.isAIMode && loserId) {
       await ctx.money.setItem(loserId, {
         ...loserData,
+        money: (loserData.money || 0) + loserCash,
         battlePoints: (loserData.battlePoints || 0) + loserPts,
       });
     }
@@ -1634,20 +1637,20 @@ export async function entry({
               loserPet.petIcon
             } **${
               loserPet.petName
-            }**.\n${winnerName} earned **${winnerPts} 💷**${
+            }**.\n${winnerName} earned **${winnerPts} 💷, and **${winnerCash} 💵****${
               wonDias
                 ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate`
                 : ""
-            }, ${loserName} earned **${loserPts} 💷**.`
+            }, ${loserName} earned **${loserPts} 💷** and **${loserCash} 💵**.`
           : `${UNIRedux.charm} ${winnerName} wins!\n${winnerPet.petIcon} **${
               winnerPet.petName
             }** defeated ${loserPet.petIcon} **${
               loserPet.petName
-            }**!\n${winnerName} earned **${winnerPts} 💷**${
+            }**!\n${winnerName} earned **${winnerPts} 💷, and **${winnerCash} 💵****${
               wonDias
                 ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate!`
                 : ""
-            }, ${loserName} earned **${loserPts} 💷**.`),
+            }, ${loserName} earned **${loserPts} 💷** and **${loserCash} 💵**.`),
       style
     );
 

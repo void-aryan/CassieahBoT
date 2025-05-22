@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
-  version: "2.1.10",
+  version: "2.1.11",
   usage: "{prefix}{name} [id | 'new']",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -93,7 +93,7 @@ function generateEnc(): Encounter {
 
 let currentEnc: Encounter = generateEnc();
 
-function getInfos(data: any) {
+function getInfos(data: UserData) {
   const gearsManage = new GearsManage(data.gearsData);
   const petsData = new Inventory(data.petsData);
   const playersMap = new Map<string, PetPlayer>();
@@ -1062,6 +1062,7 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n
     if (mercyMode) {
       pts = Math.round(pts * 1.7);
     }
+    const winnerCash = Math.pow(pts * 1000, 1.2);
     if (isGood) {
       dialogue = `${gameState.opponent.wildIcon} **${
         gameState.opponent.wildName
@@ -1073,9 +1074,7 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n
     }
 
     const userData = await ctx.money.getItem(input.senderID);
-    let newMoney =
-      Number(Math.round(gameState.opponent.goldFled ?? 0) * multiplier) +
-      (userData.money ?? 0);
+    let newMoney = (userData.money ?? 0) + winnerCash;
     const collectibles = new ctx.Collectibles(userData.collectibles ?? []);
     const wonDias = (gameState.opponent.winDias ?? 0) * 10;
     if (collectibles.has("gems")) {
@@ -1093,7 +1092,10 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n
           isGood
             ? gameState.opponent.spareText()
             : gameState.opponent.fledText()
-        }\nObtained **${formatCash(pts, "💷", true)} Battle Points!**\n${
+        }\nObtained **${formatCash(
+          winnerCash,
+          true
+        )}** Cash! and **${formatCash(pts, "💷", true)} Battle Points!**\n${
           wonDias && collectibles.has("gems")
             ? `You also won **${wonDias}** 💎!`
             : ""
