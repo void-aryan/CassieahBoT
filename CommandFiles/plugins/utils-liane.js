@@ -2,7 +2,7 @@
 export const meta = {
   name: "utils-liane",
   author: "Liane Cagara",
-  version: "3.0.5",
+  version: "3.0.6",
   description:
     "Helpful but optional utilities that isn't used by default, DO NOT OWN THESE",
   supported: "^1.0.0",
@@ -124,8 +124,8 @@ export class Slicer {
    * @returns {number}
    */
   static parseNum(page) {
-    let _page = Math.floor(Number(page));
-    if (isNaN(_page)) {
+    let _page = Math.floor(Number(page || "1"));
+    if (isNaN(_page) || _page < 1) {
       _page = 1;
     }
     return _page;

@@ -9,8 +9,8 @@ import { Slicer } from "../plugins/utils-liane.js";
 export const meta = {
   name: "buy",
   description: "Purchases a command.",
-  author: "Jenica",
-  version: "1.1.1",
+  author: "Jenica & Liane",
+  version: "1.1.7",
   usage: "{prefix}buy <command>",
   category: "Shopping",
   permissions: [0],
@@ -40,6 +40,12 @@ export async function entry(context) {
     );
     const shop = new ShopClass(shopInv);
 
+    /**
+     *
+     * @param {string} item
+     * @param {number} price
+     * @returns
+     */
     async function buyReply(item, price) {
       return output.reply(
         `📦 Purchase Complete!\n${UNIRedux.arrow} Item: ${item}\n💰 Cost: $${price}\n✅ Added to shop inventory.`
@@ -69,59 +75,58 @@ export async function entry(context) {
     if (isNaN(price)) {
       return output.reply("Something went wrong...");
     }
-    const canPurchase = await shop.canPurchase(args[0], userMoney);
+    const canPurchase = shop.canPurchase(args[0], userMoney);
     if (!canPurchase) {
       return output.reply(
         `❌ Insufficient Funds!\n${UNIRedux.arrow} Item: "${args[0]}"\n💰 Cost: $${price}\n⛔ You don't have enough money to complete this purchase.`
       );
     }
 
-    await shop.purchase(args[0], userMoney);
+    shop.purchase(args[0], userMoney);
 
-    await money.set(input.senderID, {
+    await money.setItem(input.senderID, {
       shopInv: shop.raw(),
       money: userMoney - price,
     });
     return buyReply(`"${args[0]}"`, price);
   } else {
-    const { shopInv = {}, money: userMoney } = await money.get(input.senderID);
+    const { shopInv = {}, money: userMoney } = await money.getItem(
+      input.senderID
+    );
     const shop = new ShopClass(shopInv);
-    /**
-     * @type {any[]}
-     */
-    // @ts-ignore
+
     const allItems = shop.getItems();
     const page = Slicer.parseNum(args[0]);
-    const slicer = new Slicer(allItems, 5);
-    let i = 0;
+    const slicer = new Slicer([...allItems], 5);
     let result = `💡 Use **${prefix} ${
       context.commandName
     } <item name | page number>** to make a purchase or navigate between pages.\n${
       UNIRedux.arrow
     } Page ${page} of ${slicer.pagesLength + 1}\n${UNIRedux.standardLine}\n`;
 
-    for (const { meta } of slicer.getPage(page)) {
-      i++;
-      const itemStatus = shopInv[meta.name]
-        ? "✅ Owned"
-        : userMoney >= meta.shopPrice
-        ? "💰 Affordable"
-        : "❌ Too Expensive";
+    const itemStr = slicer
+      .getPage(page)
+      .map(({ meta }) => {
+        const itemStatus = shopInv[meta.name]
+          ? "✅ Owned"
+          : userMoney >= meta.shopPrice
+          ? "💰 Affordable"
+          : "❌ Too Expensive";
 
-      result +=
-        `🔹 **${toTitleCase(meta.name)}** ${meta.icon || "📦"}\n` +
-        `💲 Price: **${Number(meta.shopPrice).toLocaleString()}**$\n` +
-        `📌 Status: ***${itemStatus}***\n` +
-        `📖 ${meta.description}\n` +
-        `${UNIRedux.standardLine}\n`;
-    }
+        return (
+          `🔹 **${toTitleCase(meta.name)}** ${meta.icon || "📦"}\n` +
+          `💲 Price: **${Number(meta.shopPrice).toLocaleString()}**$\n` +
+          `📌 Status: ***${itemStatus}***\n` +
+          `📖 ${meta.description}`
+        );
+      })
+      .join(`\n${UNIRedux.standardLine}\n`);
+
+    result += `${itemStr}`;
 
     const info = await output.reply(result.trimEnd());
     info.atReply(async ({ output }) => {
-      const info2 = await output.replyStyled(
-        "We do not support replies, thank you!",
-        style
-      );
+      await output.replyStyled("We do not support replies, thank you!", style);
     });
   }
 }

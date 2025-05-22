@@ -1,7 +1,8 @@
+// @ts-check
 export const meta = {
   name: "shop-rework",
   author: "Liane Cagara",
-  version: "1.0.0",
+  version: "1.0.5",
   description: "This operates as easier way of managing shops!",
   supported: "^1.0.0",
   order: 2,
@@ -10,55 +11,103 @@ export const meta = {
 };
 
 export class ShopClass {
+  /**
+   *
+   * @type {UserData["shopInv"]}
+   */
+  shopInv;
+
+  /**
+   *
+   * @param {UserData["shopInv"]} shopInv
+   */
   constructor(shopInv = {}) {
     this.shopInv = shopInv;
   }
 
-  loadInv(userID) {
+  loadInv() {
     return this.shopInv;
   }
 
-  saveInv(inv, userID) {
+  /**
+   *
+   * @param {UserData["shopInv"]} inv
+   */
+  saveInv(inv) {
     this.shopInv = inv;
   }
 
-  lock(commandName, userID) {
+  /**
+   *
+   * @param {string} commandName
+   */
+  lock(commandName) {
     commandName = String(commandName).toLowerCase();
     if (commandName in this.shopInv) {
       delete this.shopInv[commandName];
     }
   }
 
-  unlock(commandName, userID) {
+  /**
+   *
+   * @param {string} commandName
+   */
+  unlock(commandName) {
     commandName = String(commandName).toLowerCase();
     this.getPrice(commandName) !== 0
       ? (this.shopInv[commandName] = true)
       : null;
   }
 
+  /**
+   *
+   * @param {string} commandName
+   * @returns {boolean}
+   */
   isUnlocked(commandName) {
     commandName = String(commandName).toLowerCase();
     return commandName in this.shopInv || this.getPrice(commandName) === 0;
   }
 
+  /**
+   *
+   * @param {string} commandName
+   * @returns {number}
+   */
   getPrice(commandName) {
     commandName = String(commandName).toLowerCase();
-    const { meta = {} } =
-      Object.values(global.Cassidy.commands).find(
+    const { meta } = global.Cassidy.multiCommands
+      .values()
+      .find(
         (i) =>
           i.meta.name === commandName ||
           String(i.meta.name).toLowerCase() ===
             String(commandName).toLowerCase()
-      ) ?? {};
-    return meta.shopPrice || 0;
+      ) ?? {
+      entry: null,
+      meta: null,
+    };
+    return meta?.shopPrice || 0;
   }
 
+  /**
+   *
+   * @param {string} commandName
+   * @param {number} money
+   * @returns {boolean}
+   */
   canPurchase(commandName, money) {
     commandName = String(commandName).toLowerCase();
     const price = this.getPrice(commandName);
     return price !== 0 && money >= price;
   }
 
+  /**
+   *
+   * @param {string} commandName
+   * @param {number} money
+   * @returns {{ success: boolean; cost: number; remainingMoney?: number }}
+   */
   purchase(commandName, money) {
     commandName = String(commandName).toLowerCase();
     const price = this.getPrice(commandName);
@@ -69,7 +118,11 @@ export class ShopClass {
   }
 
   getItems() {
-    const result = Object.entries(global.Cassidy.commands)
+    /**
+     * @type {Record<string, CassidySpectra.CassidyCommand>}
+     */
+    const result = global.Cassidy.multiCommands
+      .entries()
       .filter(([_, { meta }]) => meta?.shopPrice)
       .reduce((acc, [key, { meta }]) => {
         acc[meta.name] = { meta, key };
@@ -81,14 +134,18 @@ export class ShopClass {
       .sort((a, b) => {
         return result[a].meta.shopPrice - result[b].meta.shopPrice;
       });
-    const finalResult = {};
+    /**
+     * @type {Record<string, CassidyCommand> & { [Symbol.iterator]: () => Generator<CassidyCommand, void, unknown> }}
+     */
+    const finalResult = {
+      *[Symbol.iterator]() {
+        yield* Object.values(finalResult);
+      },
+    };
     for (const key of sortedKeys) {
-      finalResult[key] = global.Cassidy.commands[result[key].key];
+      finalResult[key] = Cassidy.multiCommands.getOne(result[key].key);
     }
 
-    finalResult[Symbol.iterator] = function* () {
-      yield* Object.values(finalResult);
-    };
     return finalResult;
   }
 
@@ -96,11 +153,15 @@ export class ShopClass {
     return { ...this.shopInv };
   }
 
-  async inventory(userID) {
+  inventory() {
     return Object.keys(this.shopInv);
   }
 }
 
+/**
+ *
+ * @param {CommandContext} obj
+ */
 export async function use(obj) {
   obj.ShopClass = ShopClass;
 
