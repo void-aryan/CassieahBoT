@@ -1542,7 +1542,7 @@ export async function entry(ctx: CommandContext) {
               `${UNIRedux.charm} ***Total Stats***\n\n` +
               `**ATK**: **${petPlayer.ATK}** (+${petPlayer.gearATK})\n` +
               `**DEF**: **${petPlayer.DF}** (+${petPlayer.gearDF})\n` +
-              `**Magic**: **${petPlayer.MAGIC}**\n\n` +
+              `**Magic**: **${petPlayer.MAGIC}** (+${petPlayer.gearMAGIC})\n\n` +
               `${UNIRedux.charm} ***Gears***\n\n` +
               `⚔️ ${gearData.getWeaponUI()}\n` +
               `🔰 ${gearData.getArmorUI(0)}\n` +
@@ -1592,7 +1592,7 @@ export async function entry(ctx: CommandContext) {
             result += `${petPlayer.getPlayerUI()}\n`;
             result += `⚔️ ***ATK***: ${petPlayer.ATK} (+${petPlayer.gearATK})
 🔰 ***DEF***: ${petPlayer.DF} (+${petPlayer.gearDF})
-🔥 ***MAGIC***: ${petPlayer.MAGIC}
+🔥 ***MAGIC***: ${petPlayer.MAGIC} (+${petPlayer.gearMAGIC})
 🗃️ ***Type***: ${pet.petType ?? "Unknown"}
 🧭 ***Level***: ${pet.level ?? 1}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
@@ -1810,7 +1810,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
             )}
 ⚔️ ***ATK***: ${player.ATK} (+${player.gearATK})
 🔰 ***DEF***: ${player.DF} (+${player.gearDF})
-🔥 ***MAGIC***: ${player.MAGIC}
+🔥 ***MAGIC***: ${player.MAGIC} (+${player.gearMAGIC})
 🗃️ ***Type***: ${pet.petType ?? "Unknown"}
 🧭 ***Level***: ${pet.level ?? 1}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
