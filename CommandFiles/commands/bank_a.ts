@@ -1,17 +1,18 @@
 // @ts-check
-import { abbreviateNumber, UNIRedux } from "@cassidy/unispectra";
+import { abbreviateNumber, UNIRedux, UNISpectra } from "@cassidy/unispectra";
 import { parseBet } from "@cass-modules/ArielUtils";
 import { FontSystem } from "cassidy-styler";
-import { UserData } from "@cass-modules/cassidyUser";
+import { InventoryItem, UserData } from "@cass-modules/cassidyUser";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { listItem, groupItems } from "@cass-modules/BriefcaseAPI";
+import { Datum } from "@cass-modules/Datum";
 const { fonts } = FontSystem;
 
 const ABANK = fonts.serif("AC-BANK");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.2",
+  version: "3.0.3",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
@@ -28,6 +29,36 @@ export interface Award {
   type: string;
   info: string;
   date: number;
+}
+
+const { invLimit } = Cassidy;
+export const ABANK_ITEM_SLOT = 8;
+export const ABANK_ITEM_STACK = 10;
+export const ABANK_EMPTY_SLOT = "_".repeat(15);
+
+export function listABANKItems(bankDataItems: Inventory<InventoryItem>) {
+  const uniqueItems = Datum.toUniqueArray(bankDataItems.getAll(), (i) => i.key);
+  const paddingNeeded = ABANK_ITEM_SLOT - uniqueItems.length;
+
+  const itemLines = uniqueItems.map((i) =>
+    listABANKItem(i, bankDataItems.getAmount(i.key))
+  );
+
+  const paddingLines = Array(Math.max(paddingNeeded, 0)).fill(ABANK_EMPTY_SLOT);
+
+  return [...itemLines, ...paddingLines].join("\n");
+}
+
+export function listABANKItem(
+  item: Partial<InventoryItem> = {},
+  count: number,
+  limit: number = ABANK_ITEM_STACK
+) {
+  return `${
+    typeof count === "number" && count > 1
+      ? `[x${count}/${limit}] ${UNISpectra.arrowBW} `
+      : ""
+  }${item.icon} ${item.name} (${item.key})`;
 }
 
 export const style: CassidySpectra.CommandStyle = {
@@ -198,9 +229,9 @@ export async function entry({
           notifStyle
         );
       }
-      const itemStr = [...groupItems(bankDataItems.getAll()).values()]
-        .map((i) => listItem(i, i.amount))
-        .join("\n");
+
+      const itemStr = listABANKItems(bankDataItems);
+
       return output.replyStyled(
         `${
           trophys.length > 0
