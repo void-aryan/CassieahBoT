@@ -1505,7 +1505,7 @@ export namespace PetTurns {
       };
     }
   }
-  export function Equilibrium({
+  export function ChaosBolt({
     activePet,
     targetPet,
     prevMove = "",
