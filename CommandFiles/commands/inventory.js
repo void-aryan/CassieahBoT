@@ -1,6 +1,6 @@
 import { ReduxCMDHome } from "@cassidy/redux-home";
 import { UNIRedux } from "@cassidy/unispectra";
-import { GearsManage, PetPlayer } from "../plugins/pet-fight.js";
+import { GearsManage, PetPlayer } from "../plugins/pet-fight";
 import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
 import {
   registeredExtensions,

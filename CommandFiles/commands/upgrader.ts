@@ -3,7 +3,7 @@
 import { UNIRedux } from "@cassidy/unispectra";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
-import { GearsManage } from "../plugins/pet-fight.js";
+import { GearsManage } from "../plugins/pet-fight";
 import { FontSystem } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 

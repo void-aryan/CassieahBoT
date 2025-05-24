@@ -1,11 +1,24 @@
-// @ts-check
-
 import { abbreviateNumber } from "@cass-modules/ArielUtils";
+import {
+  ArmorInventoryItem,
+  InventoryItem,
+  WeaponInventoryItem,
+} from "@cass-modules/cassidyUser";
+import {
+  Act,
+  Attacks,
+  Dialogues,
+  Flavor,
+  WildEntity,
+} from "@cass-modules/Encounter";
+import { Numero } from "@cass-modules/Numero";
+import { ObjectKey } from "@cass-modules/unitypes";
+import { UNIRedux } from "@cassidy/unispectra";
 
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.14",
+  version: "2.0.15",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -124,10 +137,11 @@ export const elementalPets = {
   panda: ["Grass", "Fighting"],
 };
 export class ElementalChilds {
-  constructor(...elements) {
+  elements: ElementalChild[];
+  constructor(...elements: string[]) {
     this.elements = elements.map((i) => new ElementalChild(i));
   }
-  getModifierAgainst(childs) {
+  getModifierAgainst(childs: ElementalChilds) {
     if (childs instanceof ElementalChilds) {
       const accu = this.elements.reduce((acc, i) => {
         return (
@@ -152,7 +166,7 @@ export class ElementalChilds {
       []
     );
   }
-  isStrongerThan(childs) {
+  isStrongerThan(childs: ElementalChilds) {
     const accA = this.getModifierAgainst(childs);
     const accB = childs.getModifierAgainst(this);
     return accA > accB;
@@ -189,23 +203,32 @@ export class ElementalChilds {
 }
 
 export class ElementalChild {
-  constructor(element, mapping = elementalMapping) {
+  element: Record<string, number>;
+  constructor(
+    element: string | number | ElementalChild,
+    mapping = elementalMapping
+  ) {
     if (element instanceof ElementalChild) {
+      // @ts-ignore
       element = element.element;
     }
     this.element = JSON.parse(
       JSON.stringify({
+        // @ts-ignore
         ...(mapping[element] ?? { strong: {}, weak: {}, classification: "PK" }),
       })
     );
+    // @ts-ignore
     this.element.name = element;
   }
 
   get strong() {
+    // @ts-ignore
     return { ...this.element.strong };
   }
 
   get weak() {
+    // @ts-ignore
     return { ...this.element.weak };
   }
 
@@ -217,7 +240,7 @@ export class ElementalChild {
     return this.element.name;
   }
 
-  isStrongerThan(element) {
+  isStrongerThan(element: ElementalChild) {
     if (element instanceof ElementalChild) {
       const strength = this.strong[element.name] || 0;
       const weakness = element.weak[this.name] || 0;
@@ -226,7 +249,10 @@ export class ElementalChild {
     return null;
   }
 
-  isWeakerThan(element) {
+  isWeakerThan(element: {
+    strong: { [x: string]: number };
+    name: string | number;
+  }) {
     if (element instanceof ElementalChild) {
       const strength = element.strong[this.name] || 0;
       const weakness = this.weak[element.name] || 0;
@@ -234,7 +260,7 @@ export class ElementalChild {
     }
     return null;
   }
-  getModifierAgainst(element) {
+  getModifierAgainst(element: ElementalChild) {
     if (element instanceof ElementalChild) {
       const oppStrength = element.strong[this.name] ?? 0;
       const oppWeak = element.weak[this.name] ?? 0;
@@ -245,7 +271,10 @@ export class ElementalChild {
     return null;
   }
 
-  static getStronger(a, b) {
+  static getStronger(
+    a: { isStrongerThan: (arg0: ElementalChild) => any },
+    b: { isStrongerThan: (arg0: ElementalChild) => any }
+  ) {
     if (a instanceof ElementalChild && b instanceof ElementalChild) {
       if (a.isStrongerThan(b) && b.isStrongerThan(a)) {
         return null;
@@ -275,7 +304,7 @@ export const spells = {
     flavorText:
       "A bark that intimidates your opponent, reducing their attack power temporarily for 3 turns.",
     type: "opp_change",
-    value(player, opponent) {
+    value(player: { MAGIC: any }, opponent: { ATK: any }) {
       const magic = player.MAGIC;
       const oppAtk = opponent.ATK;
       return Math.floor(oppAtk - (magic + 5) * 0.15); // Adjusted effect from 0.2 to 0.15
@@ -289,7 +318,7 @@ export const spells = {
     flavorText:
       "Grants a protective buff to allies, increasing their defense against enemy attacks for 3 turns.",
     type: "ally_change_noself",
-    value(caster, _opponent, target) {
+    value(caster: { MAGIC: any }, _opponent: any, target: { DEF: any }) {
       const magic = caster.MAGIC;
       const def = target.DEF;
       return Math.floor(def + (magic + 5) * 0.25); // Adjusted effect from 0.2 to 0.25
@@ -303,7 +332,7 @@ export const spells = {
     flavorText:
       "Allows the pet to swiftly attack from the shadows, dealing surprise damage.",
     type: "opp_attack",
-    value(caster, _opponent) {
+    value(caster: { ATK: any; MAGIC: any }, _opponent: any) {
       const atk = caster.ATK;
       const magic = caster.MAGIC;
       return Math.floor(atk + atk * ((magic + 1) * 0.15)); // Adjusted effect from 0.2 to 0.15
@@ -316,7 +345,7 @@ export const spells = {
     flavorText:
       "Enables the pet to evade attacks more effectively for a short duration of 2 turns.",
     type: "ally_change_self",
-    value(caster, _opponent) {
+    value(caster: { MAGIC: any; DEF: any }, _opponent: any) {
       const magic = caster.MAGIC;
       const def = caster.DEF;
       return Math.floor(def + (magic + 5) * 0.25); // Adjusted effect from 0.3 to 0.25
@@ -329,7 +358,7 @@ export const spells = {
     tp: 30, // Slightly reduced TP cost
     flavorText: "Restores HP of an ally pet.",
     type: "ally_heal",
-    value(caster, _opponent) {
+    value(caster: { MAGIC: any }, _opponent: any) {
       const magic = caster.MAGIC;
       return Math.floor(30 * (1 + (magic + 3) * 0.15)); // Adjusted effect from 24 to 30
     },
@@ -341,7 +370,7 @@ export const spells = {
     flavorText:
       "Charges forward with antlers, weakening enemies in its path for 2 turns.",
     type: "opp_change",
-    value(player, opponent) {
+    value(player: { MAGIC: any }, opponent: { ATK: any }) {
       const magic = player.MAGIC;
       const oppAtk = opponent.ATK;
       return Math.floor(oppAtk - (magic + 8) * 0.2); // Adjusted effect from 0.25 to 0.2
@@ -354,7 +383,7 @@ export const spells = {
     tp: 55, // Slightly increased TP cost
     flavorText: "Unleashes a blast of elemental breath, damaging all enemies.",
     type: "opp_attack",
-    value(player, _opponent) {
+    value(player: { MAGIC: any; ATK: any }, _opponent: any) {
       const magic = player.MAGIC;
       const atk = player.ATK;
       return Math.floor(atk + atk * ((magic + 2) * 0.12)); // Adjusted effect from 0.1 to 0.12
@@ -365,7 +394,11 @@ export const spells = {
     tp: 95, // Slightly reduced TP cost
     flavorText: "Sacrifices itself to heal an ally and resurrect all.",
     type: "ally_heal_all",
-    value(caster, _opponent, target) {
+    value(
+      caster: { MAGIC: any; HP: number },
+      _opponent: any,
+      target: { HP: any; maxHP: number; isDown: () => any }
+    ) {
       const magic = caster.MAGIC;
       target.HP = target.maxHP;
       caster.HP = 0;
@@ -382,7 +415,7 @@ export const spells = {
     flavorText:
       "Surrounds allies in healing flames, restoring health over time.",
     type: "ally_heal",
-    value(caster, _opponent, _target) {
+    value(caster: { MAGIC: any }, _opponent: any, _target: any) {
       const magic = caster.MAGIC;
       return Math.floor(8 * (1 + magic * 0.2)); // Adjusted effect from 7 to 8
     },
@@ -395,7 +428,7 @@ export const spells = {
  * @param {T[]} array
  * @returns {T}
  */
-export function randArr(array) {
+export function randArr<T>(array: T[]): T {
   array = Array.from(array);
   return array[Math.floor(Math.random() * array.length)];
 }
@@ -405,20 +438,24 @@ export function randArr(array) {
  * @param {Record<K, V>} obj
  * @returns {[string, V]}
  */
-export function randObj(obj) {
+export function randObj<K extends ObjectKey, V>(
+  obj: Record<K, V>
+): [string, V] {
   return randArr(Object.entries(obj));
 }
 export class PetGame {
+  pets: any;
+  opponents: any;
   /**
    *
    * @param {PetPlayer[]} petPlayers
    * @param {WildPlayer[]} petOpponents
    */
-  constructor(petPlayers, petOpponents) {
+  constructor(petPlayers: PetPlayer[], petOpponents: WildPlayer[]) {
     this.pets = petPlayers;
     this.opponents = petOpponents;
   }
-  static useSpell(spellKey, _caster, _target) {
+  static useSpell(spellKey: string | number, _caster: any, _target: any) {
     const spell = spells[spellKey];
     let [destination, action, ..._modifiers] = spell.type.split("_");
     switch (destination) {
@@ -451,19 +488,35 @@ export class PetGame {
 }
 
 /**
- * @typedef {import("@cass-modules/Encounter").WildEntity} WildEntity
- */
-
-/**
  * @implements {WildEntity}
  */
 export class WildPlayer {
+  battlePets: PetPlayer[];
+  wildName: string;
+  wildIcon: string;
+  wildType: string;
+  HP: number;
+  ATK: number;
+  DF: number;
+  flavor: Flavor;
+  dialogues: Dialogues;
+  attacks: Attacks;
+  goldFled: number;
+  goldSpared: number;
+  expEarn: number;
+  fakeHP: number;
+  acts: Record<string, Act>;
+  fakeDEF: number;
+  winDias: number;
+  fakeATK: number;
+  level: number;
+  maxHP: number;
   /**
    *
    * @param {WildEntity} wildData
    * @param {PetPlayer[]} battlePets
    */
-  constructor(wildData, battlePets = []) {
+  constructor(wildData: WildEntity, battlePets: PetPlayer[] = []) {
     wildData = JSON.parse(JSON.stringify(wildData));
     this.battlePets = battlePets;
     wildData.flavor ??= {};
@@ -521,13 +574,13 @@ export class WildPlayer {
   set MERCY(value) {
     this.#mercy = value * 25;
   }
-  parseMercy(value) {
+  parseMercy(value: number) {
     return Math.max(Math.min(Math.round(value / 25), 100), 0);
   }
-  addMercyInternal(value) {
+  addMercyInternal(value: number) {
     this.#mercy += value;
   }
-  setMercyInternal(value) {
+  setMercyInternal(value: number) {
     this.#mercy = value;
   }
   getMercyInternal() {
@@ -558,7 +611,7 @@ export class WildPlayer {
     }
     return txt;
   }
-  getSelectionUI(_selectionOptions) {}
+  getSelectionUI(_selectionOptions: any) {}
   isDown() {
     return this.HP <= 0;
   }
@@ -579,7 +632,7 @@ export class WildPlayer {
    * @param {string} pet
    * @returns
    */
-  getActTarget(pet) {
+  getActTarget(pet: string) {
     let targetPet = this.battlePets.find((i) => i?.petType === pet);
     if (pet === "[slot:1]") {
       targetPet = this.battlePets[1];
@@ -592,7 +645,7 @@ export class WildPlayer {
     }
     return targetPet;
   }
-  isActAvailable(act) {
+  isActAvailable(act: string) {
     const data = this.acts[act];
     if (!data) {
       return false;
@@ -651,7 +704,7 @@ export class WildPlayer {
    * @param {string} act
    * @returns
    */
-  getAct(act) {
+  getAct(act: string) {
     act = String(act);
     let targetAct = this.acts[act] ?? this.acts[act.toLowerCase()];
     if (!targetAct) {
@@ -674,7 +727,7 @@ export class WildPlayer {
     flavor = helper(flavor);
     response = helper(response);
     petLine = helper(petLine);
-    function helper(text) {
+    function helper(text: string) {
       return text.replaceAll(
         "{name}",
         `${targetPet.petIcon} **${targetPet.petName}**`
@@ -707,17 +760,23 @@ export class WildPlayer {
 
 export class PetPlayer {
   #damageTaken = 0;
-  getDamageTaken() {
-    return this.#damageTaken;
-  }
-  /**
-   *
-   * @param {Partial<UserData["petsData"][number]>} petData
-   * @param {UserData["gearsData"][number]} gearData
-   */
+  exp: number;
+  weapon: WeaponInventoryItem[];
+  armors: ArmorInventoryItem[];
+  items: InventoryItem[];
+  OgpetData: UserData["petsData"][number];
+  OggearData: UserData["gearsData"][number];
+  petName: string;
+  petType: string;
+  petIcon: string;
+  sellPrice: number;
+  extras: Record<string, any>;
+  mode: string;
+  maxHPOrig: number;
+
   constructor(
-    petData = {},
-    gearData = {
+    petData: UserData["petsData"][number] = {} as UserData["petsData"][number],
+    gearData: UserData["gearsData"][number] = {
       key: "",
     }
   ) {
@@ -725,13 +784,9 @@ export class PetPlayer {
     gearData = JSON.parse(JSON.stringify(gearData));
     this.exp = petData.lastExp ?? 0;
     const { weapon = [], armors = [], items = [] } = gearData;
-    /**
-     * @type {import("@cass-modules/cassidyUser").WeaponInventoryItem[]}
-     */
+
     this.weapon = PetPlayer.sanitizeWeapon(weapon);
-    /**
-     * @type {import("@cass-modules/cassidyUser").ArmorInventoryItem[]}
-     */
+
     this.armors = PetPlayer.sanitizeArmors(armors);
     this.items = items;
     this.OgpetData = petData;
@@ -745,6 +800,9 @@ export class PetPlayer {
     this.mode = "default";
     this.hpModifier = -this.getHungryModifier();
     this.maxHPOrig = PetPlayer.getHPOf(this);
+  }
+  getDamageTaken() {
+    return this.#damageTaken;
   }
   gearInstance() {
     return new GearData(this.OggearData);
@@ -808,7 +866,15 @@ export class PetPlayer {
 
     return Math.floor(hungerModifier);
   }
-  getSelectionUI(options) {
+  getSelectionUI(options: {
+    fight?: boolean;
+    magic?: boolean;
+    item?: boolean;
+    mercy?: boolean;
+    defend?: boolean;
+    extra?: boolean;
+    [key: string]: string | boolean;
+  }) {
     options = Object.assign(
       {},
       {
@@ -855,12 +921,12 @@ export class PetPlayer {
         this.HP
       )}\n\n${Array(20)
         .fill("")
-        .map((_, index) => `LV${index + 1}: ${PetPlayer.getHPOf(index + 1)} HP`)
+        .map((_, index) => `LV${index + 1}: ${PetPlayer.getHPOf(this)} HP`)
         .join("\n")}`
     );
   }
-  static debugForEXP(exp) {
-    return new PetPlayer({ lastExp: exp }).debug();
+  static debugForEXP(exp: number) {
+    return new PetPlayer({ lastExp: exp } as any).debug();
   }
   isDown() {
     return this.HP <= 0;
@@ -868,25 +934,25 @@ export class PetPlayer {
   get realTimeTakenDamagePer30() {
     return this.calculateTakenDamage(30);
   }
-  calculateTakenDamageOld(damage) {
+  calculateTakenDamageOld(damage: number) {
     let result = damage;
     const df = this.DF * (1 / 5);
     result = Math.floor(result - df);
     result = Math.max(result, 1);
     return result;
   }
-  static calculateExtraTakenDamage(maxHP) {
+  static calculateExtraTakenDamage(maxHP: number) {
     const baseHP = 300;
     const scalingFactor = Math.sqrt(maxHP / baseHP);
     return scalingFactor;
   }
-  static calculateExtraTakenDamageOld(maxHP) {
+  static calculateExtraTakenDamageOld(maxHP: number) {
     const baseHP = 20;
     const scalingFactor = Math.sqrt(maxHP / baseHP);
     return scalingFactor;
   }
 
-  calculateTakenDamageOld2(damage) {
+  calculateTakenDamageOld2(damage: number) {
     let result = damage;
     // const df = this.DF * (1 / 5);
     //result = Math.floor(result - df);
@@ -908,13 +974,7 @@ export class PetPlayer {
     return result;
   }
 
-  /**
-   *
-   * @param {number} damage
-   * @param {boolean} scale
-   * @returns
-   */
-  calculateTakenDamage(damage, scale = true) {
+  calculateTakenDamage(damage: number, scale: boolean = true) {
     let result = Math.floor(this.calculateAttack(this.DF, damage) / 1.2);
 
     const scalingFactor = PetPlayer.calculateExtraTakenDamage(this.HP);
@@ -929,22 +989,34 @@ export class PetPlayer {
     return (this.HP / this.maxHP) * 100;
   }
 
-  /**
-   *
-   * @param {PetPlayer} pet
-   * @returns {number}
-   */
-  static calculatePetStrength(pet) {
-    const extra = Math.round((pet.sellPrice ?? 0) / 200) * 17;
-    const max = Math.floor(20 + 5 * (pet.level - 1)) + extra;
-    return (
-      (pet.ATK +
-        Math.round(pet.DF / 10) +
-        pet.MAGIC +
-        max +
-        Math.round(pet.ATK * 2.1)) *
-      1.75
-    );
+  static calculatePetStrength(pet: PetPlayer): number {
+    const sellPrice = pet?.sellPrice ?? 0;
+    const level = pet?.level ?? 1;
+    const ATK = pet?.ATK ?? 0;
+    const DF = pet?.DF ?? 0;
+    const MAGIC = pet?.MAGIC ?? 0;
+
+    const baseSellDiv = Math.round((sellPrice || 0) / 200);
+    const safeBaseSellDiv = baseSellDiv > 0 ? baseSellDiv : 1;
+    const extra = safeBaseSellDiv * 17;
+
+    const levelMultiplier = 5 * (level - 1);
+    const safeLevelMultiplier = levelMultiplier || 0;
+    const max = Math.floor(20 + safeLevelMultiplier) + extra;
+
+    const safeDFPart = Math.round(DF / 10 || 1);
+    const atkMult = Math.round(ATK * 2.1 || 0);
+
+    const rawStrength =
+      (ATK || 0) +
+      (safeDFPart || 1) +
+      (MAGIC || 0) +
+      (max || 0) +
+      (atkMult || 0);
+
+    const finalStrength = rawStrength * 1.75;
+
+    return finalStrength || 0;
   }
 
   maxHPModifier = 0;
@@ -953,10 +1025,7 @@ export class PetPlayer {
     return this.maxHPOrig + this.maxHPModifier;
   }
 
-  /**
-   * @param {number} hp
-   */
-  set maxHP(hp) {
+  set maxHP(hp: number) {
     const baseHP = this.maxHPOrig;
     this.maxHPModifier = hp - baseHP;
   }
@@ -983,6 +1052,20 @@ export class PetPlayer {
   get DF() {
     const extra = PetPlayer.getExtraDFOf(this.level);
     const armorDfs = this.armors.reduce((acc, weapon) => {
+      return acc + weapon.def;
+    }, 0);
+    const weaponDf = this.weapon.reduce((acc, weapon) => acc + weapon.def, 0);
+    return (
+      armorDfs +
+      Math.floor(Numero.statDiminishingPower(weaponDf, 80)) +
+      extra +
+      this.defModifier
+    );
+  }
+
+  get DF_OLD() {
+    const extra = PetPlayer.getExtraDFOf(this.level);
+    const armorDfs = this.armors.reduce((acc, weapon) => {
       return acc + (weapon.key === "temArmor" ? 65 : weapon.def);
     }, 0);
     const weaponDf = this.weapon.reduce((acc, weapon) => acc + weapon.def, 0);
@@ -1000,17 +1083,30 @@ export class PetPlayer {
     const weaponAtks = this.weapon.reduce((acc, weapon) => acc + weapon.atk, 0);
     const armorAtks = this.armors.reduce((acc, armor) => acc + armor.atk, 0);
     return Math.round(
+      Math.floor(Numero.statDiminishingPower(armorAtks, 80)) +
+        weaponAtks +
+        extra +
+        this.atkModifier
+    );
+  }
+
+  get ATK_OLD() {
+    const extra = PetPlayer.getExtraATKOf(this.level);
+    const weaponAtks = this.weapon.reduce((acc, weapon) => acc + weapon.atk, 0);
+    const armorAtks = this.armors.reduce((acc, armor) => acc + armor.atk, 0);
+    return Math.round(
       armorAtks / 4 + weaponAtks / 2 + extra + this.atkModifier
     );
   }
   get extraATK() {
     return PetPlayer.getExtraATKOf(this.level);
   }
+
   get gearATK() {
     return this.ATK - this.extraATK;
   }
 
-  calculateAttackOld(enemyDef) {
+  calculateAttackOld(enemyDef: number) {
     const atk = this.ATK;
     const df = enemyDef;
     return Math.max(
@@ -1021,13 +1117,7 @@ export class PetPlayer {
     );
   }
 
-  /**
-   *
-   * @param {number} enemyDef
-   * @param {number} atk
-   * @returns
-   */
-  calculateAttack(enemyDef, atk = this.ATK) {
+  calculateAttack2(enemyDef: number, atk: number = this.ATK) {
     atk ??= this.ATK;
     const df = enemyDef;
     return Math.max(
@@ -1038,19 +1128,28 @@ export class PetPlayer {
       )
     );
   }
-  /**
-   *
-   * @param {number} enemyDef
-   * @param {number} atk
-   * @returns
-   */
-  calculateAttackLinear(enemyDef, atk = this.ATK) {
+
+  calculateAttack(enemyDef: number, atk: number = this.ATK) {
     atk ??= this.ATK;
     const df = enemyDef;
+    const effectiveAtk = Numero.statDiminishingPower(atk, 80);
+    return Math.max(
+      1,
+      this.calculateReducedDamage(
+        Math.floor(Numero.applyVariance(effectiveAtk, 0.7) * 2.2),
+        df
+      )
+    );
+  }
+
+  calculateAttackLinear(enemyDef: number, atk: number = this.ATK) {
+    atk ??= this.ATK;
+    const df = enemyDef;
+    const effectiveAtk = Numero.statDiminishingPower(atk, 80);
     return Math.max(
       1,
       this.calculateReducedDamageLinear(
-        Math.floor((atk + Math.floor(Math.random() * 15)) * 2.2),
+        Math.floor(Numero.applyVariance(effectiveAtk, 0.7) * 2.2),
         df
       )
     );
@@ -1064,7 +1163,11 @@ export class PetPlayer {
    * @param {number} [def=this.DF] - The defense value, defaults to pet's DF
    * @returns {number} - The reduced damage
    */
-  calculateReducedDamage(damage, def = this.DF, factor_ = 0) {
+  calculateReducedDamage2(
+    damage: number,
+    def: number = this.DF,
+    factor_ = 0
+  ): number {
     const k = 5;
     const factor = factor_ || 0.1;
 
@@ -1072,6 +1175,21 @@ export class PetPlayer {
 
     const defReduction = def / (1 + def / C) / k;
 
+    let reducedDamage = damage - defReduction;
+
+    return Math.max(Math.floor(reducedDamage), 1);
+  }
+
+  /**
+   * Calculate reduced damage with diminishing returns on defense,
+   * where the soft cap scales with the incoming damage.
+   *
+   * @param {number} damage - The incoming base damage
+   * @param {number} [def=this.DF] - The defense value, defaults to pet's DF
+   * @returns {number} - The reduced damage
+   */
+  calculateReducedDamage(damage: number, def: number = this.DF): number {
+    const defReduction = Numero.statDiminishingPower(def, 80);
     let reducedDamage = damage - defReduction;
 
     return Math.max(Math.floor(reducedDamage), 1);
@@ -1092,7 +1210,7 @@ export class PetPlayer {
    * @param {number} [def=this.DF] - The defense value, defaults to pet's DF
    * @returns {number} - The reduced damage
    */
-  calculateReducedDamageLinear(damage, def = this.DF) {
+  calculateReducedDamageLinear(damage: number, def: number = this.DF): number {
     const def5 = def / 5;
     let reducedDamage = damage - def5;
     return Math.max(Math.floor(reducedDamage), 1);
@@ -1103,7 +1221,7 @@ export class PetPlayer {
     return Math.floor(5 * (base - 1));
   }
 
-  getFairEnemyDef(atk) {
+  getFairEnemyDef(atk: number) {
     atk ??= this.ATK;
     const base = Math.floor(atk * 2.2);
     return Math.floor(3.75 * base);
@@ -1112,20 +1230,17 @@ export class PetPlayer {
   magicModifier = 0;
 
   get gearMAGIC() {
-    const gearMagic =
-      this.weapon.reduce((acc, weapon) => acc + weapon.magic, 0) +
-      this.armors.reduce((acc, armor) => {
-        return acc + armor.magic;
-      }, 0);
+    const gearMagic = 0;
 
-    const cappedGearMagic = Math.min(gearMagic, 50 + this.level * 5);
+    const cappedGearMagic = Numero.statDiminishingPower(gearMagic, 60);
 
-    const rawMagic = cappedGearMagic;
+    const extra = PetPlayer.getExtraMagicOf(cappedGearMagic, this.exp);
 
-    const statCap = Math.max(this.ATK * 2, this.level * 5);
+    const rawMagic = cappedGearMagic + extra + this.magicModifier;
 
-    return Math.round(Math.min(rawMagic, statCap));
+    return Math.floor(this.MAGIC - rawMagic);
   }
+
   get MAGIC() {
     const gearMagic =
       this.weapon.reduce((acc, weapon) => acc + weapon.magic, 0) +
@@ -1133,26 +1248,20 @@ export class PetPlayer {
         return acc + armor.magic;
       }, 0);
 
-    const cappedGearMagic = Math.min(gearMagic, 50 + this.level * 5);
+    const cappedGearMagic = Numero.statDiminishingPower(gearMagic, 60);
 
     const extra = PetPlayer.getExtraMagicOf(cappedGearMagic / 10000, this.exp);
 
     const rawMagic = cappedGearMagic + extra + this.magicModifier;
 
-    const statCap = Math.max(this.ATK * 2, this.level * 5);
-
-    return Math.round(Math.min(rawMagic, statCap));
+    return Math.floor(rawMagic);
   }
+
   clone() {
     return new PetPlayer(this.OgpetData, this.OggearData);
   }
 
-  /**
-   *
-   * @param {import("@cass-modules/cassidyUser").WeaponInventoryItem[]} weapon
-   * @returns {import("@cass-modules/cassidyUser").WeaponInventoryItem[]}
-   */
-  static sanitizeWeapon(weapon) {
+  static sanitizeWeapon(weapon: WeaponInventoryItem[]): WeaponInventoryItem[] {
     return weapon.map((i) => {
       let { atk = 0, def = 0, magic = 0 } = i ?? {};
       i ??= {
@@ -1178,12 +1287,8 @@ export class PetPlayer {
       return { ...i, atk, def, magic };
     });
   }
-  /**
-   *
-   * @param {import("@cass-modules/cassidyUser").ArmorInventoryItem[]} armors
-   * @returns {import("@cass-modules/cassidyUser").ArmorInventoryItem[]}
-   */
-  static sanitizeArmors(armors) {
+
+  static sanitizeArmors(armors: ArmorInventoryItem[]): ArmorInventoryItem[] {
     let result = armors.map((armor) => {
       let { def = 0, magic = 0, atk = 0 } = armor ?? {};
       def = Math.floor(def);
@@ -1203,21 +1308,25 @@ export class PetPlayer {
     return result;
   }
 
-  static getExtraMagicOf(magic, lastExp) {
+  static getExtraMagicOf(magic: number, lastExp: number) {
+    const expFactor = lastExp / 300;
+    return Math.floor(magic + Numero.statDiminishingPower(expFactor, 60));
+  }
+  static getExtraMagicOfOLD(magic: number, lastExp: number) {
     const expFactor = lastExp / 3000;
     return Math.floor((magic + 1) * (1 + expFactor)) + (-magic + 1);
   }
-  static getLevelOf(lastExp) {
+  static getLevelOf(lastExp: number) {
     return lastExp < 10 ? 1 : Math.floor(Math.log2(lastExp / 10)) + 1;
   }
-  static getExpOf(level) {
+  static getExpOf(level: number) {
     if (level === 1) {
       return 0;
     } else {
       return 10 * Math.pow(2, level - 1);
     }
   }
-  changeLevel(level) {
+  changeLevel(level: number) {
     const newExp = PetPlayer.getExpOf(level);
     this.exp = newExp;
     return this;
@@ -1230,9 +1339,9 @@ export class PetPlayer {
     return Math.max(...target);
   }
 
-  static getWeaker(levelA, levelB) {
-    const sumA = levelA.reduce((acc, level) => acc + level, 0);
-    const sumB = levelB.reduce((acc, level) => acc + level, 0);
+  static getWeaker(levelA: number[], levelB: number[]) {
+    const sumA = levelA.reduce((acc: number, level: number) => acc + level, 0);
+    const sumB = levelB.reduce((acc: number, level: number) => acc + level, 0);
 
     return sumA < sumB ? levelA : levelB;
   }
@@ -1251,25 +1360,25 @@ export class PetPlayer {
     return { levelA, levelB };
   }
 
-  static getHPOfOld(level, sellPrice) {
+  static getHPOfOld(level: number, sellPrice: number) {
     const extra = Math.round((sellPrice ?? 0) / 500) * 10;
     return Math.floor(20 + 4 * (level - 1)) + extra;
   }
-  static getHPOfOld2(level, sellPrice) {
+  static getHPOfOld2(level: number, sellPrice: number) {
     const extra = Math.round((sellPrice ?? 0) / 700) * 10;
     return Math.floor(20 + 4 * (level - 1)) + extra;
   }
-  static getHPOfOld3(level, sellPrice) {
+  static getHPOfOld3(level: number, sellPrice: number) {
     const extra = Math.round((sellPrice ?? 0) / 200) * 17;
     return Math.floor(20 + 5 * (level - 1)) + extra;
   }
-  static getHPOf(player) {
+  static getHPOf(player: PetPlayer) {
     return Math.floor(this.calculatePetStrength(player));
   }
-  static getExtraDFOf(level) {
+  static getExtraDFOf(level: number) {
     return Math.floor((level - 1) / 2);
   }
-  static getExtraATKOf(level) {
+  static getExtraATKOf(level: number) {
     return 5 * level - 5;
   }
   static get spells() {
@@ -1280,13 +1389,93 @@ export class PetPlayer {
   }
 }
 
+export namespace PetTurns {
+  export interface TurnArg {
+    activePet: PetPlayer;
+    targetPet: PetPlayer | WildPlayer;
+    prevMove?: string;
+    dodgeChance?: number;
+  }
+  export interface TurnResult {
+    dodged?: boolean;
+    damage?: number;
+    heal?: number;
+    atkBoost?: number;
+    defBoost?: number;
+    flavor: string;
+  }
+
+  export function getProfile(player: PetPlayer | WildPlayer): string {
+    if (player instanceof WildPlayer) {
+      return `${player.wildIcon} **${player.wildName}**`;
+    }
+    if (player instanceof PetPlayer) {
+      return `${player.petIcon} **${player.petName}**`;
+    }
+    return `❓ **Weird**`;
+  }
+
+  export function Bash({
+    activePet,
+    targetPet,
+    prevMove = "",
+    dodgeChance = Math.random(),
+  }: PetTurns.TurnArg): PetTurns.TurnResult {
+    let flavor = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🥊 **Bash**!\n`;
+    if ((prevMove === "bash" && dodgeChance < 0.7) || dodgeChance < 0.1) {
+      flavor += `${UNIRedux.charm} ${getProfile(targetPet)} dodged!`;
+      return { damage: 0, dodged: true, flavor };
+    }
+    const damage = Math.round(activePet.calculateAttack(targetPet.DF));
+
+    flavor += `${
+      UNIRedux.charm
+    } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
+
+    return {
+      damage,
+      dodged: true,
+      flavor,
+    };
+  }
+
+  export function HexSmash({
+    activePet,
+    targetPet,
+    prevMove = "",
+    dodgeChance = Math.random(),
+  }: PetTurns.TurnArg): PetTurns.TurnResult {
+    let flavor = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 💥 **HexSmash**!\n`;
+    if ((prevMove === "hexsmash" && dodgeChance < 0.7) || dodgeChance < 0.1) {
+      flavor += `${UNIRedux.charm} ${getProfile(targetPet)} dodged!`;
+      return { damage: 0, dodged: true, flavor };
+    }
+    const meanStat = Math.min(
+      (activePet.ATK + activePet.MAGIC) / 2,
+      activePet.ATK * 3
+    );
+    const damage = Math.round(
+      activePet.calculateAttack(targetPet.DF, meanStat) * 1.5
+    );
+    flavor += `${
+      UNIRedux.charm
+    } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
+    return {
+      damage,
+      dodged: true,
+      flavor,
+    };
+  }
+}
+
 export class GearData {
-  /**
-   *
-   * @param {UserData["gearsData"][number]} gearData
-   */
+  key: string;
+  weaponArray: WeaponInventoryItem[];
+  armorsArray: ArmorInventoryItem[];
+  items: InventoryItem[];
+
   constructor(
-    gearData = {
+    gearData: UserData["gearsData"][number] = {
       key: "",
     }
   ) {
@@ -1297,13 +1486,7 @@ export class GearData {
     this.items = gearData.items ?? [];
   }
 
-  /**
-   *
-   * @param {number} index
-   * @param {import("@cass-modules/cassidyUser").ArmorInventoryItem} armor
-   * @returns {import("@cass-modules/cassidyUser").ArmorInventoryItem}
-   */
-  equipArmor(index, armor) {
+  equipArmor(index: number, armor: ArmorInventoryItem): ArmorInventoryItem {
     if (index !== 0 && index !== 1) {
       throw new Error("Invalid armor index");
     }
@@ -1315,12 +1498,7 @@ export class GearData {
     return backup;
   }
 
-  /**
-   *
-   * @param {import("@cass-modules/cassidyUser").WeaponInventoryItem} weapon
-   * @returns {import("@cass-modules/cassidyUser").WeaponInventoryItem}
-   */
-  equipWeapon(weapon) {
+  equipWeapon(weapon: WeaponInventoryItem): WeaponInventoryItem {
     if (this.weaponArray.length > 1) {
       throw new Error("No weapon slot available");
     }
@@ -1364,12 +1542,7 @@ export class GearData {
     return armor.length + weapon.length !== 0;
   }
 
-  /**
-   *
-   * @param {number} index
-   * @returns
-   */
-  getArmorUI(index) {
+  getArmorUI(index: number) {
     const armor = this.armors[index];
     if (!armor || !armor.name) {
       return `[ No Armor Equipped ]\nATK 0 DEF 0 MAGIC 0`;
@@ -1395,35 +1568,24 @@ export class GearData {
 }
 
 export class GearsManage {
-  /**
-   *
-   * @param {UserData["gearsData"]} gearsData
-   */
-  constructor(gearsData = []) {
-    /**
-     * @type {UserData["gearsData"]}
-     */
-    const clone = JSON.parse(JSON.stringify(gearsData));
+  gearsData: GearData[];
+
+  constructor(gearsData: UserData["gearsData"] = []) {
+    const clone: UserData["gearsData"] = JSON.parse(JSON.stringify(gearsData));
     this.gearsData = clone.map((gearData) => new GearData(gearData));
   }
 
-  /**
-   *
-   * @param {string} key
-   * @returns
-   */
-  getGearData(key) {
-    return this.gearsData.find((i) => i.key === key) ?? new GearData({ key });
+  getGearData(key: string) {
+    return (
+      this.gearsData.find((i: { key: string }) => i.key === key) ??
+      new GearData({ key })
+    );
   }
 
-  /**
-   *
-   * @param {string} key
-   * @param {GearData} gearData
-   * @returns
-   */
-  setGearData(key, gearData) {
-    const index = this.gearsData.findIndex((i) => i.key === key);
+  setGearData(key: string, gearData: GearData) {
+    const index = this.gearsData.findIndex(
+      (i: { key: string }) => i.key === key
+    );
     if (index !== -1) {
       this.gearsData[index] = gearData;
     } else {
@@ -1447,11 +1609,7 @@ export class GearsManage {
     yield* this.toJSON();
   }
 
-  /**
-   *
-   * @param {string} jsonString
-   */
-  static fromJSONString(jsonString) {
+  static fromJSONString(jsonString: string) {
     return new GearsManage(JSON.parse(jsonString));
   }
   clone() {
@@ -1459,134 +1617,136 @@ export class GearsManage {
   }
 }
 
-export class Quest {
-  constructor(questData) {
-    this.data = JSON.parse(JSON.stringify(questData || []));
-    this.sanitize();
-  }
-  sanitize() {
-    this.data = this.data
-      .map((quest) => {
-        let { meta, progress = 0 } = quest ?? {};
-        if (!meta) {
-          return;
-        }
-        if (!meta.key) {
-          return;
-        }
-        let {
-          icon = "❓",
-          flavorText = "A quest we don't know about",
-          name = "Unknown Quest",
-          rewardCoins = 0,
-          rewardItems = [],
-          rewardCollectibles = {},
-          key,
-          max = 1,
-        } = meta;
-        return {
-          ...quest,
-          meta: {
-            ...meta,
-            icon,
-            key,
+// export class Quest {
+//   data: any;
+//   constructor(questData: any[]) {
+//     this.data = JSON.parse(JSON.stringify(questData || []));
+//     this.sanitize();
+//   }
+//   sanitize() {
+//     this.data = this.data
+//       .map((quest: {}) => {
+//         let { meta, progress = 0 } = quest ?? {};
+//         if (!meta) {
+//           return;
+//         }
+//         if (!meta.key) {
+//           return;
+//         }
+//         let {
+//           icon = "❓",
+//           flavorText = "A quest we don't know about",
+//           name = "Unknown Quest",
+//           rewardCoins = 0,
+//           rewardItems = [],
+//           rewardCollectibles = {},
+//           key,
+//           max = 1,
+//         } = meta;
+//         return {
+//           ...quest,
+//           meta: {
+//             ...meta,
+//             icon,
+//             key,
 
-            flavorText,
-            name,
-            rewardCollectibles,
-            rewardCoins,
-            max,
-            rewardItems,
-          },
-          progress,
-        };
-      })
-      .filter(Boolean);
-  }
-  *[Symbol.iterator]() {
-    yield* this.data;
-  }
-  get(key) {
-    return this.data.filter((i) => i?.key === key);
-  }
-  register(meta, initial) {
-    this.data.push({
-      meta,
-      progress: initial ?? 0,
-    });
-    this.sanitize();
-  }
-  sortCompleted(_key) {
-    return this.data.map((i) => {
-      i.completed = i.progress >= i.meta.max;
-      return i;
-    });
-  }
-  deleteAllCompleted() {
-    const data = this.sortCompleted();
-    this.data = data
-      .filter((i) => !i.completed)
-      .map((i) => {
-        delete i.completed;
-        return i;
-      });
-  }
-  deleteRef(data) {
-    const index = this.data.findIndex((i) => i === data);
-    if (index !== -1) {
-      this.data = this.data.filter((_, ind) => ind !== index);
-    }
-  }
+//             flavorText,
+//             name,
+//             rewardCollectibles,
+//             rewardCoins,
+//             max,
+//             rewardItems,
+//           },
+//           progress,
+//         };
+//       })
+//       .filter(Boolean);
+//   }
+//   *[Symbol.iterator]() {
+//     yield* this.data;
+//   }
+//   get(key: any) {
+//     return this.data.filter((i: { key: any }) => i?.key === key);
+//   }
+//   register(meta: any, initial: any) {
+//     this.data.push({
+//       meta,
+//       progress: initial ?? 0,
+//     });
+//     this.sanitize();
+//   }
+//   sortCompleted(_key: undefined) {
+//     return this.data.map(
+//       (i: { completed: boolean; progress: number; meta: { max: number } }) => {
+//         i.completed = i.progress >= i.meta.max;
+//         return i;
+//       }
+//     );
+//   }
+//   deleteAllCompleted() {
+//     const data = this.sortCompleted();
+//     this.data = data
+//       .filter((i: { completed: any }) => !i.completed)
+//       .map((i: { completed: any }) => {
+//         delete i.completed;
+//         return i;
+//       });
+//   }
+//   deleteRef(data: any) {
+//     const index = this.data.findIndex((i: any) => i === data);
+//     if (index !== -1) {
+//       this.data = this.data.filter((_: any, ind: any) => ind !== index);
+//     }
+//   }
 
-  getOne(key) {
-    return this.get(key)[0];
-  }
-  getProgress(key) {
-    return this.get(key).map((i) => i.progress);
-  }
-  getOneProgress(key) {
-    return this.getProgress(key)[0];
-  }
-  setAllProgress(key, progress) {
-    if (isNaN(progress)) {
-      return;
-    }
-    const quests = this.get(key);
-    for (const quest of quests) {
-      quest.progress = Math.min(progress, quest.max);
-    }
-    return this.get(key);
-  }
-  progress(key, progress = 1) {
-    if (isNaN(progress)) {
-      return;
-    }
-    const quests = this.get(key);
-    for (const quest of quests) {
-      const a = quests.progress;
-      quest.progress = Math.min(a + progress, quest.max);
-    }
-  }
-  has(key) {
-    return this.get(key).length > 0;
-  }
-  toJSON() {
-    return Array.from(this);
-  }
-  raw() {
-    return Array.from(this);
-  }
-  clone() {
-    return new Quest(Array.from(this));
-  }
-}
+//   getOne(key: any) {
+//     return this.get(key)[0];
+//   }
+//   getProgress(key: any) {
+//     return this.get(key).map((i: { progress: any }) => i.progress);
+//   }
+//   getOneProgress(key: any) {
+//     return this.getProgress(key)[0];
+//   }
+//   setAllProgress(key: any, progress: number) {
+//     if (isNaN(progress)) {
+//       return;
+//     }
+//     const quests = this.get(key);
+//     for (const quest of quests) {
+//       quest.progress = Math.min(progress, quest.max);
+//     }
+//     return this.get(key);
+//   }
+//   progress(key: any, progress = 1) {
+//     if (isNaN(progress)) {
+//       return;
+//     }
+//     const quests = this.get(key);
+//     for (const quest of quests) {
+//       const a = quests.progress;
+//       quest.progress = Math.min(a + progress, quest.max);
+//     }
+//   }
+//   has(key: any) {
+//     return this.get(key).length > 0;
+//   }
+//   toJSON() {
+//     return Array.from(this);
+//   }
+//   raw() {
+//     return Array.from(this);
+//   }
+//   clone() {
+//     return new Quest(Array.from(this));
+//   }
+// }
 
-export async function use(obj) {
+export async function use(obj: CommandContext) {
   obj.PetPlayer = PetPlayer;
   obj.GearsManage = GearsManage;
   obj.GearData = GearData;
   obj.WildPlayer = WildPlayer;
-  obj.Quest = Quest;
   obj.elementalMapping = elementalMapping;
   obj.ElementalChild = ElementalChild;
   obj.ElementalChilds = ElementalChilds;

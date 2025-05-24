@@ -457,11 +457,6 @@ declare global {
     WildPlayer?: typeof WildPlayer;
 
     /**
-     * Provides access to the Quest utility.
-     */
-    Quest?: typeof Quest;
-
-    /**
      * Provides access to the ElementalChilds utility.
      */
     ElementalChilds?: typeof ElementalChilds;
@@ -1114,9 +1109,8 @@ import {
   GearData,
   GearsManage,
   PetPlayer,
-  Quest,
   WildPlayer,
-} from "@cass-plugins/pet-fight.js";
+} from "@cass-plugins/pet-fight";
 import { CassidyIO, EasyOutput, OutputResult } from "@cass-plugins/output.js";
 import { JsonMap } from "@cass-plugins/JsonMap.js";
 import { CassExpress, CustomAI } from "@cass-plugins/cassexpress.js";

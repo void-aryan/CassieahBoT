@@ -1,50 +1,61 @@
 import fs from "fs/promises";
-import { ObjectKey } from "./unitypes";
+
+/**
+ * Datum Namespace Utilities
+ * -------------------------
+ * Collection of functions and types for manipulating and querying structured data.
+ * Includes JSON helpers, filtering, schema validation, and data encoding/decoding utilities.
+ *
+ * Author: Nealiana Kaye Cagara (@lianecagara)
+ */
 
 export namespace Datum {
   /**
-   * Represents the structure of a package.json file.
-   * Extends the imported package.json types with optional fields.
+   * Type-safe structure for `package.json`.
+   * Augments the base shape with optional fields and extensibility.
    */
   export type PackageJson = typeof import("@root/package.json") & {
-    /** Package name */
+    /** Optional name of the package */
     name?: string;
-    /** Package version */
+    /** Optional version of the package */
     version?: string;
-    /** Dependencies map: package name to version string */
+    /** Runtime dependencies */
     dependencies?: Record<string, string>;
-    /** Dev dependencies map: package name to version string */
+    /** Development dependencies */
     devDependencies?: Record<string, string>;
-    /** Additional arbitrary fields */
+    /** Allows additional custom fields */
     [key: string]: any;
   };
 
   /**
-   * Query operators for filtering values of type T.
-   * Supports equality, inequality, comparison, inclusion, and regex matching.
+   * Defines a flexible query interface for filtering values of type `T`.
+   * Mirrors MongoDB-style operators.
    */
-  type QueryOperator<T> =
-    | { $eq?: T }
-    | { $ne?: T }
-    | { $gt?: T }
-    | { $gte?: T }
-    | { $lt?: T }
-    | { $lte?: T }
-    | { $in?: T[] }
-    | { $nin?: T[] }
-    | { $regex?: RegExp };
+  export type QueryOperator<T> =
+    | { $eq?: T } // Equal to
+    | { $ne?: T } // Not equal to
+    | { $gt?: T } // Greater than
+    | { $gte?: T } // Greater than or equal
+    | { $lt?: T } // Less than
+    | { $lte?: T } // Less than or equal
+    | { $in?: T[] } // Included in array
+    | { $nin?: T[] } // Not included in array
+    | { $regex?: RegExp }; // Matches RegExp
 
   /**
-   * Query type for filtering objects of type T.
-   * Each key in T can be matched against a QueryOperator or direct value.
+   * Filters object type `T` based on per-key conditions.
+   * Each key may be matched directly or via an operator.
    */
   export type Query<T> = Partial<
     Record<keyof T, QueryOperator<T[keyof T]> | T[keyof T]>
   >;
 
   /**
-   * Schema type for validating objects.
-   * Can be a string representing a primitive type, a constructor function, or nested schemas.
+   * Schema type for object validation.
+   * Can be:
+   * - a primitive type string (e.g., 'string', 'number')
+   * - a class constructor (e.g., Date)
+   * - a recursive object structure
    */
   export type Schema = string | Function | { [key: string]: Schema };
 
@@ -347,8 +358,19 @@ export namespace Datum {
     return result;
   }
 
-  type ObjectKey = string | number | symbol;
+  /** Permissible object keys in TypeScript */
+  export type ObjectKey = string | number | symbol;
 
+  /**
+   * Decodes a game ID string from a custom web-safe base64 format.
+   *
+   * - Removes the GAME_ID_PREFIX if present.
+   * - Adds padding to make the base64 valid.
+   * - Decodes from base64 and removes the `custom_` prefix (if any).
+   *
+   * @param input - Encoded game ID string (e.g., from URL or database).
+   * @returns Decoded UTF-8 string, or original input if decoding fails.
+   */
   export function decodeGameID(input: string) {
     input = input.replace(GAME_ID_PREFIX, "");
     const pad = input.length % 4;
@@ -364,9 +386,41 @@ export namespace Datum {
     }
   }
 
+  /**
+   * Prefix used to mark encoded game IDs in web-safe format.
+   * Used by `encodeGameID` and `decodeGameID`.
+   */
   export const GAME_ID_PREFIX = "web:";
 
+  /**
+   * Encodes a UTF-8 string into a custom base64 game ID format.
+   *
+   * - Encodes the input string using standard base64.
+   * - Adds the GAME_ID_PREFIX.
+   *
+   * @param input - Raw string to encode as a game ID.
+   * @returns Encoded game ID string or the original input if encoding fails.
+   */
   export function encodeGameID(input: string) {
+    try {
+      const encodedIP = Buffer.from(input).toString("base64").replace(/=/g, "");
+      return `${GAME_ID_PREFIX}${encodedIP}`;
+    } catch (error) {
+      return input;
+    }
+  }
+
+  /**
+   * Encodes a UTF-8 string into a custom base64 game ID format.
+   *
+   * - Encodes the input string using standard base64.
+   * - Replaces `+`, `/`, and `=` characters to make it URL-safe.
+   * - Adds the GAME_ID_PREFIX.
+   *
+   * @param input - Raw string to encode as a game ID.
+   * @returns Encoded game ID string or the original input if encoding fails.
+   */
+  export function encodeGameIDLegacy(input: string) {
     try {
       const encodedIP = Buffer.from(input)
         .toString("base64")
@@ -377,6 +431,24 @@ export namespace Datum {
     }
   }
 
+  /**
+   * Creates a proxy-based object that behaves like a plain object,
+   * but is backed by an internal `Map`. Allows for:
+   *
+   * - Map-style access and mutation.
+   * - Proxy-based integration with object semantics (`in`, `for...in`, etc.).
+   *
+   * @template T - Type of the original object.
+   * @param plainObj - An optional base object to initialize the map from.
+   * @returns An object containing:
+   *   - `map`: the internal `Map` storing key-value pairs.
+   *   - `proxied`: a proxy object with object-like behavior powered by the `Map`.
+   *
+   * @example
+   * const { map, proxied } = makeMapPlain({ a: 1 });
+   * proxied.b = 2;
+   * console.log(map.get("b")); // 2
+   */
   export function makeMapPlain<T extends Record<ObjectKey, any>>(
     plainObj: T = {} as T
   ) {
@@ -450,75 +522,284 @@ export namespace Datum {
     const proxied = new Proxy(target, handler);
     return { map: internalMap, proxied };
   }
-}
 
-// ---------------------------
-// Benchmark Function
-// ---------------------------
+  /**
+   * Returns a shuffled version of the input array or object.
+   *
+   * - Arrays are shuffled using the Fisher-Yates algorithm.
+   * - Objects are converted to key-value entries, shuffled, then reconstructed.
+   *
+   * @template T - Type of array elements or object values.
+   * @param inp - Input array or object to shuffle.
+   * @returns Shuffled array or object of the same type.
+   *
+   * @example
+   * shuffle([1, 2, 3]); // e.g., [3, 1, 2]
+   * shuffle({ a: 1, b: 2 }); // e.g., { b: 2, a: 1 }
+   */
+  export function shuffle<T>(array: T[]): T[];
 
-export function benchmark() {
-  const size = 3000;
-  const keys = Array.from(
-    { length: size },
-    (_, i) => `key${i}`
-  ) as (keyof Record<string, number>)[];
+  export function shuffle<O extends Record<ObjectKey, any>>(object: O): O;
 
-  const plainObj: Record<string, number> = {};
-  keys.forEach((k) => (plainObj[k] = 0));
-
-  const { proxied } = Datum.makeMapPlain(plainObj);
-
-  function measure(fn: () => void): number {
-    const start = performance.now();
-    fn();
-    return performance.now() - start;
+  export function shuffle(inp: any[] | Record<ObjectKey, any>) {
+    if (!Array.isArray(inp)) {
+      return Object.fromEntries(shuffle(Object.entries(inp)));
+    } else {
+      return fisherYates(inp);
+    }
   }
 
-  const plainGet = measure(() => {
-    for (const key of keys) {
-      const v = plainObj[key];
+  /**
+   * Shuffles an array in-place using the Fisher-Yates algorithm.
+   *
+   * - Produces a uniformly random permutation.
+   * - Returns a new array (does not mutate the original).
+   *
+   * @template T - Type of elements in the array.
+   * @param array - Input array to shuffle.
+   * @returns A new array with shuffled elements.
+   *
+   * @example
+   * fisherYates([1, 2, 3]); // e.g., [2, 3, 1]
+   */
+  export function fisherYates<T>(array: T[]): T[] {
+    const a = [...array];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
     }
-  });
+    return a;
+  }
 
-  const proxyGet = measure(() => {
-    for (const key of keys) {
-      const v = proxied[key];
+  /**
+   * Recursively sorts the keys of an object to produce a normalized structure.
+   * Useful for consistent hashing, equality checks, or serialization where key order matters.
+   *
+   * @template T
+   * @param input - The input to normalize, which may be an object, array, or primitive.
+   * @returns A new object/array with keys sorted recursively, or the original primitive value.
+   *
+   * @example
+   * const obj = { b: 1, a: { d: 4, c: 3 } };
+   * const normalized = normalize(obj);
+   * // normalized = { a: { c: 3, d: 4 }, b: 1 }
+   */
+  export function normalize<T>(input: T): T {
+    if (Array.isArray(input)) {
+      return input.map(normalize) as T;
+    } else if (input !== null && typeof input === "object") {
+      const sorted = Object.keys(input)
+        .sort()
+        .reduce((acc, key) => {
+          acc[key] = normalize((input as any)[key]);
+          return acc;
+        }, {} as any);
+      return sorted as T;
     }
-  });
+    return input;
+  }
 
-  const plainSet = measure(() => {
-    for (const key of keys) {
-      plainObj[key] = 123;
+  /**
+   * Validates that an object conforms to a partial schema of validation functions.
+   * Each schema key maps to a function that returns true if the value is valid, false otherwise.
+   * Does not throw; instead returns a tuple of validity and error messages.
+   *
+   * @template T extends object
+   * @param obj - The object to validate.
+   * @param schema - Partial validation schema.
+   * @returns A tuple where the first element indicates overall validity,
+   *   and the second is an array of error messages for failed validations.
+   *
+   * @example
+   * const schema = {
+   *   age: (val) => typeof val === "number" && val > 0,
+   *   name: (val) => typeof val === "string" && val.length > 0,
+   * };
+   * const [isValid, errors] = conform({ age: 25, name: "Alice" }, schema);
+   */
+  export function conform<T extends object>(
+    obj: any,
+    schema: Partial<Record<keyof T, (val: any) => boolean>>
+  ): [boolean, string[]] {
+    const errors: string[] = [];
+    for (const key in schema) {
+      if (!schema[key]!(obj[key])) {
+        errors.push(`Key '${key}' failed validation.`);
+      }
     }
-  });
+    return [errors.length === 0, errors];
+  }
 
-  const proxySet = measure(() => {
+  /**
+   * Creates a new object by picking only the specified keys from the input object.
+   *
+   * @template T extends object, K extends keyof T
+   * @param obj - Source object to pick properties from.
+   * @param keys - Array of keys to select.
+   * @returns New object containing only the picked keys.
+   *
+   * @example
+   * const obj = { a: 1, b: 2, c: 3 };
+   * const picked = pick(obj, ['a', 'c']);
+   * // picked = { a: 1, c: 3 }
+   */
+  export function pick<T extends object, K extends keyof T>(
+    obj: T,
+    keys: K[]
+  ): Pick<T, K> {
+    const result = {} as Pick<T, K>;
     for (const key of keys) {
-      proxied[key] = 123;
+      if (key in obj) result[key] = obj[key];
     }
-  });
+    return result;
+  }
 
-  const plainDelete = measure(() => {
-    for (const key of keys) {
-      delete plainObj[key];
+  /**
+   * Infers the simple type or shape of a given value as a string.
+   * Recognizes "array", "null", or the result of `typeof`.
+   *
+   * @param value - The value to infer the type of.
+   * @returns The inferred type string: "array", "null", or `typeof` result.
+   *
+   * @example
+   * infer([1,2]); // "array"
+   * infer(null);  // "null"
+   * infer(123);   // "number"
+   */
+  export function infer(value: any[]): "array";
+  export function infer(value: null): "null";
+  export function infer(value: string): "string";
+  export function infer(value: number): "number";
+  export function infer(value: boolean): "boolean";
+  export function infer(value: undefined): "undefined";
+  export function infer(value: Function): "function";
+  export function infer(value: object): "object";
+  export function infer(value: any): string;
+
+  export function infer(value: any): string {
+    if (Array.isArray(value)) return "array";
+    if (value === null) return "null";
+    return typeof value;
+  }
+
+  /**
+   * Recursively searches an object to find the path (array of keys) to a given target value.
+   * Returns null if the target is not found.
+   *
+   * @param obj - The object to search within.
+   * @param target - The target value to find.
+   * @param path - Accumulated path during recursion (for internal use).
+   * @returns Array of keys representing the path to the target, or null if not found.
+   *
+   * @example
+   * const obj = { a: { b: { c: 42 } } };
+   * trace(obj, 42); // ["a", "b", "c"]
+   */
+  export function trace(
+    obj: any,
+    target: any,
+    path: string[] = []
+  ): string[] | null {
+    if (obj === target) return path;
+    if (typeof obj !== "object" || obj === null) return null;
+
+    for (const key in obj) {
+      const result = trace(obj[key], target, [...path, key]);
+      if (result) return result;
     }
-  });
 
-  const proxyDelete = measure(() => {
-    for (const key of keys) {
-      delete proxied[key];
+    return null;
+  }
+
+  /**
+   * Converts an array of objects into a lookup map keyed by a specified object property.
+   *
+   * @template T, K extends keyof T
+   * @param array - Array of objects to index.
+   * @param key - Key property name to use as the map key.
+   * @returns Object mapping from stringified key values to corresponding objects.
+   *
+   * @example
+   * const users = [{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }];
+   * const userMap = index(users, "id");
+   * // userMap = { "1": { id: 1, name: "Alice" }, "2": { id: 2, name: "Bob" } }
+   */
+  export function index<T, K extends keyof T>(
+    array: T[],
+    key: K
+  ): Record<string, T> {
+    return array.reduce((acc, item) => {
+      const id = String(item[key]);
+      acc[id] = item;
+      return acc;
+    }, {} as Record<string, T>);
+  }
+
+  /**
+   * Remaps keys of an object according to a mapping function or key map object.
+   * If no mapping exists for a key, it retains the original key.
+   *
+   * @template T extends object
+   * @param obj - The source object whose keys will be remapped.
+   * @param mapper
+   *   Either an object mapping old keys to new keys, or a function that returns the new key for each entry.
+   * @returns New object with remapped keys and original values.
+   *
+   * @example
+   * remap({ a: 1, b: 2 }, { a: "alpha" }); // { alpha: 1, b: 2 }
+   * remap({ a: 1, b: 2 }, (k, v) => k.toUpperCase()); // { A: 1, B: 2 }
+   */
+  export function remap<T extends object>(
+    obj: T,
+    mapper:
+      | { [K in keyof T]?: string }
+      | ((key: keyof T, value: T[keyof T]) => string)
+  ): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const key in obj) {
+      const newKey =
+        typeof mapper === "function"
+          ? mapper(key, obj[key])
+          : mapper[key] ?? key;
+      result[newKey] = obj[key];
     }
-  });
+    return result;
+  }
 
-  console.log(`Performance results for ${size} records (ms):`);
-  console.log(
-    `Plain Object - get: ${plainGet.toFixed(2)} | set: ${plainSet.toFixed(
-      2
-    )} | delete: ${plainDelete.toFixed(2)}`
-  );
-  console.log(
-    `Proxy + Map  - get: ${proxyGet.toFixed(2)} | set: ${proxySet.toFixed(
-      2
-    )} | delete: ${proxyDelete.toFixed(2)}`
-  );
+  /**
+   * Asserts that a condition is truthy. Throws an error with a message if the condition is falsy.
+   * Useful for runtime type checks and ensuring invariants.
+   *
+   * @param condition - Condition to assert truthy.
+   * @param message- Error message for the thrown exception.
+   * @throws {Error} Throws if the condition is falsy.
+   *
+   * @example
+   * assert(typeof value === "string", "Value must be a string");
+   */
+  export function assert(
+    condition: any,
+    message = "Assertion failed"
+  ): asserts condition {
+    if (!condition) {
+      throw new Error(message);
+    }
+  }
+
+  /**
+   * Returns a random element from an array, or null if the array is empty.
+   *
+   * @template T
+   * @param array - The array to sample from.
+   * @returns A randomly chosen element, or null if the array has no elements.
+   *
+   * @example
+   * sample([1, 2, 3]); // might return 2
+   * sample([]);        // returns null
+   */
+  export function sample<T>(array: T[]): T | null {
+    if (array.length === 0) return null;
+    const index = Math.floor(Math.random() * array.length);
+    return array[index];
+  }
 }
