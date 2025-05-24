@@ -19,7 +19,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.16",
+  version: "2.0.17",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -1421,6 +1421,8 @@ export namespace PetTurns {
   export function Bash({
     activePet,
     targetPet,
+    opponentStats,
+    petStats,
     prevMove = "",
     dodgeChance = Math.random(),
   }: PetTurns.TurnArg): PetTurns.TurnResult {
@@ -1429,15 +1431,17 @@ export namespace PetTurns {
       flavor += `${UNIRedux.charm} ${getProfile(targetPet)} dodged!`;
       return { damage: 0, dodged: true, flavor };
     }
-    const damage = Math.round(activePet.calculateAttack(targetPet.DF));
-
+    let damage = Math.round(activePet.calculateAttack(targetPet.DF));
+    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
     flavor += `${
       UNIRedux.charm
-    } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
-
+    } Dealt **${damage}** physical damage.\n${targetPet.getPlayerUI()}`;
+    targetPet.HP -= damage;
+    petStats.totalDamageDealt += damage;
+    opponentStats.totalDamageTaken += damage;
     return {
       damage,
-      dodged: true,
+      dodged: false,
       flavor,
     };
   }
@@ -1445,6 +1449,8 @@ export namespace PetTurns {
   export function HexSmash({
     activePet,
     targetPet,
+    petStats,
+    opponentStats,
     prevMove = "",
     dodgeChance = Math.random(),
   }: PetTurns.TurnArg): PetTurns.TurnResult {
@@ -1457,15 +1463,19 @@ export namespace PetTurns {
       (activePet.ATK + activePet.MAGIC) / 2,
       activePet.ATK * 3
     );
-    const damage = Math.round(
+    let damage = Math.round(
       activePet.calculateAttack(targetPet.DF, meanStat) * 1.5
     );
+    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
     flavor += `${
       UNIRedux.charm
     } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
+    targetPet.HP -= damage;
+    petStats.totalDamageDealt += damage;
+    opponentStats.totalDamageTaken += damage;
     return {
       damage,
-      dodged: true,
+      dodged: false,
       flavor,
     };
   }
@@ -1478,33 +1488,34 @@ export namespace PetTurns {
     dodgeChance = Math.random(),
   }: PetTurns.TurnArg): PetTurns.TurnResult {
     let flavor = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🌩️ **FluxStrike**!\n`;
+
     if ((prevMove === "fluxstrike" && dodgeChance < 0.7) || dodgeChance < 0.1) {
       flavor += `${UNIRedux.charm} ${getProfile(targetPet)} dodged!`;
       return { damage: 0, dodged: true, flavor };
-    } else {
-      const damageFactor = Math.max(
-        0.5,
-        1 - petStats.totalDamageDealt / (targetPet.maxHP * 2)
-      );
-      const fluxMultiplier =
-        1 +
-        Math.random() * 0.5 * (targetPet.HP / targetPet.maxHP) * damageFactor;
-      const damage = Math.round(
-        activePet.ATK * fluxMultiplier - targetPet.DF / 5
-      );
-      targetPet.HP -= damage;
-      petStats.totalDamageDealt += damage;
-      opponentStats.totalDamageTaken += damage;
-      flavor += `${
-        UNIRedux.charm
-      } Dealt **${damage}** fluctuating damage.\n${targetPet.getPlayerUI()}`;
-      return {
-        damage,
-        dodged: true,
-        flavor,
-      };
     }
+
+    const bashDamage = activePet.calculateAttack(targetPet.DF);
+
+    const lostHp = targetPet.maxHP - targetPet.HP;
+    const fluxBonus = Math.round(bashDamage * 0.5 + lostHp * 0.1);
+
+    let damage = Math.round(bashDamage + fluxBonus);
+
+    damage = Math.min(damage, targetPet.HP - 1);
+
+    targetPet.HP -= damage;
+    petStats.totalDamageDealt += damage;
+    opponentStats.totalDamageTaken += damage;
+
+    flavor += `Dealt **${damage}** flickering damage, growing with injury.\n${targetPet.getPlayerUI()}`;
+
+    return {
+      damage,
+      dodged: false,
+      flavor,
+    };
   }
+
   export function ChaosBolt({
     activePet,
     targetPet,
@@ -1514,43 +1525,87 @@ export namespace PetTurns {
     dodgeChance = Math.random(),
   }: PetTurns.TurnArg): PetTurns.TurnResult {
     let flavor = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ⚡ **ChaosBolt**!\n`;
+
     if ((prevMove === "chaosbolt" && dodgeChance < 0.9) || dodgeChance < 0.5) {
       flavor += `${UNIRedux.charm} ${getProfile(targetPet)} dodged!`;
       return { damage: 0, flavor, dodged: true };
-    } else {
-      const statThreshold = activePet.level * 2;
-      const statFactor = Math.min(
-        (activePet.ATK + activePet.MAGIC) / statThreshold,
-        1
-      );
-      const effectiveStat = Math.max(activePet.ATK, activePet.MAGIC / 2);
-      let damage = Math.round(
-        activePet.calculateAttack(targetPet.DF, effectiveStat) * statFactor
-      );
-      const chaosChance =
-        Math.min(
-          ((activePet.ATK + activePet.MAGIC) / (targetPet.DF || 1)) * 0.2,
-          0.3
-        ) *
-        (1 - petStats.attackBoosts * 0.1);
-      if (Math.random() < chaosChance && statFactor >= 1) {
-        damage = Math.round(damage * 1.5);
-        flavor += `${UNIRedux.charm} Critical chaos hit! `;
-      }
-      damage = Math.min(damage, Math.round(targetPet.maxHP * 0.25));
-      targetPet.HP -= damage;
-      petStats.totalDamageDealt += damage;
-      opponentStats.totalDamageTaken += damage;
-      flavor += `${
-        UNIRedux.charm
-      } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
-      petStats.lastMove = "chaosbolt";
-      return {
-        damage,
-        dodged: true,
-        flavor,
-      };
     }
+
+    const statThreshold = activePet.level * 2;
+    const statRatio = (activePet.ATK + activePet.MAGIC) / statThreshold;
+    const statFactor = Math.min(statRatio, 1.5);
+
+    const effectiveStat = Math.max(activePet.ATK, activePet.MAGIC * 0.75);
+    let damage = Math.round(
+      activePet.calculateAttack(targetPet.DF, effectiveStat) * statFactor
+    );
+
+    const baseChaosChance = Math.min(
+      ((activePet.ATK + activePet.MAGIC) / (targetPet.DF || 1)) * 0.2,
+      0.3
+    );
+    const critChance = baseChaosChance / (1 + petStats.attackBoosts);
+
+    if (Math.random() < critChance && statFactor >= 1) {
+      damage = Math.round(damage * 2);
+      const boost = Math.min(5, Math.floor(Math.max(1, activePet.ATK * 0.1)));
+      activePet.atkModifier += boost;
+      petStats.attackBoosts += boost;
+      flavor += `${UNIRedux.charm} 🌪️ **Critical Chaos Hit!**,  **${activePet.petName}** is empowered (+**${boost}** ATK).\n`;
+    }
+
+    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
+    targetPet.HP -= damage;
+    petStats.totalDamageDealt += damage;
+    opponentStats.totalDamageTaken += damage;
+    petStats.lastMove = "chaosbolt";
+
+    flavor += `${
+      UNIRedux.charm
+    } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
+
+    return {
+      damage,
+      dodged: false,
+      flavor,
+    };
+  }
+
+  export function LastStand({
+    activePet,
+    targetPet,
+    petStats,
+    opponentStats,
+    dodgeChance = Math.random(),
+  }: PetTurns.TurnArg): PetTurns.TurnResult {
+    let flavor = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** tried 🛡️ **Last Stand**!\n`;
+
+    const failChance = 0.6;
+    if (dodgeChance < failChance) {
+      flavor += `${UNIRedux.charm} The move failed! ${activePet.petName} couldn't pull it off...`;
+      return { damage: 0, dodged: false, flavor };
+    }
+
+    const lostHp = activePet.maxHP - activePet.HP;
+    const bonusDamage = Math.round(lostHp * 0.1);
+
+    const doubledDF = targetPet.DF * 2;
+    const baseDamage = Math.round(activePet.calculateAttack(doubledDF));
+    const damage = baseDamage + bonusDamage;
+
+    targetPet.HP -= damage;
+    petStats.totalDamageDealt += damage;
+    opponentStats.totalDamageTaken += damage;
+
+    flavor += `${UNIRedux.charm} Dealt **${damage}** damage, empowered by ${
+      activePet.petName
+    }'s resilience!\n${targetPet.getPlayerUI()}`;
+
+    return {
+      damage,
+      dodged: false,
+      flavor,
+    };
   }
 }
 
