@@ -19,7 +19,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.18",
+  version: "2.0.19",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -1133,11 +1133,11 @@ export class PetPlayer {
   calculateAttack(enemyDef: number, atk: number = this.ATK) {
     atk ??= this.ATK;
     const df = enemyDef;
-    const effectiveAtk = Numero.statDiminishingPower(atk, 80);
+    const effectiveAtk = Numero.statDiminishingPower(atk, 89);
     return Math.max(
       1,
       this.calculateReducedDamage(
-        Math.floor(Numero.applyVariance(effectiveAtk, 0.2) * 2.2),
+        Math.floor(Numero.applyVariance(effectiveAtk, 0.1) * 2.2),
         df
       )
     );
@@ -1146,11 +1146,11 @@ export class PetPlayer {
   calculateAttackLinear(enemyDef: number, atk: number = this.ATK) {
     atk ??= this.ATK;
     const df = enemyDef;
-    const effectiveAtk = Numero.statDiminishingPower(atk, 80);
+    const effectiveAtk = Numero.statDiminishingPower(atk, 89);
     return Math.max(
       1,
       this.calculateReducedDamageLinear(
-        Math.floor(Numero.applyVariance(effectiveAtk, 0.7) * 2.2),
+        Math.floor(Numero.applyVariance(effectiveAtk, 0.1) * 2.2),
         df
       )
     );
@@ -1190,7 +1190,7 @@ export class PetPlayer {
    * @returns {number} - The reduced damage
    */
   calculateReducedDamage(damage: number, def: number = this.DF): number {
-    const defReduction = Numero.statDiminishingPower(def, 80);
+    const defReduction = Numero.statDiminishingPower(def, 60);
     let reducedDamage = damage - defReduction;
 
     return Math.max(Math.floor(reducedDamage), 1);
@@ -1433,12 +1433,13 @@ export namespace PetTurns {
     }
     let damage = Math.round(activePet.calculateAttack(targetPet.DF));
     damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
-    flavor += `${
-      UNIRedux.charm
-    } Dealt **${damage}** physical damage.\n${targetPet.getPlayerUI()}`;
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;
+    flavor += `${
+      UNIRedux.charm
+    } Dealt **${damage}** physical damage.\n${targetPet.getPlayerUI()}`;
+
     return {
       damage,
       dodged: false,
@@ -1467,12 +1468,13 @@ export namespace PetTurns {
       activePet.calculateAttack(targetPet.DF, meanStat) * 1.5
     );
     damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
-    flavor += `${
-      UNIRedux.charm
-    } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;
+    flavor += `${
+      UNIRedux.charm
+    } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
+
     return {
       damage,
       dodged: false,
