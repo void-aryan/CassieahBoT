@@ -1,4 +1,4 @@
-import { GearsManage, PetPlayer } from "@cass-plugins/pet-fight";
+import { GearsManage, PetPlayer, PetTurns } from "@cass-plugins/pet-fight";
 import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
 import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
@@ -9,7 +9,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.3.7",
+  version: "1.4.0",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -1249,6 +1249,14 @@ export async function entry({
         prevMove
       );
     }
+    const turnCTX = {
+      activePet,
+      opponentStats,
+      petStats,
+      targetPet,
+      dodgeChance,
+      prevMove,
+    };
 
     switch (turn) {
       case "cheat":
@@ -1267,109 +1275,139 @@ export async function entry({
           flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** tried to cheat but failed.`;
         }
         break;
-      case "bash":
-        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🥊 **Bash**!\n`;
-        if ((prevMove === "bash" && dodgeChance < 0.7) || dodgeChance < 0.1) {
-          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
-        } else {
-          const damage = Math.round(activePet.calculateAttack(targetPet.DF));
-          targetPet.HP -= damage;
-          petStats.totalDamageDealt += damage;
-          opponentStats.totalDamageTaken += damage;
-          flavorText += `${
-            UNIRedux.charm
-          } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
-        }
+      // case "bash_old":
+      //   flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🥊 **Bash**!\n`;
+      //   if ((prevMove === "bash" && dodgeChance < 0.7) || dodgeChance < 0.1) {
+      //     flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
+      //   } else {
+      //     const damage = Math.round(activePet.calculateAttack(targetPet.DF));
+      //     targetPet.HP -= damage;
+      //     petStats.totalDamageDealt += damage;
+      //     opponentStats.totalDamageTaken += damage;
+      //     flavorText += `${
+      //       UNIRedux.charm
+      //     } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
+      //   }
+      //   break;
+      case "bash": {
+        const res = PetTurns.Bash(turnCTX);
+        flavorText += res.flavor;
         break;
-      case "hexsmash":
-        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 💥 **HexSmash**!\n`;
-        if (
-          (prevMove === "hexsmash" && dodgeChance < 0.7) ||
-          dodgeChance < 0.1
-        ) {
-          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
-        } else {
-          const meanStat = Math.min(
-            (activePet.ATK + activePet.MAGIC) / 2,
-            activePet.ATK * 3
-          );
-          const damage = Math.round(
-            activePet.calculateAttack(targetPet.DF, meanStat) * 1.5
-          );
-          targetPet.HP -= damage;
-          petStats.totalDamageDealt += damage;
-          opponentStats.totalDamageTaken += damage;
-          flavorText += `${
-            UNIRedux.charm
-          } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
-        }
+      }
+
+      case "hexsmash": {
+        const res = PetTurns.HexSmash(turnCTX);
+        flavorText += res.flavor;
         break;
-      case "fluxstrike":
-        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🌩️ **FluxStrike**!\n`;
-        if (
-          (prevMove === "fluxstrike" && dodgeChance < 0.7) ||
-          dodgeChance < 0.1
-        ) {
-          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
-        } else {
-          const damageFactor = Math.max(
-            0.5,
-            1 - petStats.totalDamageDealt / (targetPet.maxHP * 2)
-          );
-          const fluxMultiplier =
-            1 +
-            Math.random() *
-              0.5 *
-              (targetPet.HP / targetPet.maxHP) *
-              damageFactor;
-          const damage = Math.round(
-            activePet.ATK * fluxMultiplier - targetPet.DF / 5
-          );
-          targetPet.HP -= damage;
-          petStats.totalDamageDealt += damage;
-          opponentStats.totalDamageTaken += damage;
-          flavorText += `${
-            UNIRedux.charm
-          } Dealt **${damage}** fluctuating damage.\n${targetPet.getPlayerUI()}`;
-        }
+      }
+
+      case "fluxstrike": {
+        const res = PetTurns.FluxStrike(turnCTX);
+        flavorText += res.flavor;
         break;
-      case "chaosbolt":
-        flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ⚡ **ChaosBolt**!\n`;
-        if (
-          (prevMove === "chaosbolt" && dodgeChance < 0.9) ||
-          dodgeChance < 0.5
-        ) {
-          flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
-        } else {
-          const statThreshold = activePet.level * 2;
-          const statFactor = Math.min(
-            (activePet.ATK + activePet.MAGIC) / statThreshold,
-            1
-          );
-          const effectiveStat = Math.max(activePet.ATK, activePet.MAGIC / 2);
-          let damage = Math.round(
-            activePet.calculateAttack(targetPet.DF, effectiveStat) * statFactor
-          );
-          const chaosChance =
-            Math.min(
-              ((activePet.ATK + activePet.MAGIC) / (targetPet.DF || 1)) * 0.2,
-              0.3
-            ) *
-            (1 - petStats.attackBoosts * 0.1);
-          if (Math.random() < chaosChance && statFactor >= 1) {
-            damage = Math.round(damage * 1.5);
-            flavorText += `${UNIRedux.charm} Critical chaos hit! `;
-          }
-          damage = Math.min(damage, Math.round(targetPet.maxHP * 0.25));
-          targetPet.HP -= damage;
-          petStats.totalDamageDealt += damage;
-          opponentStats.totalDamageTaken += damage;
-          flavorText += `${
-            UNIRedux.charm
-          } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
-          petStats.lastMove = "chaosbolt";
-        }
+      }
+
+      case "chaosbolt": {
+        const res = PetTurns.ChaosBolt(turnCTX);
+        flavorText += res.flavor;
         break;
+      }
+
+      case "laststand": {
+        const res = PetTurns.LastStand(turnCTX);
+        flavorText += res.flavor;
+        break;
+      }
+
+      // case "hexsmash":
+      //   flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 💥 **HexSmash**!\n`;
+      //   if (
+      //     (prevMove === "hexsmash" && dodgeChance < 0.7) ||
+      //     dodgeChance < 0.1
+      //   ) {
+      //     flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
+      //   } else {
+      //     const meanStat = Math.min(
+      //       (activePet.ATK + activePet.MAGIC) / 2,
+      //       activePet.ATK * 3
+      //     );
+      //     const damage = Math.round(
+      //       activePet.calculateAttack(targetPet.DF, meanStat) * 1.5
+      //     );
+      //     targetPet.HP -= damage;
+      //     petStats.totalDamageDealt += damage;
+      //     opponentStats.totalDamageTaken += damage;
+      //     flavorText += `${
+      //       UNIRedux.charm
+      //     } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
+      //   }
+      //   break;
+      // case "fluxstrike":
+      //   flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used 🌩️ **FluxStrike**!\n`;
+      //   if (
+      //     (prevMove === "fluxstrike" && dodgeChance < 0.7) ||
+      //     dodgeChance < 0.1
+      //   ) {
+      //     flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
+      //   } else {
+      //     const damageFactor = Math.max(
+      //       0.5,
+      //       1 - petStats.totalDamageDealt / (targetPet.maxHP * 2)
+      //     );
+      //     const fluxMultiplier =
+      //       1 +
+      //       Math.random() *
+      //         0.5 *
+      //         (targetPet.HP / targetPet.maxHP) *
+      //         damageFactor;
+      //     const damage = Math.round(
+      //       activePet.ATK * fluxMultiplier - targetPet.DF / 5
+      //     );
+      //     targetPet.HP -= damage;
+      //     petStats.totalDamageDealt += damage;
+      //     opponentStats.totalDamageTaken += damage;
+      //     flavorText += `${
+      //       UNIRedux.charm
+      //     } Dealt **${damage}** fluctuating damage.\n${targetPet.getPlayerUI()}`;
+      //   }
+      //   break;
+      // case "chaosbolt":
+      //   flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ⚡ **ChaosBolt**!\n`;
+      //   if (
+      //     (prevMove === "chaosbolt" && dodgeChance < 0.9) ||
+      //     dodgeChance < 0.5
+      //   ) {
+      //     flavorText += `${UNIRedux.charm} **${targetPet.petName}** dodged!`;
+      //   } else {
+      //     const statThreshold = activePet.level * 2;
+      //     const statFactor = Math.min(
+      //       (activePet.ATK + activePet.MAGIC) / statThreshold,
+      //       1
+      //     );
+      //     const effectiveStat = Math.max(activePet.ATK, activePet.MAGIC / 2);
+      //     let damage = Math.round(
+      //       activePet.calculateAttack(targetPet.DF, effectiveStat) * statFactor
+      //     );
+      //     const chaosChance =
+      //       Math.min(
+      //         ((activePet.ATK + activePet.MAGIC) / (targetPet.DF || 1)) * 0.2,
+      //         0.3
+      //       ) *
+      //       (1 - petStats.attackBoosts * 0.1);
+      //     if (Math.random() < chaosChance && statFactor >= 1) {
+      //       damage = Math.round(damage * 1.5);
+      //       flavorText += `${UNIRedux.charm} Critical chaos hit! `;
+      //     }
+      //     damage = Math.min(damage, Math.round(targetPet.maxHP * 0.25));
+      //     targetPet.HP -= damage;
+      //     petStats.totalDamageDealt += damage;
+      //     opponentStats.totalDamageTaken += damage;
+      //     flavorText += `${
+      //       UNIRedux.charm
+      //     } Dealt **${damage}** damage.\n${targetPet.getPlayerUI()}`;
+      //     petStats.lastMove = "chaosbolt";
+      //   }
+      //   break;
       case "equilibrium":
         flavorText = `${UNIRedux.charm} ${activePet.petIcon} **${activePet.petName}** used ⚖️ **Equilibrium**!\n`;
         const eqFactor = Math.min(
