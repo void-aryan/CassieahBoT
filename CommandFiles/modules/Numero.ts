@@ -260,7 +260,11 @@ export namespace Numero {
     const clampedAngleDeg = Math.min(MAX_ANGLE, Math.max(MIN_ANGLE, angleDeg));
     const exponent = clampedAngleDeg / 90;
 
-    return Math.pow(value, exponent);
+    let a =
+      value >= 0
+        ? Math.pow(value, exponent)
+        : -Math.pow(Math.abs(value), exponent);
+    return a;
   }
 
   /**
@@ -279,7 +283,7 @@ export namespace Numero {
     const angleRad = (clampedAngleDeg * Math.PI) / 180;
     const slope = Math.tan(angleRad);
 
-    return value * slope;
+    return value >= 0 ? value * slope : -(Math.abs(value) * slope);
   }
 
   /**
