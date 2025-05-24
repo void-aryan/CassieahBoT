@@ -45,6 +45,7 @@ const petSchema: PetSchema = {
     StatSync: "🔄",
     Equilibrium: "⚖️",
     Generate: "🤖",
+    LastStand: "🛡️",
   },
 };
 
