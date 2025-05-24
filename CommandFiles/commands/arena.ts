@@ -681,13 +681,13 @@ function generateAIMove(
         move.move === "guardpulse" &&
         petStats.defenseBoosts < DEFENSE_BOOST_CAP
       ) {
-        move.score *= 1.5;
+        move.score *= 1.1;
       }
       if (move.move === "vitalsurge" && currentHPPercent < 10) {
-        move.score *= 0.7;
+        move.score *= 1.1;
       }
       if (move.move === "guardpulse" && currentHPPercent < 50) {
-        move.score *= 1.5;
+        move.score *= 1.1;
       }
     });
   }
@@ -1646,7 +1646,7 @@ export async function entry({
               wonDias
                 ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate`
                 : ""
-            }, ${loserName} earned ${formatCash(
+            }**, ${loserName} earned ${formatCash(
               loserPts,
               "💷",
               true
@@ -1663,7 +1663,7 @@ export async function entry({
               wonDias
                 ? ` and **${wonDias}** 💎 stellar gems & gems & 🔮 intertwined fate!`
                 : ""
-            }, ${loserName} earned ${formatCash(
+            }**, ${loserName} earned ${formatCash(
               loserPts,
               "💷",
               true

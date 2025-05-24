@@ -19,7 +19,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.17",
+  version: "2.0.18",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -1137,7 +1137,7 @@ export class PetPlayer {
     return Math.max(
       1,
       this.calculateReducedDamage(
-        Math.floor(Numero.applyVariance(effectiveAtk, 0.7) * 2.2),
+        Math.floor(Numero.applyVariance(effectiveAtk, 0.2) * 2.2),
         df
       )
     );
