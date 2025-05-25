@@ -117,6 +117,9 @@ export default class UserStatsManager {
    */
   process(data: UserData, userID: string | number) {
     data ??= this.defaults;
+    if (data.name === "Unregistered") {
+      delete data.name;
+    }
     data.money ??= 0;
     data.money = data.money <= 0 || isNaN(data.money) ? 0 : Number(data.money);
 
@@ -919,13 +922,13 @@ export default class UserStatsManager {
   }
 
   async ensureUserInfo(userID: string, refUID?: string) {
-    const { userMeta } = await this.getCache(userID);
+    const { userMeta, userInfo } = await this.getCache(userID);
 
-    if (!userMeta) {
+    if (!userMeta || !userInfo) {
       return this.saveUserInfo(userID, refUID);
     }
 
-    const { image } = userMeta;
+    const { image } = (await this.getCache(userID)).userMeta;
     if (!image) {
       return this.saveUserInfo(userID, refUID);
     }
@@ -1033,6 +1036,14 @@ export default class UserStatsManager {
         } catch (error) {
           console.error(error);
           failUserInfo = true;
+          data.userInfo = {
+            isBirthday: false,
+            name: "Unknown User",
+            profileUrl: "",
+            searchToken: [],
+            thumbSrc: "",
+            type: "",
+          };
         }
       }
 
