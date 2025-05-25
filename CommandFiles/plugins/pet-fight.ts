@@ -19,7 +19,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.19",
+  version: "2.0.21",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -1005,19 +1005,19 @@ export class PetPlayer {
     const safeLevelMultiplier = levelMultiplier || 0;
     const max = Math.floor(20 + safeLevelMultiplier) + extra;
 
-    const safeDFPart = Math.round(DF / 10 || 1);
-    const atkMult = Math.round(ATK * 2.1 || 0);
+    const safeDFPart = Math.round(DF * 2.1 || 1);
+    const atkMult = Math.round(ATK * 0.47 || 0);
 
     const rawStrength =
       (ATK || 0) +
       (safeDFPart || 1) +
       (MAGIC || 0) +
-      (max || 0) +
+      (max || 0) -
       (atkMult || 0);
 
     const finalStrength = rawStrength * 1.75;
 
-    return finalStrength || 0;
+    return Math.max(finalStrength || 0, max);
   }
 
   maxHPModifier = 0;
@@ -1190,7 +1190,7 @@ export class PetPlayer {
    * @returns {number} - The reduced damage
    */
   calculateReducedDamage(damage: number, def: number = this.DF): number {
-    const defReduction = Numero.statDiminishingPower(def, 60);
+    const { defReduction } = this.calculateDamageReduction(def);
     let reducedDamage = damage - defReduction;
 
     return Math.max(Math.floor(reducedDamage), 1);
@@ -1198,7 +1198,7 @@ export class PetPlayer {
 
   calculateDamageReduction(def = this.DF) {
     const k = 5;
-    const defReduction = def / 5;
+    const defReduction = Numero.statDiminishingPower(def / 5, 85);
 
     return {
       defReduction: Math.floor(defReduction),
@@ -1432,7 +1432,8 @@ export namespace PetTurns {
       return { damage: 0, dodged: true, flavor };
     }
     let damage = Math.round(activePet.calculateAttack(targetPet.DF));
-    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
+    damage = Math.min(damage, Math.round(targetPet.HP * 0.8));
+    damage = targetPet.HP === 1 ? damage : Math.min(damage, targetPet.HP - 1);
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;
@@ -1467,7 +1468,8 @@ export namespace PetTurns {
     let damage = Math.round(
       activePet.calculateAttack(targetPet.DF, meanStat) * 1.5
     );
-    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
+    damage = Math.min(damage, Math.round(targetPet.HP * 0.8));
+
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;
@@ -1501,9 +1503,10 @@ export namespace PetTurns {
     const lostHp = targetPet.maxHP - targetPet.HP;
     const fluxBonus = Math.round(bashDamage * 0.5 + lostHp * 0.1);
 
-    let damage = Math.round(bashDamage + fluxBonus);
+    let damage = Math.round(fluxBonus);
+    damage = Math.floor(Math.min(damage, targetPet.maxHP * 0.25));
 
-    damage = Math.min(damage, targetPet.HP - 1);
+    damage = targetPet.HP === 1 ? damage : Math.min(damage, targetPet.HP - 1);
 
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
@@ -1546,7 +1549,10 @@ export namespace PetTurns {
       ((activePet.ATK + activePet.MAGIC) / (targetPet.DF || 1)) * 0.2,
       0.3
     );
-    const critChance = baseChaosChance / (1 + petStats.attackBoosts);
+    const critChance = Math.max(
+      0.1,
+      baseChaosChance / (1 + petStats.attackBoosts)
+    );
 
     if (Math.random() < critChance && statFactor >= 1) {
       damage = Math.round(damage * 2);
@@ -1556,7 +1562,7 @@ export namespace PetTurns {
       flavor += `${UNIRedux.charm} 🌪️ **Critical Chaos Hit!**,  **${activePet.petName}** is empowered (+**${boost}** ATK).\n`;
     }
 
-    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.7));
+    damage = targetPet.HP === 1 ? damage : Math.min(damage, targetPet.HP - 1);
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;

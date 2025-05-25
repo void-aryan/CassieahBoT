@@ -1,6 +1,7 @@
 import {
   GearsManage,
   PetPlayer,
+  PetTurns,
   randArr,
   WildPlayer,
 } from "@cass-plugins/pet-fight";
@@ -544,8 +545,39 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n
       }
       const petStats = statMap.get(pet.OgpetData.key);
       const opponentStats = statMap.get("opponent");
-
+      const turnCTX = {
+        activePet: pet,
+        opponentStats,
+        petStats,
+        targetPet: gameState.opponent,
+        dodgeChance,
+        prevMove: gameState.prevTurns[i],
+      };
       switch (turn) {
+        // case "bash": {
+        //   const res = PetTurns.Bash(turnCTX);
+        //   flavorText += res.flavor;
+        //   break;
+        // }
+
+        // case "hexsmash": {
+        //   const res = PetTurns.HexSmash(turnCTX);
+        //   flavorText += res.flavor;
+        //   break;
+        // }
+
+        // case "fluxstrike": {
+        //   const res = PetTurns.FluxStrike(turnCTX);
+        //   flavorText += res.flavor;
+        //   break;
+        // }
+
+        // case "chaosbolt": {
+        //   const res = PetTurns.ChaosBolt(turnCTX);
+        //   flavorText += res.flavor;
+        //   break;
+        // }
+        // }
         case "cheat": {
           if (ctx.input.isAdmin) {
             const allAtk = gameState.pets.reduce(

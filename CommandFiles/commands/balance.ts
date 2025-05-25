@@ -6,7 +6,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "balance",
   description: "Check your virtual cash",
   otherNames: ["bal", "money"],
-  version: "3.2.8",
+  version: "3.2.9",
   usage: "{prefix}{name}",
   category: "Finance",
   author: "Liane Cagara",
@@ -34,28 +34,31 @@ function isBrokenMoney(amount: number) {
   );
 }
 
-function sortUsers(
+export function sortUsers(
   users: { [x: string]: UserData },
-  top: number,
-  money: typeof global.handleStat
+  top?: number,
+  money?: typeof global.handleStat
 ) {
-  let result = {};
-  let sortedKeys = Object.keys(users).sort(
-    (a, b) =>
-      money.extractMoney(users[b]).total - money.extractMoney(users[a]).total
+  const entries = Object.entries(users).sort(([, a], [, b]) =>
+    money ? money.extractMoney(b).total - money.extractMoney(a).total : 0
   );
-  if (top) sortedKeys = sortedKeys.slice(0, top);
-  for (const key of sortedKeys) result[key] = users[key];
-  return result;
+
+  const sliced = top && top > 0 ? entries.slice(0, top) : entries;
+
+  return Object.fromEntries(sliced);
 }
-function sortUsersNotTotal(users: { [x: string]: UserData }, top: number) {
-  let result = {};
-  let sortedKeys = Object.keys(users).sort(
-    (a, b) => users[b].money - users[a].money
+
+export function sortUsersNotTotal(
+  users: { [x: string]: UserData },
+  top?: number
+) {
+  const entries = Object.entries(users).sort(
+    ([, a], [, b]) => b.money - a.money
   );
-  if (top) sortedKeys = sortedKeys.slice(0, top);
-  for (const key of sortedKeys) result[key] = users[key];
-  return result;
+
+  const sliced = top && top > 0 ? entries.slice(0, top) : entries;
+
+  return Object.fromEntries(sliced);
 }
 
 export function getBehindAhead(
@@ -97,26 +100,34 @@ const configs: Config[] = [
       if (input.replier) senderID = input.replier.senderID;
       if (input.hasMentions) senderID = input.firstMention.senderID;
       if (spectralArgs[0]) senderID = spectralArgs[0];
-
+      let nonex = false;
       let playerMoney: UserData = await money.getCache(senderID);
-      if (
-        !playerMoney ||
-        !playerMoney.name ||
-        !(await money.exists(senderID))
-      ) {
-        return output.reply(`❌ User ${senderID} does not exist!`);
+      if (!(await money.exists(senderID))) {
+        if (senderID !== input.senderID) {
+          senderID = input.senderID;
+          playerMoney = await money.getCache(senderID);
+          nonex = true;
+        }
       }
 
       const name =
         input.hasMentions || input.replier || spectralArgs[0]
           ? playerMoney.name
           : `${playerMoney.name} (You)`;
+      const name2 =
+        input.hasMentions || input.replier || spectralArgs[0]
+          ? playerMoney.name
+          : `You`;
       output.setUIName(name);
 
       const allCache = await money.getAllCache();
 
       const outputText = [
-        `You have ${formatCash(
+        `${
+          nonex
+            ? "⚠️ That user **doesn't exist**, showing your balance instead.\n\n"
+            : ""
+        }${name2} ${name === name2 ? "has" : "have"} ${formatCash(
           playerMoney.money,
           "💵",
           false
@@ -130,13 +141,7 @@ const configs: Config[] = [
         `**Tip:** Type **${prefix}${commandName} all** for full balance info.`,
       ].join("\n");
 
-      return output.replyStyled(outputText, {
-        ...style,
-        // content: {
-        //   text_font: "none",
-        //   line_bottom_inside_x: "default",
-        // },
-      });
+      return output.reply(outputText);
     },
   },
   {
@@ -160,7 +165,9 @@ const configs: Config[] = [
         !playerMoney.name ||
         !(await money.exists(senderID))
       ) {
-        return output.reply(`❌ User ${senderID} does not exist!`);
+        if (senderID !== input.senderID) {
+          return output.reply(`❌ User ${senderID} does not exist!`);
+        }
       }
 
       return output.reply({
@@ -196,7 +203,9 @@ const configs: Config[] = [
         !playerMoney.name ||
         !(await money.exists(senderID))
       ) {
-        return output.reply(`❌ User ${senderID} does not exist!`);
+        if (senderID !== input.senderID) {
+          return output.reply(`❌ User ${senderID} does not exist!`);
+        }
       }
       const cll = new Collectibles(playerMoney?.collectibles || []);
 
