@@ -1,17 +1,20 @@
 // @ts-check
 import { creatorX } from "./handlers/page/webhook.js";
 
+import { Readable } from "stream";
+import { MultiMap } from "@cass-modules/Multimap";
+
 /**
- * @type {Map<string, WebSocket>}
+ * @type {MultiMap<string, WebSocket>}
  */
-const wssUsers = new Map();
+const wssUsers = new MultiMap();
 
 const http = require("http");
 const WebSocket = require("ws");
 export class Listener {
   /**
    *
-   * @param {{ app: import("express").Express; api: any }} param0
+   * @param {{ app: import("express").Express; api: CommandContext["api"] }} param0
    */
   constructor({ api, app }) {
     this.api = api;
@@ -25,10 +28,15 @@ export class Listener {
       if (typeof api?.listenMqtt === "function") {
         global.logger("Listener Setup Invoked", "FB");
 
-        const e = api?.listenMqtt?.((err, event) => {
+        /**
+         * @type {import("@xaviabot/fca-unofficial").IFCAU_API["listenMqtt"]}
+         */
+        const listenFunc = api.listenMqtt;
+        const e = listenFunc?.((err, event) => {
           if (!alive) {
             return;
           }
+          // @ts-ignore
           if (event) event.isFacebook = true;
           this.#callListener(err, event);
         });
@@ -362,8 +370,6 @@ export const streamToBase64 = async (stream) => {
   });
 };
 
-import { Readable } from "stream";
-
 export const base64ToStream = (base64Str) => {
   const buffer = Buffer.from(base64Str, "base64");
   return Readable.from(buffer);
@@ -497,39 +503,35 @@ export async function recordUser(userID = "wss:user", socket) {
   if (typeof userID !== "string" || !userID) {
     return console.error(`malformed: ${userID}`);
   }
-  if (!wssUsers.has(userID)) {
-    wssUsers.set(userID, socket);
-    socket.panelID = userID;
 
-    console.log(`New USER: ${userID}`);
-    const meta = await fetchMeta(userID);
-    if (!global.handleStat) socket.close();
-    const data = await global.handleStat.getCache(formatIP(userID));
+  wssUsers.addOne(userID, socket);
+  socket.panelID = userID;
 
-    sendAllWS({
-      body: `✅ ${
-        data.name ?? meta.name ?? "Unregistered person"
-      } joined the chat.`,
-      botSend: true,
-    });
-  } else {
-    console.log(`User already: ${userID}`);
-  }
+  console.log(`New USER: ${userID}`);
+  const meta = await fetchMeta(userID);
+  if (!global.handleStat) socket.close();
+  const data = await global.handleStat.getCache(formatIP(userID));
+
+  sendAllWS({
+    body: `✅ ${
+      data.name ?? meta.name ?? "Unregistered person"
+    } joined the chat.`,
+    botSend: true,
+  });
 }
 
 /**
  * Deletes a user from wssUsers, ensuring proper cleanup.
  *
- * @param {string} userID
+ * @param {WebSocket & { panelID: string }} socket
  */
-export async function deleteUser(userID) {
+export async function deleteUser(socket) {
+  const userID = socket.panelID;
   if (typeof userID !== "string" || !userID) {
     return console.error(`Malformed userID: ${userID}`);
   }
 
   if (wssUsers.has(userID)) {
-    const socket = wssUsers.get(userID);
-
     if (socket && typeof socket.close === "function") {
       if (
         socket.readyState === WebSocket.OPEN ||
@@ -545,7 +547,7 @@ export async function deleteUser(userID) {
     const data = await global.handleStat.getCache(formatIP(userID));
     const meta = await fetchMeta(userID);
 
-    wssUsers.delete(userID);
+    wssUsers.deleteRefVal(socket);
     sendAllWS({
       body: `❌ ${
         data.name ?? meta.name ?? "Unregistered person"
@@ -636,7 +638,7 @@ export function handleWebSocket(ws, funcListen) {
         }
       });
       socket.on("close", () => {
-        deleteUser(socket.panelID);
+        deleteUser(socket);
       });
     }
   );

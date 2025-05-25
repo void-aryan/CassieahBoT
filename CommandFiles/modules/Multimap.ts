@@ -137,6 +137,20 @@ export class MultiMap<K, V> {
   }
 
   /**
+   * Removes a specific value by reference.
+   * @param value The value to remove.
+   * @returns True if the entry was removed, false otherwise.
+   */
+  deleteRefVal(entry: V): boolean {
+    const index = this.#_entries.findIndex((e) => e[1] === entry);
+    if (index !== -1) {
+      this.#_entries.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Removes multiple specific key-value pair entries by reference.
    * @param entries The key-value pair entries to remove.
    * @returns The number of entries successfully removed.

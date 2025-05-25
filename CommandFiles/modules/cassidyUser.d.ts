@@ -1,6 +1,7 @@
 // import type { Inventory, Collectibles } from "../plugins/ut-shop.js";
 // import type { CassEXP } from "./cassEXP.js";
 
+import { IFCAU_User } from "@xaviabot/fca-unofficial";
 import { InputRoles } from "./InputClass";
 
 type InventoryTypes =
@@ -199,6 +200,7 @@ type UserData = {
     weapon?: WeaponInventoryItem[];
     armors?: ArmorInventoryItem[];
   }>;
+  userInfo?: IFCAU_User;
 };
 
 type NullableUserData = {

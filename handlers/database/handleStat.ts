@@ -19,6 +19,7 @@ import { UNISpectra } from "@cassidy/unispectra";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
 import axios from "axios";
 import { queryObjects } from "@cass-modules/OBJQuery";
+import { IFCAU_User } from "@xaviabot/fca-unofficial";
 
 export type UserDataKV = Partial<
   {
@@ -867,10 +868,7 @@ export default class UserStatsManager {
   /**
    * Use with caution.
    */
-  async saveThreadInfo(
-    threadID: string,
-    api: Record<string, unknown> | undefined
-  ) {
+  async saveThreadInfo(threadID: string, api = global.api) {
     try {
       if (this.ignoreQueue.includes(threadID)) {
         console.log(
@@ -892,12 +890,15 @@ export default class UserStatsManager {
           console.log(new Error("Missing thread info on api.getThreadInfo"));
           return false;
         }
-        const data = {
+        const data: Partial<UserData> = {
           threadInfo: {
             threadID: threadID,
             threadName: threadInfo.threadName,
+            // @ts-ignore
             emoji: threadInfo.emoji,
+            // @ts-ignore
             adminIDs: threadInfo.adminIDs,
+            // @ts-ignore
             participantIDs: threadInfo.participantIDs,
             isGroup: threadInfo.isGroup,
           },
@@ -940,10 +941,7 @@ export default class UserStatsManager {
     return true;
   }
 
-  async ensureThreadInfo(
-    threadID: string,
-    api: Record<string, unknown> | undefined
-  ) {
+  async ensureThreadInfo(threadID: string, api = global.api) {
     const { threadInfo } = await this.getCache(threadID);
 
     if (!threadInfo) {
@@ -965,15 +963,32 @@ export default class UserStatsManager {
         return false;
       }
       this.ignoreQueue.push(userID);
-      const data = {
-        userMeta: await fetchMeta(refUID ?? userID, true),
+      const id = refUID ?? userID;
+
+      const data: Partial<UserData> = {
+        userMeta: await fetchMeta(id, true),
       };
+      let failUserInfo = false;
+
+      if (this.isNumKey(id) && "getUserInfo" in global.api) {
+        try {
+          const { [id]: userInfo } = await global.api.getUserInfo(id);
+          data.userInfo = userInfo as unknown as IFCAU_User;
+          data.userMeta.name = data.userInfo.name;
+          data.userMeta.url = data.userInfo.profileUrl;
+        } catch (error) {
+          console.error(error);
+          failUserInfo = true;
+        }
+      }
 
       if (
-        !data.userMeta ||
-        Object.values(data.userMeta).some((i) => i === "Not found")
-      )
+        (!data.userMeta ||
+          Object.values(data.userMeta).some((i) => i === "Not found")) &&
+        failUserInfo
+      ) {
         return false;
+      }
 
       await this.setItem(userID, { ...data });
       this.ignoreQueue = this.ignoreQueue.filter((i) => i !== userID);

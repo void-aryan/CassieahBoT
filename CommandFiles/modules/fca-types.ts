@@ -589,7 +589,7 @@ export interface ThreadInfo {
   lastReadTimestamp: number;
   emoji: { emoji: string } | null;
   color: string;
-  adminIDs: FCAID[];
+  adminIDs: { id: FCAID }[];
   approvalMode: boolean;
   approvalQueue: ApprovalQueueItem[];
 }
