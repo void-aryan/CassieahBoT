@@ -951,6 +951,60 @@ export default class UserStatsManager {
     return true;
   }
 
+  async getUserInfo(userID: string): Promise<UserData["userInfo"]>;
+
+  async getUserInfo(
+    userIDs: string[]
+  ): Promise<Record<string, UserData["userInfo"]>>;
+
+  async getUserInfo(userIDorIDs: string | string[]) {
+    if (Array.isArray(userIDorIDs)) {
+      const userIDs = userIDorIDs;
+      for (const id of userIDs) {
+        await this.ensureUserInfo(id);
+      }
+      const items = await this.getItems(...userIDs);
+      const mapped: [string, UserData["userInfo"]][] = Object.entries(
+        items
+      ).map((i) => [i[0], i[1].userInfo]);
+      const res = Object.fromEntries(mapped);
+      return res;
+    } else if (typeof userIDorIDs === "string") {
+      const userID = userIDorIDs;
+      await this.ensureUserInfo(userID);
+      const item = await this.getItem(userID);
+      return item.userInfo;
+    }
+    throw new TypeError("Invalid Input.");
+  }
+
+  async getThreadInfo(userID: string): Promise<UserData["threadInfo"]>;
+
+  async getThreadInfo(
+    userIDs: string[]
+  ): Promise<Record<string, UserData["threadInfo"]>>;
+
+  async getThreadInfo(userIDorIDs: string | string[]) {
+    if (Array.isArray(userIDorIDs)) {
+      const userIDs = userIDorIDs;
+      for (const id of userIDs) {
+        await this.ensureThreadInfo(id);
+      }
+      const items = await this.getItems(...userIDs);
+      const mapped: [string, UserData["threadInfo"]][] = Object.entries(
+        items
+      ).map((i) => [i[0], i[1].threadInfo]);
+      const res = Object.fromEntries(mapped);
+      return res;
+    } else if (typeof userIDorIDs === "string") {
+      const userID = userIDorIDs;
+      await this.ensureThreadInfo(userID);
+      const item = await this.getItem(userID);
+      return item.threadInfo;
+    }
+    throw new TypeError("Invalid Input.");
+  }
+
   /**
    * Use with caution.
    */
