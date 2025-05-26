@@ -23,6 +23,16 @@
       "orderLast": 0
     },
     {
+      "name": "input",
+      "status": "processed",
+      "isCircular": false,
+      "computedOrder": 1,
+      "originalOrder": 1,
+      "before": [],
+      "after": [],
+      "orderLast": 0
+    },
+    {
       "name": "cassexpress",
       "status": "processed",
       "isCircular": false,
@@ -34,16 +44,6 @@
     },
     {
       "name": "flipcoinSys",
-      "status": "processed",
-      "isCircular": false,
-      "computedOrder": 1,
-      "originalOrder": 1,
-      "before": [],
-      "after": [],
-      "orderLast": 0
-    },
-    {
-      "name": "input",
       "status": "processed",
       "isCircular": false,
       "computedOrder": 1,
@@ -161,6 +161,18 @@
       "before": [],
       "after": [
         "input"
+      ],
+      "orderLast": 0
+    },
+    {
+      "name": "ban",
+      "status": "processed",
+      "isCircular": false,
+      "computedOrder": 4,
+      "originalOrder": 4,
+      "before": [],
+      "after": [
+        "output"
       ],
       "orderLast": 0
     },

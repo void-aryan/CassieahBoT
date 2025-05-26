@@ -9,7 +9,7 @@ const ABANK = fonts.serif("AC-BANK");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.7",
+  version: "3.0.8",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
@@ -34,6 +34,7 @@ export const ABANK_ITEM_STACK = 20;
 export const ABANK_EMPTY_SLOT = "_".repeat(15);
 
 export function listABANKItems(bankDataItems: Inventory<InventoryItem>) {
+  bankDataItems.resanitize();
   const uniqueItems = bankDataItems.toUnique();
   const paddingNeeded = ABANK_ITEM_SLOT - uniqueItems.length;
 
@@ -275,9 +276,15 @@ export async function entry({
             maxAmount,
             Math.max(1, parseBet(split[1] || "1", maxAmount) || 1)
           );
+          if (inventory.size() + itemAmount > invLimit) {
+            return output.replyStyled(
+              `You're carrying too many items!`,
+              notifStyle
+            );
+          }
           if (itemAmount === 0) {
             return output.replyStyled(
-              `No items were deposited into your ${ABANK} ® account.`,
+              `No items were withdrawn from your ${ABANK} ® account.`,
               notifStyle
             );
           }
@@ -376,7 +383,10 @@ export async function entry({
       if (isNaN(amount) && bet) {
         const split = bet.split("*");
         const itemKey = split[0];
-        if (bankDataItems.uniqueSize() >= ABANK_ITEM_SLOT) {
+        if (
+          bankDataItems.uniqueSize() >= ABANK_ITEM_SLOT &&
+          !bankDataItems.has(itemKey)
+        ) {
           return output.replyStyled(
             `The item slots in your ${ABANK} ® account are full.`,
             notifStyle
@@ -482,18 +492,114 @@ export async function entry({
       }
       const recipientNickname = args[1];
       const bet = args[2];
+      if (!recipientNickname) {
+        return output.replyStyled(
+          `Please provide a valid recipient's nickname and amount to transfer. Usage: ${prefix}${commandName} transfer <nickname> <amount>`,
+          notifStyle
+        );
+      }
+
       let amount = parseBet(bet, bankData.bank);
+      if (isNaN(amount) && bet) {
+        const split = bet.split("*");
+        const itemKey = split[0];
+
+        const recipient = await money.queryItem({
+          "value.bankData.nickname": recipientNickname,
+        });
+        if (recipient?.bankData?.nickname !== recipientNickname) {
+          return output.replyStyled(
+            `The recipient does not have a ${ABANK} ® account with the given nickname.`,
+            notifStyle
+          );
+        }
+
+        const recipientItems = new Inventory(recipient.bankData?.items, 100);
+        const senderItems = bankDataItems;
+        const rnick = recipient.bankData?.nickname;
+
+        if (
+          recipientItems.uniqueSize() >= ABANK_ITEM_SLOT &&
+          !recipientItems.has(itemKey)
+        ) {
+          return output.replyStyled(
+            `The item slots in ${rnick}'s ${ABANK} ® account are full.`,
+            notifStyle
+          );
+        }
+        const maxAmount = senderItems.getAmount(itemKey);
+        if (maxAmount === 0) {
+          return output.replyStyled(
+            `You do not have an item with "${itemKey}" in your ${ABANK} ® account.`,
+            notifStyle
+          );
+        }
+        const maxTransPossible =
+          ABANK_ITEM_STACK - recipientItems.getAmount(itemKey);
+
+        if (maxTransPossible <= 0) {
+          return output.replyStyled(
+            `${rnick}'s ${ABANK} ® account is full for "${itemKey}". Cannot transfer more.`,
+            notifStyle
+          );
+        }
+
+        let itemAmount = Math.min(
+          maxAmount,
+          Math.max(1, parseBet(split[1] || "1", maxAmount) || 1)
+        );
+
+        itemAmount = Math.min(itemAmount, maxTransPossible);
+
+        if (itemAmount === 0) {
+          return output.replyStyled(
+            `No items were transferred into ${rnick}'s ${ABANK} ® account.`,
+            notifStyle
+          );
+        }
+        const itemsToDeposit = senderItems.get(itemKey).slice(0, itemAmount);
+        if (itemsToDeposit.length === 0) {
+          return output.wentWrong();
+        }
+
+        senderItems.deleteRefs(itemsToDeposit);
+        recipientItems.add(itemsToDeposit);
+        bankData.items = senderItems.raw();
+        recipient.bankData.items = recipientItems.raw();
+        await saveData(
+          {
+            bankData,
+          },
+          input.senderID
+        );
+        await saveData(
+          {
+            bankData: recipient.bankData,
+          },
+          recipient.userID
+        );
+        const senderStr = listABANKItems(senderItems);
+        const recipientStr = listABANKItems(recipientItems);
+
+        return output.replyStyled(
+          `${fonts.bold("Successfully")} transferred:\n${listABANKItem(
+            itemsToDeposit[0],
+            itemAmount
+          )}\n${UNIRedux.standardLine}\n${UNIRedux.arrowBW} Your Items 🛍️\n\n${
+            senderStr || "No items."
+          }\n${UNIRedux.standardLine}\n${fonts.bold(
+            "Receiver"
+          )}: ${formatTrophy(recipient)}\n➣ ${recipient.name} 🛍️\n\n${
+            recipientStr || "No items."
+          }`,
+          style
+        );
+      }
       if (amount < bankData.bank * percentLimit) {
         return output.replyStyled(
           `You cannot transfer a value lower than ${formatCash(
             Math.floor(bankData.bank * percentLimit)
           )}`,
-          notifStyle
-        );
-      }
-      if (!recipientNickname) {
-        return output.replyStyled(
-          `Please provide a valid recipient's nickname and amount to transfer. Usage: ${prefix}${commandName} transfer <nickname> <amount>`,
           notifStyle
         );
       }

@@ -721,6 +721,12 @@ declare global {
     xDB?: XaviaTypes.XaviaCommandContext["xDB"];
 
     extra: CommandMeta["extra"];
+
+    /**
+     * Apply fonts.
+     */
+    fonts: typeof FontSystem.fonts;
+    FontSystem: typeof FontSystem;
   }
 
   type CommandContext = CommandContextOG & { [key: string]: unknown };
@@ -1142,6 +1148,7 @@ import * as XaviaTypes from "@cass-modules/XaviaSupport/XaviaTypes";
 import getCUser from "@cass-modules/XaviaSupport/User";
 import { ObjectKey } from "@cass-modules/unitypes";
 import { FormatArgs } from "@cass-modules/format-with";
+import { FontSystem } from "cassidy-styler";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {

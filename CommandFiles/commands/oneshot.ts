@@ -1,14 +1,14 @@
 import { GearsManage, PetPlayer } from "@cass-plugins/pet-fight";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
-import { FontSystem, UNIRedux } from "cassidy-styler";
-import { PersistentStats, PetSchema } from "@cass-modules/Encounter";
+import { UNIRedux } from "cassidy-styler";
+import { PersistentStats } from "@cass-modules/Encounter";
 import { formatCash, parseBet } from "@cass-modules/ArielUtils";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "oneshot",
   description: "Instant 1v1 pet gambling battle with a single bash",
   otherNames: ["oshot"],
-  version: "1.0.1",
+  version: "1.0.2",
   usage: "{prefix}{name} [bet_amount] [pet]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -76,106 +76,6 @@ function calculateBashAttack(
   );
   return { damage, dodged: false };
 }
-
-async function generateAIPetOld(
-  money: CommandContext["money"],
-  player1Pet: PetPlayer
-): Promise<{ pet: PetPlayer; author: string }> {
-  const allUsers = await money.queryItemAll(
-    { "value.petsData": { $exists: true } },
-    "petsData",
-    "gearsData",
-    "name",
-    "userID"
-  );
-  const playerStrength = calculatePetStrength(player1Pet);
-  const playerPetIcon = player1Pet.petIcon;
-  const playerPetName = player1Pet.petName;
-  let closestPet: PetPlayer | null = null;
-  let closestAuthor: string | null = null;
-  let minStrengthDiff = Infinity;
-  let fallbackPet: PetPlayer | null = null;
-  let fallbackAuthor: string | null = null;
-  let fallbackStrengthDiff = Infinity;
-  const allPetNamesAndIcons: { name: string; icon: string }[] = [
-    { icon: "🔫", name: "PhilCassidy" },
-    { icon: "🎀", name: "Liane" },
-    { icon: "🃏", name: "HighRollPass" },
-    { icon: "🌒", name: "ShadowCoin" },
-    { icon: "☄️", name: "CosmicCrunchEX" },
-    { icon: "⚖️", name: "Equilibrium" },
-    { icon: "⛪", name: "Jesus" },
-    { icon: "👨‍💻", name: "Ownersv2" },
-    { icon: "✅", name: "PrinceHar" },
-    { icon: "⚔️", name: "Yhander" },
-  ];
-
-  for (const user of Object.values(allUsers)) {
-    const { petsData } = getPetInfos(user);
-    for (const petData of petsData.getAll()) {
-      if (player1Pet.petName !== petData.name) {
-        allPetNamesAndIcons.push({ name: petData.name, icon: petData.icon });
-      }
-      const pet = new PetPlayer(
-        petData,
-        new GearsManage(user.gearsData).getGearData(petData.key)
-      );
-      const petStrength = calculatePetStrength(pet);
-      const strengthDiff = Math.abs(petStrength - playerStrength);
-      const isDisqualified =
-        pet.petIcon === playerPetIcon && pet.petName === playerPetName && false;
-
-      if (!isDisqualified && strengthDiff < minStrengthDiff) {
-        minStrengthDiff = strengthDiff;
-        closestPet = pet;
-        closestAuthor = user.userID;
-      } else if (
-        !isDisqualified &&
-        strengthDiff === minStrengthDiff &&
-        Math.random() < 0.5
-      ) {
-        closestPet = pet;
-        closestAuthor = user.userID;
-      }
-
-      if (strengthDiff < fallbackStrengthDiff) {
-        fallbackStrengthDiff = strengthDiff;
-        fallbackPet = pet;
-        fallbackAuthor = user.userID;
-      } else if (strengthDiff === fallbackStrengthDiff && Math.random() < 0.5) {
-        fallbackPet = pet;
-        fallbackAuthor = user.userID;
-      }
-    }
-  }
-
-  if (!closestPet && !fallbackPet) {
-    throw new Error("No suitable AI pet found.");
-  }
-
-  const selectedPet = closestPet || fallbackPet;
-  const selectedAuthor = closestAuthor || fallbackAuthor;
-
-  if (!selectedPet || !selectedAuthor) {
-    throw new Error("No suitable AI pet found.");
-  }
-
-  if (allPetNamesAndIcons.length > 0) {
-    const randomPet =
-      allPetNamesAndIcons[
-        Math.floor(Math.random() * allPetNamesAndIcons.length)
-      ];
-    selectedPet.petName = randomPet.name;
-    selectedPet.petIcon = randomPet.icon;
-  }
-
-  selectedPet.atkModifier += 0 + Math.floor(player1Pet.ATK / 1.5);
-  selectedPet.defModifier += 0 + Math.floor(player1Pet.DF / 1.5);
-  selectedPet.magicModifier += 0 + Math.floor(player1Pet.MAGIC / 1.5);
-
-  return { pet: selectedPet, author: `AI_${Date.now()}` };
-}
-
 async function generateAIPet(
   money: CommandContext["money"],
   player1Pet: PetPlayer
@@ -234,7 +134,7 @@ async function generateAIPet(
     throw new Error("No suitable AI pet found.");
   }
 
-  const isStronger = Math.random() < 0.7;
+  const isStronger = Math.random() < 0.3;
   const petPool = isStronger ? strongerPets : weakerPets;
   const fallbackPool = isStronger ? weakerPets : strongerPets;
 
@@ -253,7 +153,10 @@ async function generateAIPet(
     throw new Error("No suitable AI pet found.");
   }
 
-  if (allPetNamesAndIcons.length > 0) {
+  if (
+    allPetNamesAndIcons.length > 0 &&
+    selectedPet.OgpetData.key === player1Pet.OgpetData.key
+  ) {
     const randomPet =
       allPetNamesAndIcons[
         Math.floor(Math.random() * allPetNamesAndIcons.length)
@@ -389,33 +292,20 @@ export async function entry({
     const baseWinnings = Math.round(
       (aiPet.maxHP - (aiHPPercent * aiPet.maxHP) / 100) * 2 * betAmount
     );
-    const strengthBonus = Math.max(
-      Math.pow(calculatePetStrength(player1Pet) / 1000, 1.0005),
-      1
-    );
+
     const hpDiffMultiplier = Math.max(0.1, hpDifference / 100);
-    const winnings = Math.round(
-      baseWinnings * strengthBonus * hpDiffMultiplier
-    );
+    const winnings = Math.round(baseWinnings * hpDiffMultiplier);
     moneyChange = winnings;
     outcomeText = `${UNIRedux.charm} ${player1Pet.petIcon} **${
       player1Pet.petName
     }** wins with **${playerHPPercent.toFixed(1)}% HP** remaining!\n`;
-    outcomeText += `${UNIRedux.charm} You won ${formatCash(
-      winnings,
-      true
-    )} (including **${strengthBonus.toFixed(
-      2
-    )}x** ATK/DEF/MAGIC bonus and **${hpDiffMultiplier.toFixed(
-      2
-    )}x** HP difference bonus)!`;
+    outcomeText += `${UNIRedux.charm} You won ${formatCash(winnings, true)}`;
     await money.setItem(input.sid, {
       money: playerData.money + winnings,
     });
   } else if (aiHPRemaining > playerHPRemaining) {
-    const lossPercent = playerHPPercent / 100;
     const hpDiffMultiplier = Math.max(0.1, Math.abs(hpDifference) / 100);
-    const lossAmount = -Math.round(betAmount * lossPercent * hpDiffMultiplier);
+    const lossAmount = Math.round(betAmount * hpDiffMultiplier);
     moneyChange = -lossAmount;
     outcomeText = `${UNIRedux.charm} ${aiPet.petIcon} **${
       aiPet.petName

@@ -19,7 +19,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 export const meta = {
   name: "pet-fight",
   author: "Liane Cagara",
-  version: "2.0.21",
+  version: "2.0.22",
   description: "Logic for pet fight.",
   supported: "^1.0.0",
   order: 1,
@@ -954,6 +954,9 @@ export class PetPlayer {
   }
 
   calculateTakenDamageOld2(damage: number) {
+    if (this.isDown()) {
+      return 0;
+    }
     let result = damage;
     // const df = this.DF * (1 / 5);
     //result = Math.floor(result - df);
@@ -976,6 +979,9 @@ export class PetPlayer {
   }
 
   calculateTakenDamage(damage: number, scale: boolean = true) {
+    if (this.isDown()) {
+      return 0;
+    }
     let result = Math.floor(this.calculateAttack(this.DF, damage) / 1.2);
 
     const scalingFactor = PetPlayer.calculateExtraTakenDamage(this.HP);
@@ -987,7 +993,7 @@ export class PetPlayer {
   }
 
   getPercentHP() {
-    return (this.HP / this.maxHP) * 100;
+    return Math.max(0, (this.HP / this.maxHP) * 100);
   }
 
   static calculatePetStrength(pet: PetPlayer): number {
@@ -1048,7 +1054,11 @@ export class PetPlayer {
     return this.maxHP - this.#damageTaken + this.hpModifier;
   }
   set HP(newHP) {
+    if (isNaN(newHP)) {
+      return;
+    }
     this.#damageTaken = this.maxHP - newHP + this.hpModifier;
+    return;
   }
   get DF() {
     const extra = PetPlayer.getExtraDFOf(this.level);
@@ -1131,6 +1141,9 @@ export class PetPlayer {
   }
 
   calculateAttack(enemyDef: number, atk: number = this.ATK) {
+    if (this.isDown()) {
+      return 0;
+    }
     atk ??= this.ATK;
     const df = enemyDef;
     const effectiveAtk = Numero.statDiminishingPower(atk, 89);
@@ -1144,6 +1157,9 @@ export class PetPlayer {
   }
 
   calculateAttackLinear(enemyDef: number, atk: number = this.ATK) {
+    if (this.isDown()) {
+      return 0;
+    }
     atk ??= this.ATK;
     const df = enemyDef;
     const effectiveAtk = Numero.statDiminishingPower(atk, 89);
@@ -1432,14 +1448,17 @@ export namespace PetTurns {
       return { damage: 0, dodged: true, flavor };
     }
     let damage = Math.round(activePet.calculateAttack(targetPet.DF));
-    damage = Math.min(damage, Math.round(targetPet.HP * 0.8));
-    damage = targetPet.HP === 1 ? damage : Math.min(damage, targetPet.HP - 1);
+    let damageOrig = damage;
+    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.5));
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;
     flavor += `${
       UNIRedux.charm
     } Dealt **${damage}** physical damage.\n${targetPet.getPlayerUI()}`;
+    if (damageOrig !== damage) {
+      flavor += `\n(The damage has been capped from **${damageOrig}** to **${damage}**)`;
+    }
 
     return {
       damage,
@@ -1468,7 +1487,8 @@ export namespace PetTurns {
     let damage = Math.round(
       activePet.calculateAttack(targetPet.DF, meanStat) * 1.5
     );
-    damage = Math.min(damage, Math.round(targetPet.HP * 0.8));
+    let damageOrig = damage;
+    damage = Math.min(damage, Math.round(targetPet.maxHP * 0.5));
 
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
@@ -1477,6 +1497,9 @@ export namespace PetTurns {
       UNIRedux.charm
     } Dealt **${damage}** magical damage.\n${targetPet.getPlayerUI()}`;
 
+    if (damageOrig !== damage) {
+      flavor += `\n(The damage has been capped from **${damageOrig}** to **${damage}**)`;
+    }
     return {
       damage,
       dodged: false,
@@ -1501,12 +1524,16 @@ export namespace PetTurns {
     const bashDamage = activePet.calculateAttack(targetPet.DF);
 
     const lostHp = targetPet.maxHP - targetPet.HP;
-    const fluxBonus = Math.round(bashDamage * 0.5 + lostHp * 0.1);
+    const fluxBonus = Math.round(bashDamage * 0.5 + (lostHp * 0.1) ** 1.01);
 
     let damage = Math.round(fluxBonus);
-    damage = Math.floor(Math.min(damage, targetPet.maxHP * 0.25));
+    let damageOrig = damage;
+    damage = Math.floor(Math.min(damage, targetPet.maxHP * 0.5));
 
     damage = targetPet.HP === 1 ? damage : Math.min(damage, targetPet.HP - 1);
+    if (damageOrig !== damage) {
+      flavor += `\n(The damage has been capped from **${damageOrig}** to **${damage}**)`;
+    }
 
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
@@ -1542,7 +1569,8 @@ export namespace PetTurns {
 
     const effectiveStat = Math.max(activePet.ATK, activePet.MAGIC * 0.75);
     let damage = Math.round(
-      activePet.calculateAttack(targetPet.DF, effectiveStat) * statFactor
+      (activePet.calculateAttack(targetPet.DF, effectiveStat) * statFactor) **
+        1.01
     );
 
     const baseChaosChance = Math.min(
@@ -1555,14 +1583,13 @@ export namespace PetTurns {
     );
 
     if (Math.random() < critChance && statFactor >= 1) {
-      damage = Math.round(damage * 2);
-      const boost = Math.min(5, Math.floor(Math.max(1, activePet.ATK * 0.1)));
+      damage = Math.round(damage ** 1.01) + Math.round(damage * 0.1);
+      const boost = Math.max(5, Math.floor(Math.max(1, activePet.ATK * 0.1)));
       activePet.atkModifier += boost;
       petStats.attackBoosts += boost;
       flavor += `${UNIRedux.charm} 🌪️ **Critical Chaos Hit!**,  **${activePet.petName}** is empowered (+**${boost}** ATK).\n`;
     }
 
-    damage = targetPet.HP === 1 ? damage : Math.min(damage, targetPet.HP - 1);
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;
@@ -1597,9 +1624,9 @@ export namespace PetTurns {
     const lostHp = activePet.maxHP - activePet.HP;
     const bonusDamage = Math.round(lostHp * 0.1);
 
-    const doubledDF = targetPet.DF * 2;
-    const baseDamage = Math.round(activePet.calculateAttack(doubledDF));
-    const damage = baseDamage + bonusDamage;
+    const halfDF = targetPet.DF / 2;
+    const baseDamage = Math.round(activePet.calculateAttack(halfDF));
+    const damage = Math.round(baseDamage + bonusDamage ** 1.01);
 
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
@@ -1618,6 +1645,8 @@ export namespace PetTurns {
 }
 
 export class GearData {
+  static MAX_WEAPON_SLOTS = 3;
+  static MAX_ARMOR_SLOTS = 7;
   key: string;
   weaponArray: WeaponInventoryItem[];
   armorsArray: ArmorInventoryItem[];
@@ -1636,24 +1665,27 @@ export class GearData {
   }
 
   equipArmor(index: number, armor: ArmorInventoryItem): ArmorInventoryItem {
-    if (index !== 0 && index !== 1) {
+    if (index > GearData.MAX_ARMOR_SLOTS - 1 || index < 0) {
       throw new Error("Invalid armor index");
     }
     const backup = this.armorsArray[index];
     this.armorsArray[index] = armor;
-    if (!armor) {
+    if (!armor || Object.keys(armor ?? {}).length === 0) {
       this.armorsArray = this.armorsArray.filter((_, i) => i !== index);
     }
     return backup;
   }
 
-  equipWeapon(weapon: WeaponInventoryItem): WeaponInventoryItem {
-    if (this.weaponArray.length > 1) {
-      throw new Error("No weapon slot available");
+  equipWeapon(
+    weapon: WeaponInventoryItem,
+    index: number = 0
+  ): WeaponInventoryItem {
+    if (index > GearData.MAX_WEAPON_SLOTS - 1 || index < 0) {
+      throw new Error("Invalid weapon slot");
     }
-    const backup = this.weaponArray[0];
-    this.weaponArray[0] = weapon;
-    if (!weapon) {
+    const backup = this.weaponArray[index];
+    this.weaponArray[index] = weapon;
+    if (!weapon || Object.keys(weapon ?? {}).length === 0) {
       this.weaponArray = this.weaponArray.filter((_, index) => index !== 0);
     }
     return backup;
@@ -1671,19 +1703,27 @@ export class GearData {
     ).filter(Boolean);
   }
 
-  getWeaponUI() {
-    if (
-      !this.weaponArray[0] ||
-      Object.keys(this.weaponArray[0] ?? {}).length < 1
-    ) {
-      return `[ No Weapon Equipped ]\nATK 0 DEF 0 MAGIC 0`;
+  getWeaponUI(pad: string = "") {
+    let re = "";
+    if (this.weapon.length === 0) {
+      re = `${pad ? `${pad} ` : ""}[ No Weapon Equipped ]\nATK 0 DEF 0 MAGIC 0`;
+    } else {
+      re = this.weapon
+        .map(
+          (weapon) =>
+            `${pad ? `${pad} ` : ""} ${weapon.icon} **${weapon.name}**\nATK ${
+              weapon.atk
+            } DEF ${weapon.def} MAGIC ${weapon.magic}`
+        )
+        .join("\n");
     }
-    return this.weapon
-      .map(
-        (weapon) =>
-          `${weapon.icon} **${weapon.name}**\nATK ${weapon.atk} DEF ${weapon.def} MAGIC ${weapon.magic}`
-      )
-      .join("\n\n");
+
+    if (this.weapon.length < GearData.MAX_WEAPON_SLOTS) {
+      re += `\n[ ...Free ${
+        GearData.MAX_WEAPON_SLOTS - this.weapon.length
+      } weapon slots. ]`;
+    }
+    return re;
   }
   hasGear() {
     const armor = this.armorsArray.filter((i) => i?.name);
@@ -1697,6 +1737,25 @@ export class GearData {
       return `[ No Armor Equipped ]\nATK 0 DEF 0 MAGIC 0`;
     }
     return `${armor.icon} **${armor.name}**\nATK ${armor.atk} DEF ${armor.def} MAGIC ${armor.magic}`;
+  }
+
+  getArmorsUI(pad: string = "") {
+    let res = `${
+      this.armors.length > 0
+        ? `${this.armors
+            .map((_, i) => `${pad ? `${pad} ` : ""}${this.getArmorUI(i)}`)
+            .join("\n")}`
+        : `${pad ? `${pad} ` : ""}${this.getArmorUI(0)}`
+    }`;
+    if (this.weapon.length === 0) {
+      res = `${pad ? `${pad} ` : ""}[ No Armor Equipped ]\nATK 0 DEF 0 MAGIC 0`;
+    }
+    if (this.armors.length < GearData.MAX_ARMOR_SLOTS) {
+      res += `\n[ ...Free ${
+        GearData.MAX_ARMOR_SLOTS - this.armors.length
+      } armor slots. ]`;
+    }
+    return res;
   }
 
   toJSON() {

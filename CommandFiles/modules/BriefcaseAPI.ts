@@ -7,7 +7,11 @@ import {
   SpectralCMDHome,
   SpectraMainConfig,
 } from "./spectralCMDHome";
-import { InventoryItem } from "./cassidyUser";
+import {
+  ArmorInventoryItem,
+  InventoryItem,
+  WeaponInventoryItem,
+} from "./cassidyUser";
 import { UNISpectra } from "./unisym";
 import { parseBet } from "./ArielUtils";
 import { MultiMap } from "./Multimap";
@@ -71,14 +75,14 @@ export interface BriefcaseAPIContext {
   instance: BriefcaseAPI;
   actionArgs: string[];
   getPetList(
-    newData?: Inventory,
+    newData?: Inventory<UserData["petsData"][number]>,
     newGear?: GearsManage,
     targetItem?: Partial<InventoryItem>,
     index?: number
   ): string;
   getDatas({ ...data }: UserData): {
     inventory: Inventory;
-    petsData: Inventory;
+    petsData: Inventory<UserData["petsData"][number]>;
     gearsData: GearsManage;
     collectibles: Collectibles;
   };
@@ -181,9 +185,9 @@ export class BriefcaseAPI {
           const player = new PetPlayer(pet, gearData.toJSON());
           const gearDataAfter = gearData.clone();
           if (targetItem.type === "armor") {
-            gearDataAfter.equipArmor(index, targetItem);
+            gearDataAfter.equipArmor(index, targetItem as ArmorInventoryItem);
           } else if (targetItem.type === "weapon") {
-            gearDataAfter.equipWeapon(targetItem);
+            gearDataAfter.equipWeapon(targetItem as WeaponInventoryItem);
           }
           const playerAfter = new PetPlayer(pet, gearDataAfter.toJSON());
           const atkDiff = playerAfter.ATK - player.ATK;
@@ -197,9 +201,9 @@ export class BriefcaseAPI {
             defDiff < 0 ? defDiff : `+${defDiff}`
           })\nMAGIC **${player.MAGIC} -> ${player.MAGIC + magicDiff}** (${
             magicDiff < 0 ? magicDiff : `+${magicDiff}`
-          }) \n${a}\n⚔️ ${gearData.getWeaponUI()}\n🔰 ${gearData.getArmorUI(
-            0
-          )}\n🔰 ${gearData.getArmorUI(1)}`;
+          }) \n${a}\n${gearData.getWeaponUI("⚔️")}\n${gearData.getArmorsUI(
+            "🔰"
+          )}`;
         })
         .join("\n" + a + "\n\n");
     };
@@ -588,14 +592,14 @@ export class BriefcaseAPI {
               }** (${inventoryName})\n\n` +
                 `${UNIRedux.arrow} ***Equip to a Pet***\n\n` +
                 `✦ Pick a companion for **${item.icon} ${item.name}**!\n` +
-                `(For armor, try "<pet_name> <slot_number>")\n\n` +
+                `💌 Reply with **<pet_name> <slot_number>**\n\n` +
                 `${getPetList(petsData, gearsData, item, 0)}`
             );
             input.setReply(i.messageID, {
               key: commandName,
               callback: handleEquip,
             });
-            async function handleEquip(ctx) {
+            async function handleEquip(ctx: CommandContext) {
               if (ctx.input.senderID !== input.senderID) return;
               const userData = await ctx.money.get(ctx.input.senderID);
               const { inventory, petsData, gearsData } = getDatas(userData);
@@ -646,15 +650,16 @@ export class BriefcaseAPI {
                 sellPrice: 0,
                 index: 0,
               };
-
+              let old: ArmorInventoryItem | WeaponInventoryItem = null;
               if (
                 item.type === "armor" ||
                 (key.startsWith(eKey) && keyType === "armor")
               ) {
                 const oldArmor = gearData.equipArmor(
-                  slot,
-                  item.type === "armor" ? item : null
+                  slot || 0,
+                  item.type === "armor" ? (item as ArmorInventoryItem) : null
                 );
+                old = oldArmor;
                 if (item.type === "armor") inventory.deleteOne(item.key);
                 if (oldArmor) {
                   if (inventory.getAll().length >= invLimit) {
@@ -672,8 +677,10 @@ export class BriefcaseAPI {
                 (key.startsWith(eKey) && keyType === "weapon")
               ) {
                 const oldWeapon = gearData.equipWeapon(
-                  item.type === "weapon" ? item : null
+                  item.type === "weapon" ? (item as WeaponInventoryItem) : null,
+                  slot || 0
                 );
+                old = oldWeapon;
                 if (item.type === "weapon") inventory.deleteOne(item.key);
                 if (oldWeapon) {
                   if (inventory.getAll().length >= invLimit) {
@@ -703,7 +710,11 @@ export class BriefcaseAPI {
                 `👤 **${
                   userData.name || "Unregistered"
                 }** (${inventoryName})\n\n` +
-                  `${UNIRedux.arrow} ***Equipped!***\n\n` +
+                  `${UNIRedux.arrow} ${
+                    !old
+                      ? `***Equipped!***`
+                      : `***Replaced*** ${old.icon} **${old.name}** [${old.key}] with a new one!`
+                  }\n\n` +
                   `${item.type !== "generic" ? "✅" : "✦"} ${
                     item.icon || "⚙️"
                   } **${item.name || "Nothing"}** ${

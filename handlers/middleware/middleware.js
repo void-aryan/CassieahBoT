@@ -12,6 +12,7 @@ import { SymLock } from "../loaders/loadCommand.js";
 import { join } from "path";
 import { InputRoles } from "@cass-modules/InputClass";
 import { extractCommandRole } from "@cassidy/unispectra";
+import { FontSystem } from "cassidy-styler";
 const recentCMD = {};
 const popularCMD = {};
 export let queue = [];
@@ -581,6 +582,8 @@ api.${
       supposedCommand: undefined,
       defCommand,
       extra: {},
+      FontSystem,
+      fonts: FontSystem.fonts,
     };
     if (Cassidy.config.DEBUG) {
       function makeProxy(a, pref = "") {

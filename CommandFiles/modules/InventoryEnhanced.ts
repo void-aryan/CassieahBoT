@@ -255,6 +255,10 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
     }
     return new Inventory<T>([]);
   }
+
+  resanitize() {
+    this.inv = this.sanitize(this.inv);
+  }
 }
 
 export class Collectibles<T extends CollectibleItem = CollectibleItem> {

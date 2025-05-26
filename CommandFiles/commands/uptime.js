@@ -79,8 +79,8 @@ export async function entry({ output, usersDB, threadsDB, input }) {
     usedMemory: formatBits(os.totalmem() - os.freemem()),
   };
 
-  const usersLength = await usersDB.getMongo().size();
-  const threadsLength = await threadsDB.getMongo().size();
+  const usersLength = (await usersDB.getIDs()).length;
+  const threadsLength = (await threadsDB.getIDs()).length;
   const mqttPing = Date.now() - (input.timestamp ?? Date.now());
 
   const resultText = [

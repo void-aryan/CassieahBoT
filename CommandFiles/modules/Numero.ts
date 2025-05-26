@@ -255,6 +255,9 @@ export namespace Numero {
     value: number,
     angleDeg: number = 80
   ): number {
+    if (value === 0) {
+      return 0;
+    }
     const MIN_ANGLE = 0.0001;
     const MAX_ANGLE = 89.9999;
     const clampedAngleDeg = Math.min(MAX_ANGLE, Math.max(MIN_ANGLE, angleDeg));
@@ -277,6 +280,9 @@ export namespace Numero {
     value: number,
     angleDeg: number = 45
   ): number {
+    if (value === 0) {
+      return 0;
+    }
     const MIN_ANGLE = 0.0001;
     const MAX_ANGLE = 89.9999;
     const clampedAngleDeg = Math.min(MAX_ANGLE, Math.max(MIN_ANGLE, angleDeg));

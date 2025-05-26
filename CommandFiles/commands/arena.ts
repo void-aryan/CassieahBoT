@@ -9,7 +9,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.4.0",
+  version: "1.4.1",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -147,7 +147,10 @@ async function generateAIPet(
     throw new Error("No suitable AI pet found.");
   }
 
-  if (allPetNamesAndIcons.length > 0) {
+  if (
+    allPetNamesAndIcons.length > 0 &&
+    selectedPet.OgpetData.key === player1Pet.OgpetData.key
+  ) {
     const randomPet =
       allPetNamesAndIcons[
         Math.floor(Math.random() * allPetNamesAndIcons.length)
@@ -459,10 +462,10 @@ function generateAIMove(
     ) {
       return lastMove;
     }
-    if (lastMove === "guardpulse" && Math.random() < 0.6) {
+    if (lastMove === "guardpulse" && Math.random() < 0.3) {
       return "statsync";
     }
-    if (lastMove === "statsync" && Math.random() < 0.6) {
+    if (lastMove === "statsync" && Math.random() < 0.3) {
       return "guardpulse";
     }
     if (lastMove === "vitalsurge" && Math.random() < 0.8) {
@@ -470,7 +473,7 @@ function generateAIMove(
         Math.floor(Math.random() * 4)
       ];
     }
-    if (lastMove === "equilibrium" && Math.random() < 0.5) {
+    if (lastMove === "equilibrium" && Math.random() < 0.3) {
       return "guardpulse";
     }
     const weights = moves.map((m) => moveCounts[m] + 0.1);
@@ -606,18 +609,18 @@ function generateAIMove(
     guardPulseBoost * defenseBoostEfficiency * (1 - defenseDisadvantage);
   if (petStats.defenseBoosts >= DEFENSE_BOOST_CAP) guardPulseScore = 0;
   if (damageTakenRatio > 0.6) guardPulseScore *= 1.6;
-  if (isEarlyGame && defenseDisadvantage < 0.9) guardPulseScore *= 1.3;
+  if (isEarlyGame && defenseDisadvantage < 0.9) guardPulseScore *= 1.1;
   if (opponentAttackBoosts >= 2) guardPulseScore *= 1.5;
   if (isLowDefense && petStats.defenseBoosts < DEFENSE_BOOST_CAP)
-    guardPulseScore *= 2.0;
-  if (opponentDamageDealtRatio > 0.4) guardPulseScore *= 1.3;
-  if (currentMood === "defensive") guardPulseScore *= 1.4;
+    guardPulseScore *= 1.1;
+  if (opponentDamageDealtRatio > 0.4) guardPulseScore *= 1.1;
+  if (currentMood === "defensive") guardPulseScore *= 1.1;
   if (currentMood === "aggressive") guardPulseScore *= 0.7;
   if (
     ["bash", "hexsmash", "fluxstrike", "chaosbolt"].includes(moveHistory.player)
   )
-    guardPulseScore *= 1.3;
-  if (moveHistory.player === "statsync") guardPulseScore *= 1.4;
+    guardPulseScore *= 1.1;
+  if (moveHistory.player === "statsync") guardPulseScore *= 1.1;
   moveScores.push({
     move: "guardpulse",
     score: guardPulseScore,
@@ -630,13 +633,13 @@ function generateAIMove(
   if (petStats.attackBoosts >= ATTACK_BOOST_CAP) statSyncScore = 0;
   if (attackAdvantage < 0.9) statSyncScore *= 1.4;
   if (isEndgame) statSyncScore *= 0.7;
-  if (opponentDefenseBoosts >= 2) statSyncScore *= 1.5;
-  if (opponentDamageTakenRatio < 0.3) statSyncScore *= 1.2;
+  if (opponentDefenseBoosts >= 2) statSyncScore *= 1.1;
+  if (opponentDamageTakenRatio < 0.3) statSyncScore *= 1.1;
   if (shouldPrioritizeStatSync && petStats.attackBoosts < ATTACK_BOOST_CAP)
     statSyncScore *= 2.0;
-  if (currentMood === "aggressive") statSyncScore *= 1.3;
+  if (currentMood === "aggressive") statSyncScore *= 1.1;
   if (currentMood === "defensive") statSyncScore *= 0.8;
-  if (moveHistory.player === "guardpulse") statSyncScore *= 1.4;
+  if (moveHistory.player === "guardpulse") statSyncScore *= 1.1;
   if (moveHistory.player === "statsync") statSyncScore *= 0.8;
   moveScores.push({
     move: "statsync",
@@ -698,7 +701,7 @@ function generateAIMove(
   ) {
     moveScores.forEach((move) => {
       if (move.move === "statsync") {
-        move.score *= 1.4;
+        move.score *= 1.1;
       }
     });
   }
@@ -708,7 +711,7 @@ function generateAIMove(
   ) {
     moveScores.forEach((move) => {
       if (move.move === "guardpulse") {
-        move.score *= 1.4;
+        move.score *= 1.1;
       }
     });
   }
@@ -824,7 +827,7 @@ function generateAIMove(
     isLowDefense &&
     petStats.defenseBoosts < DEFENSE_BOOST_CAP &&
     guardPulseBoost > activePet.level &&
-    Math.random() < 0.85
+    Math.random() < 0.3
   ) {
     return "guardpulse";
   }
@@ -833,7 +836,7 @@ function generateAIMove(
     shouldPrioritizeStatSync &&
     petStats.attackBoosts < ATTACK_BOOST_CAP &&
     statSyncBoost > activePet.level &&
-    Math.random() < 0.85
+    Math.random() < 0.3
   ) {
     return "statsync";
   }
@@ -1504,11 +1507,12 @@ export async function entry({
     const loserId =
       winner === 1 ? gameState.player2Author : gameState.player1Author;
 
-    const winnerPts = Math.round(
+    let winnerPts = Math.round(
       (statMap.get(`${winnerId}_${winnerPet.OgpetData.key}`)!.totalDamageDealt /
         10) *
         1.5
     );
+    winnerPts = Math.round(winnerPts ** 1.01);
     const winnerCash = Math.round(Math.max(0, Math.pow(winnerPts * 1000, 1.2)));
     const loserPts = Math.round(
       statMap.get(`${loserId}_${loserPet.OgpetData.key}`)!.totalDamageDealt / 10

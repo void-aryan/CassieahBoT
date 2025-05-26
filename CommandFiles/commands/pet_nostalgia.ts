@@ -1526,6 +1526,71 @@ export async function entry(ctx: CommandContext) {
             .sort(
               (a, b) => (Number(b.lastExp) || 0) - (Number(a.lastExp) || 0)
             );
+
+          if (args[0]) {
+            const pet = petsData
+              .getAll()
+              .find(
+                (pet) =>
+                  String(pet.name).toLowerCase().trim() ===
+                  String(args[0]).toLowerCase().trim()
+              );
+            if (!pet) {
+              return output.reply(`🐾 You don't have a pet named "${args[0]}"`);
+            }
+            const gearData = gearsData.getGearData(pet.key);
+            const petPlayer = new PetPlayer(pet, gearData.toJSON());
+
+            let result =
+              `${petPlayer.getPlayerUI()}\n\n` +
+              `${UNIRedux.charm} ***Total Stats***\n\n` +
+              `**ATK**: **${petPlayer.ATK}** (+${petPlayer.gearATK})\n` +
+              `**DEF**: **${petPlayer.DF}** (+${petPlayer.gearDF})\n` +
+              `**Magic**: **${petPlayer.MAGIC}** (+${petPlayer.gearMAGIC})\n\n` +
+              `${UNIRedux.charm} ***Gears***\n\n` +
+              `${gearData.getWeaponUI("⚔️")}\n` +
+              `${gearData.getArmorsUI("🔰")}\n\n`;
+            return output.reply(result);
+          }
+
+          let result = ``;
+          for (const pet of petsData.getAll()) {
+            const gearData = gearsData.getGearData(pet.key);
+            const petPlayer = new PetPlayer(pet, gearData.toJSON());
+            result += `${petPlayer.getPlayerUI()}\n`;
+            result += `⚔️ ***ATK***: ${petPlayer.ATK} (+${petPlayer.gearATK})
+🔰 ***DEF***: ${petPlayer.DF} (+${petPlayer.gearDF})
+🔥 ***MAGIC***: ${petPlayer.MAGIC} (+${petPlayer.gearMAGIC})
+🗃️ ***Type***: ${pet.petType ?? "Unknown"}
+🧭 ***Level***: ${pet.level ?? 1}
+✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
+💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
+          }
+          result += `Type **${prefix}pet-gear <pet name>** to view the stats and gears of a specific pet.`;
+          return output.reply(result);
+        },
+      },
+      {
+        key: "spells",
+        description: "View pet spells and elementals",
+        aliases: ["-g"],
+        args: ["[pet_name]"],
+        async handler(_, __) {
+          const petsData = new Inventory(rawPetsData);
+          const gearsData = new GearsManage(rawGearsData);
+          const pets = petsData.getAll();
+
+          if (pets.length === 0) {
+            let result = "";
+            result += `🐾 You don't have any pets, try **uncaging** a pet if you have opened a bundle.`;
+            result += `\n\n🔎 **Suggested Step**:\nType **${prefix}${commandName}-uncage** without fonts to **uncage** pets from your inventory.`;
+            return output.reply(result);
+          }
+          petsData
+            .getAll()
+            .sort(
+              (a, b) => (Number(b.lastExp) || 0) - (Number(a.lastExp) || 0)
+            );
           const spellMap = PetPlayer.petSpellMap;
 
           if (args[0]) {
@@ -1546,14 +1611,6 @@ export async function entry(ctx: CommandContext) {
 
             let result =
               `${petPlayer.getPlayerUI()}\n\n` +
-              `${UNIRedux.charm} ***Total Stats***\n\n` +
-              `**ATK**: **${petPlayer.ATK}** (+${petPlayer.gearATK})\n` +
-              `**DEF**: **${petPlayer.DF}** (+${petPlayer.gearDF})\n` +
-              `**Magic**: **${petPlayer.MAGIC}** (+${petPlayer.gearMAGIC})\n\n` +
-              `${UNIRedux.charm} ***Gears***\n\n` +
-              `⚔️ ${gearData.getWeaponUI()}\n` +
-              `🔰 ${gearData.getArmorUI(0)}\n` +
-              `🔰 ${gearData.getArmorUI(1)}\n\n` +
               `${UNIRedux.charm} ***Elemental Info***\n\n` +
               `${petPlayer.petIcon} **${petPlayer.petName}** (${
                 petPlayer.petType
@@ -1594,18 +1651,23 @@ export async function entry(ctx: CommandContext) {
 
           let result = ``;
           for (const pet of petsData.getAll()) {
+            const spellMap = PetPlayer.petSpellMap;
+            const targetMap = spellMap[pet.petType] ?? [];
             const gearData = gearsData.getGearData(pet.key);
             const petPlayer = new PetPlayer(pet, gearData.toJSON());
             result += `${petPlayer.getPlayerUI()}\n`;
-            result += `⚔️ ***ATK***: ${petPlayer.ATK} (+${petPlayer.gearATK})
-🔰 ***DEF***: ${petPlayer.DF} (+${petPlayer.gearDF})
-🔥 ***MAGIC***: ${petPlayer.MAGIC} (+${petPlayer.gearMAGIC})
-🗃️ ***Type***: ${pet.petType ?? "Unknown"}
-🧭 ***Level***: ${pet.level ?? 1}
-✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
+            for (const spell of targetMap) {
+              const spellData = PetPlayer.spells[spell] ?? {};
+              result += `${spellData.icon ?? "⚡"} **${
+                spellData.name ?? "Unknown"
+              }** [ ${spellData.tp ?? 0}% ***TP*** ]\n`;
+            }
+            if (targetMap.length === 0) {
+              result += `❌ No spells.\n`;
+            }
+            result += `\n`;
           }
-          result += `Type **${prefix}pet-gear <pet name>** to view the stats, gears, and spells of a specific pet.`;
+          result += `Type **${prefix}pet-spells <pet name>** to view the spells and elementals of a specific pet.`;
           return output.reply(result);
         },
       },
@@ -1777,10 +1839,18 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
               // @ts-ignore
               const petGearB = gearsManageB.getGearData(highestB.key);
               const statA =
-                new PetPlayer(highestA, petGearA).HP / 4 +
+                new PetPlayer(
+                  highestA as UserData["petsData"][number],
+                  petGearA
+                ).HP /
+                  4 +
                 calculateWorth(highestA) / 1000;
               const statB =
-                new PetPlayer(highestB, petGearB).HP / 4 +
+                new PetPlayer(
+                  highestB as UserData["petsData"][number],
+                  petGearB
+                ).HP /
+                  4 +
                 calculateWorth(highestB) / 1000;
               return statB - statA;
             })
