@@ -1686,7 +1686,7 @@ export class GearData {
     const backup = this.weaponArray[index];
     this.weaponArray[index] = weapon;
     if (!weapon || Object.keys(weapon ?? {}).length === 0) {
-      this.weaponArray = this.weaponArray.filter((_, index) => index !== 0);
+      this.weaponArray = this.weaponArray.filter((_, i) => index !== i);
     }
     return backup;
   }
