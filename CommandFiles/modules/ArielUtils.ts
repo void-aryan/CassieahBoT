@@ -453,3 +453,33 @@ export function formatValue(
     number > 999 ? `(${emoji || "🎲"}${abbreviateNumber(number)}) ` : ""
   }${emoji || "🎲"}${Number(number).toLocaleString()}${bold ? "**" : ""}`;
 }
+
+export function formatTimeSentence(ms: number, showMs = false): string {
+  const units = [
+    { label: "year", ms: 365 * 24 * 60 * 60 * 1000 },
+    { label: "day", ms: 24 * 60 * 60 * 1000 },
+    { label: "hour", ms: 60 * 60 * 1000 },
+    { label: "minute", ms: 60 * 1000 },
+    { label: "second", ms: 1000 },
+  ];
+  if (showMs) {
+    units.push({ label: "millisecond", ms: 1 });
+  }
+
+  const parts: string[] = [];
+
+  for (const { label, ms: unitMs } of units) {
+    const value = Math.floor(ms / unitMs);
+    if (value > 0) {
+      parts.push(`${value} ${label}${value > 1 ? "s" : ""}`);
+      ms %= unitMs;
+    }
+  }
+
+  if (parts.length === 0) return "No time.";
+
+  if (parts.length === 1) return parts[0];
+  if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
+
+  return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+}

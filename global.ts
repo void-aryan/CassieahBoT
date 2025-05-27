@@ -95,7 +95,6 @@ declare global {
      * Handles output operations and responses.
      */
     output: OutputProps;
-
     /**
      * Contains arguments passed to the command.
      */
