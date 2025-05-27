@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "oneshot",
   description: "Instant 1v1 pet gambling battle with a single bash",
   otherNames: ["oshot"],
-  version: "1.0.2",
+  version: "1.0.4",
   usage: "{prefix}{name} [bet_amount] [pet]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -70,10 +70,7 @@ function calculateBashAttack(
   if (dodgeChance < 0.005) {
     return { damage: 0, dodged: true };
   }
-  const variability = 0.7 + (Math.random() * 0.6 - 0.3);
-  const damage = defender.calculateTakenDamage(
-    Math.round(attacker.calculateAttack(defender.DF) * variability)
-  );
+  const damage = Math.round(attacker.calculateAttack(defender.DF));
   return { damage, dodged: false };
 }
 async function generateAIPet(
@@ -286,6 +283,7 @@ export async function entry({
   const aiHPPercent = aiPet.getPercentHP();
   const hpDifference = playerHPPercent - aiHPPercent;
   let outcomeText = "";
+  // @ts-ignore
   let moneyChange = 0;
 
   if (playerHPRemaining > aiHPRemaining) {

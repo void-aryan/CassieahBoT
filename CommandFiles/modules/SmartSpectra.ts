@@ -121,6 +121,8 @@ export namespace SmartPet {
     hp: number;
     str: string;
     strs: string[];
+    before: PetPlayer;
+    after: PetPlayer;
   }
 
   export function calculateAddedStat<
@@ -136,18 +138,59 @@ export namespace SmartPet {
     const playersAfter = pets.map((i) => {
       const gear = gearsManage.getGearData(i.key);
       if (item.type === "weapon") {
-        gear.equipWeapon(item);
-      } else if (item.type === "armor") {
-        let ind = !gear.armors[1] && gear.armors[0] ? 1 : 0;
-        const exi1 = gear.armors[0];
-        const exi2 = gear.armors[1];
-        if ((exi2?.def ?? 0) > (exi1?.def ?? 0)) {
-          ind = 0;
-        } else if ((exi1?.def ?? 0) > (exi2?.def ?? 0)) {
-          ind = 1;
+        const slots = gear.weapon;
+        const maxSlots = GearData.MAX_WEAPON_SLOTS;
+
+        let chosenSlot = -1;
+
+        for (let i = 0; i < maxSlots; i++) {
+          if (!slots[i]) {
+            chosenSlot = i;
+            break;
+          }
         }
-        gear.equipArmor(ind, item);
+
+        if (chosenSlot === -1) {
+          let minAtk = Infinity;
+          for (let i = 0; i < maxSlots; i++) {
+            const atk = slots[i]?.atk ?? 0;
+            if (atk < minAtk) {
+              minAtk = atk;
+              chosenSlot = i;
+            }
+          }
+        }
+
+        gear.equipWeapon(item, chosenSlot);
       }
+
+      if (item.type === "armor") {
+        const slots = gear.armors;
+        const maxSlots = GearData.MAX_ARMOR_SLOTS;
+
+        let chosenSlot = -1;
+
+        for (let i = 0; i < maxSlots; i++) {
+          if (!slots[i]) {
+            chosenSlot = i;
+            break;
+          }
+        }
+
+        if (chosenSlot === -1) {
+          let minDef = Infinity;
+          for (let i = 0; i < maxSlots; i++) {
+            const def = slots[i]?.def ?? 0;
+            if (def < minDef) {
+              minDef = def;
+              chosenSlot = i;
+            }
+          }
+        }
+
+        gear.equipArmor(chosenSlot, item);
+      }
+
       return new PetPlayer(i, gear);
     });
 
@@ -186,6 +229,8 @@ export namespace SmartPet {
           .filter((i) => i.diff)
           .map((i) => i.str)
           .join("\n"),
+        before: playerBefore,
+        after: playerAfter,
       });
     }
 

@@ -14,7 +14,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
-  version: "1.6.10",
+  version: "1.6.11",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -48,12 +48,22 @@ async function uncageReply({
   const { name = "Unregistered", petsData: rawPetsData = [] } =
     await money.getItem(input.senderID);
   const petsData = new Inventory(rawPetsData);
+  const all = await money.getAllCache();
+  const allPetsData = new Inventory(
+    Object.values(all)
+      .flatMap((i) => i.petsData)
+      .filter(Boolean),
+    Infinity
+  );
 
   if (input.senderID !== author) {
     return;
   }
   if (petsData.getAll().length >= PET_LIMIT) {
-    return output.reply(`🐾 You can only have a maximum of ${PET_LIMIT} pets!`);
+    return output.replyStyled(
+      `🐾 You can only have a maximum of ${PET_LIMIT} pets!`,
+      style
+    );
   }
 
   switch (type) {
@@ -69,12 +79,14 @@ async function uncageReply({
     const index = Number(input.body) - 1;
     const item = petVentory.getAll()[index];
     if (!item) {
-      return output.reply(
-        `🐾 Please go back and reply a correct number, thank you!`
+      return output.replyStyled(
+        `🐾 Please go back and reply a correct number, thank you!`,
+        style
       );
     }
-    const i = await output.reply(
-      `📄${item.icon} What would you like to name your **pet**? (no spaces pls)`
+    const i = await output.replyStyled(
+      `📄${item.icon} What would you like to name your **pet**? (no spaces pls)`,
+      style
     );
     input.delReply(detectID);
     input.setReply(i.messageID, {
@@ -94,10 +106,16 @@ async function uncageReply({
     const { item } = repObj;
     const s = input.body.trim().split(" ")[0];
     const newName = s.length > 20 ? s.slice(0, 20) : s;
-    const existingPet = petsData.getAll().find((pet) => pet.name === newName);
+    const existingPet = allPetsData
+      .getAll()
+      .find(
+        (pet) =>
+          String(pet.name).toLowerCase() === String(newName).toLowerCase()
+      );
     if (existingPet) {
-      return output.reply(
-        `🐾 Sorry, but that name was already **taken** for your existing ${existingPet.petType} ${existingPet.icon}, please go back and send a different one.`
+      return output.replyStyled(
+        `🐾 Sorry, but that name was already **taken** for an existing ${existingPet.petType} ${existingPet.icon}, please go back and send a different one.`,
+        style
       );
     }
 
@@ -115,15 +133,16 @@ async function uncageReply({
       lastFoodEaten: "",
     });
     inventory.deleteOne(item.key);
-    await money.set(input.senderID, {
+    await money.setItem(input.senderID, {
       inventory: Array.from(inventory),
       // @ts-ignore
       petsData: Array.from(petsData),
     });
 
     input.delReply(detectID);
-    return output.reply(
-      `🐾 Thank you **${name}** for successfully adopting ${item.icon} a new ${item.key} **${newName}**!\n🐾 Goodluck with your new pet!`
+    return output.replyStyled(
+      `🐾 Thank you **${name}** for successfully adopting ${item.icon} a new ${item.key} **${newName}**!\n🐾 Goodluck with your new pet!`,
+      style
     );
   }
 }
@@ -151,6 +170,13 @@ async function renameReply({
   } = await money.getItem(input.senderID);
   const inventory = new Inventory(rawInventory);
   const petsData = new Inventory(rawPetsData);
+  const all = await money.getAllCache();
+  const allPetsData = new Inventory(
+    Object.values(all)
+      .flatMap((i) => i.petsData)
+      .filter(Boolean),
+    Infinity
+  );
 
   if (input.senderID !== author) {
     return;
@@ -169,12 +195,14 @@ async function renameReply({
     const index = Number(input.body) - 1;
     const item = petsData.getAll()[index];
     if (!item) {
-      return output.reply(
-        `🐾 Please go back and reply a correct number, thank you!`
+      return output.replyStyled(
+        `🐾 Please go back and reply a correct number, thank you!`,
+        style
       );
     }
-    const i = await output.reply(
-      `📄${item.icon} What would you like to rename your **pet**? (no spaces pls)`
+    const i = await output.replyStyled(
+      `📄${item.icon} What would you like to rename your **pet**? (no spaces pls)`,
+      style
     );
     input.delReply(detectID);
     input.setReply(i.messageID, {
@@ -194,15 +222,22 @@ async function renameReply({
     const { item } = repObj;
     const s = input.body.trim().split(" ")[0];
     const newName = s.length > 20 ? s.slice(0, 20) : s;
-    const existingPet = petsData.getAll().find((pet) => pet.name === newName);
+    const existingPet = allPetsData
+      .getAll()
+      .find(
+        (pet) =>
+          String(pet.name).toLowerCase() === String(newName).toLowerCase()
+      );
     if (existingPet) {
-      return output.reply(
-        `🐾 Sorry, but that name was already **taken** for your existing ${existingPet.petType} ${existingPet.icon}, please go back and send a different one.`
+      return output.replyStyled(
+        `🐾 Sorry, but that name was already **taken** for an existing ${existingPet.petType} ${existingPet.icon}, please go back and send a different one.`,
+        style
       );
     }
     if (!inventory.has("dogTag")) {
-      return output.reply(
-        `A 🏷️ **Dog Tag** is required to perform this action.`
+      return output.replyStyled(
+        `A 🏷️ **Dog Tag** is required to perform this action.`,
+        style
       );
     }
 
@@ -216,8 +251,9 @@ async function renameReply({
     });
 
     input.delReply(detectID);
-    return output.reply(
-      `🐾 Thank you **${name}** for successfully renaming ${item.icon} your pet ${item.petType} to **${newName}**!\n🐾 Goodluck with your new pet's name!`
+    return output.replyStyled(
+      `🐾 Thank you **${name}** for successfully renaming ${item.icon} your pet ${item.petType} to **${newName}**!\n🐾 Goodluck with your new pet's name!`,
+      style
     );
   }
 }
@@ -1528,25 +1564,55 @@ export async function entry(ctx: CommandContext) {
             );
 
           if (args[0]) {
-            const pet = petsData
+            let owner = await money.getCache(input.senderID);
+            const all = await money.getAllCache();
+            const allPetsData = new Inventory(
+              Object.values(all)
+                .flatMap((i) => i.petsData)
+                .filter(Boolean),
+              Infinity
+            );
+            let pet = allPetsData
               .getAll()
               .find(
                 (pet) =>
                   String(pet.name).toLowerCase().trim() ===
                   String(args[0]).toLowerCase().trim()
               );
-            if (!pet) {
-              return output.reply(`🐾 You don't have a pet named "${args[0]}"`);
+            if (pet && !petsData.has(pet.key)) {
+              owner =
+                Object.values(all).find((i) =>
+                  (i.petsData ?? []).some((i) => i?.key === pet?.key)
+                ) ?? owner;
             }
-            const gearData = gearsData.getGearData(pet.key);
+
+            if (!pet) {
+              return output.reply(`🐾 We don't have a pet named "${args[0]}"`);
+            }
+
+            const allGearsData = new GearsManage(
+              Object.values(all)
+                .flatMap((i) => i.gearsData)
+                .filter(Boolean)
+            );
+            let gearData = petsData.has(pet.key)
+              ? gearsData.getGearData(pet.key)
+              : allGearsData.getGearData(pet.key);
+
             const petPlayer = new PetPlayer(pet, gearData.toJSON());
 
             let result =
+              `👤 **Owner**: ${owner.name}\n\n` +
               `${petPlayer.getPlayerUI()}\n\n` +
-              `${UNIRedux.charm} ***Total Stats***\n\n` +
-              `**ATK**: **${petPlayer.ATK}** (+${petPlayer.gearATK})\n` +
-              `**DEF**: **${petPlayer.DF}** (+${petPlayer.gearDF})\n` +
-              `**Magic**: **${petPlayer.MAGIC}** (+${petPlayer.gearMAGIC})\n\n` +
+              `${UNIRedux.charm} ***Total Stats***\n\n`;
+            result +=
+              `⚔️ ***ATK***: ${petPlayer.ATK} (+${petPlayer.gearATK})
+🔰 ***DEF***: ${petPlayer.DF} (+${petPlayer.gearDF})
+🔥 ***MAGIC***: ${petPlayer.MAGIC} (+${petPlayer.gearMAGIC})
+🗃️ ***Type***: ${pet.petType ?? "Unknown"}
+🧭 ***Level***: ${pet.level ?? 1}
+✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
+💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n` +
               `${UNIRedux.charm} ***Gears***\n\n` +
               `${gearData.getWeaponUI("⚔️")}\n` +
               `${gearData.getArmorsUI("🔰")}\n\n`;
@@ -1566,7 +1632,7 @@ export async function entry(ctx: CommandContext) {
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
 💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
           }
-          result += `Type **${prefix}pet-gear <pet name>** to view the stats and gears of a specific pet.`;
+          result += `Type **${prefix}pet-gear <pet name>** to view the stats and gears of anyone's pet.`;
           return output.reply(result);
         },
       },

@@ -1531,15 +1531,15 @@ export namespace PetTurns {
     damage = Math.floor(Math.min(damage, targetPet.maxHP * 0.5));
 
     damage = targetPet.HP === 1 ? damage : Math.min(damage, targetPet.HP - 1);
-    if (damageOrig !== damage) {
-      flavor += `\n(The damage has been capped from **${damageOrig}** to **${damage}**)`;
-    }
 
     targetPet.HP -= damage;
     petStats.totalDamageDealt += damage;
     opponentStats.totalDamageTaken += damage;
 
     flavor += `Dealt **${damage}** flickering damage, growing with injury.\n${targetPet.getPlayerUI()}`;
+    if (damageOrig !== damage) {
+      flavor += `\n(The damage has been capped from **${damageOrig}** to **${damage}**)`;
+    }
 
     return {
       damage,
@@ -1662,6 +1662,8 @@ export class GearData {
     this.weaponArray = gearData.weapon ?? [];
     this.armorsArray = gearData.armors ?? [];
     this.items = gearData.items ?? [];
+    this.armors;
+    this.weapon;
   }
 
   equipArmor(index: number, armor: ArmorInventoryItem): ArmorInventoryItem {
@@ -1692,15 +1694,19 @@ export class GearData {
   }
 
   get weapon() {
-    return PetPlayer.sanitizeWeapon(
+    const i = PetPlayer.sanitizeWeapon(
       (this.weaponArray ?? []).filter(Boolean)
     ).filter(Boolean);
+    this.weaponArray = i;
+    return i;
   }
 
   get armors() {
-    return PetPlayer.sanitizeArmors(
+    const i = PetPlayer.sanitizeArmors(
       (this.armorsArray ?? []).filter(Boolean)
     ).filter(Boolean);
+    this.armorsArray = i;
+    return i;
   }
 
   getWeaponUI(pad: string = "") {

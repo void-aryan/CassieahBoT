@@ -9,7 +9,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
-  version: "1.4.1",
+  version: "1.4.2",
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "Liane Cagara",
@@ -23,7 +23,7 @@ export const meta: CassidySpectra.CommandMeta = {
 
 export const style: CassidySpectra.CommandStyle = {
   title: `⚔️ Arena ${FontSystem.applyFonts("EX", "double_struck")}`,
-  titleFont: "bold_italic",
+  titleFont: "bold",
   contentFont: "fancy",
 };
 
@@ -66,7 +66,8 @@ interface ArenaGameState {
 
 async function generateAIPet(
   money: CommandContext["money"],
-  player1Pet: PetPlayer
+  player1Pet: PetPlayer,
+  requestedName: string = ""
 ): Promise<{ pet: PetPlayer; author: string }> {
   const allUsers = await money.queryItemAll(
     { "value.petsData": { $exists: true } },
@@ -97,7 +98,7 @@ async function generateAIPet(
     { icon: "⚔️", name: "Yhander" },
   ];
 
-  for (const user of Object.values(allUsers)) {
+  loop1: for (const user of Object.values(allUsers)) {
     const { petsData } = getInfos(user);
     for (const petData of petsData.getAll()) {
       if (player1Pet.petName !== petData.name) {
@@ -107,10 +108,21 @@ async function generateAIPet(
         petData,
         new GearsManage(user.gearsData).getGearData(petData.key)
       );
+      if (
+        requestedName &&
+        String(pet.petName).toLowerCase() ===
+          String(requestedName).toLowerCase()
+      ) {
+        closestPet = pet;
+        closestAuthor = user.userID;
+        break loop1;
+      }
       const petStrength = calculatePetStrength(pet);
       const strengthDiff = Math.abs(petStrength - playerStrength);
       const isDisqualified =
-        pet.petIcon === playerPetIcon && pet.petName === playerPetName;
+        pet.petIcon === playerPetIcon &&
+        pet.petName === playerPetName &&
+        Math.random() < 0.7;
 
       if (!isDisqualified && strengthDiff < minStrengthDiff) {
         minStrengthDiff = strengthDiff;
@@ -159,13 +171,13 @@ async function generateAIPet(
     selectedPet.petIcon = randomPet.icon;
   }
 
-  selectedPet.atkModifier += 5;
-  selectedPet.defModifier += 25;
-  selectedPet.magicModifier += 163;
+  // selectedPet.atkModifier += 5;
+  // selectedPet.defModifier += 25;
+  // selectedPet.magicModifier += 163;
 
-  selectedPet.atkModifier += Math.floor(player1Pet.ATK / 1.5);
-  selectedPet.defModifier += Math.floor(player1Pet.DF / 1.5);
-  selectedPet.magicModifier += Math.floor(player1Pet.MAGIC / 1.5);
+  // selectedPet.atkModifier += Math.floor(player1Pet.ATK / 1.5);
+  // selectedPet.defModifier += Math.floor(player1Pet.DF / 1.5);
+  // selectedPet.magicModifier += Math.floor(player1Pet.MAGIC / 1.5);
 
   selectedPet.HP = selectedPet.maxHP;
 
@@ -933,7 +945,8 @@ export async function entry({
   if (gameState.isAIMode) {
     const { pet: aiPet, author: aiAuthor } = await generateAIPet(
       money,
-      player1Pet
+      player1Pet,
+      input.arguments[1] !== "--ai" ? input.arguments[1] : ""
     );
     gameState.player2Pet = aiPet;
     gameState.player2Author = aiAuthor;
@@ -979,6 +992,12 @@ export async function entry({
     return;
   }
 
+  const { pet: aiPetBefore } = await generateAIPet(
+    money,
+    player1Pet,
+    input.arguments[1] !== "--ai" ? input.arguments[1] : ""
+  );
+
   const infoBegin = await output.replyStyled(
     `⚔️ **Arena Challenge**:\n${
       player1Data.name
@@ -987,7 +1006,9 @@ export async function entry({
       hideHP: true,
     })}\n\nReply with one pet name to join.\n\n🔎 Don't have actual opponents, or you want to win 💎 gems? Try --ai now! Just put --ai at the end.\n***EXAMPLE*** ${prefix}${commandName} ${
       input.arguments[0]
-    } --ai`,
+    } --ai\n***EXAMPLE w/ OPPONENT*** ${prefix}${commandName} ${
+      input.arguments[0]
+    } ${aiPetBefore?.petName ?? "<pet_name>"} --ai`,
     style
   );
 

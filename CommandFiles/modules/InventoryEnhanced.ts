@@ -20,7 +20,10 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
     if (!Array.isArray(inv)) {
       throw new Error("Inventory must be an array.");
     }
-    let result = inv.slice(0, this.limit).map((item, index) => {
+    let result = inv.map((item, index) => {
+      if (!item) {
+        return;
+      }
       const {
         name = "Unknown Item",
         key = "",

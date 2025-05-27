@@ -1,4 +1,4 @@
-import { abbreviateNumber, UNIRedux, UNISpectra } from "@cassidy/unispectra";
+import { abbreviateNumber, UNIRedux } from "@cassidy/unispectra";
 import { parseBet } from "@cass-modules/ArielUtils";
 import { FontSystem } from "cassidy-styler";
 import { InventoryItem, UserData } from "@cass-modules/cassidyUser";
@@ -589,9 +589,9 @@ export async function entry({
             senderStr || "No items."
           }\n${UNIRedux.standardLine}\n${fonts.bold(
             "Receiver"
-          )}: ${formatTrophy(recipient)}\n➣ ${recipient.name} 🛍️\n\n${
-            recipientStr || "No items."
-          }`,
+          )}: ${formatTrophy(recipient)}\n➣ ${
+            recipient.userMeta?.name ?? recipient.name
+          } 🛍️\n\n${recipientStr || "No items."}`,
           style
         );
       }
@@ -669,7 +669,7 @@ export async function entry({
         `${fonts.bold("Successfully")} transferred: ${formatCash(amount)}\n${
           UNIRedux.standardLine
         }\n${fonts.bold("Receiver")}: ${formatTrophy(recipient)}\n➣ ${
-          recipient.name
+          recipient.userMeta?.name ?? recipient.name
         }`,
         style
       );
