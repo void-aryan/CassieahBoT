@@ -255,11 +255,11 @@ export async function use(obj) {
         let _oldtext = `🔒 | The command "${meta.name}" is available in the **shop** with a price of ${price}$`;
 
         if (isAffordable) {
-          shop.purchase(args[0], userDataCache.money);
+          shop.purchase(meta.name, userDataCache.money);
 
           await money.setItem(input.senderID, {
             shopInv: shop.raw(),
-            money: userDataCache.money - price,
+            // money: userDataCache.money - price,
           });
         } else {
           const cashGames = new CassidyResponseStylerControl({

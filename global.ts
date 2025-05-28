@@ -993,7 +993,7 @@ declare global {
     }
 
     export type CommandStyle = CommandStyleBase & {
-      [key: string]: StylerItem | unknown;
+      [key: string]: StylerItem | string | string[];
     };
 
     export interface StylerItem {

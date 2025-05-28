@@ -1,22 +1,27 @@
-import { Inventory } from "@cass-modules/InventoryEnhanced";
+import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
 import { UNIRedux, UNISpectra } from "../modules/unisym.js";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { InventoryItem, UserStatsManager } from "@cass-modules/cassidyUser";
-import { formatCash, formatTimeSentence } from "@cass-modules/ArielUtils";
+import {
+  formatCash,
+  formatTimeSentence,
+  formatValue,
+  parseBet,
+} from "@cass-modules/ArielUtils";
 import OutputProps from "output-cassidy";
+import InputClass from "@cass-modules/InputClass";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g"],
-  version: "1.3.2",
+  version: "1.3.3",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
   permissions: [0],
   noPrefix: "both",
   waitingTime: 1,
-  shopPrice: 200,
   requirement: "3.0.0",
   icon: "🌱",
   cmdType: "cplx_g",
@@ -30,7 +35,7 @@ export const ITEMS_PER_PAGE = 6;
 
 const EVENT_CONFIG = {
   WEEKLY_CYCLE: 7 * 24 * 60 * 60 * 1000,
-  WEATHER_CYCLE: 10 * 60 * 1000,
+  WEATHER_CYCLE: 1 * 60 * 60 * 1000,
   EVENTS: [
     {
       name: "Blood Moon",
@@ -95,7 +100,7 @@ const CROP_CONFIG = {
 const gardenShop = {
   key: "gardenShop",
   lastRestock: 0,
-  stockRefreshInterval: 5 * 60 * 1000,
+  stockRefreshInterval: 2 * 60 * 1000,
   itemData: [
     {
       icon: "🥕",
@@ -258,7 +263,8 @@ const gardenShop = {
 
       name: "Sprinkler",
       key: "gtSprinkler",
-      flavorText: "Boosts growth speed and Wet mutations.",
+      flavorText:
+        "Boosts growth speed and Wet mutations. You only need one of these in your inventory to work.",
       price: 200,
       rarity: "Common",
       stockChance: 0.7,
@@ -278,7 +284,8 @@ const gardenShop = {
       icon: "🌿",
       name: "Fertilizer",
       key: "gtFertilizer",
-      flavorText: "Increases Gold and Disco mutations.",
+      flavorText:
+        "Increases Gold and Disco mutations. You only need one of these in your inventory to work.",
       price: 500,
       inStock: true,
 
@@ -305,7 +312,8 @@ const gardenShop = {
       key: "gtFavorite",
       inStock: true,
 
-      flavorText: "Allows favoriting crops to prevent selling.",
+      flavorText:
+        "Allows favoriting crops to prevent selling. You only need one of these in your inventory to work.",
       price: 1000,
       rarity: "Rare",
       stockChance: 0.3,
@@ -395,21 +403,29 @@ export type GardenItem = GardenSeed | GardenPetCage | GardenTool;
 function calculateCropValue(
   crop: GardenPlot,
   plots: Inventory<GardenPlot>,
-  expansions: number
+  expansions: number,
+  totalEarns: number
 ) {
   const mutation = CROP_CONFIG.MUTATIONS.find((m) => m.name === crop.mutation);
   const plantedCount = plots.getAll().length;
   const plantingBonus = Math.min(1, 0.1 * Math.floor(plantedCount / 10));
   const expansionBonus = 0.05 * expansions;
+
+  const earnMultiplier = Math.max(
+    1,
+    Math.min(1000000000, ((1 / 100_00) * totalEarns) ** 0.7)
+  );
+
   return Math.floor(
     crop.baseValue *
       (mutation ? mutation.valueMultiplier : 1) *
-      (1 + plantingBonus + expansionBonus)
+      (1 + plantingBonus + expansionBonus) *
+      earnMultiplier
   );
 }
 
 function isCropReady(crop: GardenPlot) {
-  return Date.now() >= crop.plantedAt + crop.growthTime;
+  return Date.now() >= crop.plantedAt + crop.growthTime && !crop.isFavorite;
 }
 
 function autoUpdateCropData(crop: GardenPlot, tools: Inventory<GardenTool>) {
@@ -432,7 +448,7 @@ function autoUpdateCropData(crop: GardenPlot, tools: Inventory<GardenTool>) {
 
 function getCurrentEvent() {
   const weekNumber =
-    Math.floor(Date.now() / EVENT_CONFIG.WEEKLY_CYCLE) %
+    Math.floor(Date.now() / EVENT_CONFIG.WEATHER_CYCLE) %
     EVENT_CONFIG.EVENTS.length;
   const event = EVENT_CONFIG.EVENTS[weekNumber];
   if (
@@ -467,6 +483,14 @@ function getCurrentEvent() {
     }
   }
   return event;
+}
+
+function getTimeForNextEvent() {
+  const cycle = EVENT_CONFIG.WEATHER_CYCLE;
+  const now = Date.now();
+  const timeIntoCycle = now % cycle;
+  const timeUntilNextEvent = cycle - timeIntoCycle;
+  return timeUntilNextEvent;
 }
 
 function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
@@ -509,9 +533,11 @@ function updatePetCollection(
   if (!pet.isEquipped) return { pet, collections: 0, inventory };
   const currentTime = Date.now();
   const timeSinceLastCollect = currentTime - (pet.lastCollect || currentTime);
-  const collections =
-    Math.floor(timeSinceLastCollect / (60 * 1000)) * pet.petData.collectionRate;
-  if (collections > 0) {
+  const collections = Math.round(
+    Math.floor(timeSinceLastCollect / (60 * 1000)) * pet.petData.collectionRate
+  );
+  const collected: GardenItem[] = [];
+  if (collections >= 1) {
     pet.lastCollect = currentTime;
     for (let i = 0; i < collections; i++) {
       const seed =
@@ -521,18 +547,22 @@ function updatePetCollection(
       const shopItem = gardenShop.itemData.find((item) => item.key === seed);
       if (shopItem && inventory.size() < global.Cassidy.invLimit) {
         const cache = inventory.getAll();
+        const cache2 = [...cache];
         shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
         inventory = new Inventory(cache);
+        const newItems = cache.filter((i) => !cache2.includes(i));
+        collected.push(...newItems);
       }
     }
   }
-  return { pet, collections, inventory };
+  return { pet, collections, inventory, collected };
 }
 
 async function checkAchievements(
   user: UserData,
   money: UserStatsManager,
-  output: OutputProps
+  output: OutputProps,
+  input: InputClass
 ) {
   const plotsHarvested = user.gardenStats?.plotsHarvested || 0;
   const mutationsFound = user.gardenStats?.mutationsFound || 0;
@@ -581,12 +611,14 @@ async function checkAchievements(
       money: newMoney,
       gardenStats: user.gardenStats,
     });
-    await output.replyStyled(
-      `🏆 **Achievements Unlocked**:\n${achievementsUnlocked.join(
-        "\n"
-      )}\n\n💰 New Balance: ${formatCash(newMoney)}`,
-      style
-    );
+    if (!input.isWeb) {
+      await output.replyStyled(
+        `🏆 **Achievements Unlocked**:\n${achievementsUnlocked.join(
+          "\n"
+        )}\n\n💰 New Balance: ${formatCash(newMoney)}`,
+        style
+      );
+    }
   }
 }
 
@@ -608,7 +640,7 @@ function refreshShopStock() {
 
 export async function entry(ctx: CommandContext) {
   const { input, output, money, Inventory, UTShop, prefix, commandName } = ctx;
-  const {
+  let {
     name = "Farmer",
     gardenPlots: rawPlots = [],
     gardenPets: rawPets = [],
@@ -625,8 +657,11 @@ export async function entry(ctx: CommandContext) {
     lastRearExpansion1 = 0,
     lastRearExpansion2 = 0,
     allowGifting = true,
+    gardenEarns = 0,
+    collectibles: rawCLL,
   } = await money.getCache(input.senderID);
   let isHypen = false;
+  const collectibles = new Collectibles(rawCLL);
 
   refreshShopStock();
 
@@ -654,7 +689,7 @@ export async function entry(ctx: CommandContext) {
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         let plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
         let seeds = inventory
-          .getAll()
+          .toUnique()
           .filter((item): item is GardenSeed => item.type === "gardenSeed");
         const availablePlots = plotLimit - plots.getAll().length;
         if (availablePlots <= 0) {
@@ -693,7 +728,11 @@ export async function entry(ctx: CommandContext) {
         }
 
         let seed: GardenSeed | null = null;
-        let quantity = parseInt(spectralArgs[1]) || 1;
+        let quantity =
+          parseBet(
+            spectralArgs[1],
+            inventory.getAmount(spectralArgs[0] || "")
+          ) || 1;
         quantity = Math.min(
           quantity,
           availablePlots,
@@ -709,9 +748,9 @@ export async function entry(ctx: CommandContext) {
           const seedList = seeds
             .map(
               (s) =>
-                `${s.icon} **${s.name}** (Key: ${s.key}, x${inventory.getAmount(
-                  s.key
-                )})`
+                `**x${inventory.getAmount(s.key)}** ${s.icon} **${
+                  s.name
+                }** (Key: **${s.key}**)`
             )
             .join("\n");
           return output.replyStyled(
@@ -793,7 +832,8 @@ export async function entry(ctx: CommandContext) {
             money: userMoney,
           },
           money,
-          output
+          output,
+          input
         );
 
         return ctx.output.replyStyled(
@@ -802,9 +842,10 @@ export async function entry(ctx: CommandContext) {
           } (${plots.getAll().length}/${plotLimit} plots):\n${planted.join(
             "\n"
           )}\n` +
-            `⏳ First ready in: ${formatTimeSentence(
-              seed.cropData.growthTime
-            )}\n` +
+            `⏳ First ready in: ${
+              formatTimeSentence(seed.cropData.growthTime) ||
+              "***ALREADY READY!***"
+            }\n` +
             `💰 Base Value: ${formatCash(
               calculateCropValue(
                 {
@@ -812,7 +853,8 @@ export async function entry(ctx: CommandContext) {
                   mutation: null,
                 },
                 plots,
-                gardenStats.expansions || 0
+                gardenStats.expansions || 0,
+                gardenEarns
               )
             )}\n\n` +
             `**Next Steps**:\n` +
@@ -836,7 +878,10 @@ export async function entry(ctx: CommandContext) {
         let moneyEarned = 0;
         const harvested: string[] = [];
         const seedsGained: string[] = [];
-        const readyPlots = plots.getAll().filter(isCropReady);
+        const readyPlots = plots
+          .getAll()
+          .filter((i) => plots.get(i.key).every((i) => !i.isFavorite))
+          .filter(isCropReady);
         if (readyPlots.length === 0) {
           return output.replyStyled(
             `🌱 No crops ready! Check plots with ${prefix}${commandName}${
@@ -865,9 +910,11 @@ export async function entry(ctx: CommandContext) {
           const value = calculateCropValue(
             plot,
             plots,
-            gardenStats.expansions || 0
+            gardenStats.expansions || 0,
+            gardenEarns
           );
           moneyEarned += value;
+          gardenEarns += value - plot.baseValue;
           harvested.push(
             `${plot.icon} ${plot.name}${
               plot.mutation
@@ -910,6 +957,7 @@ export async function entry(ctx: CommandContext) {
           gardenPlots: Array.from(plots),
           inventory: Array.from(inventory),
           gardenStats,
+          gardenEarns,
         });
         await checkAchievements(
           {
@@ -919,7 +967,8 @@ export async function entry(ctx: CommandContext) {
             money: userMoney + moneyEarned,
           },
           money,
-          output
+          output,
+          input
         );
 
         return output.replyStyled(
@@ -927,8 +976,9 @@ export async function entry(ctx: CommandContext) {
             (seedsGained.length > 0
               ? `🌱 **Lucky Harvest Seeds**:\n${seedsGained.join("\n")}\n\n`
               : "") +
-            `💰 Earned: ${formatCash(moneyEarned)}\n` +
+            `💰 Earned: ${formatCash(moneyEarned, true)}\n` +
             `💵 Balance: ${formatCash(userMoney + moneyEarned)}\n\n` +
+            `📈 Total Earns: ${formatCash(gardenEarns)}\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Plant more: ${prefix}${commandName}${
               isHypen ? "-" : " "
@@ -950,7 +1000,13 @@ export async function entry(ctx: CommandContext) {
         const page = parseInt(spectralArgs[0]) || 1;
         const start = (page - 1) * ITEMS_PER_PAGE;
         const end = page * ITEMS_PER_PAGE;
-        const currentPlots = plots.getAll().slice(start, end);
+        const currentPlots = [...plots.getAll()]
+          .sort((a, b) => {
+            const at = a.plantedAt + a.growthTime - Date.now();
+            const ab = b.plantedAt + b.growthTime - Date.now();
+            return at - ab;
+          })
+          .slice(start, end);
         let result = `🌱 **${name}'s Garden Plots (${
           plots.getAll().length
         }/${plotLimit}, Page ${page})**:\n\n`;
@@ -983,11 +1039,18 @@ export async function entry(ctx: CommandContext) {
           result +=
             `${start + index + 1}. ${plot.icon} **${plot.name}**${
               plot.mutation ? ` (${plot.mutation})` : ""
-            }${plot.isFavorite ? ` ⭐` : ""}\n` +
+            }${plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""}\n` +
             `${UNIRedux.charm} Harvests Left: ${plot.harvestsLeft}\n` +
-            `${UNIRedux.charm} Time Left: ${formatTimeSentence(timeLeft)}\n` +
+            `${UNIRedux.charm} Time Left: ${
+              formatTimeSentence(timeLeft) || "***READY***!"
+            }\n` +
             `${UNIRedux.charm} Value: ${formatCash(
-              calculateCropValue(plot, plots, gardenStats.expansions || 0)
+              calculateCropValue(
+                plot,
+                plots,
+                gardenStats.expansions || 0,
+                gardenEarns
+              )
             )}\n\n`;
         });
         if (plots.getAll().length > end) {
@@ -995,6 +1058,8 @@ export async function entry(ctx: CommandContext) {
             isHypen ? "-" : " "
           }plots ${page + 1}\n`;
         }
+
+        result += `\n📈 Total Earns: ${formatCash(gardenEarns, true)}\n\n`;
 
         result +=
           `**Next Steps**:\n` +
@@ -1049,8 +1114,11 @@ export async function entry(ctx: CommandContext) {
           result +=
             `${start + index + 1}. ${item.icon} **${item.name}**${
               count > 1 ? ` (x${count})` : ""
-            }${item.isFavorite ? ` ⭐` : ""}\n` +
+            }${
+              inventory.get(item.key).some((i) => i.isFavorite) ? ` ⭐` : ""
+            }\n` +
             `${UNIRedux.charm} Type: ${item.type}\n` +
+            `${UNIRedux.charm} Key: **${item.key}**\n` +
             `${UNIRedux.charm} Sell Price: ${formatCash(item.sellPrice)}\n` +
             (item.type === "gardenPetCage"
               ? `${UNIRedux.charm} Collects: ${item.petData.seedTypes.join(
@@ -1090,104 +1158,200 @@ export async function entry(ctx: CommandContext) {
         return output.replyStyled(result, style);
       },
     },
-    {
-      key: "favorite",
-      description: "Favorite an item or crop to prevent selling",
-      aliases: ["-f"],
-      args: ["[item_key]"],
-      async handler(_, { spectralArgs }) {
-        const inventory = new Inventory<GardenItem | InventoryItem>(
-          rawInventory
-        );
-        const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
-        const hasFavoriteTool = inventory
-          .getAll()
-          .some(
-            (item) =>
-              item.type === "gardenTool" &&
-              (item as GardenTool).toolData?.favoriteEnabled
-          );
-        const items = inventory
-          .getAll()
-          .filter((item) =>
-            ["gardenSeed", "gardenPetCage", "gardenTool"].includes(item.type)
-          )
-          .concat(plots.getAll().filter((plot) => !plot.isFavorite));
-        if (!hasFavoriteTool) {
-          return output.replyStyled(
-            `❌ You need a Favorite Tool to favorite items! Buy one with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }shop.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} Visit shop: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }shop`,
-            style
-          );
-        }
-        if (items.length === 0) {
-          return output.replyStyled(
-            `🌱 No items or crops to favorite! Check items with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }list.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }plant\n` +
-              `${UNISpectra.arrowFromT} Buy items: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }shop`,
-            style
-          );
-        }
+    // {
+    //   key: "favorite",
+    //   description: "Favorite an item or crop to prevent selling",
+    //   aliases: ["-f"],
+    //   args: ["[item_key]"],
+    //   async handler(_, { spectralArgs }) {
+    //     const inventory = new Inventory<GardenItem | InventoryItem>(
+    //       rawInventory
+    //     );
+    //     const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
+    //     const hasFavoriteTool = inventory
+    //       .getAll()
+    //       .some(
+    //         (item) =>
+    //           item.type === "gardenTool" &&
+    //           (item as GardenTool).toolData?.favoriteEnabled
+    //       );
+    //     const items = inventory
+    //       .getAll()
+    //       .filter((item) =>
+    //         ["gardenSeed", "gardenPetCage", "gardenTool"].includes(item.type)
+    //       )
+    //       .concat(plots.getAll().filter((plot) => !plot.isFavorite));
+    //     if (!hasFavoriteTool) {
+    //       return output.replyStyled(
+    //         `❌ You need a Favorite Tool to favorite items! Buy one with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }shop.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} Visit shop: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }shop`,
+    //         style
+    //       );
+    //     }
+    //     if (items.length === 0) {
+    //       return output.replyStyled(
+    //         `🌱 No items or crops to favorite! Check items with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }list.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }plant\n` +
+    //           `${UNISpectra.arrowFromT} Buy items: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }shop`,
+    //         style
+    //       );
+    //     }
 
-        let item: GardenItem | GardenPlot;
-        if (spectralArgs[0]) {
-          item = plots.getOne(spectralArgs[0]);
-          if (!item) {
-            return output.replyStyled(
-              `❌ Invalid item key "${
-                spectralArgs[0]
-              }"! Check items with ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }plots.\n\n` +
-                `**Next Steps**:\n` +
-                `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }list`,
-              style
-            );
-          }
-        } else {
-          const result = await output.selectItem({
-            items,
-            style,
-            validationDBProperty: "inventory",
-          });
-          if (!result.item) return;
-          item = result.item as GardenItem;
-          ctx = result.ctx;
-        }
+    //     if (!spectralArgs[0]) {
+    //       return output.replyStyled(
+    //         `❌ Specify an item or crop key to favorite! Check items with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }list.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }plant\n` +
+    //           `${UNISpectra.arrowFromT} Buy items: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }shop`,
+    //         style
+    //       );
+    //     }
 
-        item.isFavorite = true;
-        await money.setItem(input.senderID, {
-          inventory: Array.from(inventory),
-          gardenPlots: Array.from(plots),
-        });
+    //     let itemsTarget: (GardenItem | GardenPlot)[];
 
-        return ctx.output.replyStyled(
-          `⭐ Favorited ${item.icon} **${item.name}**! It won't be sold in bulk sales.\n\n` +
-            `**Next Steps**:\n` +
-            `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }list\n` +
-            `${UNISpectra.arrowFromT} Sell items: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }sell`,
-          style
-        );
-      },
-    },
+    //     itemsTarget = [
+    //       ...plots.get(spectralArgs[0]),
+    //       ...new Inventory<GardenItem>(items as GardenItem[]).get(
+    //         spectralArgs[0]
+    //       ),
+    //     ];
+    //     if (itemsTarget.length === 0) {
+    //       return output.replyStyled(
+    //         `❌ Invalid item key "${
+    //           spectralArgs[0]
+    //         }"! Check items with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }plots.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }list`,
+    //         style
+    //       );
+    //     }
+
+    //     itemsTarget.forEach((i) => (i.isFavorite = true));
+    //     await money.setItem(input.senderID, {
+    //       inventory: Array.from(inventory),
+    //       gardenPlots: Array.from(plots),
+    //     });
+
+    //     return ctx.output.replyStyled(
+    //       `⭐ Favorited ${itemsTarget[0].icon} **${items[0].name}**! It won't be sold in bulk sales.\n\n` +
+    //         `**Next Steps**:\n` +
+    //         `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }list\n` +
+    //         `${UNISpectra.arrowFromT} Unfavorite: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }unfavorite\n` +
+    //         `${UNISpectra.arrowFromT} Sell items: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }sell`,
+    //       style
+    //     );
+    //   },
+    // },
+    // {
+    //   key: "unfavorite",
+    //   description: "Remove favorite tag from an item or crop",
+    //   aliases: ["-uf"],
+    //   args: ["[item_key]"],
+    //   async handler(_, { spectralArgs }) {
+    //     const inventory = new Inventory<GardenItem | InventoryItem>(
+    //       rawInventory
+    //     );
+    //     const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
+
+    //     const items = inventory
+    //       .getAll()
+    //       .filter((item) => item.isFavorite)
+    //       .concat(plots.getAll().filter((plot) => plot.isFavorite));
+
+    //     if (items.length === 0) {
+    //       return output.replyStyled(
+    //         `⭐ Nothing is currently favorited.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${
+    //             UNISpectra.arrowFromT
+    //           } Favorite something: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }favorite`,
+    //         style
+    //       );
+    //     }
+
+    //     if (!spectralArgs[0]) {
+    //       return output.replyStyled(
+    //         `❌ Please specify an item or crop key to unfavorite.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${
+    //             UNISpectra.arrowFromT
+    //           } List favorites: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }list`,
+    //         style
+    //       );
+    //     }
+
+    //     const itemsTarget: (GardenItem | GardenPlot)[] = [
+    //       ...plots.get(spectralArgs[0]).filter((p) => p.isFavorite),
+    //       ...new Inventory<GardenItem>(items as GardenItem[]).get(
+    //         spectralArgs[0]
+    //       ),
+    //     ];
+
+    //     if (itemsTarget.length === 0) {
+    //       return output.replyStyled(
+    //         `❌ No favorited item found for key "${spectralArgs[0]}".\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${
+    //             UNISpectra.arrowFromT
+    //           } List favorites: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }list`,
+    //         style
+    //       );
+    //     }
+
+    //     itemsTarget.forEach((i) => (i.isFavorite = false));
+
+    //     await money.setItem(input.senderID, {
+    //       inventory: Array.from(inventory),
+    //       gardenPlots: Array.from(plots),
+    //     });
+
+    //     return output.replyStyled(
+    //       `🔓 Unfavorited ${itemsTarget[0].icon} **${itemsTarget[0].name}** — it can now be sold.\n\n` +
+    //         `**Next Steps**:\n` +
+    //         `${UNISpectra.arrowFromT} Sell items: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }sell\n` +
+    //         `${UNISpectra.arrowFromT} Favorite again: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }favorite`,
+    //       style
+    //     );
+    //   },
+    // },
     {
       key: "uncage",
       description: "Uncage a pet to make it active",
@@ -1235,36 +1399,49 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
-        let cagedPet: GardenPetCage;
-        if (spectralArgs[0]) {
-          const selected = inventory.getOne(spectralArgs[0]);
-          if (!selected || selected.type !== "gardenPetCage") {
-            return output.replyStyled(
-              `❌ Invalid pet key "${
-                spectralArgs[0]
-              }"! Check caged pets with ${prefix}${commandName}${
+        if (!spectralArgs[0]) {
+          return output.replyStyled(
+            `❌ Specify a pet key to uncage! Check items with ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }list.\n\n` +
+              `**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
                 isHypen ? "-" : " "
-              }list.\n\n` +
-                `**Next Steps**:\n` +
-                `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }list\n` +
-                `${UNISpectra.arrowFromT} Buy pets: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }shop`,
-              style
-            );
-          }
-          cagedPet = selected as GardenPetCage;
-        } else {
-          const result = await output.selectItem({
-            items: cagedPets,
-            style,
-            validationDBProperty: "inventory",
-          });
-          if (!result.item) return;
-          cagedPet = result.item as GardenPetCage;
-          ctx = result.ctx;
+              }plant\n` +
+              `${UNISpectra.arrowFromT} Buy items: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }shop`,
+            style
+          );
+        }
+
+        let cagedPet: GardenPetCage;
+
+        const selected = inventory.getOne(spectralArgs[0]);
+        if (!selected || selected.type !== "gardenPetCage") {
+          return output.replyStyled(
+            `❌ Invalid pet key "${
+              spectralArgs[0]
+            }"! Check caged pets with ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }list.\n\n` +
+              `**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }list\n` +
+              `${UNISpectra.arrowFromT} Buy pets: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }shop`,
+            style
+          );
+        }
+        cagedPet = selected as GardenPetCage;
+
+        if (pets.has(cagedPet.key)) {
+          return ctx.output.replyStyled(
+            "🐾 You cannot have this pet again.",
+            style
+          );
         }
 
         inventory.deleteOne(cagedPet.key);
@@ -1401,12 +1578,14 @@ export async function entry(ctx: CommandContext) {
         }
 
         let totalSeedsCollected = 0;
+        let finalCollected: GardenItem[] = [];
         currentPets.forEach((pet, index) => {
-          const { collections } = updatePetCollection(
+          const { collections, collected } = updatePetCollection(
             pet,
             inventory as Inventory<GardenItem>,
             ctx
           );
+          finalCollected.push(...collected);
           totalSeedsCollected += collections;
           totalSeedsCollected = Math.min(
             global.Cassidy.invLimit,
@@ -1428,11 +1607,21 @@ export async function entry(ctx: CommandContext) {
           inventory: Array.from(inventory),
           gardenPets: Array.from(pets),
         });
+        const finalCollInv = new Inventory(finalCollected);
 
         result +=
-          `🌱 Total Seeds Collected: ${totalSeedsCollected}${
+          `🌱 Total Seeds Collected: **${totalSeedsCollected}${
             totalSeedsCollected > 0 ? ` (+${totalSeedsCollected})` : ""
-          }\n\n` +
+          }**\n\n` +
+          `${finalCollInv
+            .toUnique()
+            .map(
+              (s) =>
+                `**x${finalCollInv.getAmount(s.key)}** ${s.icon} **${
+                  s.name
+                }** (Key: **${s.key}**)`
+            )
+            .join("\n")}\n\n` +
           `**Next Steps**:\n` +
           `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
             isHypen ? "-" : " "
@@ -1453,12 +1642,19 @@ export async function entry(ctx: CommandContext) {
       aliases: ["-st"],
       args: ["[player_id]"],
       async handler(_, { spectralArgs }) {
-        const stealCost = 1000;
-        if (userMoney < stealCost) {
+        const stealCost = 5;
+        const userGems = collectibles.getAmount("gems");
+        if (userGems < stealCost) {
           return output.replyStyled(
-            `❌ You need ${formatCash(
-              stealCost
-            )} to steal a crop! Your balance: ${formatCash(userMoney)}.\n\n` +
+            `❌ You need ${formatValue(
+              stealCost,
+              "💎",
+              true
+            )} to steal a crop! Your gems: ${formatValue(
+              userGems,
+              "💎",
+              true
+            )}.\n\n` +
               `**Next Steps**:\n` +
               `${UNISpectra.arrowFromT} Sell crops: ${prefix}${commandName}${
                 isHypen ? "-" : " "
@@ -1526,9 +1722,10 @@ export async function entry(ctx: CommandContext) {
           shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
           inventory = new Inventory(cache);
         }
-        targetPlots.deleteOne(stolenPlot.key);
+        targetPlots.deleteRef(stolenPlot);
+        collectibles.raise("gems", -stealCost);
         await money.setItem(input.senderID, {
-          money: userMoney - stealCost,
+          collectibles: Array.from(collectibles),
           inventory: Array.from(inventory),
         });
         await money.setItem(spectralArgs[0], {
@@ -1538,7 +1735,7 @@ export async function entry(ctx: CommandContext) {
         return output.replyStyled(
           `✅ Stole ${stolenPlot.icon} **${stolenPlot.name}**${
             stolenPlot.mutation ? ` (${stolenPlot.mutation})` : ""
-          } for ${formatCash(stealCost)}!\n\n` +
+          } for ${formatValue(stealCost, "💎", true)}!\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
               isHypen ? "-" : " "
@@ -1550,7 +1747,7 @@ export async function entry(ctx: CommandContext) {
         );
       },
     },
-    {
+    /*{
       key: "gift",
       description: "Gift an item or crop to another player",
       aliases: ["-g"],
@@ -1646,18 +1843,25 @@ export async function entry(ctx: CommandContext) {
           style
         );
       },
-    },
+    },*/
     {
       key: "growall",
       description: "Instantly grow all crops",
       aliases: ["-ga"],
       async handler() {
-        const growAllCost = 5000;
-        if (userMoney < growAllCost) {
+        const growAllCost = 100;
+        const userGems = collectibles.getAmount("gems");
+        if (userGems < growAllCost) {
           return output.replyStyled(
-            `❌ You need ${formatCash(
-              growAllCost
-            )} to grow all crops! Your balance: ${formatCash(userMoney)}.\n\n` +
+            `❌ You need ${formatValue(
+              growAllCost,
+              "💎",
+              true
+            )} to grow all crops! Your gems: ${formatValue(
+              userGems,
+              "💎",
+              true
+            )}.\n\n` +
               `**Next Steps**:\n` +
               `${UNISpectra.arrowFromT} Sell crops: ${prefix}${commandName}${
                 isHypen ? "-" : " "
@@ -1688,13 +1892,18 @@ export async function entry(ctx: CommandContext) {
         plots.getAll().forEach((plot) => {
           plot.plantedAt = 0;
         });
+        collectibles.raise("gems", -growAllCost);
         await money.setItem(input.senderID, {
-          money: userMoney - growAllCost,
           gardenPlots: Array.from(plots),
+          collectibles: Array.from(collectibles),
         });
 
         return output.replyStyled(
-          `🌱 All crops grown instantly for ${formatCash(growAllCost)}!\n\n` +
+          `🌱 All crops grown instantly for ${formatValue(
+            growAllCost,
+            "💎",
+            true
+          )}!\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Harvest crops: ${prefix}${commandName}${
               isHypen ? "-" : " "
@@ -1770,9 +1979,11 @@ export async function entry(ctx: CommandContext) {
           }
           if (currentTime - lastSideExpansion < sideExpansionDelay) {
             return output.replyStyled(
-              `⏳ Side expansion on cooldown! Try again in ${formatTimeSentence(
-                lastSideExpansion + sideExpansionDelay - currentTime
-              )}.\n\n` +
+              `⏳ Side expansion on cooldown! Try again in ${
+                formatTimeSentence(
+                  lastSideExpansion + sideExpansionDelay - currentTime
+                ) || "Now?"
+              }.\n\n` +
                 `**Next Steps**:\n` +
                 `${
                   UNISpectra.arrowFromT
@@ -1802,7 +2013,8 @@ export async function entry(ctx: CommandContext) {
               money: userMoney - sideExpansionCost,
             },
             money,
-            output
+            output,
+            input
           );
           return output.replyStyled(
             `🌱 Plot expanded by ${sideExpansionPlots} slots for ${formatCash(
@@ -1839,9 +2051,11 @@ export async function entry(ctx: CommandContext) {
           }
           if (currentTime - lastRearExpansion1 < rearExpansion1Delay) {
             return output.replyStyled(
-              `⏳ First rear expansion on cooldown! Try again in ${formatTimeSentence(
-                lastRearExpansion1 + rearExpansion1Delay - currentTime
-              )}.\n\n` +
+              `⏳ First rear expansion on cooldown! Try again in ${
+                formatTimeSentence(
+                  lastRearExpansion1 + rearExpansion1Delay - currentTime
+                ) || "Now?"
+              }.\n\n` +
                 `**Next Steps**:\n` +
                 `${
                   UNISpectra.arrowFromT
@@ -1871,7 +2085,8 @@ export async function entry(ctx: CommandContext) {
               money: userMoney - rearExpansion1Cost,
             },
             money,
-            output
+            output,
+            input
           );
           return output.replyStyled(
             `🌱 Plot expanded by ${rearExpansionPlots} slots for ${formatCash(
@@ -1908,9 +2123,11 @@ export async function entry(ctx: CommandContext) {
           }
           if (currentTime - lastRearExpansion2 < rearExpansion2Delay) {
             return output.replyStyled(
-              `⏳ Second rear expansion on cooldown! Try again in ${formatTimeSentence(
-                lastRearExpansion2 + rearExpansion2Delay - currentTime
-              )}.\n\n` +
+              `⏳ Second rear expansion on cooldown! Try again in ${
+                formatTimeSentence(
+                  lastRearExpansion2 + rearExpansion2Delay - currentTime
+                ) || "Now?"
+              }.\n\n` +
                 `**Next Steps**:\n` +
                 `${
                   UNISpectra.arrowFromT
@@ -1940,7 +2157,8 @@ export async function entry(ctx: CommandContext) {
               money: userMoney - rearExpansion2Cost,
             },
             money,
-            output
+            output,
+            input
           );
           return output.replyStyled(
             `🌱 Plot expanded by ${rearExpansionPlots} slots for ${formatCash(
@@ -1957,7 +2175,14 @@ export async function entry(ctx: CommandContext) {
           );
         } else {
           return output.replyStyled(
-            `❌ Invalid expansion type! Use side, rear1, or rear2.\n\n` +
+            `❌ Invalid expansion type! Use: side, rear1, or rear2.\n\n` +
+              `💰 **Costs**:\n\nSide - ${formatCash(
+                sideExpansionCost,
+                true
+              )}\nRear1 - ${formatCash(
+                rearExpansion1Cost,
+                true
+              )}\nRear2 - ${formatCash(rearExpansion2Cost, true)}\n\n` +
               `**Next Steps**:\n` +
               `${UNISpectra.arrowFromT} Try again: ${prefix}${commandName}${
                 isHypen ? "-" : " "
@@ -1967,7 +2192,7 @@ export async function entry(ctx: CommandContext) {
         }
       },
     },
-    {
+    /*{
       key: "sell",
       description: "Sell items or crops at Steven's Stand",
       aliases: ["-s"],
@@ -2097,7 +2322,7 @@ export async function entry(ctx: CommandContext) {
           style
         );
       },
-    },
+    },*/
     {
       key: "event",
       description: "Check current garden event or weather",
@@ -2123,6 +2348,11 @@ export async function entry(ctx: CommandContext) {
             } (Value: ${formatCash(event.exclusiveSeed.baseValue)})`
           );
         }
+        const timeLeft = getTimeForNextEvent();
+        result.push(
+          `🕒 Next Event in: ${formatTimeSentence(timeLeft) || "Ready!"}`
+        );
+
         result.push(
           `\n**Next Steps**:\n${
             UNISpectra.arrowFromT
@@ -2280,6 +2510,7 @@ export const style: CassidySpectra.CommandStyle = {
   },
   contentFont: "fancy",
   footer: {
-    content: "Grow Big, Earn Big!",
+    content: "Rewards multiply with success.",
+    text_font: "fancy",
   },
 };
