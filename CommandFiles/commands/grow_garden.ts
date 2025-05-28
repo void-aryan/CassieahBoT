@@ -15,7 +15,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g"],
-  version: "1.3.4",
+  version: "1.3.5",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1486,7 +1486,7 @@ export async function entry(ctx: CommandContext) {
             if (shopItem && inventory.size() < global.Cassidy.invLimit) {
               const cache = inventory.getAll();
               shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
-              inventory = new Inventory(cache);
+
               seedsGained.push(`${plot.icon} ${plot.name} Seed`);
             }
           }
@@ -2040,9 +2040,7 @@ export async function entry(ctx: CommandContext) {
       args: ["[page] [equip/unequip] [pet_key]"],
       async handler(_, { spectralArgs }) {
         const pets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
-        const inventory = new Inventory<GardenItem | InventoryItem>(
-          rawInventory
-        );
+        let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         const page = parseInt(spectralArgs[0]) || 1;
         const action = spectralArgs[1];
         const petKey = spectralArgs[2];
@@ -2135,11 +2133,12 @@ export async function entry(ctx: CommandContext) {
         let totalSeedsCollected = 0;
         let finalCollected: GardenItem[] = [];
         currentPets.forEach((pet, index) => {
-          const { collections, collected } = updatePetCollection(
-            pet,
-            inventory as Inventory<GardenItem>,
-            ctx
-          );
+          const {
+            collections,
+            collected,
+            inventory: rInv,
+          } = updatePetCollection(pet, inventory as Inventory<GardenItem>, ctx);
+          inventory = rInv;
           finalCollected.push(...collected);
           totalSeedsCollected += collections;
           totalSeedsCollected = Math.min(
