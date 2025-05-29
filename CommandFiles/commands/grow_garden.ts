@@ -14,8 +14,8 @@ import InputClass from "@cass-modules/InputClass";
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
-  otherNames: ["grow", "growgarden", "gr", "g"],
-  version: "1.3.5",
+  otherNames: ["grow", "growgarden", "gr", "g", "gag"],
+  version: "1.3.7",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -36,35 +36,12 @@ export const ITEMS_PER_PAGE = 6;
 const EVENT_CONFIG = {
   WEEKLY_CYCLE: 7 * 24 * 60 * 60 * 1000,
   WEATHER_CYCLE: 1 * 60 * 60 * 1000,
+  EVENT_CYCLE: 24 * 60 * 60 * 1000,
   EVENTS: [
     {
-      name: "Blood Moon",
-      icon: "🌑",
-      effect: {
-        mutationChance: 0.2,
-        growthMultiplier: 0.8,
-        mutationType: "Bloodlit",
-      },
-      exclusiveSeed: { key: "gsBloodRose", name: "Blood Rose", baseValue: 500 },
-    },
-    {
-      name: "Thunderstorm",
-      icon: "⛈️",
-      effect: {
-        mutationChance: 0.25,
-        growthMultiplier: 1.5,
-        mutationType: "Shocked",
-      },
-      exclusiveSeed: { key: "gsLotus", name: "Lotus", baseValue: 1000 },
-    },
-    {
-      name: "Rainy Days",
-      icon: "☔",
-      effect: {
-        mutationChance: 0.3,
-        growthMultiplier: 1.5,
-        mutationType: "Wet",
-      },
+      name: "No Event",
+      icon: "🌱",
+      shopItems: [],
     },
     {
       name: "Frost",
@@ -74,9 +51,1161 @@ const EVENT_CONFIG = {
         growthMultiplier: 0.9,
         mutationType: "Chilled",
       },
+      shopItems: [],
+    },
+    {
+      name: "Thunderstorm",
+      icon: "⛈️",
+      effect: {
+        mutationChance: 0.25,
+        growthMultiplier: 1.5,
+        mutationType: "Shocked",
+      },
+      shopItems: [
+        {
+          icon: "🪷",
+          name: "Lotus Seed",
+          key: "gsLotus",
+          flavorText: "A rare seed available during Thunderstorm!",
+          price: 500,
+          rarity: "Divine",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsLotus",
+              name: "Lotus Seed",
+              flavorText: "A rare seed from Thunderstorm.",
+              icon: "🪷",
+              type: "gardenSeed",
+              sellPrice: 250,
+              cropData: {
+                baseValue: 1000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+                harvests: 1,
+              },
+            });
+          },
+        },
+      ],
+    },
+
+    {
+      name: "Easter Event 2025",
+      icon: "🐣",
+      effect: {
+        mutationChance: 0.2,
+        growthMultiplier: 1.2,
+        mutationType: "Chocolate",
+      },
+      shopItems: [
+        {
+          icon: "🍫",
+          name: "Chocolate Carrot Seed",
+          key: "gsChocoCarrot",
+          flavorText: "A sweet carrot from the Easter Event!",
+          price: 200,
+          rarity: "Common",
+          stockChance: 1.0,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsChocoCarrot",
+              name: "Chocolate Carrot Seed",
+              flavorText: "A sweet carrot from the Easter Event.",
+              icon: "🍫",
+              type: "gardenSeed",
+              sellPrice: 100,
+              cropData: {
+                baseValue: 400,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍭",
+          name: "Red Lollipop Seed",
+          key: "gsRedLollipop",
+          flavorText: "A sugary treat from the Easter Event.",
+          price: 500,
+          rarity: "Uncommon",
+          stockChance: 0.8,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsRedLollipop",
+              name: "Red Lollipop Seed",
+              flavorText: "A sugary treat from the Easter Event.",
+              icon: "🍭",
+              type: "gardenSeed",
+              sellPrice: 250,
+              cropData: {
+                baseValue: 1000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌻",
+          name: "Candy Sunflower Seed",
+          key: "gsCandySunflower",
+          flavorText: "A radiant flower from the Easter Event.",
+          price: 1200,
+          rarity: "Rare",
+          stockChance: 0.5,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCandySunflower",
+              name: "Candy Sunflower Seed",
+              flavorText: "A radiant flower from the Easter Event.",
+              icon: "🌻",
+              type: "gardenSeed",
+              sellPrice: 600,
+              cropData: {
+                baseValue: 2400,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🥚",
+          name: "Easter Egg Seed",
+          key: "gsEasterEgg",
+          flavorText: "A festive egg from the Easter Event.",
+          price: 3000,
+          rarity: "Legendary",
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsEasterEgg",
+              name: "Easter Egg Seed",
+              flavorText: "A festive egg from the Easter Event.",
+              icon: "🥚",
+              type: "gardenSeed",
+              sellPrice: 1500,
+              cropData: {
+                baseValue: 6000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌸",
+          name: "Candy Blossom Seed",
+          key: "gsCandyBlossom",
+          flavorText: "A divine bloom from the Easter Event.",
+          price: 6000,
+          rarity: "Divine",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCandyBlossom",
+              name: "Candy Blossom Seed",
+              flavorText: "A divine bloom from the Easter Event.",
+              icon: "🌸",
+              type: "gardenSeed",
+              sellPrice: 3000,
+              cropData: {
+                baseValue: 12000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍫💦",
+          name: "Chocolate Sprinkler",
+          key: "gtChocoSprinkler",
+          flavorText: "Boosts Chocolate mutations for Easter crops.",
+          price: 1000,
+          rarity: "Rare",
+          stockChance: 0.4,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtChocoSprinkler",
+              name: "Chocolate Sprinkler",
+              flavorText: "Boosts Chocolate mutations for Easter crops.",
+              icon: "🍫💦",
+              type: "gardenTool",
+              sellPrice: 500,
+              toolData: {
+                growthMultiplier: 1.2,
+                mutationChance: { Chocolate: 0.3 },
+              },
+            });
+          },
+        },
+      ],
+    },
+    {
+      name: "Angry Plant Event",
+      icon: "🌿😣",
+      effect: {
+        mutationChance: 0.25,
+        growthMultiplier: 1.1,
+        mutationType: "Angry",
+      },
+      shopItems: [
+        {
+          icon: "🍒",
+          name: "Cranberry Seed",
+          key: "gsCranberry",
+          flavorText: "A tart fruit from the Angry Plant Event.",
+          price: 3500,
+          rarity: "Legendary",
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCranberry",
+              name: "Cranberry Seed",
+              flavorText: "A tart fruit from the Angry Plant Event.",
+              icon: "🍒",
+              type: "gardenSeed",
+              sellPrice: 1750,
+              cropData: {
+                baseValue: 7000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🥭",
+          name: "Durian Seed",
+          key: "gsDurian",
+          flavorText: "A pungent fruit from the Angry Plant Event.",
+          price: 4000,
+          rarity: "Legendary",
+          stockChance: 0.25,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsDurian",
+              name: "Durian Seed",
+              flavorText: "A pungent fruit from the Angry Plant Event.",
+              icon: "🥭",
+              type: "gardenSeed",
+              sellPrice: 2000,
+              cropData: {
+                baseValue: 8000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍆",
+          name: "Eggplant Seed",
+          key: "gsEggplant",
+          flavorText: "A versatile veggie from the Angry Plant Event.",
+          price: 5000,
+          rarity: "Mythical",
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsEggplant",
+              name: "Eggplant Seed",
+              flavorText: "A versatile veggie from the Angry Plant Event.",
+              icon: "🍆",
+              type: "gardenSeed",
+              sellPrice: 2500,
+              cropData: {
+                baseValue: 10000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🪷",
+          name: "Lotus Seed",
+          key: "gsLotus",
+          flavorText: "A serene flower from the Angry Plant Event.",
+          price: 6000,
+          rarity: "Divine",
+          stockChance: 0.15,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsLotus",
+              name: "Lotus Seed",
+              flavorText: "A serene flower from the Angry Plant Event.",
+              icon: "🪷",
+              type: "gardenSeed",
+              sellPrice: 3000,
+              cropData: {
+                baseValue: 12000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        {
+          icon: "🪴",
+          name: "Venus Fly Trap Seed",
+          key: "gsVenusFlyTrap",
+          flavorText: "A carnivorous plant from the Angry Plant Event.",
+          price: 6500,
+          rarity: "Divine",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsVenusFlyTrap",
+              name: "Venus Fly Trap Seed",
+              flavorText: "A carnivorous plant from the Angry Plant Event.",
+              icon: "🪴",
+              type: "gardenSeed",
+              sellPrice: 3250,
+              cropData: {
+                baseValue: 13000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        // {
+        //   icon: "🌱",
+        //   name: "Basic Seed Pack",
+        //   key: "gtBasicSeedPack",
+        //   flavorText: "A pack of basic seeds from the Angry Plant Event.",
+        //   price: 500,
+        //   rarity: "Common",
+        //   stockChance: 0.8,
+        //   inStock: true,
+        //   onPurchase({ moneySet }) {
+        //     moneySet.inventory.push({
+        //       key: "gtBasicSeedPack",
+        //       name: "Basic Seed Pack",
+        //       flavorText: "A pack of basic seeds from the Angry Plant Event.",
+        //       icon: "🌱",
+        //       type: "gardenTool",
+        //       sellPrice: 250,
+        //       toolData: {
+        //         seedTypes: ["gsCarrot", "gsStrawberry", "gsBlueberry"],
+        //       },
+        //     });
+        //   },
+        // },
+        // {
+        //   icon: "🌟",
+        //   name: "Premium Seed Pack",
+        //   key: "gtPremiumSeedPack",
+        //   flavorText:
+        //     "A pack of premium seeds with a chance for rainbow sacks.",
+        //   price: 1500,
+        //   rarity: "Rare",
+        //   stockChance: 0.4,
+        //   inStock: true,
+        //   onPurchase({ moneySet }) {
+        //     moneySet.inventory.push({
+        //       key: "gtPremiumSeedPack",
+        //       name: "Premium Seed Pack",
+        //       flavorText:
+        //         "A pack of premium seeds with a chance for rainbow sacks.",
+        //       icon: "🌟",
+        //       type: "gardenTool",
+        //       sellPrice: 750,
+        //       toolData: {
+        //         seedTypes: ["gsTomato", "gsWatermelon", "gsOrangeTulip"],
+        //       },
+        //     });
+        //   },
+        // },
+      ],
+    },
+    {
+      name: "Lunar Glow Event",
+      icon: "🌙",
+      effect: {
+        mutationChance: 0.3,
+        growthMultiplier: 1.3,
+        mutationType: "Moonlit",
+      },
+      shopItems: [
+        {
+          icon: "🌙",
+          name: "Moonflower Seed",
+          key: "gsMoonflower",
+          flavorText: "Rare flower blooming under moonlight.",
+          price: 8000,
+          rarity: "Legendary",
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMoonflower",
+              name: "Moonflower Seed",
+              flavorText: "Rare flower blooming under moonlight.",
+              icon: "🌙",
+              type: "gardenSeed",
+              sellPrice: 4000,
+              cropData: {
+                baseValue: 16000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍃",
+          name: "Mint Seed",
+          key: "gsMint",
+          flavorText: "Refreshing herb with culinary uses.",
+          price: 2200,
+          rarity: "Rare",
+          stockChance: 0.5,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMint",
+              name: "Mint Seed",
+              flavorText: "Refreshing herb with culinary uses.",
+              icon: "🍃",
+              type: "gardenSeed",
+              sellPrice: 1100,
+              cropData: {
+                baseValue: 4400,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍄",
+          name: "Glowshroom Seed",
+          key: "gsGlowshroom",
+          flavorText: "Bioluminescent mushroom with unique glow.",
+          price: 3000,
+          rarity: "Rare",
+          stockChance: 0.4,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsGlowshroom",
+              name: "Glowshroom Seed",
+              flavorText: "Bioluminescent mushroom with unique glow.",
+              icon: "🍄",
+              type: "gardenSeed",
+              sellPrice: 1500,
+              cropData: {
+                baseValue: 6000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌟",
+          name: "Starfruit Seed",
+          key: "gsStarfruit",
+          flavorText: "A radiant fruit from the Lunar Glow Event.",
+          price: 3500,
+          rarity: "Legendary",
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsStarfruit",
+              name: "Starfruit Seed",
+              flavorText: "A radiant fruit from the Lunar Glow Event.",
+              icon: "🌟",
+              type: "gardenSeed",
+              sellPrice: 1750,
+              cropData: {
+                baseValue: 7000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌼",
+          name: "Moonglow Seed",
+          key: "gsMoonglow",
+          flavorText: "A glowing flower from the Lunar Glow Event.",
+          price: 4000,
+          rarity: "Legendary",
+          stockChance: 0.25,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMoonglow",
+              name: "Moonglow Seed",
+              flavorText: "A glowing flower from the Lunar Glow Event.",
+              icon: "🌼",
+              type: "gardenSeed",
+              sellPrice: 2000,
+              cropData: {
+                baseValue: 8000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌸",
+          name: "Moon Blossom Seed",
+          key: "gsMoonBlossom",
+          flavorText: "A divine bloom from the Lunar Glow Event.",
+          price: 6000,
+          rarity: "Divine",
+          stockChance: 0.15,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMoonBlossom",
+              name: "Moon Blossom Seed",
+              flavorText: "A divine bloom from the Lunar Glow Event.",
+              icon: "🌸",
+              type: "gardenSeed",
+              sellPrice: 3000,
+              cropData: {
+                baseValue: 12000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍌",
+          name: "Blood Banana Seed",
+          key: "gsBloodBanana",
+          flavorText: "A rare fruit from the Lunar Glow Event.",
+          price: 5500,
+          rarity: "Mythical",
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsBloodBanana",
+              name: "Blood Banana Seed",
+              flavorText: "A rare fruit from the Lunar Glow Event.",
+              icon: "🍌",
+              type: "gardenSeed",
+              sellPrice: 2750,
+              cropData: {
+                baseValue: 11000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍈",
+          name: "Moon Melon Seed",
+          key: "gsMoonMelon",
+          flavorText: "A juicy melon from the Lunar Glow Event.",
+          price: 5200,
+          rarity: "Mythical",
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMoonMelon",
+              name: "Moon Melon Seed",
+              flavorText: "A juicy melon from the Lunar Glow Event.",
+              icon: "🍈",
+              type: "gardenSeed",
+              sellPrice: 2600,
+              cropData: {
+                baseValue: 10400,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        {
+          icon: "🫐",
+          name: "Celestiberry Seed",
+          key: "gsCelestiberry",
+          flavorText: "A celestial berry from the Lunar Glow Event.",
+          price: 5000,
+          rarity: "Mythical",
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCelestiberry",
+              name: "Celestiberry Seed",
+              flavorText: "A celestial berry from the Lunar Glow Event.",
+              icon: "🫐",
+              type: "gardenSeed",
+              sellPrice: 2500,
+              cropData: {
+                baseValue: 10000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🥭",
+          name: "Moon Mango Seed",
+          key: "gsMoonMango",
+          flavorText: "A tropical fruit from the Lunar Glow Event.",
+          price: 5500,
+          rarity: "Mythical",
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMoonMango",
+              name: "Moon Mango Seed",
+              flavorText: "A tropical fruit from the Lunar Glow Event.",
+              icon: "🥭",
+              type: "gardenSeed",
+              sellPrice: 2750,
+              cropData: {
+                baseValue: 11000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌑",
+          name: "Nightshade Seed",
+          key: "gsNightshade",
+          flavorText: "A mysterious crop from the Lunar Glow Event.",
+          price: 4500,
+          rarity: "Legendary",
+          stockChance: 0.25,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsNightshade",
+              name: "Nightshade Seed",
+              flavorText: "A mysterious crop from the Lunar Glow Event.",
+              icon: "🌑",
+              type: "gardenSeed",
+              sellPrice: 2250,
+              cropData: {
+                baseValue: 9000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🦔",
+          name: "Hedgehog",
+          key: "gpHedgehog",
+          flavorText: "A spiky pet from the Lunar Glow Event.",
+          price: 2000,
+          rarity: "Uncommon",
+          stockChance: 0.6,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpHedgehog",
+              name: "Hedgehog",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🦔",
+              type: "gardenPetCage",
+              sellPrice: 1000,
+              petData: {
+                name: "Hedgehog",
+                collectionRate: 0.1,
+                seedTypes: ["gsMoonflower", "gsMint", "gsGlowshroom"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🐹",
+          name: "Mole",
+          key: "gpMole",
+          flavorText: "A digging pet from the Lunar Glow Event.",
+          price: 2500,
+          rarity: "Uncommon",
+          stockChance: 0.5,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpMole",
+              name: "Mole",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🐹",
+              type: "gardenPetCage",
+              sellPrice: 1250,
+              petData: {
+                name: "Mole",
+                collectionRate: 0.1,
+                seedTypes: ["gsStarfruit", "gsMoonglow", "gsNightshade"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🐸",
+          name: "Frog",
+          key: "gpFrog",
+          flavorText: "A hopping pet from the Lunar Glow Event.",
+          price: 2000,
+          rarity: "Uncommon",
+          stockChance: 0.6,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpFrog",
+              name: "Frog",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🐸",
+              type: "gardenPetCage",
+              sellPrice: 1000,
+              petData: {
+                name: "Frog",
+                collectionRate: 0.1,
+                seedTypes: ["gsMoonBlossom", "gsBloodBanana", "gsMoonMelon"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🐸🌙",
+          name: "Echo Frog",
+          key: "gpEchoFrog",
+          flavorText: "A mystical frog from the Lunar Glow Event.",
+          price: 3000,
+          rarity: "Rare",
+          stockChance: 0.4,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpEchoFrog",
+              name: "Echo Frog",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🐸🌙",
+              type: "gardenPetCage",
+              sellPrice: 1500,
+              petData: {
+                name: "Echo Frog",
+                collectionRate: 0.15,
+                seedTypes: ["gsCelestiberry", "gsMoonMango"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🦇",
+          name: "Night Owl",
+          key: "gpNightOwl",
+          flavorText: "A nocturnal pet from the Lunar Glow Event.",
+          price: 3500,
+          rarity: "Rare",
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpNightOwl",
+              name: "Night Owl",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🦇",
+              type: "gardenPetCage",
+              sellPrice: 1750,
+              petData: {
+                name: "Night Owl",
+                collectionRate: 0.15,
+                seedTypes: ["gsMoonflower", "gsMoonglow", "gsMoonBlossom"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🦝",
+          name: "Raccoon",
+          key: "gpRaccoon",
+          flavorText: "A sneaky pet from the Lunar Glow Event.",
+          price: 3000,
+          rarity: "Rare",
+          stockChance: 0.4,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpRaccoon",
+              name: "Raccoon",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🦝",
+              type: "gardenPetCage",
+              sellPrice: 1500,
+              petData: {
+                name: "Raccoon",
+                collectionRate: 0.15,
+                seedTypes: ["gsBloodBanana", "gsMoonMelon", "gsCelestiberry"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🥝",
+          name: "Kiwi",
+          key: "gpKiwi",
+          flavorText: "A fuzzy pet from the Lunar Glow Event.",
+          price: 4000,
+          rarity: "Legendary",
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpKiwi",
+              name: "Kiwi",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🥝",
+              type: "gardenPetCage",
+              sellPrice: 2000,
+              petData: {
+                name: "Kiwi",
+                collectionRate: 0.2,
+                seedTypes: ["gsMoonMango", "gsNightshade"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🦉",
+          name: "Owl",
+          key: "gpOwl",
+          flavorText: "A wise pet from the Lunar Glow Event.",
+          price: 5000,
+          rarity: "Legendary",
+          stockChance: 0.15,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpOwl",
+              name: "Owl",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🦉",
+              type: "gardenPetCage",
+              sellPrice: 2500,
+              petData: {
+                name: "Owl",
+                collectionRate: 0.2,
+                seedTypes: ["gsMoonflower", "gsStarfruit", "gsMoonglow"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🥝🌑",
+          name: "Blood Kiwi",
+          key: "gpBloodKiwi",
+          flavorText: "A rare pet from the Lunar Glow Event.",
+          price: 6000,
+          rarity: "Mythical",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpBloodKiwi",
+              name: "Blood Kiwi",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🥝🌑",
+              type: "gardenPetCage",
+              sellPrice: 3000,
+              petData: {
+                name: "Blood Kiwi",
+                collectionRate: 0.25,
+                seedTypes: ["gsBloodBanana", "gsMoonMelon"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🦔🌑",
+          name: "Blood Hedgehog",
+          key: "gpBloodHedgehog",
+          flavorText: "A fierce pet from the Lunar Glow Event.",
+          price: 6000,
+          rarity: "Mythical",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpBloodHedgehog",
+              name: "Blood Hedgehog",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🦔🌑",
+              type: "gardenPetCage",
+              sellPrice: 3000,
+              petData: {
+                name: "Blood Hedgehog",
+                collectionRate: 0.25,
+                seedTypes: ["gsCelestiberry", "gsMoonMango"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🦉🌑",
+          name: "Blood Owl",
+          key: "gpBloodOwl",
+          flavorText: "A mystical pet from the Lunar Glow Event.",
+          price: 6500,
+          rarity: "Mythical",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpBloodOwl",
+              name: "Blood Owl",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🦉🌑",
+              type: "gardenPetCage",
+              sellPrice: 3250,
+              petData: {
+                name: "Blood Owl",
+                collectionRate: 0.25,
+                seedTypes: ["gsMoonflower", "gsMoonglow"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🐔💀",
+          name: "Chicken Zombie",
+          key: "gpChickenZombie",
+          flavorText: "A spooky pet from the Lunar Glow Event.",
+          price: 7000,
+          rarity: "Divine",
+          stockChance: 0.05,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpChickenZombie",
+              name: "Chicken Zombie",
+              flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
+              icon: "🐔💀",
+              type: "gardenPetCage",
+              sellPrice: 3500,
+              petData: {
+                name: "Chicken Zombie",
+                collectionRate: 0.3,
+                seedTypes: ["gsNightshade", "gsMoonBlossom"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🌟",
+          name: "Night Staff",
+          key: "gtNightStaff",
+          flavorText: "Boosts Moonlit mutations for Lunar crops.",
+          price: 1500,
+          rarity: "Rare",
+          stockChance: 0.4,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtNightStaff",
+              name: "Night Staff",
+              flavorText: "Boosts Moonlit mutations for Lunar crops.",
+              icon: "🌟",
+              type: "gardenTool",
+              sellPrice: 750,
+              toolData: {
+                growthMultiplier: 1.3,
+                mutationChance: { Moonlit: 0.3 },
+              },
+            });
+          },
+        },
+        {
+          icon: "🥚🌙",
+          name: "Night Egg",
+          key: "gtNightEgg",
+          flavorText: "A mysterious egg from the Lunar Glow Event.",
+          price: 1000,
+          rarity: "Uncommon",
+          stockChance: 0.5,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtNightEgg",
+              name: "Night Egg",
+              flavorText: "A mysterious egg from the Lunar Glow Event.",
+              icon: "🥚🌙",
+              type: "gardenTool",
+              sellPrice: 500,
+              toolData: { growthMultiplier: 1.1 },
+            });
+          },
+        },
+        {
+          icon: "📡",
+          name: "Star Caller",
+          key: "gtStarCaller",
+          flavorText: "Enhances Celestial mutations for Lunar crops.",
+          price: 2000,
+          rarity: "Rare",
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtStarCaller",
+              name: "Star Caller",
+              flavorText: "Enhances Celestial mutations for Lunar crops.",
+              icon: "📡",
+              type: "gardenTool",
+              sellPrice: 1000,
+              toolData: {
+                growthMultiplier: 1.2,
+                mutationChance: { Celestial: 0.2 },
+              },
+            });
+          },
+        },
+        {
+          icon: "📦",
+          name: "Mysterious Crate",
+          key: "gtMysteriousCrate",
+          flavorText: "A crate of surprises from the Lunar Glow Event.",
+          price: 2500,
+          rarity: "Rare",
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtMysteriousCrate",
+              name: "Mysterious Crate",
+              flavorText: "A crate of surprises from the Lunar Glow Event.",
+              icon: "📦",
+              type: "gardenTool",
+              sellPrice: 1250,
+              toolData: {
+                seedTypes: ["gsMoonflower", "gsStarfruit", "gsMoonglow"],
+              },
+            });
+          },
+        },
+        // {
+        //   icon: "🌱🌙",
+        //   name: "Night Seed Pack",
+        //   key: "gtNightSeedPack",
+        //   flavorText: "A pack of lunar seeds from the Lunar Glow Event.",
+        //   price: 1500,
+        //   rarity: "Rare",
+        //   stockChance: 0.4,
+        //   inStock: true,
+        //   onPurchase({ moneySet }) {
+        //     moneySet.inventory.push({
+        //       key: "gtNightSeedPack",
+        //       name: "Night Seed Pack",
+        //       flavorText: "A pack of lunar seeds from the Lunar Glow Event.",
+        //       icon: "🌱🌙",
+        //       type: "gardenTool",
+        //       sellPrice: 750,
+        //       toolData: {
+        //         seedTypes: ["gsMoonBlossom", "gsBloodBanana", "gsMoonMelon"],
+        //       },
+        //     });
+        //   },
+        // },
+      ],
+    },
+    {
+      name: "Blood Moon",
+      icon: "🌑",
+      effect: {
+        mutationChance: 0.2,
+        growthMultiplier: 0.8,
+        mutationType: "Bloodlit",
+      },
+      shopItems: [
+        {
+          icon: "🌹",
+          name: "Blood Rose Seed",
+          key: "gsBloodRose",
+          flavorText: "A rare seed available during Blood Moon!",
+          price: 250,
+          rarity: "Divine",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsBloodRose",
+              name: "Blood Rose Seed",
+              flavorText: "A rare seed from Blood Moon.",
+              icon: "🌹",
+              type: "gardenSeed",
+              sellPrice: 125,
+              cropData: {
+                baseValue: 500,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+                harvests: 1,
+              },
+            });
+          },
+        },
+      ],
+    },
+    {
+      name: "Rainy Days",
+      icon: "☔",
+      effect: {
+        mutationChance: 0.3,
+        growthMultiplier: 1.5,
+        mutationType: "Wet",
+      },
+      shopItems: [],
     },
   ],
 };
+
+function getCurrentEvent() {
+  const weekNumber =
+    Math.floor(Date.now() / EVENT_CONFIG.EVENT_CYCLE) %
+    EVENT_CONFIG.EVENTS.length;
+  const event = EVENT_CONFIG.EVENTS[weekNumber];
+
+  gardenShop.itemData = gardenShop.itemData.filter(
+    (item) =>
+      !item.key.startsWith("gs") ||
+      !event.shopItems.some((shopItem) => shopItem.key === item.key)
+  );
+
+  if (event.shopItems && event.shopItems.length > 0) {
+    event.shopItems.forEach((shopItem) => {
+      if (!gardenShop.itemData.some((item) => item.key === shopItem.key)) {
+        gardenShop.itemData.push(shopItem);
+      }
+    });
+  }
+
+  return event;
+}
 
 const CROP_CONFIG = {
   MUTATIONS: [
@@ -86,6 +1215,11 @@ const CROP_CONFIG = {
     { name: "Shocked", valueMultiplier: 1.8, chance: 0.15 },
     { name: "Chilled", valueMultiplier: 1.6, chance: 0.1 },
     { name: "Bloodlit", valueMultiplier: 2.5, chance: 0.05 },
+    { name: "Chocolate", valueMultiplier: 2.2, chance: 0.08 },
+    { name: "Angry", valueMultiplier: 1.9, chance: 0.12 },
+    { name: "Moonlit", valueMultiplier: 2.3, chance: 0.06 },
+    { name: "Celestial", valueMultiplier: 2.4, chance: 0.04 },
+    { name: "Chocolate", valueMultiplier: 2.1, chance: 0.07 },
   ],
   GROWTH_BASE: 5 * 60 * 1000,
   OVERGROWTH_PENALTY: 1.5,
@@ -110,6 +1244,7 @@ const gardenShop = {
       price: 10,
       rarity: "Common",
       inStock: true,
+      isEventItem: false,
       stockChance: 1.0,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -400,9 +1535,9 @@ const gardenShop = {
           type: "gardenSeed",
           sellPrice: 1750,
           cropData: {
-            baseValue: 7000,
+            baseValue: 3500,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-            harvests: 2,
+            harvests: 4,
           },
         });
       },
@@ -501,9 +1636,9 @@ const gardenShop = {
           type: "gardenSeed",
           sellPrice: 3000,
           cropData: {
-            baseValue: 12000,
+            baseValue: 3000,
             growthTime: CROP_CONFIG.GROWTH_BASE * 5,
-            harvests: 1,
+            harvests: 10,
           },
         });
       },
@@ -703,9 +1838,9 @@ const gardenShop = {
           type: "gardenSeed",
           sellPrice: 3500,
           cropData: {
-            baseValue: 14000,
+            baseValue: 3000,
             growthTime: CROP_CONFIG.GROWTH_BASE * 5,
-            harvests: 1,
+            harvests: 20,
           },
         });
       },
@@ -861,29 +1996,29 @@ const gardenShop = {
         });
       },
     },
-    {
-      icon: "⭐",
-      name: "Favorite Tool",
-      key: "gtFavorite",
-      inStock: true,
+    // {
+    //   icon: "⭐",
+    //   name: "Favorite Tool",
+    //   key: "gtFavorite",
+    //   inStock: true,
 
-      flavorText:
-        "Allows favoriting crops to prevent selling. You only need one of these in your inventory to work.",
-      price: 1000,
-      rarity: "Rare",
-      stockChance: 0.3,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gtFavorite",
-          name: "Favorite Tool",
-          flavorText: "Allows favoriting crops to prevent selling.",
-          icon: "⭐",
-          type: "gardenTool",
-          sellPrice: 500,
-          toolData: { favoriteEnabled: true },
-        });
-      },
-    },
+    //   flavorText:
+    //     "Allows favoriting crops to prevent selling. You only need one of these in your inventory to work.",
+    //   price: 1000,
+    //   rarity: "Rare",
+    //   stockChance: 0.3,
+    //   onPurchase({ moneySet }) {
+    //     moneySet.inventory.push({
+    //       key: "gtFavorite",
+    //       name: "Favorite Tool",
+    //       flavorText: "Allows favoriting crops to prevent selling.",
+    //       icon: "⭐",
+    //       type: "gardenTool",
+    //       sellPrice: 500,
+    //       toolData: { favoriteEnabled: true },
+    //     });
+    //   },
+    // },
   ],
   welcomeTexts: [
     "🌱 Welcome to Sam's Garden Shop! Start growing today!",
@@ -968,7 +2103,7 @@ function calculateCropValue(
 
   const earnMultiplier = Math.max(
     1,
-    Math.min(1000000000, ((1 / 100_00) * totalEarns) ** 0.7)
+    Math.min(1000000000, ((1 / 100_00) * totalEarns) ** 0.4)
   );
 
   return Math.floor(
@@ -1001,47 +2136,8 @@ function autoUpdateCropData(crop: GardenPlot, tools: Inventory<GardenTool>) {
   return crop;
 }
 
-function getCurrentEvent() {
-  const weekNumber =
-    Math.floor(Date.now() / EVENT_CONFIG.WEATHER_CYCLE) %
-    EVENT_CONFIG.EVENTS.length;
-  const event = EVENT_CONFIG.EVENTS[weekNumber];
-  if (
-    !gardenShop.itemData.some((item) => item.key === event.exclusiveSeed?.key)
-  ) {
-    if (event.exclusiveSeed) {
-      gardenShop.itemData.push({
-        icon: "🌸",
-        name: event.exclusiveSeed.name,
-        key: event.exclusiveSeed.key,
-        flavorText: `A rare seed available during ${event.name}!`,
-        price: event.exclusiveSeed.baseValue / 2,
-        rarity: "Divine",
-        stockChance: 0.1,
-        inStock: true,
-        onPurchase({ moneySet }) {
-          moneySet.inventory.push({
-            key: event.exclusiveSeed.key,
-            name: event.exclusiveSeed.name,
-            flavorText: `A rare seed from ${event.name}.`,
-            icon: "🌸",
-            type: "gardenSeed",
-            sellPrice: event.exclusiveSeed.baseValue / 4,
-            cropData: {
-              baseValue: event.exclusiveSeed.baseValue,
-              growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-              harvests: 1,
-            },
-          });
-        },
-      });
-    }
-  }
-  return event;
-}
-
 function getTimeForNextEvent() {
-  const cycle = EVENT_CONFIG.WEATHER_CYCLE;
+  const cycle = EVENT_CONFIG.EVENT_CYCLE;
   const now = Date.now();
   const timeIntoCycle = now % cycle;
   const timeUntilNextEvent = cycle - timeIntoCycle;
@@ -1176,27 +2272,42 @@ async function checkAchievements(
     }
   }
 }
-
 function refreshShopStock() {
   const currentTime = Date.now();
   if (currentTime - gardenShop.lastRestock < gardenShop.stockRefreshInterval)
     return;
   gardenShop.lastRestock = currentTime;
-  gardenShop.itemData.forEach((item) => {
-    item.inStock = Math.random() < item.stockChance;
-  });
+
   const event = getCurrentEvent();
-  gardenShop.itemData.forEach((item) => {
-    if (item.key === event.exclusiveSeed?.key) {
-      item.inStock = true;
+  gardenShop.itemData = gardenShop.itemData.filter((item) => {
+    if (item.isEventItem) {
+      return (
+        event.shopItems &&
+        event.shopItems.some((shopItem) => shopItem.key === item.key)
+      );
     }
+    return true;
+  });
+
+  if (event.shopItems && event.shopItems.length > 0) {
+    event.shopItems.forEach((shopItem) => {
+      if (!gardenShop.itemData.some((item) => item.key === shopItem.key)) {
+        gardenShop.itemData.push({ ...shopItem, isEventItem: true });
+      }
+    });
+  }
+
+  gardenShop.itemData.forEach((item) => {
+    item.inStock = item.isEventItem ? true : Math.random() < item.stockChance;
   });
 }
 
 export async function entry(ctx: CommandContext) {
   const { input, output, money, Inventory, UTShop, prefix, commandName } = ctx;
+  await money.ensureUserInfo(input.senderID);
+
   let {
-    name = "Farmer",
+    name = "",
     gardenPlots: rawPlots = [],
     gardenPets: rawPets = [],
     inventory: rawInventory = [],
@@ -1211,12 +2322,18 @@ export async function entry(ctx: CommandContext) {
     lastSideExpansion = 0,
     lastRearExpansion1 = 0,
     lastRearExpansion2 = 0,
-    allowGifting = true,
+    // allowGifting = true,
     gardenEarns = 0,
     collectibles: rawCLL,
   } = await money.getCache(input.senderID);
   let isHypen = false;
   const collectibles = new Collectibles(rawCLL);
+
+  if (!name || name === "Unregistered") {
+    return output.reply(
+      `🌱 Please register first!\nUse: **${prefix}register** without fonts.`
+    );
+  }
 
   refreshShopStock();
 
@@ -1486,8 +2603,8 @@ export async function entry(ctx: CommandContext) {
             if (shopItem && inventory.size() < global.Cassidy.invLimit) {
               const cache = inventory.getAll();
               shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
-
-              seedsGained.push(`${plot.icon} ${plot.name} Seed`);
+              inventory = new Inventory(cache);
+              seedsGained.push(`${plot.icon} ${plot.name} (Seed)`);
             }
           }
           if (plot.harvestsLeft <= 0) {
@@ -1624,6 +2741,111 @@ export async function entry(ctx: CommandContext) {
           `${UNISpectra.arrowFromT} Favorite crops: ${prefix}${commandName}${
             isHypen ? "-" : " "
           }favorite`;
+
+        return output.replyStyled(result, style);
+      },
+    },
+    {
+      key: "top",
+      description:
+        "View top 10 garden earners (paged, ranks 20-11 for page 2, etc.)",
+      aliases: ["-t"],
+      args: ["[page]"],
+      async handler(_, { spectralArgs }) {
+        const page = parseInt(spectralArgs[0]) || 1;
+        const startRank = (page - 1) * 10 + 1;
+        const endRank = startRank + 9;
+
+        const allUsers = await money.getAllCache();
+        const userStats: {
+          userId: string;
+          name: string;
+          totalEarns: number;
+        }[] = [];
+
+        for (const user of Object.values(allUsers)) {
+          if (
+            ((user.gardenPlots as GardenPlot[]) ?? []).length === 0 &&
+            ((user.gardenEarns as number) ?? 0) < 1
+          ) {
+            continue;
+          }
+          const plots = new Inventory<GardenPlot>(
+            user.gardenPlots || [],
+            user.plotLimit || PLOT_LIMIT
+          );
+
+          let potentialEarnings = 0;
+
+          plots.getAll().forEach((plot) => {
+            if (isCropReady(plot)) {
+              const value = calculateCropValue(
+                plot,
+                plots,
+                user.gardenStats?.expansions || 0,
+                user.gardenEarns || 0
+              );
+              potentialEarnings += value * plot.harvestsLeft;
+            }
+          });
+
+          userStats.push({
+            userId: user.senderID,
+            name: user.name || "Farmer",
+            totalEarns: (user.gardenEarns || 0) + potentialEarnings,
+          });
+        }
+
+        const sortedUsers = userStats.sort(
+          (a, b) => b.totalEarns - a.totalEarns
+        );
+        const currentPageUsers = sortedUsers.slice(startRank - 1, endRank);
+
+        let result = `🏆 **TOP ${endRank} GARDENERS**\n${UNISpectra.arrowFromT} Page **${page}**:\n\n`;
+        if (currentPageUsers.length === 0) {
+          return output.replyStyled(
+            `🌱 No users found for ranks ${startRank}-${endRank}!\n\n` +
+              `**Next Steps**:\n` +
+              `${
+                UNISpectra.arrowFromT
+              } Check another page: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }top [page]\n` +
+              `${UNISpectra.arrowFromT} Harvest crops: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }harvest`,
+            style
+          );
+        }
+
+        currentPageUsers.forEach((user, index) => {
+          result +=
+            `━━━━━━ ${startRank + index} ━━━━━━\n` +
+            `${UNIRedux.arrowFromT}  **${user.name}**\n` +
+            `📊🌱 ${formatCash(user.totalEarns, true)}\n`;
+        });
+
+        if (sortedUsers.length > endRank) {
+          result += `${
+            UNIRedux.standardLine
+          }\nView more: ${prefix}${commandName}${isHypen ? "-" : " "}top ${
+            page + 1
+          }\n`;
+        }
+        if (page > 2) {
+          result += `View previous: ${prefix}${commandName}${
+            isHypen ? "-" : " "
+          }top ${page - 1}\n`;
+        }
+
+        result +=
+          `\n**Next Steps**:\n` +
+          `${UNISpectra.arrowFromT} Harvest crops: ${prefix}${commandName}${
+            isHypen ? "-" : " "
+          }harvest\n` +
+          `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+            isHypen ? "-" : " "
+          }plant`;
 
         return output.replyStyled(result, style);
       },
@@ -2251,9 +3473,11 @@ export async function entry(ctx: CommandContext) {
         if (!stealSuccess) {
           await money.setItem(input.senderID, { money: userMoney + 100 });
           return output.replyStyled(
-            `❌ Steal failed! You received ${formatCash(
-              100
-            )} as compensation.\n\n` +
+            `❌ Steal failed for ${formatValue(
+              stealCost,
+              "💎",
+              true
+            )}! You received ${formatCash(100)} as compensation.\n\n` +
               `**Next Steps**:\n` +
               `${UNISpectra.arrowFromT} Try again: ${prefix}${commandName}${
                 isHypen ? "-" : " "
@@ -2891,7 +4115,7 @@ export async function entry(ctx: CommandContext) {
       async handler() {
         const event = getCurrentEvent();
         const result = [
-          `🌦️ **Current Event/Weather**: ${event.icon} ${event.name}`,
+          `🌦️ **Current Event&Weather**: ${event.icon} ${event.name}`,
           `${UNIRedux.charm} Mutation Chance: +${(
             event.effect.mutationChance * 100
           ).toFixed(0)}%`,
@@ -2902,13 +4126,7 @@ export async function entry(ctx: CommandContext) {
             `${UNIRedux.charm} Mutation Type: ${event.effect.mutationType}`
           );
         }
-        if (event.exclusiveSeed) {
-          result.push(
-            `${UNIRedux.charm} Exclusive Seed: ${
-              event.exclusiveSeed.name
-            } (Value: ${formatCash(event.exclusiveSeed.baseValue)})`
-          );
-        }
+
         const timeLeft = getTimeForNextEvent();
         result.push(
           `🕒 Next Event in: ${formatTimeSentence(timeLeft) || "Ready!"}`
@@ -2927,51 +4145,51 @@ export async function entry(ctx: CommandContext) {
         return output.replyStyled(result.join("\n"), style);
       },
     },
-    {
-      key: "settings",
-      description: "Manage garden settings",
-      aliases: ["-set"],
-      args: ["gifting [on/off]"],
-      async handler(_, { spectralArgs }) {
-        if (
-          !spectralArgs[0] ||
-          spectralArgs[0] !== "gifting" ||
-          !["on", "off"].includes(spectralArgs[1])
-        ) {
-          return output.replyStyled(
-            `❌ Specify setting: ${prefix}${commandName} settings gifting [on/off]\n\n` +
-              `**Current Settings**:\n` +
-              `${UNIRedux.charm} Gifting: ${
-                allowGifting ? "Enabled" : "Disabled"
-              }\n\n` +
-              `**Next Steps**:\n` +
-              `${
-                UNISpectra.arrowFromT
-              } Toggle gifting: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }settings gifting [on/off]`,
-            style
-          );
-        }
+    // {
+    //   key: "settings",
+    //   description: "Manage garden settings",
+    //   aliases: ["-set"],
+    //   args: ["gifting [on/off]"],
+    //   async handler(_, { spectralArgs }) {
+    //     if (
+    //       !spectralArgs[0] ||
+    //       spectralArgs[0] !== "gifting" ||
+    //       !["on", "off"].includes(spectralArgs[1])
+    //     ) {
+    //       return output.replyStyled(
+    //         `❌ Specify setting: ${prefix}${commandName} settings gifting [on/off]\n\n` +
+    //           `**Current Settings**:\n` +
+    //           `${UNIRedux.charm} Gifting: ${
+    //             allowGifting ? "Enabled" : "Disabled"
+    //           }\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${
+    //             UNISpectra.arrowFromT
+    //           } Toggle gifting: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }settings gifting [on/off]`,
+    //         style
+    //       );
+    //     }
 
-        const newGiftingSetting = spectralArgs[1] === "on";
-        await money.setItem(input.senderID, {
-          allowGifting: newGiftingSetting,
-        });
+    //     const newGiftingSetting = spectralArgs[1] === "on";
+    //     await money.setItem(input.senderID, {
+    //       allowGifting: newGiftingSetting,
+    //     });
 
-        return output.replyStyled(
-          `✅ Gifting ${newGiftingSetting ? "enabled" : "disabled"}!\n\n` +
-            `**Next Steps**:\n` +
-            `${UNISpectra.arrowFromT} Gift items: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }gift\n` +
-            `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }list`,
-          style
-        );
-      },
-    },
+    //     return output.replyStyled(
+    //       `✅ Gifting ${newGiftingSetting ? "enabled" : "disabled"}!\n\n` +
+    //         `**Next Steps**:\n` +
+    //         `${UNISpectra.arrowFromT} Gift items: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }gift\n` +
+    //         `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }list`,
+    //       style
+    //     );
+    //   },
+    // },
     {
       key: "guide",
       description: "Learn how to play Grow a Garden",
