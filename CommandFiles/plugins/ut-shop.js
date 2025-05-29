@@ -6,7 +6,7 @@ import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "1.2.7",
+  version: "1.2.8",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -641,10 +641,12 @@ export async function use(obj) {
       tradeRefuses = [],
       allowTrade = false,
       tradeData = [],
+      style = null,
     }) {
       this.allowTrade = allowTrade;
       this.tradeData = tradeData;
       this.onSell = onSell;
+      this.style = style;
       this.sellDisallowed = sellDisallowed;
       this.tradeRefuses = tradeRefuses;
       this.allowSell = !!allowSell;
@@ -755,7 +757,7 @@ export async function use(obj) {
             result += `${item.num}. **${item.icon} ${item.name}**\n`;
             result += `- **${pCy(this.isGenoR() ? 0 : item.price ?? 0)}$** ${
               isSellable ? (isAffordable ? (hasInv ? "✅" : "💰") : "❌") : "🚫"
-            } ${invAmount ? `🎒 **x${invAmount}**` : ""} ${
+            } ${invAmount ? `🧰 **x${invAmount}**` : ""} ${
               boxAmount ? `📦 **x${boxAmount}**` : ""
             } ${item.inflation ? `[ 📈 **+${item.inflation ?? 0}$** ]` : ""}\n`;
             if (!(playersMap instanceof Map)) {
@@ -878,7 +880,7 @@ export async function use(obj) {
      **Buy**     **Sell**     **Trade**
 
             💬         🏠 
-          **Talk**     **Leave**`;
+          **Talk**     **Leave**\n\n***Reply with an option***`;
     }
     async onPlay(context = obj) {
       try {
@@ -888,6 +890,12 @@ export async function use(obj) {
         const inventoryLimit = invLimit;
         const { input, output, money, args, Inventory, getInflationRate } =
           context;
+        if (context.command.style) {
+          output.setStyle(context.command.style);
+        }
+        if (this.style) {
+          output.setStyle(this.style);
+        }
         if (args[0]) {
           return output.reply(`(You can reply to the shop texts instead)`);
         }
@@ -939,6 +947,7 @@ ${this.optionText()}
           callback: self.onReply.bind(self),
           detectID: i.messageID,
           player,
+          command: context.command,
         });
       } catch (error) {
         console.error(error);
@@ -953,6 +962,12 @@ ${this.optionText()}
         const { invLimit } = global.Cassidy;
 
         const { input, output, money, repObj } = context;
+        if (repObj.command?.style) {
+          output.setStyle(repObj.command.style);
+        }
+        if (this.style) {
+          output.setStyle(this.style);
+        }
         const { author, player } = repObj;
         const inventoryLimit = invLimit;
         const self = this;
@@ -1464,6 +1479,7 @@ ${self.optionText()}
     const playersMap = new Map();
     for (const pet of petsData) {
       const gear = gearsManage.getGearData(pet.key);
+      // @ts-ignore
       const player = new PetPlayer(pet, gear);
       playersMap.set(pet.key, player);
     }

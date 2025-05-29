@@ -15,7 +15,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.3.7",
+  version: "1.3.9",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -36,11 +36,13 @@ export const ITEMS_PER_PAGE = 6;
 const EVENT_CONFIG = {
   WEEKLY_CYCLE: 7 * 24 * 60 * 60 * 1000,
   WEATHER_CYCLE: 1 * 60 * 60 * 1000,
-  EVENT_CYCLE: 24 * 60 * 60 * 1000,
+  EVENT_CYCLE: 4 * 60 * 60 * 1000,
   EVENTS: [
     {
       name: "No Event",
       icon: "🌱",
+      isNoEvent: true,
+      effect: {},
       shopItems: [],
     },
     {
@@ -723,7 +725,7 @@ const EVENT_CONFIG = {
           name: "Hedgehog",
           key: "gpHedgehog",
           flavorText: "A spiky pet from the Lunar Glow Event.",
-          price: 2000,
+          price: 2000000,
           rarity: "Uncommon",
           stockChance: 0.6,
           inStock: true,
@@ -734,7 +736,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦔",
               type: "gardenPetCage",
-              sellPrice: 1000,
+              sellPrice: 1000000,
               petData: {
                 name: "Hedgehog",
                 collectionRate: 0.1,
@@ -748,7 +750,7 @@ const EVENT_CONFIG = {
           name: "Mole",
           key: "gpMole",
           flavorText: "A digging pet from the Lunar Glow Event.",
-          price: 2500,
+          price: 2500000,
           rarity: "Uncommon",
           stockChance: 0.5,
           inStock: true,
@@ -759,7 +761,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐹",
               type: "gardenPetCage",
-              sellPrice: 1250,
+              sellPrice: 1250000,
               petData: {
                 name: "Mole",
                 collectionRate: 0.1,
@@ -773,7 +775,7 @@ const EVENT_CONFIG = {
           name: "Frog",
           key: "gpFrog",
           flavorText: "A hopping pet from the Lunar Glow Event.",
-          price: 2000,
+          price: 2000000,
           rarity: "Uncommon",
           stockChance: 0.6,
           inStock: true,
@@ -784,7 +786,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐸",
               type: "gardenPetCage",
-              sellPrice: 1000,
+              sellPrice: 1000000,
               petData: {
                 name: "Frog",
                 collectionRate: 0.1,
@@ -798,7 +800,7 @@ const EVENT_CONFIG = {
           name: "Echo Frog",
           key: "gpEchoFrog",
           flavorText: "A mystical frog from the Lunar Glow Event.",
-          price: 3000,
+          price: 3000000,
           rarity: "Rare",
           stockChance: 0.4,
           inStock: true,
@@ -809,7 +811,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐸🌙",
               type: "gardenPetCage",
-              sellPrice: 1500,
+              sellPrice: 1500000,
               petData: {
                 name: "Echo Frog",
                 collectionRate: 0.15,
@@ -823,7 +825,7 @@ const EVENT_CONFIG = {
           name: "Night Owl",
           key: "gpNightOwl",
           flavorText: "A nocturnal pet from the Lunar Glow Event.",
-          price: 3500,
+          price: 3500000,
           rarity: "Rare",
           stockChance: 0.3,
           inStock: true,
@@ -834,7 +836,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦇",
               type: "gardenPetCage",
-              sellPrice: 1750,
+              sellPrice: 1750000,
               petData: {
                 name: "Night Owl",
                 collectionRate: 0.15,
@@ -848,7 +850,7 @@ const EVENT_CONFIG = {
           name: "Raccoon",
           key: "gpRaccoon",
           flavorText: "A sneaky pet from the Lunar Glow Event.",
-          price: 3000,
+          price: 3000000,
           rarity: "Rare",
           stockChance: 0.4,
           inStock: true,
@@ -859,7 +861,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦝",
               type: "gardenPetCage",
-              sellPrice: 1500,
+              sellPrice: 1500000,
               petData: {
                 name: "Raccoon",
                 collectionRate: 0.15,
@@ -873,7 +875,7 @@ const EVENT_CONFIG = {
           name: "Kiwi",
           key: "gpKiwi",
           flavorText: "A fuzzy pet from the Lunar Glow Event.",
-          price: 4000,
+          price: 4000000,
           rarity: "Legendary",
           stockChance: 0.2,
           inStock: true,
@@ -884,7 +886,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🥝",
               type: "gardenPetCage",
-              sellPrice: 2000,
+              sellPrice: 2000000,
               petData: {
                 name: "Kiwi",
                 collectionRate: 0.2,
@@ -898,7 +900,7 @@ const EVENT_CONFIG = {
           name: "Owl",
           key: "gpOwl",
           flavorText: "A wise pet from the Lunar Glow Event.",
-          price: 5000,
+          price: 5000000,
           rarity: "Legendary",
           stockChance: 0.15,
           inStock: true,
@@ -909,7 +911,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦉",
               type: "gardenPetCage",
-              sellPrice: 2500,
+              sellPrice: 2500000,
               petData: {
                 name: "Owl",
                 collectionRate: 0.2,
@@ -923,7 +925,7 @@ const EVENT_CONFIG = {
           name: "Blood Kiwi",
           key: "gpBloodKiwi",
           flavorText: "A rare pet from the Lunar Glow Event.",
-          price: 6000,
+          price: 6000000,
           rarity: "Mythical",
           stockChance: 0.1,
           inStock: true,
@@ -934,7 +936,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🥝🌑",
               type: "gardenPetCage",
-              sellPrice: 3000,
+              sellPrice: 3000000,
               petData: {
                 name: "Blood Kiwi",
                 collectionRate: 0.25,
@@ -948,7 +950,7 @@ const EVENT_CONFIG = {
           name: "Blood Hedgehog",
           key: "gpBloodHedgehog",
           flavorText: "A fierce pet from the Lunar Glow Event.",
-          price: 6000,
+          price: 6000000,
           rarity: "Mythical",
           stockChance: 0.1,
           inStock: true,
@@ -959,7 +961,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦔🌑",
               type: "gardenPetCage",
-              sellPrice: 3000,
+              sellPrice: 3000000,
               petData: {
                 name: "Blood Hedgehog",
                 collectionRate: 0.25,
@@ -973,7 +975,7 @@ const EVENT_CONFIG = {
           name: "Blood Owl",
           key: "gpBloodOwl",
           flavorText: "A mystical pet from the Lunar Glow Event.",
-          price: 6500,
+          price: 6500000,
           rarity: "Mythical",
           stockChance: 0.1,
           inStock: true,
@@ -984,7 +986,7 @@ const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦉🌑",
               type: "gardenPetCage",
-              sellPrice: 3250,
+              sellPrice: 3250000,
               petData: {
                 name: "Blood Owl",
                 collectionRate: 0.25,
@@ -998,7 +1000,7 @@ const EVENT_CONFIG = {
           name: "Chicken Zombie",
           key: "gpChickenZombie",
           flavorText: "A spooky pet from the Lunar Glow Event.",
-          price: 7000,
+          price: 7000000,
           rarity: "Divine",
           stockChance: 0.05,
           inStock: true,
@@ -1087,29 +1089,29 @@ const EVENT_CONFIG = {
             });
           },
         },
-        {
-          icon: "📦",
-          name: "Mysterious Crate",
-          key: "gtMysteriousCrate",
-          flavorText: "A crate of surprises from the Lunar Glow Event.",
-          price: 2500,
-          rarity: "Rare",
-          stockChance: 0.3,
-          inStock: true,
-          onPurchase({ moneySet }) {
-            moneySet.inventory.push({
-              key: "gtMysteriousCrate",
-              name: "Mysterious Crate",
-              flavorText: "A crate of surprises from the Lunar Glow Event.",
-              icon: "📦",
-              type: "gardenTool",
-              sellPrice: 1250,
-              toolData: {
-                seedTypes: ["gsMoonflower", "gsStarfruit", "gsMoonglow"],
-              },
-            });
-          },
-        },
+        // {
+        //   icon: "📦",
+        //   name: "Mysterious Crate",
+        //   key: "gtMysteriousCrate",
+        //   flavorText: "A crate of surprises from the Lunar Glow Event.",
+        //   price: 2500,
+        //   rarity: "Rare",
+        //   stockChance: 0.3,
+        //   inStock: true,
+        //   onPurchase({ moneySet }) {
+        //     moneySet.inventory.push({
+        //       key: "gtMysteriousCrate",
+        //       name: "Mysterious Crate",
+        //       flavorText: "A crate of surprises from the Lunar Glow Event.",
+        //       icon: "📦",
+        //       type: "gardenTool",
+        //       sellPrice: 1250,
+        //       toolData: {
+        //         seedTypes: ["gsMoonflower", "gsStarfruit", "gsMoonglow"],
+        //       },
+        //     });
+        //   },
+        // },
         // {
         //   icon: "🌱🌙",
         //   name: "Night Seed Pack",
@@ -1926,7 +1928,7 @@ const gardenShop = {
       name: "Dog",
       key: "gpDog",
       flavorText: "Caged pet. Uncage to dig up seeds!",
-      price: 1000,
+      price: 100000,
       rarity: "Common",
       inStock: true,
 
@@ -1938,7 +1940,7 @@ const gardenShop = {
           flavorText: "Caged pet. Use uncage to release!",
           icon: "🐶",
           type: "gardenPetCage",
-          sellPrice: 500,
+          sellPrice: 50000000,
           petData: {
             name: "Dog",
             collectionRate: 0.05,
@@ -2103,7 +2105,7 @@ function calculateCropValue(
 
   const earnMultiplier = Math.max(
     1,
-    Math.min(1000000000, ((1 / 100_00) * totalEarns) ** 0.4)
+    Math.min(1000000000, ((1 / 100_000) * totalEarns) ** 0.2)
   );
 
   return Math.floor(
@@ -2180,8 +2182,13 @@ function updatePetCollection(
   pet: GardenPetActive,
   inventory: Inventory<GardenItem>,
   ctx: CommandContext
-) {
-  if (!pet.isEquipped) return { pet, collections: 0, inventory };
+): {
+  pet: GardenPetActive;
+  collections: number;
+  inventory: Inventory<GardenItem>;
+  collected: GardenItem[];
+} {
+  if (!pet.isEquipped) return { pet, collections: 0, inventory, collected: [] };
   const currentTime = Date.now();
   const timeSinceLastCollect = currentTime - (pet.lastCollect || currentTime);
   const collections = Math.round(
@@ -2206,7 +2213,7 @@ function updatePetCollection(
       }
     }
   }
-  return { pet, collections, inventory, collected };
+  return { pet, collections: collected.length, inventory, collected };
 }
 
 async function checkAchievements(
@@ -2303,7 +2310,16 @@ function refreshShopStock() {
 }
 
 export async function entry(ctx: CommandContext) {
-  const { input, output, money, Inventory, UTShop, prefix, commandName } = ctx;
+  const {
+    input,
+    output,
+    money,
+    Inventory,
+    UTShop,
+    prefix,
+    commandName,
+    command,
+  } = ctx;
   await money.ensureUserInfo(input.senderID);
 
   let {
@@ -2329,11 +2345,35 @@ export async function entry(ctx: CommandContext) {
   let isHypen = false;
   const collectibles = new Collectibles(rawCLL);
 
+  const currEvent = getCurrentEvent();
+  let hasEvent = !currEvent.isNoEvent;
+
+  const style: CommandStyle = {
+    ...command.style,
+    title: {
+      content: `${currEvent.icon} ${UNISpectra.charm} **G🍅rden**`,
+      text_font: "fancy",
+      line_bottom: "default",
+    },
+    footer: {
+      content: hasEvent
+        ? `‼️ Event: **${currEvent.name}** ${
+            (currEvent.shopItems ?? []).length > 0
+              ? `(+${(currEvent.shopItems ?? []).length} Shop Items!)`
+              : ""
+          }`
+        : "Rewards multiply with success.",
+      text_font: "fancy",
+    },
+  };
+
   if (!name || name === "Unregistered") {
     return output.reply(
       `🌱 Please register first!\nUse: **${prefix}register** without fonts.`
     );
   }
+
+  output.setStyle(style);
 
   refreshShopStock();
 
@@ -2348,6 +2388,7 @@ export async function entry(ctx: CommandContext) {
           itemData: gardenShop.itemData.filter(
             (item) => item.inStock !== false
           ),
+          style,
         });
         await shop.onPlay({ ...ctx, args: [] });
       },
@@ -2550,8 +2591,14 @@ export async function entry(ctx: CommandContext) {
         let moneyEarned = 0;
         const harvested: string[] = [];
         const seedsGained: string[] = [];
+        const tools = new Inventory<GardenTool>(
+          rawInventory.filter(
+            (item) => item.type === "gardenTool"
+          ) as GardenTool[]
+        );
         const readyPlots = plots
           .getAll()
+          .map((i) => autoUpdateCropData(i, tools))
           .filter((i) => plots.get(i.key).every((i) => !i.isFavorite))
           .filter(isCropReady);
         if (readyPlots.length === 0) {
@@ -3259,13 +3306,13 @@ export async function entry(ctx: CommandContext) {
       key: "pets",
       description: "View and manage active garden pets",
       aliases: ["-pt"],
-      args: ["[page] [equip/unequip] [pet_key]"],
+      args: ["[equip/unequip/<page>] [pet_key]"],
       async handler(_, { spectralArgs }) {
         const pets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         const page = parseInt(spectralArgs[0]) || 1;
-        const action = spectralArgs[1];
-        const petKey = spectralArgs[2];
+        const action = spectralArgs[0];
+        const petKey = spectralArgs[1];
         const equippedPets = pets
           .getAll()
           .filter((pet) => pet.isEquipped).length;
