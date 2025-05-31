@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "1.2.9",
+  version: "1.3.0",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -785,22 +785,26 @@ export async function use(obj) {
               result += `${item.num}. ${item.icon} ${item.name}\n`;
             }
             result +=
-              `- **${formatCash(
-                Number(this.isGenoR() ? 0 : item.price ?? 0)
-              )}** ${
+              `- ${
                 isSellable
-                  ? isAffordable
-                    ? hasInv
-                      ? "✅"
-                      : "💰"
-                    : "❌"
-                  : "🚫"
-              } ${invAmount ? `🧰 **x${invAmount}**` : ""} ${
-                boxAmount ? `🗃️ **x${boxAmount}**` : ""
-              } ${ndriveAmount ? `💾 **x${ndriveAmount}**` : ""} ${
-                bankAmount ? `🏦 **x${bankAmount}**` : ""
-              } ${
-                item.inflation ? `[ 📈 **+${item.inflation ?? 0}$** ]` : ""
+                  ? `**${formatCash(
+                      Number(this.isGenoR() ? 0 : item.price ?? 0)
+                    )}** ${
+                      isSellable
+                        ? isAffordable
+                          ? hasInv
+                            ? "✅"
+                            : "💰"
+                          : "❌"
+                        : "🚫"
+                    }`
+                  : "🚫 No Stock"
+              }${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
+                boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
+              }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
+                bankAmount ? ` 🏦 **x${bankAmount}**` : ""
+              }${
+                item.inflation ? ` [ 📈 **+${item.inflation ?? 0}$** ]` : ""
               }`.trim() + "\n";
             if (!(playersMap instanceof Map)) {
               throw new Error(`playersMap must be a Map`);
