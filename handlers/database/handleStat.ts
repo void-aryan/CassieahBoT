@@ -402,7 +402,10 @@ export default class UserStatsManager {
   }
 
   async getIDs() {
-    return (await this.#mongo.keys()) as string[];
+    if (!this.isMongo) {
+      return Object.keys(this.getAllCache());
+    }
+    return (await this.#mongo?.keys()) as string[];
   }
 
   async queryItemAll<T extends keyof UserData>(

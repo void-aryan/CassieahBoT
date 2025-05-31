@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.6",
+  version: "1.4.7",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -72,6 +72,7 @@ export type GardenPlot = InventoryItem & {
   mutation: string | null;
   isFavorite?: boolean;
   originalGrowthTime: number;
+  price: number;
 };
 
 export type GardenPetActive = InventoryItem & {
@@ -673,6 +674,15 @@ export async function entry(ctx: CommandContext) {
           )
             break;
           inventory.deleteRef(seed);
+          const allItems = [
+            ...gardenShop.itemData,
+            ...EVENT_CONFIG.EVENTS.map(
+              (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+            ).flat(),
+          ];
+          const price =
+            allItems.find((i) => seed.key === i?.key)?.price ??
+            seed.cropData.baseValue;
           let plot: GardenPlot = {
             key: `plot_${Date.now()}_${i}`,
             seedKey: seed.key,
@@ -686,6 +696,7 @@ export async function entry(ctx: CommandContext) {
             mutation: null,
             type: "activePlot",
             isFavorite: false,
+            price,
           };
           plot = await applyMutation(
             plot,
@@ -822,7 +833,7 @@ export async function entry(ctx: CommandContext) {
             gardenEarns
           );
           moneyEarned += value.final;
-          gardenEarns += value.final - plot.baseValue;
+          gardenEarns += value.final - plot.price;
           harvested.push({ plot, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
