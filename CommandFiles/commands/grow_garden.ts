@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.3",
+  version: "1.4.4",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -766,7 +766,7 @@ export async function entry(ctx: CommandContext) {
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         let moneyEarned = 0;
-        const harvested: string[] = [];
+        const harvested: { plot: GardenPlot; value: number }[] = [];
         const seedsGained: string[] = [];
         const tools = new Inventory<GardenTool>(
           rawInventory.filter(
@@ -814,13 +814,7 @@ export async function entry(ctx: CommandContext) {
           );
           moneyEarned += value;
           gardenEarns += value - plot.baseValue;
-          harvested.push(
-            `${plot.icon} ${plot.name}${
-              plot.mutation
-                ? ` (${plot.mutation}, +${formatCash(value - plot.baseValue)})`
-                : ""
-            } - ${formatCash(value, true)}`
-          );
+          harvested.push({ plot, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
           if (Math.random() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
@@ -870,9 +864,21 @@ export async function entry(ctx: CommandContext) {
           output,
           input
         );
+        const harvestedStr = [...harvested]
+          .sort((a, b) => b.value - a.value)
+          .map(
+            ({ plot, value }) =>
+              `${plot.icon} ${plot.name}${
+                plot.mutation
+                  ? ` (${plot.mutation}, +${formatCash(
+                      value - plot.baseValue
+                    )})`
+                  : ""
+              } - ${formatCash(value, true)}`
+          );
 
         return output.replyStyled(
-          `✅🧺 **Harvested**:\n${harvested.join("\n")}\n\n` +
+          `✅🧺 **Harvested**:\n${harvestedStr.join("\n")}\n\n` +
             (seedsGained.length > 0
               ? `🌱🧺 **Lucky Harvest Seeds**:\n${seedsGained.join("\n")}\n\n`
               : "") +
