@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.7",
+  version: "1.4.8",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -474,6 +474,27 @@ function formatShopItems(items = gardenShop): typeof gardenShop {
   };
 }
 
+function correctItems(rawInv: GardenItem[]) {
+  const allItems = [
+    ...gardenShop.itemData,
+    ...EVENT_CONFIG.EVENTS.map(
+      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+    ).flat(),
+  ];
+  for (const item of rawInv ?? []) {
+    const found = allItems.find((i) => i?.key === item?.key);
+    if (found) {
+      const temp = [];
+      found.onPurchase({ moneySet: { inventory: temp } });
+      const newItem = temp[0] as GardenItem;
+      if (newItem && newItem.key === item.key) {
+        Object.assign(item, newItem);
+      }
+    }
+  }
+  return rawInv;
+}
+
 export async function entry(ctx: CommandContext) {
   const {
     input,
@@ -509,6 +530,7 @@ export async function entry(ctx: CommandContext) {
   } = await money.getCache(input.senderID);
   let isHypen = false;
   const collectibles = new Collectibles(rawCLL);
+  correctItems(rawInventory as GardenItem[]);
 
   const currEvent = await getCurrentEvent();
   let hasEvent = !currEvent.isNoEvent;
