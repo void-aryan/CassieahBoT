@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.3.10",
+  version: "1.4.1",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -408,7 +408,18 @@ async function refreshShopStock() {
   });
 }
 
+function getTimeUntilRestock() {
+  const currentTime = Date.now();
+  const timePassed = currentTime - gardenShop.lastRestock;
+  const timeLeft = gardenShop.stockRefreshInterval - timePassed;
+
+  return Math.max(0, timeLeft);
+}
+
 function formatShopItems(items = gardenShop): typeof gardenShop {
+  const timeText = `🕒 **Next Restock**:\n${formatTimeSentence(
+    getTimeUntilRestock()
+  )}`;
   return {
     ...items,
     // itemData: items.itemData.filter((item) => item.inStock !== false),
@@ -433,6 +444,8 @@ function formatShopItems(items = gardenShop): typeof gardenShop {
         flavorText: noStock ? `` : flavor,
       };
     }),
+    buyTexts: [timeText],
+    thankTexts: [timeText],
   };
 }
 
