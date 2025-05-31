@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.1",
+  version: "1.4.2",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -129,13 +129,13 @@ async function autoUpdateCropData(
 
   const baseGrowthMultiplier = event.effect?.growthMultiplier || 1;
 
-  let growthBoost = baseGrowthMultiplier + (baseGrowthMultiplier ** 2) ** 0.9;
+  let growthBoost = baseGrowthMultiplier ** 0.9;
   growthBoost = Math.min(2.0, growthBoost);
 
   tools.getAll().forEach((tool) => {
     if (tool.toolData?.growthMultiplier) {
       const toolBoost = tool.toolData.growthMultiplier;
-      growthBoost += (toolBoost * growthBoost) ** 0.9;
+      growthBoost += (toolBoost / (1 - growthBoost)) ** 0.9;
       growthBoost = Math.min(10.0, growthBoost);
     }
   });
@@ -224,7 +224,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
   const baseMutationChance = event.effect?.mutationChance || 0;
 
   const baseNonlinearBoost =
-    baseMutationChance + (baseMutationChance * baseMutationChance) ** 0.9;
+    baseMutationChance + (baseMutationChance / (1 - baseMutationChance)) ** 0.9;
 
   const mutationBoosts = new Map<string, number>();
 
@@ -236,7 +236,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
     if (tool.toolData?.mutationChance) {
       Object.entries(tool.toolData.mutationChance).forEach(([key, value]) => {
         const currentBoost = mutationBoosts.get(key) ?? 0;
-        const newBoost = currentBoost + (value * currentBoost) ** 0.9;
+        const newBoost = currentBoost + (value / (1 - currentBoost)) ** 0.9;
         mutationBoosts.set(key, Math.min(0.5, newBoost));
       });
     }
@@ -255,14 +255,15 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
       ]
     : CROP_CONFIG.MUTATIONS;
 
-  const roll = Math.random();
-  let cumulativeChance = 0;
-
   for (const mutation of mutations) {
+    const roll = Math.random();
     const boost = mutationBoosts.get(mutation.name) ?? 0;
-    cumulativeChance += mutation.chance * (1 + boost);
+    const chance = Math.min(
+      0.5,
+      mutation.chance + (mutation.chance / (1 - boost)) ** 0.9
+    );
 
-    if (roll <= cumulativeChance) {
+    if (roll <= chance) {
       crop.mutation = mutation.name;
       return crop;
     }
@@ -423,27 +424,32 @@ function formatShopItems(items = gardenShop): typeof gardenShop {
   return {
     ...items,
     // itemData: items.itemData.filter((item) => item.inStock !== false),
-    itemData: items.itemData.map((item) => {
-      let noStock = item.inStock === false;
-      let flavor = item.flavorText || "";
-      const moneySet: { inventory: GardenItem[] } = { inventory: [] };
-      item.onPurchase({ moneySet });
-      const purchased = moneySet.inventory[0];
-      if (purchased) {
-        if (purchased.type === "gardenSeed") {
-          flavor += `\n🪙 ${abbreviateNumber(
-            purchased.cropData.baseValue || 0
-          )} | 🧺 ${abbreviateNumber(purchased.cropData.harvests || 0)} | ⏳ ${
-            formatTimeSentence(purchased.cropData.growthTime || 0) || "Instant"
-          }`;
+    itemData: items.itemData
+      .map((item) => {
+        let noStock = item.inStock === false;
+        let flavor = item.flavorText || "";
+        const moneySet: { inventory: GardenItem[] } = { inventory: [] };
+        item.onPurchase({ moneySet });
+        const purchased = moneySet.inventory[0];
+        if (purchased) {
+          if (purchased.type === "gardenSeed") {
+            flavor += `\n🪙 ${abbreviateNumber(
+              purchased.cropData.baseValue || 0
+            )} | 🧺 ${abbreviateNumber(
+              purchased.cropData.harvests || 0
+            )} | ⏳ ${
+              formatTimeSentence(purchased.cropData.growthTime || 0) ||
+              "Instant"
+            }`;
+          }
         }
-      }
-      return {
-        ...item,
-        cannotBuy: noStock,
-        flavorText: noStock ? `` : flavor,
-      };
-    }),
+        return {
+          ...item,
+          cannotBuy: noStock,
+          flavorText: noStock ? `` : flavor,
+        };
+      })
+      .filter((i) => i.inStock !== false),
     buyTexts: [timeText],
     thankTexts: [timeText],
   };
