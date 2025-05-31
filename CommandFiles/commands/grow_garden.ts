@@ -153,7 +153,7 @@ async function autoUpdateCropData(
   crop.growthTime = Math.floor(
     Math.max(
       crop.originalGrowthTime / Math.max(growthBoost, 1),
-      crop.originalGrowthTime * 25
+      crop.originalGrowthTime * 0.25
     )
   );
 
@@ -659,6 +659,7 @@ export async function entry(ctx: CommandContext) {
         }
 
         const planted: string[] = [];
+        let firstPlot: GardenPlot = null;
         for (let i = 0; i < quantity; i++) {
           if (
             inventory.getAmount(seed.key) <= 0 ||
@@ -696,6 +697,7 @@ export async function entry(ctx: CommandContext) {
               ) as GardenTool[]
             )
           );
+          firstPlot ??= plot;
           plots.addOne(plot);
           if (plot.mutation) {
             gardenStats.mutationsFound = (gardenStats.mutationsFound || 0) + 1;
@@ -731,7 +733,7 @@ export async function entry(ctx: CommandContext) {
             "\n"
           )}\n` +
             `⏳ First ready in: ${
-              formatTimeSentence(seed.cropData.growthTime) ||
+              formatTimeSentence(cropTimeLeft(firstPlot)) ||
               "***ALREADY READY!***"
             }\n` +
             `💰 Base Value: ${formatCash(
