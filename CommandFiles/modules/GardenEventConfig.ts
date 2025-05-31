@@ -34,38 +34,14 @@ export const EVENT_CONFIG = {
         growthMultiplier: 1.5,
         mutationType: "Shocked",
       },
-      shopItems: [
-        {
-          icon: "🪷",
-          name: "Lotus Seed",
-          key: "gsLotus",
-          flavorText: "A rare seed available during Thunderstorm!",
-          price: 500,
-          rarity: "Divine",
-          stockChance: 0.1,
-          inStock: true,
-          onPurchase({ moneySet }) {
-            moneySet.inventory.push({
-              key: "gsLotus",
-              name: "Lotus Seed",
-              flavorText: "A rare seed from Thunderstorm.",
-              icon: "🪷",
-              type: "gardenSeed",
-              sellPrice: 250,
-              cropData: {
-                baseValue: 1000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-                harvests: 1,
-              },
-            });
-          },
-        },
-      ],
+      shopItems: [],
     },
 
     {
       name: "Easter Event 2025",
       icon: "🐣",
+      shopName: "eastershop",
+      shopName2: "Poppy's Easter Shop",
       effect: {
         mutationChance: 0.2,
         growthMultiplier: 1.2,
@@ -77,7 +53,7 @@ export const EVENT_CONFIG = {
           name: "Chocolate Carrot Seed",
           key: "gsChocoCarrot",
           flavorText: "A sweet carrot from the Easter Event!",
-          price: 200,
+          price: 10_000,
           rarity: "Common",
           stockChance: 1.0,
           inStock: true,
@@ -90,9 +66,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 100,
               cropData: {
-                baseValue: 400,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
-                harvests: 2,
+                baseValue: 16_500,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 0.5,
+                harvests: 1,
               },
             });
           },
@@ -102,9 +78,9 @@ export const EVENT_CONFIG = {
           name: "Red Lollipop Seed",
           key: "gsRedLollipop",
           flavorText: "A sugary treat from the Easter Event.",
-          price: 500,
+          price: 45_000,
           rarity: "Uncommon",
-          stockChance: 0.8,
+          stockChance: 0.5,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -115,9 +91,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 250,
               cropData: {
-                baseValue: 1000,
+                baseValue: 70_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-                harvests: 2,
+                harvests: 1,
               },
             });
           },
@@ -127,7 +103,7 @@ export const EVENT_CONFIG = {
           name: "Candy Sunflower Seed",
           key: "gsCandySunflower",
           flavorText: "A radiant flower from the Easter Event.",
-          price: 1200,
+          price: 75_000,
           rarity: "Rare",
           stockChance: 0.5,
           inStock: true,
@@ -140,9 +116,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 600,
               cropData: {
-                baseValue: 2400,
+                baseValue: 145_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
-                harvests: 2,
+                harvests: 1,
               },
             });
           },
@@ -152,7 +128,7 @@ export const EVENT_CONFIG = {
           name: "Easter Egg Seed",
           key: "gsEasterEgg",
           flavorText: "A festive egg from the Easter Event.",
-          price: 3000,
+          price: 500_000,
           rarity: "Legendary",
           stockChance: 0.3,
           inStock: true,
@@ -165,9 +141,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1500,
               cropData: {
-                baseValue: 6000,
+                baseValue: 60_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-                harvests: 1,
+                harvests: 10,
               },
             });
           },
@@ -177,9 +153,9 @@ export const EVENT_CONFIG = {
           name: "Candy Blossom Seed",
           key: "gsCandyBlossom",
           flavorText: "A divine bloom from the Easter Event.",
-          price: 6000,
+          price: 10_000_000,
           rarity: "Divine",
-          stockChance: 0.1,
+          stockChance: 0.04,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -190,9 +166,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 3000,
               cropData: {
-                baseValue: 12000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 1,
+                baseValue: 1_200_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 11,
+                harvests: 12,
               },
             });
           },
@@ -202,7 +178,7 @@ export const EVENT_CONFIG = {
           name: "Chocolate Sprinkler",
           key: "gtChocoSprinkler",
           flavorText: "Boosts Chocolate mutations for Easter crops.",
-          price: 1000,
+          price: 1_000_000,
           rarity: "Rare",
           stockChance: 0.4,
           inStock: true,
@@ -226,12 +202,39 @@ export const EVENT_CONFIG = {
     {
       name: "Angry Plant Event",
       icon: "🌿😣",
+      shopName2: "Angry Shop",
+      shopName: "angryshop",
       effect: {
         mutationChance: 0.25,
         growthMultiplier: 1.1,
         mutationType: "Angry",
       },
       shopItems: [
+        // {
+        //   icon: "🪷",
+        //   name: "Lotus Seed",
+        //   key: "gsLotus",
+        //   flavorText: "A rare seed available during Angry Plant Event!",
+        //   price: 500,
+        //   rarity: "Divine",
+        //   stockChance: 0.1,
+        //   inStock: true,
+        //   onPurchase({ moneySet }) {
+        //     moneySet.inventory.push({
+        //       key: "gsLotus",
+        //       name: "Lotus Seed",
+        //       flavorText: "A rare seed from Angry Plant Event.",
+        //       icon: "🪷",
+        //       type: "gardenSeed",
+        //       sellPrice: 250,
+        //       cropData: {
+        //         baseValue: 1000,
+        //         growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+        //         harvests: 1,
+        //       },
+        //     });
+        //   },
+        // },
         {
           icon: "🍒",
           name: "Cranberry Seed",
@@ -312,7 +315,7 @@ export const EVENT_CONFIG = {
           name: "Lotus Seed",
           key: "gsLotus",
           flavorText: "A serene flower from the Angry Plant Event.",
-          price: 6000,
+          price: 60_000,
           rarity: "Divine",
           stockChance: 0.15,
           inStock: true,
@@ -325,9 +328,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 3000,
               cropData: {
-                baseValue: 12000,
+                baseValue: 20_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 1,
+                harvests: 5,
               },
             });
           },
@@ -350,7 +353,7 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 3250,
               cropData: {
-                baseValue: 13000,
+                baseValue: 17000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
                 harvests: 1,
               },
@@ -410,6 +413,8 @@ export const EVENT_CONFIG = {
     {
       name: "Lunar Glow Event",
       icon: "🌙",
+      shopName: "twilightshop",
+      shopName2: "Twilight Shop",
       effect: {
         mutationChance: 0.3,
         growthMultiplier: 1.3,
@@ -421,7 +426,7 @@ export const EVENT_CONFIG = {
           name: "Moonflower Seed",
           key: "gsMoonflower",
           flavorText: "Rare flower blooming under moonlight.",
-          price: 8000,
+          price: 80_000,
           rarity: "Legendary",
           stockChance: 0.2,
           inStock: true,
@@ -434,9 +439,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 4000,
               cropData: {
-                baseValue: 16000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
-                harvests: 1,
+                baseValue: 8500,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 8.5,
+                harvests: 20,
               },
             });
           },
@@ -496,7 +501,7 @@ export const EVENT_CONFIG = {
           name: "Starfruit Seed",
           key: "gsStarfruit",
           flavorText: "A radiant fruit from the Lunar Glow Event.",
-          price: 3500,
+          price: 140_000,
           rarity: "Legendary",
           stockChance: 0.3,
           inStock: true,
@@ -509,9 +514,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1750,
               cropData: {
-                baseValue: 7000,
+                baseValue: 14000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-                harvests: 2,
+                harvests: 15,
               },
             });
           },
@@ -521,7 +526,7 @@ export const EVENT_CONFIG = {
           name: "Moonglow Seed",
           key: "gsMoonglow",
           flavorText: "A glowing flower from the Lunar Glow Event.",
-          price: 4000,
+          price: 180_000,
           rarity: "Legendary",
           stockChance: 0.25,
           inStock: true,
@@ -534,9 +539,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 2000,
               cropData: {
-                baseValue: 8000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-                harvests: 2,
+                baseValue: 18_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 9.5,
+                harvests: 20,
               },
             });
           },
@@ -546,7 +551,7 @@ export const EVENT_CONFIG = {
           name: "Moon Blossom Seed",
           key: "gsMoonBlossom",
           flavorText: "A divine bloom from the Lunar Glow Event.",
-          price: 6000,
+          price: 600_000,
           rarity: "Divine",
           stockChance: 0.15,
           inStock: true,
@@ -559,59 +564,9 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 3000,
               cropData: {
-                baseValue: 12000,
+                baseValue: 45_125,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 1,
-              },
-            });
-          },
-        },
-        {
-          icon: "🍌",
-          name: "Blood Banana Seed",
-          key: "gsBloodBanana",
-          flavorText: "A rare fruit from the Lunar Glow Event.",
-          price: 5500,
-          rarity: "Mythical",
-          stockChance: 0.2,
-          inStock: true,
-          onPurchase({ moneySet }) {
-            moneySet.inventory.push({
-              key: "gsBloodBanana",
-              name: "Blood Banana Seed",
-              flavorText: "A rare fruit from the Lunar Glow Event.",
-              icon: "🍌",
-              type: "gardenSeed",
-              sellPrice: 2750,
-              cropData: {
-                baseValue: 11000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 2,
-              },
-            });
-          },
-        },
-        {
-          icon: "🍈",
-          name: "Moon Melon Seed",
-          key: "gsMoonMelon",
-          flavorText: "A juicy melon from the Lunar Glow Event.",
-          price: 5200,
-          rarity: "Mythical",
-          stockChance: 0.2,
-          inStock: true,
-          onPurchase({ moneySet }) {
-            moneySet.inventory.push({
-              key: "gsMoonMelon",
-              name: "Moon Melon Seed",
-              flavorText: "A juicy melon from the Lunar Glow Event.",
-              icon: "🍈",
-              type: "gardenSeed",
-              sellPrice: 2600,
-              cropData: {
-                baseValue: 10400,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 1,
+                harvests: 30,
               },
             });
           },
@@ -621,7 +576,7 @@ export const EVENT_CONFIG = {
           name: "Celestiberry Seed",
           key: "gsCelestiberry",
           flavorText: "A celestial berry from the Lunar Glow Event.",
-          price: 5000,
+          price: 15_000_000,
           rarity: "Mythical",
           stockChance: 0.2,
           inStock: true,
@@ -632,10 +587,10 @@ export const EVENT_CONFIG = {
               flavorText: "A celestial berry from the Lunar Glow Event.",
               icon: "🫐",
               type: "gardenSeed",
-              sellPrice: 2500,
+              sellPrice: 10_000_000,
               cropData: {
-                baseValue: 10000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                baseValue: 10_000_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 7.7,
                 harvests: 2,
               },
             });
@@ -646,9 +601,9 @@ export const EVENT_CONFIG = {
           name: "Moon Mango Seed",
           key: "gsMoonMango",
           flavorText: "A tropical fruit from the Lunar Glow Event.",
-          price: 5500,
+          price: 1_000_000_000,
           rarity: "Mythical",
-          stockChance: 0.2,
+          stockChance: 0.01,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -657,11 +612,11 @@ export const EVENT_CONFIG = {
               flavorText: "A tropical fruit from the Lunar Glow Event.",
               icon: "🥭",
               type: "gardenSeed",
-              sellPrice: 2750,
+              sellPrice: 1_000_000_000,
               cropData: {
-                baseValue: 11000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
-                harvests: 2,
+                baseValue: 100_000_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 10.5,
+                harvests: 15,
               },
             });
           },
@@ -707,7 +662,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦔",
               type: "gardenPetCage",
-              sellPrice: 1000000,
+              sellPrice: 100000,
               petData: {
                 name: "Hedgehog",
                 collectionRate: 0.1,
@@ -732,7 +687,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐹",
               type: "gardenPetCage",
-              sellPrice: 1250000,
+              sellPrice: 12500,
               petData: {
                 name: "Mole",
                 collectionRate: 0.1,
@@ -782,7 +737,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐸🌙",
               type: "gardenPetCage",
-              sellPrice: 1500000,
+              sellPrice: 150000,
               petData: {
                 name: "Echo Frog",
                 collectionRate: 0.15,
@@ -832,7 +787,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦝",
               type: "gardenPetCage",
-              sellPrice: 1500000,
+              sellPrice: 150000,
               petData: {
                 name: "Raccoon",
                 collectionRate: 0.15,
@@ -857,7 +812,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🥝",
               type: "gardenPetCage",
-              sellPrice: 2000000,
+              sellPrice: 200000,
               petData: {
                 name: "Kiwi",
                 collectionRate: 0.2,
@@ -882,7 +837,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦉",
               type: "gardenPetCage",
-              sellPrice: 2500000,
+              sellPrice: 250000,
               petData: {
                 name: "Owl",
                 collectionRate: 0.2,
@@ -907,7 +862,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🥝🌑",
               type: "gardenPetCage",
-              sellPrice: 3000000,
+              sellPrice: 300000,
               petData: {
                 name: "Blood Kiwi",
                 collectionRate: 0.25,
@@ -932,7 +887,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦔🌑",
               type: "gardenPetCage",
-              sellPrice: 3000000,
+              sellPrice: 300000,
               petData: {
                 name: "Blood Hedgehog",
                 collectionRate: 0.25,
@@ -957,7 +912,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦉🌑",
               type: "gardenPetCage",
-              sellPrice: 3250000,
+              sellPrice: 325000,
               petData: {
                 name: "Blood Owl",
                 collectionRate: 0.25,
@@ -1036,30 +991,7 @@ export const EVENT_CONFIG = {
             });
           },
         },
-        {
-          icon: "📡",
-          name: "Star Caller",
-          key: "gtStarCaller",
-          flavorText: "Enhances Celestial mutations for Lunar crops.",
-          price: 2000,
-          rarity: "Rare",
-          stockChance: 0.3,
-          inStock: true,
-          onPurchase({ moneySet }) {
-            moneySet.inventory.push({
-              key: "gtStarCaller",
-              name: "Star Caller",
-              flavorText: "Enhances Celestial mutations for Lunar crops.",
-              icon: "📡",
-              type: "gardenTool",
-              sellPrice: 1000,
-              toolData: {
-                growthMultiplier: 1.2,
-                mutationChance: { Celestial: 0.2 },
-              },
-            });
-          },
-        },
+
         // {
         //   icon: "📦",
         //   name: "Mysterious Crate",
@@ -1118,13 +1050,87 @@ export const EVENT_CONFIG = {
       },
       shopItems: [
         {
+          icon: "🍌",
+          name: "Blood Banana Seed",
+          key: "gsBloodBanana",
+          flavorText: "A rare fruit from the Blood Moon Event.",
+          price: 200_000,
+          rarity: "Mythical",
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsBloodBanana",
+              name: "Blood Banana Seed",
+              flavorText: "A rare fruit from the Blood Moon Event.",
+              icon: "🍌",
+              type: "gardenSeed",
+              sellPrice: 150_000,
+              cropData: {
+                baseValue: 150_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 7,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍈",
+          name: "Moon Melon Seed",
+          key: "gsMoonMelon",
+          flavorText: "A juicy melon from the Lunar Blood Moon Event.",
+          price: 500_000,
+          rarity: "Mythical",
+          stockChance: 0.05,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMoonMelon",
+              name: "Moon Melon Seed",
+              flavorText: "A juicy melon from the Lunar Blood Moon Event.",
+              icon: "🍈",
+              type: "gardenSeed",
+              sellPrice: 20_000,
+              cropData: {
+                baseValue: 10400,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 7,
+                harvests: 30,
+              },
+            });
+          },
+        },
+        {
+          icon: "📡",
+          name: "Star Caller",
+          key: "gtStarCaller",
+          flavorText: "Enhances Celestial mutations for Blood Moon crops.",
+          price: 2000,
+          rarity: "Rare",
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtStarCaller",
+              name: "Star Caller",
+              flavorText: "Enhances Celestial mutations for Blood Moon crops.",
+              icon: "📡",
+              type: "gardenTool",
+              sellPrice: 1000,
+              toolData: {
+                growthMultiplier: 1.2,
+                mutationChance: { Celestial: 0.2 },
+              },
+            });
+          },
+        },
+        {
           icon: "🌹",
           name: "Blood Rose Seed",
           key: "gsBloodRose",
           flavorText: "A rare seed available during Blood Moon!",
-          price: 250,
+          price: 250_000,
           rarity: "Divine",
-          stockChance: 0.1,
+          stockChance: 0.4,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -1133,11 +1139,11 @@ export const EVENT_CONFIG = {
               flavorText: "A rare seed from Blood Moon.",
               icon: "🌹",
               type: "gardenSeed",
-              sellPrice: 125,
+              sellPrice: 125_000,
               cropData: {
-                baseValue: 500,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-                harvests: 1,
+                baseValue: 125_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 9,
+                harvests: 3,
               },
             });
           },
