@@ -1,8 +1,9 @@
 // @ts-check
 import { CassEXP } from "../modules/cassEXP.js";
-import { abbreviateNumber, clamp } from "@cassidy/unispectra";
+import { clamp } from "@cassidy/unispectra";
 import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 import { PetPlayer } from "./pet-fight";
+import { formatCash } from "@cass-modules/ArielUtils";
 
 export const meta = {
   name: "ut-shop",
@@ -783,17 +784,24 @@ export async function use(obj) {
             } else {
               result += `${item.num}. ${item.icon} ${item.name}\n`;
             }
-            result += `- **${abbreviateNumber(
-              Number(this.isGenoR() ? 0 : item.price ?? 0)
-            )}$** ${
-              isSellable ? (isAffordable ? (hasInv ? "✅" : "💰") : "❌") : "🚫"
-            } ${invAmount ? `🧰 **x${invAmount}**` : ""} ${
-              boxAmount ? `🗃️ **x${boxAmount}**` : ""
-            } ${ndriveAmount ? `💾 **x${ndriveAmount}**` : ""} ${
-              bankAmount ? `🏦 **x${bankAmount}**` : ""
-            } ${
-              item.inflation ? `[ 📈 **+${item.inflation ?? 0}$** ]` : ""
-            }\n`.trim();
+            result +=
+              `- **${formatCash(
+                Number(this.isGenoR() ? 0 : item.price ?? 0)
+              )}** ${
+                isSellable
+                  ? isAffordable
+                    ? hasInv
+                      ? "✅"
+                      : "💰"
+                    : "❌"
+                  : "🚫"
+              } ${invAmount ? `🧰 **x${invAmount}**` : ""} ${
+                boxAmount ? `🗃️ **x${boxAmount}**` : ""
+              } ${ndriveAmount ? `💾 **x${ndriveAmount}**` : ""} ${
+                bankAmount ? `🏦 **x${bankAmount}**` : ""
+              } ${
+                item.inflation ? `[ 📈 **+${item.inflation ?? 0}$** ]` : ""
+              }`.trim() + "\n";
             if (!(playersMap instanceof Map)) {
               throw new Error(`playersMap must be a Map`);
             }
@@ -970,7 +978,7 @@ export async function use(obj) {
 
 ${this.optionText()}
 
-**${abbreviateNumber(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
+**${formatCash(cash)}** **${inventory.length}/${inventoryLimit}**`);
         const self = this;
         input.setReply(i.messageID, {
           key: obj.commandName,
@@ -1079,9 +1087,9 @@ ${this.optionText()}
           const items = self.stringItemData();
           const dialogue = `You can take whatever you want. (you cannot take multiple.)`;
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
               cash
-            )}**$ **${inventory.length}/${inventoryLimit}**`
+            )}** **${inventory.length}/${inventoryLimit}**`
           );
           handleEnd(i.messageID, {
             isItemChoose: true,
@@ -1100,9 +1108,9 @@ ${this.optionText()}
           });
           const dialogue = self.rand(self.buyTexts);
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${abbreviateNumber(
+            `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
               cash
-            )}**$ **${inventory.length}/${inventoryLimit}**`
+            )}** **${inventory.length}/${inventoryLimit}**`
           );
           handleEnd(i.messageID, {
             isItemChoose: true,
@@ -1132,9 +1140,9 @@ ${this.optionText()}
           const boxItems = new Inventory(rB, 100);
           const dialogue = self.rand(self.askSellTexts);
           const i = await output.reply(
-            `✦ ${dialogue}\n\n**A.** Sell **Items** **(${inventory.size()}/${invLimit})**\n**B**. Sell **Box** Items **(${boxItems.size()}/100)**\n\n**Back**\n**${abbreviateNumber(
+            `✦ ${dialogue}\n\n**A.** Sell **Items** **(${inventory.size()}/${invLimit})**\n**B**. Sell **Box** Items **(${boxItems.size()}/100)**\n\n**Back**\n**${formatCash(
               cash
-            )}**$`
+            )}**`
           );
           handleEnd(i.messageID, {
             sellChoose: true,
@@ -1152,9 +1160,9 @@ ${this.optionText()}
             let items = self.stringSellData([...inventory]);
             const dialogue = self.rand(self.askSellTexts);
             const i = await output.reply(
-              `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${abbreviateNumber(
+              `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
                 cash
-              )}**$ **${inventory.getAll().length}/${
+              )}** **${inventory.getAll().length}/${
                 isBox ? 100 : inventoryLimit
               }**`
             );
@@ -1264,9 +1272,9 @@ ${this.optionText()}
           }
           const dialogue = `Done, just take more, nobody stops you.`;
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
               cash - price
-            )} (-${abbreviateNumber(price)})**$ **${
+            )} (-${formatCash(price)})** **${
               inventory.length
             }/${inventoryLimit}**`
           );
@@ -1365,9 +1373,9 @@ ${this.optionText()}
 
           const dialogue = self.rand(self.thankTexts);
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
               cash - price
-            )} (-${abbreviateNumber(price)})**$ **${
+            )} (-${formatCash(price)})** **${
               inventory.length
             }/${inventoryLimit}** (+${amount} item(s))`
           );
@@ -1447,11 +1455,11 @@ ${this.optionText()}
           ]);
 
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
               cash + price
-            )} (+${abbreviateNumber(price)})**$ **${
-              inventory.getAll().length
-            }/${isBox ? 100 : inventoryLimit}** (-${amount} item(s))`
+            )} (+${formatCash(price)})** **${inventory.getAll().length}/${
+              isBox ? 100 : inventoryLimit
+            }** (-${amount} item(s))`
           );
           handleEnd(i.messageID, {
             isTrueSell: true,
@@ -1507,7 +1515,7 @@ ${this.optionText()}
 
 ${self.optionText()}
 
-**${abbreviateNumber(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
+**${formatCash(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
           handleEnd(i.messageID);
         }
       } catch (error) {
