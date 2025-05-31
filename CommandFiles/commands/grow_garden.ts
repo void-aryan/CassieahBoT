@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.8",
+  version: "1.4.9",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -695,7 +695,7 @@ export async function entry(ctx: CommandContext) {
             plots.getAll().length >= plotLimit
           )
             break;
-          inventory.deleteRef(seed);
+          inventory.deleteOne(seed.key);
           const allItems = [
             ...gardenShop.itemData,
             ...EVENT_CONFIG.EVENTS.map(
