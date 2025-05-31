@@ -833,7 +833,7 @@ export async function entry(ctx: CommandContext) {
             gardenEarns
           );
           moneyEarned += value.final;
-          gardenEarns += value.final - plot.price;
+          gardenEarns += value.final - plot.price || plot.baseValue;
           harvested.push({ plot, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
