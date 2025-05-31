@@ -27,7 +27,7 @@ export const EVENT_CONFIG = {
       effect: {
         mutationChance: 0.25,
         growthMultiplier: 1.2,
-        mutationType: "Verdant",
+        mutationType: "Gold",
       },
       shopItems: [
         {
