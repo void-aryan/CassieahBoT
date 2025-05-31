@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.2",
+  version: "1.4.3",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -71,6 +71,7 @@ export type GardenPlot = InventoryItem & {
   baseValue: number;
   mutation: string | null;
   isFavorite?: boolean;
+  originalGrowthTime: number;
 };
 
 export type GardenPetActive = InventoryItem & {
@@ -116,7 +117,16 @@ function calculateCropValue(
 }
 
 function isCropReady(crop: GardenPlot) {
-  return Date.now() >= crop.plantedAt + crop.growthTime && !crop.isFavorite;
+  return cropTimeLeft(crop) <= 0;
+}
+
+function cropTimeLeft(plot: GardenPlot) {
+  const timeLeft = Math.max(0, plot.plantedAt + plot.growthTime - Date.now());
+  return timeLeft;
+}
+
+function safeEX(a: number, p: number) {
+  return a === 0 ? 0 : a < 0 ? -Math.pow(-a, p) : Math.pow(a, p);
 }
 
 async function autoUpdateCropData(
@@ -124,24 +134,27 @@ async function autoUpdateCropData(
   tools: Inventory<GardenTool>
 ) {
   if (!crop) return null;
+  crop.originalGrowthTime ??= crop.growthTime;
 
   const event = await getCurrentEvent();
 
   const baseGrowthMultiplier = event.effect?.growthMultiplier || 1;
 
-  let growthBoost = baseGrowthMultiplier ** 0.9;
-  growthBoost = Math.min(2.0, growthBoost);
+  let growthBoost = safeEX(baseGrowthMultiplier, 0.9);
 
   tools.getAll().forEach((tool) => {
     if (tool.toolData?.growthMultiplier) {
-      const toolBoost = tool.toolData.growthMultiplier;
-      growthBoost += (toolBoost / (1 - growthBoost)) ** 0.9;
+      const toolBoost = tool.toolData.growthMultiplier || 0;
+      growthBoost += safeEX(toolBoost / (1 - growthBoost), 0.9);
       growthBoost = Math.min(10.0, growthBoost);
     }
   });
 
   crop.growthTime = Math.floor(
-    Math.min(crop.growthTime / growthBoost, crop.growthTime * 0.25)
+    Math.max(
+      crop.originalGrowthTime / Math.max(growthBoost, 1),
+      crop.originalGrowthTime * 25
+    )
   );
 
   if (crop.mutation && crop.harvestsLeft > 1) {
@@ -223,7 +236,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
 
   const baseMutationChance = event.effect?.mutationChance || 0;
 
-  const baseNonlinearBoost = baseMutationChance ** 0.9;
+  const baseNonlinearBoost = safeEX(baseMutationChance, 0.9);
 
   const mutationBoosts = new Map<string, number>();
 
@@ -235,7 +248,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
     if (tool.toolData?.mutationChance) {
       Object.entries(tool.toolData.mutationChance).forEach(([key, value]) => {
         const currentBoost = mutationBoosts.get(key) ?? 0;
-        const newBoost = currentBoost + (value / (1 - currentBoost)) ** 0.9;
+        const newBoost = currentBoost + safeEX(value / (1 - currentBoost), 0.9);
         mutationBoosts.set(key, Math.min(0.5, newBoost));
       });
     }
@@ -259,7 +272,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
     const boost = mutationBoosts.get(mutation.name) ?? 0;
     const chance = Math.min(
       0.5,
-      mutation.chance + (mutation.chance / (1 - boost)) ** 0.9
+      mutation.chance + safeEX(mutation.chance / (1 - boost), 0.9)
     );
 
     if (roll <= chance && Math.random() < 0.4) {
@@ -653,20 +666,21 @@ export async function entry(ctx: CommandContext) {
           )
             break;
           inventory.deleteOne(seed.key);
-          const plot: GardenPlot = {
+          let plot: GardenPlot = {
             key: `plot_${Date.now()}_${i}`,
             seedKey: seed.key,
             name: seed.name,
             icon: seed.icon,
             plantedAt: Date.now(),
             growthTime: seed.cropData.growthTime,
+            originalGrowthTime: seed.cropData.growthTime,
             harvestsLeft: seed.cropData.harvests,
             baseValue: seed.cropData.baseValue,
             mutation: null,
             type: "activePlot",
             isFavorite: false,
           };
-          await applyMutation(
+          plot = await applyMutation(
             plot,
             new Inventory<GardenTool>(
               rawInventory.filter(
@@ -674,7 +688,7 @@ export async function entry(ctx: CommandContext) {
               ) as GardenTool[]
             )
           );
-          await autoUpdateCropData(
+          plot = await autoUpdateCropData(
             plot,
             new Inventory<GardenTool>(
               rawInventory.filter(
@@ -757,13 +771,14 @@ export async function entry(ctx: CommandContext) {
             (item) => item.type === "gardenTool"
           ) as GardenTool[]
         );
-        const readyPlots = (
-          await Promise.all(
-            plots.getAll().map(async (i) => await autoUpdateCropData(i, tools))
-          )
-        )
-          .filter((i) => plots.get(i.key).every((i) => !i.isFavorite))
-          .filter(isCropReady);
+
+        const readyPlots: GardenPlot[] = [];
+        for (const plot of plots) {
+          const item = await autoUpdateCropData(plot, tools);
+          if (isCropReady(item)) {
+            readyPlots.push(item);
+          }
+        }
         if (readyPlots.length === 0) {
           return output.replyStyled(
             `🌱 No crops ready! Check plots with ${prefix}${commandName}${
@@ -909,8 +924,8 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
-        for (const [index, plot] of currentPlots.entries()) {
-          await autoUpdateCropData(
+        for (let [index, plot] of currentPlots.entries()) {
+          plot = await autoUpdateCropData(
             plot,
             new Inventory<GardenTool>(
               rawInventory.filter(
@@ -918,14 +933,15 @@ export async function entry(ctx: CommandContext) {
               ) as GardenTool[]
             )
           );
-          const timeLeft = plot.plantedAt + plot.growthTime - Date.now();
+          const timeLeft = cropTimeLeft(plot);
           result +=
             `${start + index + 1}. ${plot.icon} **${plot.name}**${
               plot.mutation ? ` (${plot.mutation})` : ""
             }${plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""}\n` +
             `${UNIRedux.charm} Harvests Left: ${plot.harvestsLeft}\n` +
             `${UNIRedux.charm} Time Left: ${
-              formatTimeSentence(timeLeft) || "***READY***!"
+              formatTimeSentence(timeLeft) ||
+              (!isCropReady(plot) ? "***BUGGED***!" : "***READY***!")
             }\n` +
             `${UNIRedux.charm} Value: ${formatCash(
               calculateCropValue(

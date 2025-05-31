@@ -66,7 +66,7 @@ export namespace gardenShop {
       rarity: "Uncommon",
       inStock: true,
 
-      stockChance: 0.5,
+      stockChance: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsBlueberry",
@@ -84,6 +84,31 @@ export namespace gardenShop {
       },
     },
     {
+      icon: "🌷",
+      name: "Orange Tulip Seed",
+      key: "gsOrangeTulip",
+      flavorText: "Bright and delicate flower crop.",
+      price: 600,
+      rarity: "Uncommon",
+      inStock: true,
+      stockChance: 0.34,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsOrangeTulip",
+          name: "Orange Tulip Seed",
+          flavorText: "Bright and delicate flower crop.",
+          icon: "🌷",
+          type: "gardenSeed",
+          sellPrice: 250,
+          cropData: {
+            baseValue: 1000,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+            harvests: 2,
+          },
+        });
+      },
+    },
+    {
       icon: "🍅",
       name: "Tomato Seed",
       key: "gsTomato",
@@ -91,8 +116,7 @@ export namespace gardenShop {
       price: 800,
       rarity: "Rare",
       inStock: true,
-
-      stockChance: 0.3,
+      stockChance: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsTomato",
@@ -105,6 +129,56 @@ export namespace gardenShop {
             baseValue: 1600,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3,
             harvests: 3,
+          },
+        });
+      },
+    },
+    {
+      icon: "🌽",
+      name: "Corn Seed",
+      key: "gsCorn",
+      flavorText: "Golden grain with steady yield.",
+      price: 1300,
+      rarity: "Rare",
+      inStock: true,
+      stockChance: 0.17,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsCorn",
+          name: "Corn Seed",
+          flavorText: "Golden grain with steady yield.",
+          icon: "🌽",
+          type: "gardenSeed",
+          sellPrice: 600,
+          cropData: {
+            baseValue: 2400,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+            harvests: 2,
+          },
+        });
+      },
+    },
+    {
+      icon: "🌼",
+      name: "Daffodil Seed",
+      key: "gsDaffodil",
+      flavorText: "Cheerful flower with fair value.",
+      price: 1000,
+      rarity: "Rare",
+      inStock: true,
+      stockChance: 0.145,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsDaffodil",
+          name: "Daffodil Seed",
+          flavorText: "Cheerful flower with fair value.",
+          icon: "🌼",
+          type: "gardenSeed",
+          sellPrice: 500,
+          cropData: {
+            baseValue: 2000,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
+            harvests: 1,
           },
         });
       },
@@ -135,78 +209,102 @@ export namespace gardenShop {
         });
       },
     },
-
     {
-      icon: "🌷",
-      name: "Orange Tulip Seed",
-      key: "gsOrangeTulip",
-      flavorText: "Bright and delicate flower crop.",
-      price: 500,
-      rarity: "Uncommon",
+      icon: "🎃",
+      name: "Pumpkin Seed",
+      key: "gsPumpkin",
+      flavorText: "A seasonal giant with huge value.",
+      price: 3000,
+      rarity: "Legendary",
       inStock: true,
-      stockChance: 0.6,
+      stockChance: 0.1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
-          key: "gsOrangeTulip",
-          name: "Orange Tulip Seed",
-          flavorText: "Bright and delicate flower crop.",
-          icon: "🌷",
+          key: "gsPumpkin",
+          name: "Pumpkin Seed",
+          flavorText: "A seasonal giant with huge value.",
+          icon: "🎃",
           type: "gardenSeed",
-          sellPrice: 250,
+          sellPrice: 1500,
           cropData: {
-            baseValue: 1000,
+            baseValue: 6000,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+            harvests: 1,
+          },
+        });
+      },
+    },
+    {
+      icon: "🍎",
+      name: "Apple Seed",
+      key: "gsApple",
+      flavorText: "A classic fruit for every season.",
+      price: 3250,
+      rarity: "Legendary",
+      inStock: true,
+      stockChance: 0.07,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsApple",
+          name: "Apple Seed",
+          flavorText: "A classic fruit for every season.",
+          icon: "🍎",
+          type: "gardenSeed",
+          sellPrice: 1750,
+          cropData: {
+            baseValue: 3500,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+            harvests: 4,
+          },
+        });
+      },
+    },
+    {
+      icon: "🎍",
+      name: "Bamboo Seed",
+      key: "gsBamboo",
+      flavorText: "Fast-growing and sturdy.",
+      price: 4000,
+      rarity: "Legendary",
+      inStock: true,
+      stockChance: 0.3,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsBamboo",
+          name: "Bamboo Seed",
+          flavorText: "Fast-growing and sturdy.",
+          icon: "🎍",
+          type: "gardenSeed",
+          sellPrice: 2000,
+          cropData: {
+            baseValue: 8000,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-            harvests: 2,
+            harvests: 1,
           },
         });
       },
     },
     {
-      icon: "🌽",
-      name: "Corn Seed",
-      key: "gsCorn",
-      flavorText: "Golden grain with steady yield.",
-      price: 1200,
-      rarity: "Rare",
+      icon: "🍈",
+      name: "Coconut Seed",
+      key: "gsCoconut",
+      flavorText: "Tropical and rich in value.",
+      price: 6000,
+      rarity: "Mythical",
       inStock: true,
-      stockChance: 0.4,
+      stockChance: 0.05,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
-          key: "gsCorn",
-          name: "Corn Seed",
-          flavorText: "Golden grain with steady yield.",
-          icon: "🌽",
+          key: "gsCoconut",
+          name: "Coconut Seed",
+          flavorText: "Tropical and rich in value.",
+          icon: "🥥",
           type: "gardenSeed",
-          sellPrice: 600,
+          sellPrice: 2500,
           cropData: {
-            baseValue: 2400,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-            harvests: 2,
-          },
-        });
-      },
-    },
-    {
-      icon: "🌼",
-      name: "Daffodil Seed",
-      key: "gsDaffodil",
-      flavorText: "Cheerful flower with fair value.",
-      price: 1000,
-      rarity: "Rare",
-      inStock: true,
-      stockChance: 0.35,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gsDaffodil",
-          name: "Daffodil Seed",
-          flavorText: "Cheerful flower with fair value.",
-          icon: "🌼",
-          type: "gardenSeed",
-          sellPrice: 500,
-          cropData: {
-            baseValue: 2000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
-            harvests: 2,
+            baseValue: 3000,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+            harvests: 4,
           },
         });
       },
@@ -261,106 +359,7 @@ export namespace gardenShop {
         });
       },
     },
-    {
-      icon: "🎃",
-      name: "Pumpkin Seed",
-      key: "gsPumpkin",
-      flavorText: "A seasonal giant with huge value.",
-      price: 3000,
-      rarity: "Legendary",
-      inStock: true,
-      stockChance: 0.15,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gsPumpkin",
-          name: "Pumpkin Seed",
-          flavorText: "A seasonal giant with huge value.",
-          icon: "🎃",
-          type: "gardenSeed",
-          sellPrice: 1500,
-          cropData: {
-            baseValue: 6000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-            harvests: 1,
-          },
-        });
-      },
-    },
-    {
-      icon: "🍎",
-      name: "Apple Seed",
-      key: "gsApple",
-      flavorText: "A classic fruit for every season.",
-      price: 3500,
-      rarity: "Legendary",
-      inStock: true,
-      stockChance: 0.12,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gsApple",
-          name: "Apple Seed",
-          flavorText: "A classic fruit for every season.",
-          icon: "🍎",
-          type: "gardenSeed",
-          sellPrice: 1750,
-          cropData: {
-            baseValue: 3500,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-            harvests: 4,
-          },
-        });
-      },
-    },
-    {
-      icon: "🎍",
-      name: "Bamboo Seed",
-      key: "gsBamboo",
-      flavorText: "Fast-growing and sturdy.",
-      price: 4000,
-      rarity: "Legendary",
-      inStock: true,
-      stockChance: 0.1,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gsBamboo",
-          name: "Bamboo Seed",
-          flavorText: "Fast-growing and sturdy.",
-          icon: "🎍",
-          type: "gardenSeed",
-          sellPrice: 2000,
-          cropData: {
-            baseValue: 8000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-            harvests: 3,
-          },
-        });
-      },
-    },
-    {
-      icon: "🍈",
-      name: "Coconut Seed",
-      key: "gsCoconut",
-      flavorText: "Tropical and rich in value.",
-      price: 5000,
-      rarity: "Mythical",
-      inStock: true,
-      stockChance: 0.07,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gsCoconut",
-          name: "Coconut Seed",
-          flavorText: "Tropical and rich in value.",
-          icon: "🥥",
-          type: "gardenSeed",
-          sellPrice: 2500,
-          cropData: {
-            baseValue: 10000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-            harvests: 2,
-          },
-        });
-      },
-    },
+
     {
       icon: "🌵",
       name: "Cactus Seed",

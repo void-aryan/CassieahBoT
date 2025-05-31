@@ -13,7 +13,8 @@ export const CROP_CONFIG = {
     { name: "Chocolate", valueMultiplier: 2.1, chance: 0.07 },
   ],
   MBIAS: 3,
-  GROWTH_BASE: 5 * 60 * 1000,
+  GROWTH_BASE_OLD: 5 * 60 * 1000,
+  GROWTH_BASE: 10 * 60 * 1000,
   OVERGROWTH_PENALTY: 1.5,
   LUCKY_HARVEST_CHANCE: 0.05,
   ACHIEVEMENTS: [
