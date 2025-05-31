@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.9",
+  version: "1.4.10",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -120,7 +120,8 @@ function calculateCropValue(
       (mutation ? mutation.valueMultiplier : 1) *
       (1 + plantingBonus + expansionBonus)
   );
-  return { final, noExtra };
+
+  return { final: Math.max(final, 0) || 0, noExtra: Math.max(0, noExtra) || 0 };
 }
 
 function isCropReady(crop: GardenPlot) {
@@ -532,6 +533,9 @@ export async function entry(ctx: CommandContext) {
   const collectibles = new Collectibles(rawCLL);
   correctItems(rawInventory as GardenItem[]);
 
+  gardenEarns = gardenEarns || 0;
+  gardenEarns = Math.max(gardenEarns, 0);
+
   const currEvent = await getCurrentEvent();
   let hasEvent = !currEvent.isNoEvent;
 
@@ -854,8 +858,8 @@ export async function entry(ctx: CommandContext) {
             gardenStats.expansions || 0,
             gardenEarns
           );
-          moneyEarned += value.final;
-          gardenEarns += value.final - plot.price || plot.baseValue;
+          moneyEarned += value.final || 0;
+          gardenEarns += value.final - plot.price || plot.baseValue || 0;
           harvested.push({ plot, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
