@@ -12,6 +12,7 @@ export const CROP_CONFIG = {
     { name: "Celestial", valueMultiplier: 2.4, chance: 0.04 },
     { name: "Chocolate", valueMultiplier: 2.1, chance: 0.07 },
   ],
+  MBIAS: 5,
   GROWTH_BASE: 5 * 60 * 1000,
   OVERGROWTH_PENALTY: 1.5,
   LUCKY_HARVEST_CHANCE: 0.05,

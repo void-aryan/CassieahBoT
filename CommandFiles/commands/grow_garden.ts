@@ -270,13 +270,16 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
   });
 
   const mutations = event.effect?.mutationType
-    ? CROP_CONFIG.MUTATIONS.filter(
-        (m) => m.name === event.effect.mutationType
-      ).concat(
-        CROP_CONFIG.MUTATIONS.filter(
+    ? [
+        ...Array.from({ length: CROP_CONFIG.MBIAS }, () =>
+          CROP_CONFIG.MUTATIONS.find(
+            (m) => m.name === event.effect.mutationType
+          )
+        ),
+        ...CROP_CONFIG.MUTATIONS.filter(
           (m) => m.name !== event.effect.mutationType
-        )
-      )
+        ),
+      ]
     : CROP_CONFIG.MUTATIONS;
 
   const roll = Math.random();
