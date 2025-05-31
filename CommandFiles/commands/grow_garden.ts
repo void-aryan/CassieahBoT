@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.12",
+  version: "1.4.13",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -2629,7 +2629,7 @@ export async function entry(ctx: CommandContext) {
 
 export const style: CassidySpectra.CommandStyle = {
   title: {
-    content: `${UNISpectra.charm} **G🍅rden**`,
+    content: `${UNISpectra.charm} **G🍓rden**`,
     text_font: "fancy",
     line_bottom: "default",
   },

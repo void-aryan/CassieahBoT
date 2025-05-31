@@ -17,6 +17,322 @@ export const EVENT_CONFIG = {
       shopItems: [],
     },
     {
+      name: "Relapse Event",
+      icon: "🥀💔",
+      timeStart: (12 + 10) * 60 * 60 * 1000,
+      timeEnd: 4 * 60 * 60 * 1000,
+      shopName: "relapseshop",
+      shopName2: "Batak Mag Relapse Shop",
+      shopAlias: ["rshop", "relapse", "rsh"],
+      effect: {
+        mutationChance: 0.25,
+        growthMultiplier: 1.2,
+        mutationType: "Verdant",
+      },
+      shopItems: [
+        {
+          icon: "🌸",
+          name: "Ben&Petal",
+          key: "gsBenPetal",
+          flavorText: "A delicate flower duo that blooms in harmony.",
+          price: 2500,
+          rarity: "Common",
+          stockChance: 1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsBenPetal",
+              name: "Ben&Petal",
+              flavorText: "A delicate flower duo that blooms in harmony.",
+              icon: "🌸",
+              type: "gardenSeed",
+              sellPrice: 1250,
+              cropData: {
+                baseValue: 2000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+                harvests: 3,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍇",
+          name: "Di na Muliberry",
+          key: "gsMuliberry",
+          flavorText: "A bittersweet berry that lingers on the vine.",
+          price: 5000,
+          rarity: "Uncommon",
+          stockChance: 1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMuliberry",
+              name: "Di na Muliberry",
+              flavorText: "A bittersweet berry that lingers on the vine.",
+              icon: "🍇",
+              type: "gardenSeed",
+              sellPrice: 2500,
+              cropData: {
+                baseValue: 2_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+                harvests: 4,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌿",
+          name: "Magbalikweed",
+          key: "gsMagbalikweed",
+          flavorText: "A resilient herb that always finds its way back.",
+          price: 10_000,
+          rarity: "Uncommon",
+          stockChance: 1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMagbalikweed",
+              name: "Magbalikweed",
+              flavorText: "A resilient herb that always finds its way back.",
+              icon: "🌿",
+              type: "gardenSeed",
+              sellPrice: 5000,
+              cropData: {
+                baseValue: 5_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+                harvests: 5,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌺",
+          name: "Pagsamunngo",
+          key: "gsPagsamunngo",
+          flavorText: "A vibrant flower symbolizing reunion.",
+          price: 50_000,
+          rarity: "Rare",
+          stockChance: 0.5,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsPagsamunngo",
+              name: "Pagsamunngo",
+              flavorText: "A vibrant flower symbolizing reunion.",
+              icon: "🌺",
+              type: "gardenSeed",
+              sellPrice: 25_000,
+              cropData: {
+                baseValue: 10_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 5,
+                harvests: 8,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌱",
+          name: "Binhi mo lang ako",
+          key: "gsBinhi",
+          flavorText: "A humble seed with untapped potential.",
+          price: 100_000,
+          rarity: "Rare",
+          stockChance: 0.35,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsBinhi",
+              name: "Binhi mo lang ako",
+              flavorText: "A humble seed with untapped potential.",
+              icon: "🌱",
+              type: "gardenSeed",
+              sellPrice: 50_000,
+              cropData: {
+                baseValue: 20_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 6,
+                harvests: 8,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍃",
+          name: "Kathang Leafip",
+          key: "gsLeafip",
+          flavorText: "A mythical leaf woven from stories.",
+          price: 250_000,
+          rarity: "Legendary",
+          stockChance: 0.5,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsLeafip",
+              name: "Kathang Leafip",
+              flavorText: "A mythical leaf woven from stories.",
+              icon: "🍃",
+              type: "gardenSeed",
+              sellPrice: 125_000,
+              cropData: {
+                baseValue: 50_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 7,
+                harvests: 8,
+              },
+            });
+          },
+        },
+        {
+          icon: "🧅",
+          name: "Allium Too Well",
+          key: "gsAllium",
+          flavorText: "An onion that brings tears of nostalgia.",
+          price: 500_000,
+          rarity: "Legendary",
+          stockChance: 0.25,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsAllium",
+              name: "Allium Too Well",
+              flavorText: "An onion that brings tears of nostalgia.",
+              icon: "🧅",
+              type: "gardenSeed",
+              sellPrice: 250_000,
+              cropData: {
+                baseValue: 700_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 8,
+                harvests: 1,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌷",
+          name: "Lavendeja Vu",
+          key: "gsLavendeja",
+          flavorText: "A lavender with a hauntingly familiar scent.",
+          price: 1_000_000,
+          rarity: "Legendary",
+          stockChance: 0.09,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsLavendeja",
+              name: "Lavendeja Vu",
+              flavorText: "A lavender with a hauntingly familiar scent.",
+              icon: "🌷",
+              type: "gardenSeed",
+              sellPrice: 500_000,
+              cropData: {
+                baseValue: 100_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 9,
+                harvests: 18,
+              },
+            });
+          },
+        },
+        {
+          icon: "☘️",
+          name: "When I was your clover",
+          key: "gsClover",
+          flavorText: "A four-leaf clover of past promises.",
+          price: 2_500_000,
+          rarity: "Mythical",
+          stockChance: 0.07,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsClover",
+              name: "When I was your clover",
+              flavorText: "A four-leaf clover of past promises.",
+              icon: "☘️",
+              type: "gardenSeed",
+              sellPrice: 1_250_000,
+              cropData: {
+                baseValue: 500_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 10,
+                harvests: 9,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌿✨",
+          name: "Enchanmint",
+          key: "gsEnchanmint",
+          flavorText: "A magical mint that captivates the senses.",
+          price: 5_000_000,
+          rarity: "Mythical",
+          stockChance: 0.08,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsEnchanmint",
+              name: "Enchanmint",
+              flavorText: "A magical mint that captivates the senses.",
+              icon: "🌿✨",
+              type: "gardenSeed",
+              sellPrice: 2_500_000,
+              cropData: {
+                baseValue: 500_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 11,
+                harvests: 25,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌱",
+          name: "Kathang Sitaw",
+          key: "gsSitaw",
+          flavorText: "A string bean spun from tales of fate.",
+          price: 10_000_000,
+          rarity: "Divine",
+          stockChance: 0.08,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsSitaw",
+              name: "Kathang Sitaw",
+              flavorText: "A string bean spun from tales of fate.",
+              icon: "🌱",
+              type: "gardenSeed",
+              sellPrice: 5_000_000,
+              cropData: {
+                baseValue: 1_000_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 12,
+                harvests: 30,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌸💫",
+          name: "Pinagtagpo, Pero Hindi Tinanamin",
+          key: "gsPinagtagpo",
+          flavorText: "The rarest bloom of destined but unplanted love.",
+          price: 50_000_000,
+          rarity: "Divine",
+          stockChance: 0.08,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsPinagtagpo",
+              name: "Pinagtagpo, Pero Hindi Tinanamin",
+              flavorText: "The rarest bloom of destined but unplanted love.",
+              icon: "🌸💫",
+              type: "gardenSeed",
+              sellPrice: 25_000_000,
+              cropData: {
+                baseValue: 4_000_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 15,
+                harvests: 40,
+              },
+            });
+          },
+        },
+      ],
+    },
+    {
       name: "Frost",
       icon: "❄️",
       effect: {
