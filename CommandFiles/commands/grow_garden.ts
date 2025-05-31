@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.4",
+  version: "1.4.5",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -108,12 +108,18 @@ function calculateCropValue(
     Math.min(1000000000, ((1 / 100_000) * totalEarns) ** 0.35)
   );
 
-  return Math.floor(
+  const final = Math.floor(
     crop.baseValue *
       (mutation ? mutation.valueMultiplier : 1) *
       (1 + plantingBonus + expansionBonus) *
       earnMultiplier
   );
+  const noExtra = Math.floor(
+    crop.baseValue *
+      (mutation ? mutation.valueMultiplier : 1) *
+      (1 + plantingBonus + expansionBonus)
+  );
+  return { final, noExtra };
 }
 
 function isCropReady(crop: GardenPlot) {
@@ -745,7 +751,7 @@ export async function entry(ctx: CommandContext) {
                 plots,
                 gardenStats.expansions || 0,
                 gardenEarns
-              )
+              ).final
             )}\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Check plots: ${prefix}${commandName}${
@@ -766,7 +772,10 @@ export async function entry(ctx: CommandContext) {
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         let moneyEarned = 0;
-        const harvested: { plot: GardenPlot; value: number }[] = [];
+        const harvested: {
+          plot: GardenPlot;
+          value: { final: number; noExtra: number };
+        }[] = [];
         const seedsGained: string[] = [];
         const tools = new Inventory<GardenTool>(
           rawInventory.filter(
@@ -812,8 +821,8 @@ export async function entry(ctx: CommandContext) {
             gardenStats.expansions || 0,
             gardenEarns
           );
-          moneyEarned += value;
-          gardenEarns += value - plot.baseValue;
+          moneyEarned += value.final;
+          gardenEarns += value.final - plot.baseValue;
           harvested.push({ plot, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
@@ -865,16 +874,16 @@ export async function entry(ctx: CommandContext) {
           input
         );
         const harvestedStr = [...harvested]
-          .sort((a, b) => b.value - a.value)
+          .sort((a, b) => b.value.final - a.value.final)
           .map(
             ({ plot, value }) =>
               `${plot.icon} ${plot.name}${
                 plot.mutation
-                  ? ` (${plot.mutation}, +${formatCash(
-                      value - plot.baseValue
+                  ? ` (${plot.mutation} +${abbreviateNumber(
+                      value.noExtra - plot.baseValue
                     )})`
                   : ""
-              } - ${formatCash(value, true)}`
+              } - ${formatCash(value.final, true)}`
           );
 
         return output.replyStyled(
@@ -957,7 +966,7 @@ export async function entry(ctx: CommandContext) {
                 plots,
                 gardenStats.expansions || 0,
                 gardenEarns
-              )
+              ).final
             )}\n\n`;
         }
         if (plots.getAll().length > end) {
@@ -1020,7 +1029,7 @@ export async function entry(ctx: CommandContext) {
                 user.gardenStats?.expansions || 0,
                 user.gardenEarns || 0
               );
-              potentialEarnings += value * plot.harvestsLeft;
+              potentialEarnings += value.noExtra * plot.harvestsLeft;
             }
           });
 
