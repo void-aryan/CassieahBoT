@@ -3,6 +3,7 @@ import { UNIRedux, UNISpectra } from "../modules/unisym.js";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { InventoryItem, UserStatsManager } from "@cass-modules/cassidyUser";
 import {
+  abbreviateNumber,
   formatCash,
   formatTimeSentence,
   formatValue,
@@ -413,10 +414,23 @@ function formatShopItems(items = gardenShop): typeof gardenShop {
     // itemData: items.itemData.filter((item) => item.inStock !== false),
     itemData: items.itemData.map((item) => {
       let noStock = item.inStock === false;
+      let flavor = item.flavorText || "";
+      const moneySet: { inventory: GardenItem[] } = { inventory: [] };
+      item.onPurchase({ moneySet });
+      const purchased = moneySet.inventory[0];
+      if (purchased) {
+        if (purchased.type === "gardenSeed") {
+          flavor += `\n🪙 ${abbreviateNumber(
+            purchased.cropData.baseValue || 0
+          )} | 🧺 ${abbreviateNumber(purchased.cropData.harvests || 0)} | ⏳ ${
+            formatTimeSentence(purchased.cropData.growthTime || 0) || "Instant"
+          }`;
+        }
+      }
       return {
         ...item,
         cannotBuy: noStock,
-        flavorText: noStock ? `***NO STOCK***` : item.flavorText,
+        flavorText: noStock ? `` : flavor,
       };
     }),
   };
@@ -823,9 +837,9 @@ export async function entry(ctx: CommandContext) {
         );
 
         return output.replyStyled(
-          `✅ **Harvested**:\n${harvested.join("\n")}\n\n` +
+          `✅🧺 **Harvested**:\n${harvested.join("\n")}\n\n` +
             (seedsGained.length > 0
-              ? `🌱 **Lucky Harvest Seeds**:\n${seedsGained.join("\n")}\n\n`
+              ? `🌱🧺 **Lucky Harvest Seeds**:\n${seedsGained.join("\n")}\n\n`
               : "") +
             `💰 Earned: ${formatCash(moneyEarned, true)}\n` +
             `💵 Balance: ${formatCash(userMoney + moneyEarned)}\n\n` +

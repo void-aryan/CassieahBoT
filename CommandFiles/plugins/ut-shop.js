@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "1.3.0",
+  version: "1.3.1",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -799,13 +799,16 @@ export async function use(obj) {
                         : "🚫"
                     }`
                   : "🚫 No Stock"
-              }${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
+              } ${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
                 boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
               }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
                 bankAmount ? ` 🏦 **x${bankAmount}**` : ""
               }${
                 item.inflation ? ` [ 📈 **+${item.inflation ?? 0}$** ]` : ""
-              }`.trim() + "\n";
+              }`.trim() +
+              (item.flavorText || (!isSellable && item.cannotBuyFlavor)
+                ? "\n"
+                : "");
             if (!(playersMap instanceof Map)) {
               throw new Error(`playersMap must be a Map`);
             }
@@ -879,11 +882,13 @@ export async function use(obj) {
               }
             }
 
-            result += `✦ ${
-              isSellable
-                ? item.flavorText
-                : item.cannotBuyFlavor ?? item.flavorText
-            }`;
+            if (item.flavorText || (!isSellable && item.cannotBuyFlavor)) {
+              result += `✦ ${
+                isSellable
+                  ? item.flavorText
+                  : item.cannotBuyFlavor ?? item.flavorText
+              }`;
+            }
             return result;
           })
           .join("\n\n");
