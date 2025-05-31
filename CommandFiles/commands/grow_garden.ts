@@ -223,13 +223,12 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
 
   const baseMutationChance = event.effect?.mutationChance || 0;
 
-  const baseNonlinearBoost =
-    baseMutationChance + (baseMutationChance / (1 - baseMutationChance)) ** 0.9;
+  const baseNonlinearBoost = baseMutationChance ** 0.9;
 
   const mutationBoosts = new Map<string, number>();
 
   CROP_CONFIG.MUTATIONS.forEach((mutation) => {
-    mutationBoosts.set(mutation.name, Math.min(0.7, baseNonlinearBoost));
+    mutationBoosts.set(mutation.name, Math.min(0.5, baseNonlinearBoost));
   });
 
   tools.getAll().forEach((tool) => {
@@ -263,7 +262,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
       mutation.chance + (mutation.chance / (1 - boost)) ** 0.9
     );
 
-    if (roll <= chance) {
+    if (roll <= chance && Math.random() < 0.4) {
       crop.mutation = mutation.name;
       return crop;
     }
