@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.10",
+  version: "1.4.11",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -437,7 +437,10 @@ function getTimeUntilRestock() {
   return Math.max(0, timeLeft);
 }
 
-function formatShopItems(items = gardenShop): typeof gardenShop {
+function formatShopItems(
+  items = gardenShop,
+  currentEvent: Awaited<ReturnType<typeof getCurrentEvent>>
+): typeof gardenShop {
   const timeText = `🕒 **Next Restock**:\n${formatTimeSentence(
     getTimeUntilRestock()
   )}`;
@@ -472,6 +475,16 @@ function formatShopItems(items = gardenShop): typeof gardenShop {
       .filter((i) => i.inStock !== false),
     buyTexts: [timeText],
     thankTexts: [timeText],
+    ...(currentEvent?.isNoEvent !== true && currentEvent
+      ? {
+          welcomeTexts: [
+            `Welcome to the ${currentEvent?.icon ?? "🌱"} **${
+              currentEvent.shopName2 ?? "Event Shop."
+            }!**`,
+          ],
+          key: currentEvent?.shopName,
+        }
+      : {}),
   };
 }
 
@@ -575,7 +588,7 @@ export async function entry(ctx: CommandContext) {
       aliases: ["-sh"],
       async handler() {
         const shop = new UTShop({
-          ...formatShopItems(gardenShop),
+          ...formatShopItems(gardenShop, currEvent),
           style,
         });
         await shop.onPlay({ ...ctx, args: [] });
@@ -584,15 +597,18 @@ export async function entry(ctx: CommandContext) {
     ...((currEvent.shopItems ?? []).length > 0
       ? [
           {
-            key: "eventshop",
+            key: currEvent?.shopName ?? "eventshop",
             description: `Shop for ${currEvent.name}.`,
-            aliases: ["-esh", "eshop"],
+            aliases: [...(currEvent.shopAlias ?? []), "-esh", "eshop"],
             async handler() {
               const shop = new UTShop({
-                ...formatShopItems({
-                  ...gardenShop,
-                  itemData: gardenShop.eventItems,
-                }),
+                ...formatShopItems(
+                  {
+                    ...gardenShop,
+                    itemData: gardenShop.eventItems,
+                  },
+                  currEvent
+                ),
                 style,
               });
               await shop.onPlay({ ...ctx, args: [] });

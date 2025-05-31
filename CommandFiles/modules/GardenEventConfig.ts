@@ -42,6 +42,7 @@ export const EVENT_CONFIG = {
       icon: "🐣",
       shopName: "eastershop",
       shopName2: "Poppy's Easter Shop",
+      shopAlias: ["easter", "eash"],
       effect: {
         mutationChance: 0.2,
         growthMultiplier: 1.2,
@@ -204,6 +205,7 @@ export const EVENT_CONFIG = {
       icon: "🌿😣",
       shopName2: "Angry Shop",
       shopName: "angryshop",
+      shopAlias: ["ashop", "angshop", "angry"],
       effect: {
         mutationChance: 0.25,
         growthMultiplier: 1.1,
@@ -415,6 +417,7 @@ export const EVENT_CONFIG = {
       icon: "🌙",
       shopName: "twilightshop",
       shopName2: "Twilight Shop",
+      shopAlias: ["tshop", "twilight", "tsh"],
       effect: {
         mutationChance: 0.3,
         growthMultiplier: 1.3,
@@ -1043,6 +1046,9 @@ export const EVENT_CONFIG = {
     {
       name: "Blood Moon",
       icon: "🌑",
+      shopName: "bloodmoonshop",
+      shopAlias: ["bmsh", "bmshop", "moonshop"],
+      shopName2: "Blood Moon Shop",
       effect: {
         mutationChance: 0.2,
         growthMultiplier: 0.8,
