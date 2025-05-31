@@ -1,10 +1,10 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 
-export const gardenShop = {
-  key: "gardenShop",
-  lastRestock: 0,
-  stockRefreshInterval: 5 * 60 * 1000,
-  itemData: [
+export namespace gardenShop {
+  export let key = "gardenShop";
+  export let lastRestock = 0;
+  export const stockRefreshInterval = 5 * 60 * 1000;
+  export let itemData = [
     {
       icon: "🥕",
       name: "Carrot Seed",
@@ -787,20 +787,24 @@ export const gardenShop = {
     //     });
     //   },
     // },
-  ],
-  welcomeTexts: [
-    "🌱 Welcome to Sam's Garden Shop! Start growing today!",
+  ];
+  export const welcomeTexts = [
+    "🌱 Welcome to Shop! Start growing today!",
     "🌱 Hey there! Ready to plant some crops?",
-    "🌱 Browse our seeds, pets, and tools to boost your farm!",
-  ],
-  buyTexts: [
+    "🌱 Browse our seeds, pets, and gears to boost your farm!",
+  ];
+  export const buyTexts = [
     "🌱 What do you want to buy today?",
-    "🌱 Pick a seed, pet, or tool to grow your garden!",
+    "🌱 Pick a seed, pet, or gear to grow your garden!",
     "🌱 Let me know what catches your eye!",
-  ],
-  thankTexts: [
+  ];
+  export const thankTexts = [
     "🌱 Thanks for shopping! Happy planting!",
     "🌱 Your garden's gonna thrive with that!",
     "🌱 Come back soon for more goodies!",
-  ],
-};
+  ];
+}
+
+export namespace gardenShop {
+  export let eventItems: (typeof gardenShop.itemData)[number][] = [];
+}

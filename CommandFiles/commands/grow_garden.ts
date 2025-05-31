@@ -172,20 +172,6 @@ async function getCurrentEvent() {
     EVENT_CONFIG.EVENTS.length;
   const event = EVENT_CONFIG.EVENTS[weekNumber];
 
-  gardenShop.itemData = gardenShop.itemData.filter(
-    (item) =>
-      !item.key.startsWith("gs") ||
-      !event.shopItems.some((shopItem) => shopItem.key === item.key)
-  );
-
-  if (event.shopItems && event.shopItems.length > 0) {
-    event.shopItems.forEach((shopItem) => {
-      if (!gardenShop.itemData.some((item) => item.key === shopItem.key)) {
-        gardenShop.itemData.push(shopItem);
-      }
-    });
-  }
-
   return event;
 }
 async function getNextEvent(skips: number = 1) {
@@ -200,20 +186,6 @@ async function getNextEvent(skips: number = 1) {
   const weekNumber = ((totalCyclesPassed % len) + len) % len;
 
   const event = EVENT_CONFIG.EVENTS[weekNumber];
-
-  gardenShop.itemData = gardenShop.itemData.filter(
-    (item) =>
-      !item.key.startsWith("gs") ||
-      !event.shopItems.some((shopItem) => shopItem.key === item.key)
-  );
-
-  if (event.shopItems && event.shopItems.length > 0) {
-    event.shopItems.forEach((shopItem) => {
-      if (!gardenShop.itemData.some((item) => item.key === shopItem.key)) {
-        gardenShop.itemData.push(shopItem);
-      }
-    });
-  }
 
   return event;
 }
@@ -322,7 +294,9 @@ function updatePetCollection(
         pet.petData.seedTypes[
           Math.floor(Math.random() * pet.petData.seedTypes.length)
         ];
-      const shopItem = gardenShop.itemData.find((item) => item.key === seed);
+      const shopItem = [...gardenShop.itemData, ...gardenShop.eventItems].find(
+        (item) => item.key === seed
+      );
       if (shopItem && inventory.size() < global.Cassidy.invLimit) {
         const cache = inventory.getAll();
         const cache2 = [...cache];
@@ -399,6 +373,7 @@ async function checkAchievements(
     }
   }
 }
+
 async function refreshShopStock() {
   const currentTime = Date.now();
   if (currentTime - gardenShop.lastRestock < gardenShop.stockRefreshInterval)
@@ -406,7 +381,7 @@ async function refreshShopStock() {
   gardenShop.lastRestock = currentTime;
 
   const event = await getCurrentEvent();
-  gardenShop.itemData = gardenShop.itemData.filter((item) => {
+  gardenShop.eventItems = gardenShop.eventItems.filter((item) => {
     if (item.isEventItem) {
       return (
         event.shopItems &&
@@ -418,15 +393,33 @@ async function refreshShopStock() {
 
   if (event.shopItems && event.shopItems.length > 0) {
     event.shopItems.forEach((shopItem) => {
-      if (!gardenShop.itemData.some((item) => item.key === shopItem.key)) {
-        gardenShop.itemData.push({ ...shopItem, isEventItem: true });
+      if (!gardenShop.eventItems.some((item) => item.key === shopItem.key)) {
+        gardenShop.eventItems.push({ ...shopItem, isEventItem: true });
       }
     });
   }
 
   gardenShop.itemData.forEach((item) => {
-    item.inStock = item.isEventItem ? true : Math.random() < item.stockChance;
+    item.inStock = Math.random() < item.stockChance;
   });
+  gardenShop.eventItems.forEach((item) => {
+    item.inStock = Math.random() < item.stockChance;
+  });
+}
+
+function formatShopItems(items = gardenShop): typeof gardenShop {
+  return {
+    ...items,
+    // itemData: items.itemData.filter((item) => item.inStock !== false),
+    itemData: items.itemData.map((item) => {
+      let noStock = item.inStock === false;
+      return {
+        ...item,
+        cannotBuy: noStock,
+        flavorText: noStock ? `***NO STOCK***` : item.flavorText,
+      };
+    }),
+  };
 }
 
 export async function entry(ctx: CommandContext) {
@@ -500,19 +493,35 @@ export async function entry(ctx: CommandContext) {
   const home = new SpectralCMDHome({ isHypen }, [
     {
       key: "shop",
-      description: "Visit Sam's Garden Shop",
+      description: "Visit the Shop",
       aliases: ["-sh"],
       async handler() {
         const shop = new UTShop({
-          ...gardenShop,
-          itemData: gardenShop.itemData.filter(
-            (item) => item.inStock !== false
-          ),
+          ...formatShopItems(gardenShop),
           style,
         });
         await shop.onPlay({ ...ctx, args: [] });
       },
     },
+    ...((currEvent.shopItems ?? []).length > 0
+      ? [
+          {
+            key: "eventshop",
+            description: `Shop for ${currEvent.name}.`,
+            aliases: ["-esh", "eshop"],
+            async handler() {
+              const shop = new UTShop({
+                ...formatShopItems({
+                  ...gardenShop,
+                  itemData: gardenShop.eventItems,
+                }),
+                style,
+              });
+              await shop.onPlay({ ...ctx, args: [] });
+            },
+          },
+        ]
+      : []),
     {
       key: "plant",
       description: "Plant one or more seeds in plots",
@@ -766,9 +775,10 @@ export async function entry(ctx: CommandContext) {
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
           if (Math.random() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
-            const shopItem = gardenShop.itemData.find(
-              (item) => item.key === plot.seedKey
-            );
+            const shopItem = [
+              ...gardenShop.itemData,
+              ...gardenShop.eventItems,
+            ].find((item) => item.key === plot.seedKey);
             if (shopItem && inventory.size() < global.Cassidy.invLimit) {
               const cache = inventory.getAll();
               shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
@@ -1661,9 +1671,10 @@ export async function entry(ctx: CommandContext) {
         const stolenPlot =
           stealablePlots[Math.floor(Math.random() * stealablePlots.length)];
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
-        const shopItem = gardenShop.itemData.find(
-          (item) => item.key === stolenPlot.seedKey
-        );
+        const shopItem = [
+          ...gardenShop.itemData,
+          ...gardenShop.eventItems,
+        ].find((item) => item.key === stolenPlot.seedKey);
         if (shopItem && inventory.size() < global.Cassidy.invLimit) {
           const cache = inventory.getAll();
           shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });

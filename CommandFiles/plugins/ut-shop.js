@@ -1,12 +1,13 @@
 // @ts-check
 import { CassEXP } from "../modules/cassEXP.js";
-import { clamp } from "@cassidy/unispectra";
+import { abbreviateNumber, clamp } from "@cassidy/unispectra";
 import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
+import { PetPlayer } from "./pet-fight";
 
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "1.2.8",
+  version: "1.2.9",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -729,45 +730,72 @@ export async function use(obj) {
         .join("\n\n");
       return result;
     }
+    /**
+     *
+     * @param {{ inventory: Inventory; boxInventory: Inventory; userMoney: number; playersMap: Map<string, PetPlayer>; userData: UserData }} param0
+     * @returns
+     */
     stringItemData(
-      { inventory, boxInventory, userMoney = 0, playersMap } = {
+      { inventory, boxInventory, userMoney = 0, playersMap, userData } = {
         inventory: undefined,
         boxInventory: undefined,
         playersMap: undefined,
+        userMoney: 0,
+        userData: null,
       }
     ) {
       let isLegacy = true;
       if (inventory instanceof Inventory && boxInventory instanceof Inventory) {
         isLegacy = false;
       }
+      /**
+       * @type {import("@cass-modules/cassidyUser").InventoryItem[]}
+       */
       const data = this.itemData;
       let result;
       if (!isLegacy) {
+        if (data.length === 0) {
+          result = `🧹 No items available!`;
+        }
         result = data
           .map((item) => {
             const invAmount = inventory.getAmount(item.key);
             const boxAmount = boxInventory.getAmount(item.key);
-            let isAffordable = userMoney >= (item.price ?? 0);
+            const ndrive = new Inventory(
+              userData.ndrive?.items ?? [],
+              Infinity
+            );
+            const bank = new Inventory(
+              userData.bankData?.items ?? [],
+              Infinity
+            );
+            const ndriveAmount = ndrive.getAmount(item.key);
+            const bankAmount = bank.getAmount(item.key);
+            let isAffordable = userMoney >= Number(item.price ?? 0);
             let isSellable = true;
             if (item.cannotBuy === true) {
               isSellable = false;
             }
             let hasInv = invAmount && boxAmount;
             let result = ``;
-            result += `${item.num}. **${item.icon} ${item.name}**\n`;
-            result += `- **${pCy(this.isGenoR() ? 0 : item.price ?? 0)}$** ${
+            if (isSellable) {
+              result += `${item.num}. **${item.icon} ${item.name}**\n`;
+            } else {
+              result += `${item.num}. ${item.icon} ${item.name}\n`;
+            }
+            result += `- **${abbreviateNumber(
+              Number(this.isGenoR() ? 0 : item.price ?? 0)
+            )}$** ${
               isSellable ? (isAffordable ? (hasInv ? "✅" : "💰") : "❌") : "🚫"
             } ${invAmount ? `🧰 **x${invAmount}**` : ""} ${
-              boxAmount ? `📦 **x${boxAmount}**` : ""
-            } ${item.inflation ? `[ 📈 **+${item.inflation ?? 0}$** ]` : ""}\n`;
+              boxAmount ? `🗃️ **x${boxAmount}**` : ""
+            } ${ndriveAmount ? `💾 **x${ndriveAmount}**` : ""} ${
+              bankAmount ? `🏦 **x${bankAmount}**` : ""
+            } ${
+              item.inflation ? `[ 📈 **+${item.inflation ?? 0}$** ]` : ""
+            }\n`.trim();
             if (!(playersMap instanceof Map)) {
-              throw new Error(
-                `playersMap must be a Map, received ${
-                  typeof playersMap === "object"
-                    ? playersMap.constructor.name
-                    : typeof playersMap
-                }`
-              );
+              throw new Error(`playersMap must be a Map`);
             }
             if (
               playersMap &&
@@ -804,7 +832,10 @@ export async function use(obj) {
                     }${defDiff}** ${b}DEF${b}, `;
                   }
                 } else if (item.type === "armor") {
-                  if (clone.armors[0] && clone.armors[0].def > item.def) {
+                  if (
+                    clone.armors[0] &&
+                    clone.armors[0].def > Number(item.def)
+                  ) {
                     clone.armors[1] = JSON.parse(JSON.stringify(item));
                   } else {
                     clone.armors[0] = JSON.parse(JSON.stringify(item));
@@ -939,7 +970,7 @@ export async function use(obj) {
 
 ${this.optionText()}
 
-**${cash}**$ **${inventory.length}/${inventoryLimit}**`);
+**${abbreviateNumber(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
         const self = this;
         input.setReply(i.messageID, {
           key: obj.commandName,
@@ -1048,7 +1079,9 @@ ${this.optionText()}
           const items = self.stringItemData();
           const dialogue = `You can take whatever you want. (you cannot take multiple.)`;
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${cash}**$ **${inventory.length}/${inventoryLimit}**`
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
+              cash
+            )}**$ **${inventory.length}/${inventoryLimit}**`
           );
           handleEnd(i.messageID, {
             isItemChoose: true,
@@ -1063,10 +1096,13 @@ ${this.optionText()}
             inventory: new Inventory(inventory),
             boxInventory: new Inventory(boxItems, 100),
             playersMap,
+            userData: userInfo,
           });
           const dialogue = self.rand(self.buyTexts);
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${cash}**$ **${inventory.length}/${inventoryLimit}**`
+            `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${abbreviateNumber(
+              cash
+            )}**$ **${inventory.length}/${inventoryLimit}**`
           );
           handleEnd(i.messageID, {
             isItemChoose: true,
@@ -1096,7 +1132,9 @@ ${this.optionText()}
           const boxItems = new Inventory(rB, 100);
           const dialogue = self.rand(self.askSellTexts);
           const i = await output.reply(
-            `✦ ${dialogue}\n\n**A.** Sell **Items** **(${inventory.size()}/${invLimit})**\n**B**. Sell **Box** Items **(${boxItems.size()}/100)**\n\n**Back**\n**${cash}**$`
+            `✦ ${dialogue}\n\n**A.** Sell **Items** **(${inventory.size()}/${invLimit})**\n**B**. Sell **Box** Items **(${boxItems.size()}/100)**\n\n**Back**\n**${abbreviateNumber(
+              cash
+            )}**$`
           );
           handleEnd(i.messageID, {
             sellChoose: true,
@@ -1114,9 +1152,11 @@ ${this.optionText()}
             let items = self.stringSellData([...inventory]);
             const dialogue = self.rand(self.askSellTexts);
             const i = await output.reply(
-              `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${cash}**$ **${
-                inventory.getAll().length
-              }/${isBox ? 100 : inventoryLimit}**`
+              `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${abbreviateNumber(
+                cash
+              )}**$ **${inventory.getAll().length}/${
+                isBox ? 100 : inventoryLimit
+              }**`
             );
             handleEnd(i.messageID, {
               isTrueSell: true,
@@ -1224,9 +1264,11 @@ ${this.optionText()}
           }
           const dialogue = `Done, just take more, nobody stops you.`;
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
               cash - price
-            } (-${price})**$ **${inventory.length}/${inventoryLimit}**`
+            )} (-${abbreviateNumber(price)})**$ **${
+              inventory.length
+            }/${inventoryLimit}**`
           );
           handleEnd(i.messageID, {
             isItemChoose: true,
@@ -1253,6 +1295,7 @@ ${this.optionText()}
             inventory: new Inventory(inventory),
             boxInventory: new Inventory(boxInventory, 100),
             playersMap,
+            userData: userInfo,
           });
           const num = parseInt(input.words[0]);
           let amount = parseInt(String(input.words[1] || 1));
@@ -1317,13 +1360,14 @@ ${this.optionText()}
             inventory: new Inventory(inventory),
             boxInventory: new Inventory(boxInventory, 100),
             playersMap,
+            userData: userInfo,
           });
 
           const dialogue = self.rand(self.thankTexts);
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
               cash - price
-            } (-${price})**$ **${
+            )} (-${abbreviateNumber(price)})**$ **${
               inventory.length
             }/${inventoryLimit}** (+${amount} item(s))`
           );
@@ -1403,11 +1447,11 @@ ${this.optionText()}
           ]);
 
           const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${
+            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${abbreviateNumber(
               cash + price
-            } (+${price})**$ **${inventory.getAll().length}/${
-              isBox ? 100 : inventoryLimit
-            }** (-${amount} item(s))`
+            )} (+${abbreviateNumber(price)})**$ **${
+              inventory.getAll().length
+            }/${isBox ? 100 : inventoryLimit}** (-${amount} item(s))`
           );
           handleEnd(i.messageID, {
             isTrueSell: true,
@@ -1463,7 +1507,7 @@ ${this.optionText()}
 
 ${self.optionText()}
 
-**${cash}**$ **${inventory.length}/${inventoryLimit}**`);
+**${abbreviateNumber(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
           handleEnd(i.messageID);
         }
       } catch (error) {
