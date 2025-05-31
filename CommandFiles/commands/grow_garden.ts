@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.5",
+  version: "1.4.6",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -281,7 +281,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
       mutation.chance + safeEX(mutation.chance / (1 - boost), 0.9)
     );
 
-    if (roll <= chance && Math.random() < 0.4) {
+    if (roll <= chance && Math.random() < 0.3) {
       crop.mutation = mutation.name;
       return crop;
     }
@@ -672,7 +672,7 @@ export async function entry(ctx: CommandContext) {
             plots.getAll().length >= plotLimit
           )
             break;
-          inventory.deleteOne(seed.key);
+          inventory.deleteRef(seed);
           let plot: GardenPlot = {
             key: `plot_${Date.now()}_${i}`,
             seedKey: seed.key,
@@ -839,9 +839,10 @@ export async function entry(ctx: CommandContext) {
             }
           }
           if (plot.harvestsLeft <= 0) {
-            plots.deleteOne(plot.key);
+            plots.deleteRef(plot);
           } else {
             plot.plantedAt = Date.now();
+            plot.growthTime = Math.floor(plot.growthTime * 1.2);
             await applyMutation(
               plot,
               new Inventory<GardenTool>(
@@ -850,7 +851,7 @@ export async function entry(ctx: CommandContext) {
                 ) as GardenTool[]
               )
             );
-            plots.deleteOne(plot.key);
+            plots.deleteRef(plot);
             plots.addOne(plot);
           }
         }
