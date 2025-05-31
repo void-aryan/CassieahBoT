@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.11",
+  version: "1.4.12",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -439,7 +439,8 @@ function getTimeUntilRestock() {
 
 function formatShopItems(
   items = gardenShop,
-  currentEvent: Awaited<ReturnType<typeof getCurrentEvent>>
+  currentEvent: Awaited<ReturnType<typeof getCurrentEvent>>,
+  isEvent = false
 ): typeof gardenShop {
   const timeText = `🕒 **Next Restock**:\n${formatTimeSentence(
     getTimeUntilRestock()
@@ -475,7 +476,7 @@ function formatShopItems(
       .filter((i) => i.inStock !== false),
     buyTexts: [timeText],
     thankTexts: [timeText],
-    ...(currentEvent?.isNoEvent !== true && currentEvent
+    ...(currentEvent?.isNoEvent !== true && isEvent && currentEvent
       ? {
           welcomeTexts: [
             `Welcome to the ${currentEvent?.icon ?? "🌱"} **${
@@ -607,7 +608,8 @@ export async function entry(ctx: CommandContext) {
                     ...gardenShop,
                     itemData: gardenShop.eventItems,
                   },
-                  currEvent
+                  currEvent,
+                  true
                 ),
                 style,
               });
