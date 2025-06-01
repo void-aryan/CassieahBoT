@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.0.0",
+  version: "2.0.1",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -815,6 +815,24 @@ export class UTShop {
     const userStockMap = shopMap.get(userID);
 
     return userStockMap.get(stockID) ?? 0;
+  }
+
+  /**
+   *
+   * @param  {string[]} keys
+   * @returns
+   */
+  resetStocks(...keys) {
+    const shopMap = UTShop.stocksData.get(this.key);
+    if (!(shopMap instanceof Map)) return;
+
+    for (const userStockMap of shopMap.values()) {
+      if (!(userStockMap instanceof Map)) continue;
+
+      for (const stockID of keys) {
+        userStockMap.delete(stockID);
+      }
+    }
   }
 
   mapItemData(itemData) {

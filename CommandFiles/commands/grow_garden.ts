@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.16",
+  version: "1.4.17",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -612,7 +612,7 @@ export async function entry(ctx: CommandContext) {
           style,
         });
         if (isRef) {
-          shop.resetAllStock();
+          shop.resetStocks(...gardenShop.itemData.map((i) => i.key));
         }
         await shop.onPlay({ ...ctx, args: [] });
       },
@@ -636,7 +636,7 @@ export async function entry(ctx: CommandContext) {
                 style,
               });
               if (isRef) {
-                shop.resetAllStock();
+                shop.resetStocks(...gardenShop.eventItems.map((i) => i.key));
               }
               await shop.onPlay({ ...ctx, args: [] });
             },
