@@ -14,12 +14,13 @@ import InputClass, { InputRoles } from "@cass-modules/InputClass";
 import { gardenShop } from "../modules/GardenShop";
 import { CROP_CONFIG } from "../modules/GardenConfig";
 import { EVENT_CONFIG } from "../modules/GardenEventConfig";
+import { FontSystem } from "cassidy-styler";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.14",
+  version: "1.4.15",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -106,7 +107,7 @@ function calculateCropValue(
 
   const earnMultiplier = Math.max(
     1,
-    Math.min(1000000000, ((1 / 100_000) * totalEarns) ** 0.35)
+    Math.min(1000000000, safeEX((1 / 1_000_000) * totalEarns, 0.15))
   );
 
   const final = Math.floor(
@@ -212,6 +213,10 @@ async function getNextEvent(skips: number = 1) {
   return event;
 }
 
+function forgivingRandom(bias?: number) {
+  return Math.random() ** (bias || 1.2);
+}
+
 async function skipEvent(
   skipped: number,
   targetTimeLeft = EVENT_CONFIG.EVENT_CYCLE
@@ -283,13 +288,23 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
       mutation.chance + safeEX(mutation.chance / (1 - boost), 0.9)
     );
 
-    if (roll <= chance && Math.random() < 0.3) {
+    if (roll <= chance && Math.random() < 0.25) {
       crop.mutation = mutation.name;
       return crop;
     }
   }
 
   return crop;
+}
+
+function formatMutationStr(plot: GardenPlot) {
+  return `${plot.icon} **${plot.name}**${
+    plot.mutation
+      ? ` ${UNISpectra.disc} ${FontSystem.fonts.double_struck(
+          plot.mutation.toUpperCase?.()
+        )}`
+      : ""
+  }`;
 }
 
 function updatePetCollection(
@@ -422,10 +437,10 @@ async function refreshShopStock() {
   }
 
   gardenShop.itemData.forEach((item) => {
-    item.inStock = Math.random() < item.stockChance;
+    item.inStock = forgivingRandom() < item.stockChance;
   });
   gardenShop.eventItems.forEach((item) => {
-    item.inStock = Math.random() < item.stockChance;
+    item.inStock = forgivingRandom() < item.stockChance;
   });
 }
 
@@ -520,6 +535,7 @@ export async function entry(ctx: CommandContext) {
     prefix,
     commandName,
     command,
+    fonts,
   } = ctx;
   await money.ensureUserInfo(input.senderID);
 
@@ -543,7 +559,7 @@ export async function entry(ctx: CommandContext) {
     gardenEarns = 0,
     collectibles: rawCLL,
   } = await money.getCache(input.senderID);
-  let isHypen = false;
+  let isHypen = !!input.propertyArray[0];
   const collectibles = new Collectibles(rawCLL);
   correctItems(rawInventory as GardenItem[]);
 
@@ -724,13 +740,17 @@ export async function entry(ctx: CommandContext) {
               (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
             ).flat(),
           ];
-          const price =
+          const priceInt =
             allItems.find((i) => seed.key === i?.key)?.price ??
             seed.cropData.baseValue;
+          const price = Math.min(
+            seed.cropData.baseValue || 0,
+            priceInt / (seed.cropData.harvests || 1)
+          );
           let plot: GardenPlot = {
             key: `plot_${Date.now()}_${i}`,
             seedKey: seed.key,
-            name: seed.name,
+            name: `${seed.name}`.replaceAll("Seeds", "").trim(),
             icon: seed.icon,
             plantedAt: Date.now(),
             growthTime: seed.cropData.growthTime,
@@ -763,10 +783,9 @@ export async function entry(ctx: CommandContext) {
           if (plot.mutation) {
             gardenStats.mutationsFound = (gardenStats.mutationsFound || 0) + 1;
           }
+
           planted.push(
-            `${seed.icon} **${seed.name}**${
-              plot.mutation ? ` (${plot.mutation})` : ""
-            }`
+            formatMutationStr({ ...plot, name: seed.name, icon: seed.icon })
           );
         }
 
@@ -824,6 +843,7 @@ export async function entry(ctx: CommandContext) {
       description: "Harvest ready crops",
       aliases: ["-h"],
       async handler() {
+        let origEarns = gardenEarns;
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         let moneyEarned = 0;
@@ -877,11 +897,14 @@ export async function entry(ctx: CommandContext) {
             gardenEarns
           );
           moneyEarned += value.final || 0;
-          gardenEarns += value.final - plot.price || plot.baseValue || 0;
+          gardenEarns +=
+            value.final - Math.min(plot.price || 0, plot.baseValue) ||
+            plot.baseValue ||
+            0;
           harvested.push({ plot, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
-          if (Math.random() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
+          if (forgivingRandom() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
             const shopItem = [
               ...gardenShop.itemData,
               ...gardenShop.eventItems,
@@ -935,12 +958,13 @@ export async function entry(ctx: CommandContext) {
             ({ plot, value }) =>
               `${plot.icon} ${plot.name}${
                 plot.mutation
-                  ? ` (${plot.mutation} +${abbreviateNumber(
-                      value.noExtra - plot.baseValue
-                    )})`
+                  ? ` ${UNISpectra.disc} (${fonts.double_struck(
+                      plot.mutation.toUpperCase?.()
+                    )} +${abbreviateNumber(value.noExtra - plot.baseValue)})`
                   : ""
               } - ${formatCash(value.final, true)}`
           );
+        const addedEarns = gardenEarns - origEarns;
 
         return output.replyStyled(
           `✅🧺 **Harvested**:\n${harvestedStr.join("\n")}\n\n` +
@@ -949,7 +973,9 @@ export async function entry(ctx: CommandContext) {
               : "") +
             `💰 Earned: ${formatCash(moneyEarned, true)}\n` +
             `💵 Balance: ${formatCash(userMoney + moneyEarned)}\n\n` +
-            `📈 Total Earns: ${formatCash(gardenEarns)}\n\n` +
+            `📈 Total Earns: **${formatCash(
+              gardenEarns
+            )}** (+${abbreviateNumber(addedEarns)})\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Plant more: ${prefix}${commandName}${
               isHypen ? "-" : " "
@@ -1008,9 +1034,9 @@ export async function entry(ctx: CommandContext) {
           );
           const timeLeft = cropTimeLeft(plot);
           result +=
-            `${start + index + 1}. ${plot.icon} **${plot.name}**${
-              plot.mutation ? ` (${plot.mutation})` : ""
-            }${plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""}\n` +
+            `${start + index + 1}. ${formatMutationStr(plot)}${
+              plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""
+            }\n` +
             `${UNIRedux.charm} Harvests Left: ${plot.harvestsLeft}\n` +
             `${UNIRedux.charm} Time Left: ${
               formatTimeSentence(timeLeft) ||
@@ -1812,9 +1838,11 @@ export async function entry(ctx: CommandContext) {
         });
 
         return output.replyStyled(
-          `✅ Stole ${stolenPlot.icon} **${stolenPlot.name}**${
-            stolenPlot.mutation ? ` (${stolenPlot.mutation})` : ""
-          } for ${formatValue(stealCost, "💎", true)}!\n\n` +
+          `✅ Stole ${formatMutationStr(stolenPlot)} for ${formatValue(
+            stealCost,
+            "💎",
+            true
+          )}!\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
               isHypen ? "-" : " "
