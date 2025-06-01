@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.18",
+  version: "1.4.19",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -878,7 +878,7 @@ export async function entry(ctx: CommandContext) {
         const readyPlots: GardenPlot[] = [];
         for (const plot of plots) {
           const item = await autoUpdateCropData(plot, tools);
-          if (isCropReady(item)) {
+          if (isCropReady(item) && readyPlots.length < 20) {
             readyPlots.push(item);
           }
         }
@@ -1104,6 +1104,7 @@ export async function entry(ctx: CommandContext) {
           userId: string;
           name: string;
           totalEarns: number;
+          user: UserData;
         }[] = [];
 
         for (const user of Object.values(allUsers)) {
@@ -1136,6 +1137,7 @@ export async function entry(ctx: CommandContext) {
             userId: user.senderID,
             name: user.name || "Farmer",
             totalEarns: (user.gardenEarns || 0) + potentialEarnings,
+            user,
           });
         }
 
@@ -1164,8 +1166,13 @@ export async function entry(ctx: CommandContext) {
         currentPageUsers.forEach((user, index) => {
           result +=
             `━━━━━━ ${startRank + index} ━━━━━━\n` +
-            `${UNIRedux.arrowFromT}  **${user.name}**\n` +
-            `📊🌱 ${formatCash(user.totalEarns, true)}\n`;
+            `${UNIRedux.arrowFromT}  **${user.name}**${
+              user?.user.userMeta?.name &&
+              user.name !== user?.user.userMeta?.name
+                ? ` (${user.user.userMeta.name})`
+                : ""
+            }\n` +
+            `📊🌱 ${formatCash(user.totalEarns, false)}\n`;
         });
 
         if (sortedUsers.length > endRank) {

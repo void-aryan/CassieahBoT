@@ -73,6 +73,8 @@ export async function entry({ output, input, money, Slicer, args }) {
     result +
       `\n\n${input.words[0]} <page> - View a specific page.\n${
         input.words[0]
-      } ${slicer.pagesLength + 1} - View the last page.`
+      } ${Slicer.parseNum(args[0]) + 1} - View next page.\n${input.words[0]} ${
+        slicer.pagesLength + 1
+      } - View the last page.`
   );
 }
