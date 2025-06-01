@@ -164,7 +164,12 @@ The door's been locked for ages. 👒🐇 So unless you're a ghost or can burrow
   ],
 };
 
-export async function entry({ UTShop }) {
+/**
+ *
+ * @param {CommandContext} param0
+ * @returns
+ */
+export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(qcShop);
-  return shop.onPlay();
+  return shop.onPlay(ctx);
 }

@@ -17,9 +17,15 @@ export const meta = {
   icon: "🐙",
   cmdType: "cplx_g",
 };
-export async function entry({ UTShop }) {
+
+/**
+ *
+ * @param {CommandContext} param0
+ * @returns
+ */
+export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(octoShop);
-  return shop.onPlay();
+  return shop.onPlay(ctx);
 }
 
 const octoShop = {

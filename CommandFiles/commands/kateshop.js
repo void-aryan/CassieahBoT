@@ -233,7 +233,12 @@ const kateShop = {
   ],
 };
 
-export async function entry({ UTShop }) {
+/**
+ *
+ * @param {CommandContext} param0
+ * @returns
+ */
+export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(kateShop);
-  return shop.onPlay();
+  return shop.onPlay(ctx);
 }

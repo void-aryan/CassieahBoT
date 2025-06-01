@@ -1294,7 +1294,7 @@ export async function entry(ctx) {
             ...petShop,
             itemData: [bundle, ...petFoods],
           });
-          await shop.onPlay();
+          await shop.onPlay(ctx);
         },
       },
       {
@@ -1344,7 +1344,7 @@ export async function entry(ctx) {
             ...petShop,
             itemData: [bundle, bundle2, ...petFoodsII],
           });
-          await shop.onPlay();
+          await shop.onPlay(ctx);
         },
       },
       {

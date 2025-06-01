@@ -37,6 +37,7 @@ export const EVENT_CONFIG = {
           flavorText: "A delicate flower duo that blooms in harmony.",
           price: 2500,
           rarity: "Common",
+          stockLimit: 20,
           stockChance: 1,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -61,6 +62,7 @@ export const EVENT_CONFIG = {
           key: "gsMuliberry",
           flavorText: "A bittersweet berry that lingers on the vine.",
           price: 5000,
+          stockLimit: 20,
           rarity: "Uncommon",
           stockChance: 1,
           inStock: true,
@@ -87,6 +89,8 @@ export const EVENT_CONFIG = {
           flavorText: "A resilient herb that always finds its way back.",
           price: 10_000,
           rarity: "Uncommon",
+          stockLimit: 20,
+
           stockChance: 1,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -109,6 +113,8 @@ export const EVENT_CONFIG = {
           icon: "🌺",
           name: "Pagsamunngo",
           key: "gsPagsamunngo",
+          stockLimit: 20,
+
           flavorText: "A vibrant flower symbolizing reunion.",
           price: 50_000,
           rarity: "Rare",
@@ -136,6 +142,8 @@ export const EVENT_CONFIG = {
           key: "gsBinhi",
           flavorText: "A humble seed with untapped potential.",
           price: 100_000,
+          stockLimit: 12,
+
           rarity: "Rare",
           stockChance: 0.35,
           inStock: true,
@@ -159,6 +167,8 @@ export const EVENT_CONFIG = {
           icon: "🍃",
           name: "Kathang Leafip",
           key: "gsLeafip",
+          stockLimit: 12,
+
           flavorText: "A mythical leaf woven from stories.",
           price: 250_000,
           rarity: "Legendary",
@@ -186,6 +196,8 @@ export const EVENT_CONFIG = {
           key: "gsAllium",
           flavorText: "An onion that brings tears of nostalgia.",
           price: 500_000,
+          stockLimit: 5,
+
           rarity: "Legendary",
           stockChance: 0.25,
           inStock: true,
@@ -211,6 +223,8 @@ export const EVENT_CONFIG = {
           key: "gsLavendeja",
           flavorText: "A lavender with a hauntingly familiar scent.",
           price: 1_000_000,
+          stockLimit: 9,
+
           rarity: "Legendary",
           stockChance: 0.09,
           inStock: true,
@@ -234,6 +248,8 @@ export const EVENT_CONFIG = {
           icon: "☘️",
           name: "When I was your clover",
           key: "gsClover",
+          stockLimit: 20,
+
           flavorText: "A four-leaf clover of past promises.",
           price: 2_500_000,
           rarity: "Mythical",
@@ -259,6 +275,8 @@ export const EVENT_CONFIG = {
           icon: "🌿✨",
           name: "Enchanmint",
           key: "gsEnchanmint",
+          stockLimit: 5,
+
           flavorText: "A magical mint that captivates the senses.",
           price: 5_000_000,
           rarity: "Mythical",
@@ -284,6 +302,8 @@ export const EVENT_CONFIG = {
           icon: "🌱",
           name: "Kathang Sitaw",
           key: "gsSitaw",
+          stockLimit: 12,
+
           flavorText: "A string bean spun from tales of fate.",
           price: 10_000_000,
           rarity: "Divine",
@@ -312,6 +332,8 @@ export const EVENT_CONFIG = {
           flavorText: "The rarest bloom of destined but unplanted love.",
           price: 50_000_000,
           rarity: "Divine",
+          stockLimit: 5,
+
           stockChance: 0.08,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -371,6 +393,8 @@ export const EVENT_CONFIG = {
           key: "gsChocoCarrot",
           flavorText: "A sweet carrot from the Easter Event!",
           price: 10_000,
+          stockLimit: 20,
+
           rarity: "Common",
           stockChance: 1.0,
           inStock: true,
@@ -397,6 +421,8 @@ export const EVENT_CONFIG = {
           flavorText: "A sugary treat from the Easter Event.",
           price: 45_000,
           rarity: "Uncommon",
+          stockLimit: 18,
+
           stockChance: 0.5,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -421,6 +447,7 @@ export const EVENT_CONFIG = {
           key: "gsCandySunflower",
           flavorText: "A radiant flower from the Easter Event.",
           price: 75_000,
+          stockLimit: 14,
           rarity: "Rare",
           stockChance: 0.5,
           inStock: true,
@@ -448,6 +475,8 @@ export const EVENT_CONFIG = {
           price: 500_000,
           rarity: "Legendary",
           stockChance: 0.3,
+          stockLimit: 7,
+
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -472,6 +501,8 @@ export const EVENT_CONFIG = {
           flavorText: "A divine bloom from the Easter Event.",
           price: 10_000_000,
           rarity: "Divine",
+          stockLimit: 5,
+
           stockChance: 0.04,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -496,6 +527,8 @@ export const EVENT_CONFIG = {
           key: "gtChocoSprinkler",
           flavorText: "Boosts Chocolate mutations for Easter crops.",
           price: 1_000_000,
+          stockLimit: 1,
+
           rarity: "Rare",
           stockChance: 0.4,
           inStock: true,
@@ -562,6 +595,8 @@ export const EVENT_CONFIG = {
           rarity: "Legendary",
           stockChance: 0.3,
           inStock: true,
+          stockLimit: 20,
+
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
               key: "gsCranberry",
@@ -585,6 +620,8 @@ export const EVENT_CONFIG = {
           flavorText: "A pungent fruit from the Angry Plant Event.",
           price: 4000,
           rarity: "Legendary",
+          stockLimit: 20,
+
           stockChance: 0.25,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -609,6 +646,8 @@ export const EVENT_CONFIG = {
           key: "gsEggplant",
           flavorText: "A versatile veggie from the Angry Plant Event.",
           price: 5000,
+          stockLimit: 7,
+
           rarity: "Mythical",
           stockChance: 0.2,
           inStock: true,
@@ -634,6 +673,8 @@ export const EVENT_CONFIG = {
           key: "gsLotus",
           flavorText: "A serene flower from the Angry Plant Event.",
           price: 60_000,
+          stockLimit: 12,
+
           rarity: "Divine",
           stockChance: 0.15,
           inStock: true,
@@ -659,6 +700,8 @@ export const EVENT_CONFIG = {
           key: "gsVenusFlyTrap",
           flavorText: "A carnivorous plant from the Angry Plant Event.",
           price: 6500,
+          stockLimit: 12,
+
           rarity: "Divine",
           stockChance: 0.1,
           inStock: true,
@@ -748,6 +791,8 @@ export const EVENT_CONFIG = {
           price: 80_000,
           rarity: "Legendary",
           stockChance: 0.2,
+          stockLimit: 15,
+
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -771,6 +816,8 @@ export const EVENT_CONFIG = {
           key: "gsMint",
           flavorText: "Refreshing herb with culinary uses.",
           price: 2200,
+          stockLimit: 20,
+
           rarity: "Rare",
           stockChance: 0.5,
           inStock: true,
@@ -797,6 +844,8 @@ export const EVENT_CONFIG = {
           flavorText: "Bioluminescent mushroom with unique glow.",
           price: 3000,
           rarity: "Rare",
+          stockLimit: 20,
+
           stockChance: 0.4,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -818,6 +867,8 @@ export const EVENT_CONFIG = {
         {
           icon: "🌟",
           name: "Starfruit Seed",
+          stockLimit: 12,
+
           key: "gsStarfruit",
           flavorText: "A radiant fruit from the Lunar Glow Event.",
           price: 140_000,
@@ -846,6 +897,8 @@ export const EVENT_CONFIG = {
           key: "gsMoonglow",
           flavorText: "A glowing flower from the Lunar Glow Event.",
           price: 180_000,
+          stockLimit: 10,
+
           rarity: "Legendary",
           stockChance: 0.25,
           inStock: true,
@@ -869,6 +922,8 @@ export const EVENT_CONFIG = {
           icon: "🌸",
           name: "Moon Blossom Seed",
           key: "gsMoonBlossom",
+          stockLimit: 5,
+
           flavorText: "A divine bloom from the Lunar Glow Event.",
           price: 600_000,
           rarity: "Divine",
@@ -896,6 +951,8 @@ export const EVENT_CONFIG = {
           key: "gsCelestiberry",
           flavorText: "A celestial berry from the Lunar Glow Event.",
           price: 15_000_000,
+          stockLimit: 5,
+
           rarity: "Mythical",
           stockChance: 0.2,
           inStock: true,
@@ -919,6 +976,8 @@ export const EVENT_CONFIG = {
           icon: "🥭",
           name: "Moon Mango Seed",
           key: "gsMoonMango",
+          stockLimit: 5,
+
           flavorText: "A tropical fruit from the Lunar Glow Event.",
           price: 1_000_000_000,
           rarity: "Mythical",
@@ -944,6 +1003,8 @@ export const EVENT_CONFIG = {
           icon: "🌑",
           name: "Nightshade Seed",
           key: "gsNightshade",
+          stockLimit: 20,
+
           flavorText: "A mysterious crop from the Lunar Glow Event.",
           price: 4500,
           rarity: "Legendary",
@@ -968,6 +1029,7 @@ export const EVENT_CONFIG = {
         {
           icon: "🦔",
           name: "Hedgehog",
+          stockLimit: 1,
           key: "gpHedgehog",
           flavorText: "A spiky pet from the Lunar Glow Event.",
           price: 2000000,
@@ -996,6 +1058,8 @@ export const EVENT_CONFIG = {
           key: "gpMole",
           flavorText: "A digging pet from the Lunar Glow Event.",
           price: 2500000,
+          stockLimit: 1,
+
           rarity: "Uncommon",
           stockChance: 0.5,
           inStock: true,
@@ -1022,6 +1086,8 @@ export const EVENT_CONFIG = {
           flavorText: "A hopping pet from the Lunar Glow Event.",
           price: 2000000,
           rarity: "Uncommon",
+          stockLimit: 1,
+
           stockChance: 0.6,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -1048,6 +1114,8 @@ export const EVENT_CONFIG = {
           price: 3000000,
           rarity: "Rare",
           stockChance: 0.4,
+          stockLimit: 1,
+
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -1071,6 +1139,8 @@ export const EVENT_CONFIG = {
           key: "gpNightOwl",
           flavorText: "A nocturnal pet from the Lunar Glow Event.",
           price: 3500000,
+          stockLimit: 1,
+
           rarity: "Rare",
           stockChance: 0.3,
           inStock: true,
@@ -1096,6 +1166,8 @@ export const EVENT_CONFIG = {
           key: "gpRaccoon",
           flavorText: "A sneaky pet from the Lunar Glow Event.",
           price: 3000000,
+          stockLimit: 1,
+
           rarity: "Rare",
           stockChance: 0.4,
           inStock: true,
@@ -1118,6 +1190,8 @@ export const EVENT_CONFIG = {
         {
           icon: "🥝",
           name: "Kiwi",
+          stockLimit: 1,
+
           key: "gpKiwi",
           flavorText: "A fuzzy pet from the Lunar Glow Event.",
           price: 4000000,
@@ -1146,6 +1220,8 @@ export const EVENT_CONFIG = {
           key: "gpOwl",
           flavorText: "A wise pet from the Lunar Glow Event.",
           price: 5000000,
+          stockLimit: 1,
+
           rarity: "Legendary",
           stockChance: 0.15,
           inStock: true,
@@ -1168,6 +1244,8 @@ export const EVENT_CONFIG = {
         {
           icon: "🥝🌑",
           name: "Blood Kiwi",
+          stockLimit: 1,
+
           key: "gpBloodKiwi",
           flavorText: "A rare pet from the Lunar Glow Event.",
           price: 6000000,
@@ -1196,6 +1274,8 @@ export const EVENT_CONFIG = {
           key: "gpBloodHedgehog",
           flavorText: "A fierce pet from the Lunar Glow Event.",
           price: 6000000,
+          stockLimit: 1,
+
           rarity: "Mythical",
           stockChance: 0.1,
           inStock: true,
@@ -1218,6 +1298,8 @@ export const EVENT_CONFIG = {
         {
           icon: "🦉🌑",
           name: "Blood Owl",
+          stockLimit: 1,
+
           key: "gpBloodOwl",
           flavorText: "A mystical pet from the Lunar Glow Event.",
           price: 6500000,
@@ -1243,6 +1325,8 @@ export const EVENT_CONFIG = {
         {
           icon: "🐔💀",
           name: "Chicken Zombie",
+          stockLimit: 1,
+
           key: "gpChickenZombie",
           flavorText: "A spooky pet from the Lunar Glow Event.",
           price: 7000000,
@@ -1269,6 +1353,8 @@ export const EVENT_CONFIG = {
           icon: "🌟",
           name: "Night Staff",
           key: "gtNightStaff",
+          stockLimit: 1,
+
           flavorText: "Boosts Moonlit mutations for Lunar crops.",
           price: 1500,
           rarity: "Rare",
@@ -1293,6 +1379,8 @@ export const EVENT_CONFIG = {
           icon: "🥚🌙",
           name: "Night Egg",
           key: "gtNightEgg",
+          stockLimit: 1,
+
           flavorText: "A mysterious egg from the Lunar Glow Event.",
           price: 1000,
           rarity: "Uncommon",
@@ -1378,6 +1466,8 @@ export const EVENT_CONFIG = {
           flavorText: "A rare fruit from the Blood Moon Event.",
           price: 200_000,
           rarity: "Mythical",
+          stockLimit: 18,
+
           stockChance: 0.1,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -1403,6 +1493,8 @@ export const EVENT_CONFIG = {
           flavorText: "A juicy melon from the Lunar Blood Moon Event.",
           price: 500_000,
           rarity: "Mythical",
+          stockLimit: 9,
+
           stockChance: 0.05,
           inStock: true,
           onPurchase({ moneySet }) {
@@ -1427,6 +1519,8 @@ export const EVENT_CONFIG = {
           key: "gtStarCaller",
           flavorText: "Enhances Celestial mutations for Blood Moon crops.",
           price: 2000,
+          stockLimit: 1,
+
           rarity: "Rare",
           stockChance: 0.3,
           inStock: true,
@@ -1449,6 +1543,8 @@ export const EVENT_CONFIG = {
           icon: "🌹",
           name: "Blood Rose Seed",
           key: "gsBloodRose",
+          stockLimit: 12,
+
           flavorText: "A rare seed available during Blood Moon!",
           price: 250_000,
           rarity: "Divine",

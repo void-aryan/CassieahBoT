@@ -635,7 +635,7 @@ export async function entry(ctx) {
         aliases: ["-sh"],
         async handler() {
           const shop = new UTShop({ ...carShop, itemData: carShopItems });
-          await shop.onPlay();
+          await shop.onPlay(ctx);
         },
       },
       {

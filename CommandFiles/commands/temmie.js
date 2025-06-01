@@ -18,7 +18,12 @@ export const meta = {
   cmdType: "cplx_g",
 };
 
-export async function entry({ UTShop, money, input }) {
+/**
+ *
+ * @param {CommandContext} param0
+ * @returns
+ */
+export async function entry({ UTShop, money, input, ctx }) {
   const temmieShop = {
     sellDisallowed: [
       "highRollPass",
@@ -260,5 +265,5 @@ export async function entry({ UTShop, money, input }) {
     temmieShop.itemData.push(temCollege);
   }
   const shop = new UTShop(temmieShop);
-  return shop.onPlay();
+  return shop.onPlay(ctx);
 }

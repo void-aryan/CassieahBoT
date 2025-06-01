@@ -181,7 +181,12 @@ const bakery = {
   ],
 };
 
-export async function entry({ UTShop }) {
+/**
+ *
+ * @param {CommandContext} param0
+ * @returns
+ */
+export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(bakery);
-  return shop.onPlay();
+  return shop.onPlay(ctx);
 }

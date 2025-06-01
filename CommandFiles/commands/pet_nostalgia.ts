@@ -1207,7 +1207,7 @@ export async function entry(ctx: CommandContext) {
             ...petShop,
             itemData: [bundle, ...petFoods],
           });
-          await shop.onPlay();
+          await shop.onPlay(ctx);
         },
       },
       {
@@ -1858,7 +1858,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
             ...petShop,
             itemData: [bundle, bundle2, ...petFoodsII],
           });
-          await shop.onPlay();
+          await shop.onPlay(ctx);
         },
       },
       {

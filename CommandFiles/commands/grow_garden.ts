@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.15",
+  version: "1.4.16",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -413,8 +413,9 @@ async function checkAchievements(
 
 async function refreshShopStock() {
   const currentTime = Date.now();
-  if (currentTime - gardenShop.lastRestock < gardenShop.stockRefreshInterval)
-    return;
+  if (currentTime - gardenShop.lastRestock < gardenShop.stockRefreshInterval) {
+    return false;
+  }
   gardenShop.lastRestock = currentTime;
 
   const event = await getCurrentEvent();
@@ -442,6 +443,8 @@ async function refreshShopStock() {
   gardenShop.eventItems.forEach((item) => {
     item.inStock = forgivingRandom() < item.stockChance;
   });
+
+  return true;
 }
 
 function getTimeUntilRestock() {
@@ -596,7 +599,7 @@ export async function entry(ctx: CommandContext) {
 
   output.setStyle(style);
 
-  await refreshShopStock();
+  const isRef = await refreshShopStock();
 
   const home = new SpectralCMDHome({ isHypen }, [
     {
@@ -608,6 +611,9 @@ export async function entry(ctx: CommandContext) {
           ...formatShopItems(gardenShop, currEvent),
           style,
         });
+        if (isRef) {
+          shop.resetAllStock();
+        }
         await shop.onPlay({ ...ctx, args: [] });
       },
     },
@@ -629,6 +635,9 @@ export async function entry(ctx: CommandContext) {
                 ),
                 style,
               });
+              if (isRef) {
+                shop.resetAllStock();
+              }
               await shop.onPlay({ ...ctx, args: [] });
             },
           },

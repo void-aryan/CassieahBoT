@@ -317,7 +317,12 @@ const closeTexts = [
   "😺 My shop's door is currently paw-sitively closed. Fear not, though! I'll be back in action from 12 PM to 5 PM, ready to whisker you away into a world of purr-fection. See you then!",
 ];
 
-export async function entry({ UTShop, isTimeAvailable, output }) {
+/**
+ *
+ * @param {CommandContext} param0
+ * @returns
+ */
+export async function entry({ UTShop, isTimeAvailable, output, ctx }) {
   const a = 12 * 60 * 60 * 1000;
   const b = (5 + 12) * 60 * 60 * 1000;
   let isAvailable = isTimeAvailable(a, b);
@@ -329,5 +334,5 @@ export async function entry({ UTShop, isTimeAvailable, output }) {
 **Go back next time**`);
   }
   const shop = new UTShop(meowShop);
-  return shop.onPlay();
+  return shop.onPlay(ctx);
 }

@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "1.3.1",
+  version: "2.0.0",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -624,915 +624,7 @@ export async function use(obj) {
     const items = treasures.filter((i) => i?.group?.includes("generic"));
     return randomWithProb(items);
   };
-  class UTShop {
-    constructor({
-      itemData = [],
-      sellTexts = [],
-      talkTexts = [],
-      buyTexts = [],
-      welcomeTexts = [],
-      goBackTexts = [],
-      askTalkTexts = [],
-      thankTexts = [],
-      notScaredGeno,
-      genoNote,
-      allowSell = false,
-      askSellTexts = [],
-      sellDisallowed = [],
-      onSell = async () => {},
-      tradeRefuses = [],
-      allowTrade = false,
-      tradeData = [],
-      style = null,
-    }) {
-      this.allowTrade = allowTrade;
-      this.tradeData = tradeData;
-      this.onSell = onSell;
-      this.style = style;
-      this.sellDisallowed = sellDisallowed;
-      this.tradeRefuses = tradeRefuses;
-      this.allowSell = !!allowSell;
-      this.itemData = this.mapItemData(itemData);
-      this.notScaredGeno = notScaredGeno;
-      this.genoNote =
-        genoNote ?? "Take whatever you want, but please don't hurt my family.";
-      this.sellTexts = sellTexts || [
-        "I would be in bankrupt if I started buying these",
-        "Don't expect me to give you money.",
-        "I'm not a bank, I'm a shop!",
-        "Go find other shopkeeper that will buy your stuff.",
-      ];
-      this.askSellTexts = askSellTexts;
-      this.talkTexts = this.mapTalkTexts(talkTexts);
-      this.buyTexts = buyTexts || ["Which do you want?"];
-      this.welcomeTexts = welcomeTexts || ["Welcome to the shop!"];
-      this.goBackTexts = goBackTexts || ["Oh it's okay, what do you want?"];
-      this.askTalkTexts = askTalkTexts || ["What do you want to talk about?"];
-      this.thankTexts = thankTexts || ["Thanks for buying!"];
-      this.playerRoute = "Neutral";
-    }
-    mapItemData(itemData) {
-      const result = itemData.map((item, index) => {
-        const {
-          price = 0,
-          flavorText = "What does this do?",
-          name = "Unknown Item",
-          icon = "❓",
-          onPurchase = () => {},
-          atk = null,
-          def = null,
-          heal = null,
-          key,
-        } = item;
-        return {
-          ...item,
-          price,
-          flavorText,
-          name,
-          icon,
-          atk,
-          def,
-          heal,
-          onPurchase,
-          num: index + 1,
-          key,
-        };
-      });
-      return result;
-    }
-    mapTalkTexts(talkTexts) {
-      const result = talkTexts.map((text, index) => {
-        const { name = "Unknown Topic", responses = [], icon = "🤍" } = text;
-        return {
-          name,
-          icon,
-          responses,
-          num: index + 1,
-        };
-      });
-      return result;
-    }
-    stringTalkTexts() {
-      const result = this.talkTexts
-        .map((text) => {
-          return `${text.num} ${text.icon} **${text.name}**`;
-        })
-        .join("\n");
-      return result;
-    }
-    stringSellData(inventory) {
-      const result = inventory
-        .map(
-          (item) =>
-            `${item.index + 1}. **${item.icon} ${item.name}** - **${
-              item.shopDisallowed ? `🚫` : `${pCy(item.sellPrice || 0)}$`
-            }**\n✦ ${item.flavorText}`
-        )
-        .join("\n\n");
-      return result;
-    }
-    /**
-     *
-     * @param {{ inventory: Inventory; boxInventory: Inventory; userMoney: number; playersMap: Map<string, PetPlayer>; userData: UserData }} param0
-     * @returns
-     */
-    stringItemData(
-      { inventory, boxInventory, userMoney = 0, playersMap, userData } = {
-        inventory: undefined,
-        boxInventory: undefined,
-        playersMap: undefined,
-        userMoney: 0,
-        userData: null,
-      }
-    ) {
-      let isLegacy = true;
-      if (inventory instanceof Inventory && boxInventory instanceof Inventory) {
-        isLegacy = false;
-      }
-      /**
-       * @type {import("@cass-modules/cassidyUser").InventoryItem[]}
-       */
-      const data = this.itemData;
-      let result;
-      if (!isLegacy) {
-        if (data.length === 0) {
-          result = `🧹 No items available!`;
-        }
-        result = data
-          .map((item) => {
-            const invAmount = inventory.getAmount(item.key);
-            const boxAmount = boxInventory.getAmount(item.key);
-            const ndrive = new Inventory(
-              userData.ndrive?.items ?? [],
-              Infinity
-            );
-            const bank = new Inventory(
-              userData.bankData?.items ?? [],
-              Infinity
-            );
-            const ndriveAmount = ndrive.getAmount(item.key);
-            const bankAmount = bank.getAmount(item.key);
-            let isAffordable = userMoney >= Number(item.price ?? 0);
-            let isSellable = true;
-            if (item.cannotBuy === true) {
-              isSellable = false;
-            }
-            let hasInv = invAmount && boxAmount;
-            let result = ``;
-            if (isSellable) {
-              result += `${item.num}. **${item.icon} ${item.name}**\n`;
-            } else {
-              result += `${item.num}. ${item.icon} ${item.name}\n`;
-            }
-            result +=
-              `- ${
-                isSellable
-                  ? `**${formatCash(
-                      Number(this.isGenoR() ? 0 : item.price ?? 0)
-                    )}** ${
-                      isSellable
-                        ? isAffordable
-                          ? hasInv
-                            ? "✅"
-                            : "💰"
-                          : "❌"
-                        : "🚫"
-                    }`
-                  : "🚫 No Stock"
-              } ${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
-                boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
-              }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
-                bankAmount ? ` 🏦 **x${bankAmount}**` : ""
-              }${
-                item.inflation ? ` [ 📈 **+${item.inflation ?? 0}$** ]` : ""
-              }`.trim() +
-              (item.flavorText || (!isSellable && item.cannotBuyFlavor)
-                ? "\n"
-                : "");
-            if (!(playersMap instanceof Map)) {
-              throw new Error(`playersMap must be a Map`);
-            }
-            if (
-              playersMap &&
-              playersMap instanceof Map &&
-              (item.type === "weapon" || item.type === "armor")
-            ) {
-              let hasLine = false;
-              for (const [, petPlayer] of playersMap) {
-                const clone = petPlayer.clone();
-                let isHead = false;
-                const applyHead = () => {
-                  if (!isHead) {
-                    result += `☆ ${petPlayer.petIcon} `;
-                    isHead = true;
-                    hasLine = true;
-                  }
-                };
-                if (item.type === "weapon") {
-                  clone.weapon[0] = JSON.parse(JSON.stringify(item));
-                  const diff = clone.ATK - petPlayer.ATK;
-                  const defDiff = clone.DF - petPlayer.DF;
-                  if (diff !== 0) {
-                    let i = diff > 0;
-                    let b = i ? "**" : "";
-                    applyHead();
-                    result += `**${diff > 0 ? "+" : ""}${diff}** ${b}ATK${b}, `;
-                  }
-                  if (defDiff !== 0) {
-                    let i = defDiff > 0;
-                    let b = i ? "**" : "";
-                    applyHead();
-                    result += `**${
-                      defDiff > 0 ? "+" : ""
-                    }${defDiff}** ${b}DEF${b}, `;
-                  }
-                } else if (item.type === "armor") {
-                  if (
-                    clone.armors[0] &&
-                    clone.armors[0].def > Number(item.def)
-                  ) {
-                    clone.armors[1] = JSON.parse(JSON.stringify(item));
-                  } else {
-                    clone.armors[0] = JSON.parse(JSON.stringify(item));
-                  }
 
-                  const diff = clone.DF - petPlayer.DF;
-                  const atkDiff = clone.ATK - petPlayer.ATK;
-                  if (diff !== 0) {
-                    applyHead();
-                    let i = diff > 0;
-                    let b = i ? "**" : "";
-                    result += `**${diff > 0 ? "+" : ""}${diff}** ${b}DEF${b}, `;
-                  }
-                  if (atkDiff !== 0) {
-                    let i = atkDiff > 0;
-                    let b = i ? "**" : "";
-                    applyHead();
-                    result += `**${
-                      atkDiff > 0 ? "+" : ""
-                    }${atkDiff}** ${b}ATK${b}, `;
-                  }
-                }
-                if (isHead) {
-                  result += `\n`;
-                }
-              }
-              if (hasLine) {
-                result += `\n`;
-              }
-            }
-
-            if (item.flavorText || (!isSellable && item.cannotBuyFlavor)) {
-              result += `✦ ${
-                isSellable
-                  ? item.flavorText
-                  : item.cannotBuyFlavor ?? item.flavorText
-              }`;
-            }
-            return result;
-          })
-          .join("\n\n");
-      } else {
-        result = data
-          .map(
-            (item) =>
-              `${item.num}. **${item.icon} ${item.name}** - **${
-                this.isGenoR() ? 0 : item.price
-              }$**\n✦ ${item.flavorText}`
-          )
-          .join("\n\n");
-      }
-      return result;
-    }
-    rand(arr) {
-      if (arr.length === 1) {
-        return arr[0];
-      }
-      if (arr.length === 2) {
-        return Math.random() < 0.5 ? arr[0] : arr[1];
-      }
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-    isGenoR() {
-      return false;
-      return (
-        this.playerRoute.toLowerCase() === "genocide" && !this.notScaredGeno
-      );
-    }
-    optionText() {
-      if (this.isGenoR()) {
-        return `🗃️ **Steal**\n💰 **Take**\n📄 **Read**\n🏠 **Leave**`;
-      }
-      //return `💵 **Buy**\n💰 **Sell**\n⚒️ **Trade**\n💬 **Talk**\n🏠 **Leave**`;
-      return `      💵        💰         ⚒ 
-     **Buy**     **Sell**     **Trade**
-
-            💬         🏠 
-          **Talk**     **Leave**\n\n***Reply with an option***`;
-    }
-    async onPlay(context = obj) {
-      try {
-        const { invLimit } = global.Cassidy;
-
-        const { UTYPlayer } = global.utils;
-        const inventoryLimit = invLimit;
-        const { input, output, money, args, Inventory, getInflationRate } =
-          context;
-        if (context.command.style) {
-          output.setStyle(context.command.style);
-        }
-        if (this.style) {
-          output.setStyle(this.style);
-        }
-        if (args[0]) {
-          return output.reply(`(You can reply to the shop texts instead)`);
-        }
-        const inflationRate = await getInflationRate();
-        this.itemData = this.itemData.map((item) => {
-          const originalPrice = item.price ?? 0;
-          const inflation = Math.round(inflationRate * originalPrice);
-          const newPrice = originalPrice + inflation;
-          return {
-            ...item,
-            price: newPrice,
-            originalPrice,
-            inflation,
-          };
-        });
-
-        const {
-          money: cash,
-          money: gold,
-          kills = 0,
-          spares = 0,
-          progress = {},
-          name = "Chara",
-          exp = 0,
-          inventory = [],
-        } = await money.get(input.senderID);
-        // @ts-ignore
-        const player = new UTYPlayer({
-          gold,
-          kills,
-          spares,
-          progress,
-          name,
-          exp,
-          inv: new Inventory(inventory),
-        });
-        this.playerRoute = player.getRoute();
-        const i = await output.reply(`✦ ${
-          this.isGenoR() ? `But nobody came.` : this.rand(this.welcomeTexts)
-        }
-
-${this.optionText()}
-
-**${formatCash(cash)}** **${inventory.length}/${inventoryLimit}**`);
-        const self = this;
-        input.setReply(i.messageID, {
-          key: obj.commandName,
-          author: input.senderID,
-          callback: self.onReply.bind(self),
-          detectID: i.messageID,
-          player,
-          command: context.command,
-        });
-      } catch (error) {
-        console.error(error);
-        obj.output?.error?.(error);
-      }
-    }
-    /**
-     * @param {CommandContext & { repObj?: Record<string, any> }} context
-     */
-    async onReply(context = obj) {
-      try {
-        const { invLimit } = global.Cassidy;
-
-        const { input, output, money, repObj } = context;
-        if (repObj.command?.style) {
-          output.setStyle(repObj.command.style);
-        }
-        if (this.style) {
-          output.setStyle(this.style);
-        }
-        const { author, player } = repObj;
-        const inventoryLimit = invLimit;
-        const self = this;
-        if (input.senderID !== author) {
-          return;
-        }
-        let [option] = input.splitBody(" ");
-        option = option.toLowerCase();
-        if (self.isGenoR()) {
-          if (repObj.isItemChoose) {
-            return handleStealItem();
-          }
-          switch (option) {
-            case "steal":
-              return handleSteal();
-            case "take":
-              return handleTake();
-            case "read":
-              return handleNote();
-            case "leave":
-              return handleLeave();
-            case "back":
-              return handleGoBack();
-            default:
-              break;
-          }
-        } else {
-          if (repObj.isItemChoose) {
-            return handleBuyItem();
-          }
-          if (repObj.isTalkChoose) {
-            return handleTalkChoices();
-          }
-          if (repObj.isSellNext && option === "next") {
-            return handleSell(repObj.isBox);
-          }
-          if (repObj.isTalkNext && (option === "next" || option === "back")) {
-            return handleTalkChoices();
-          }
-          if (repObj.isTrueSell) {
-            return handleSellItem(repObj.isBox);
-          }
-          if (repObj.sellChoose && option !== "back") {
-            return handleSell(option.startsWith("b") ? true : false);
-          }
-          switch (option) {
-            case "buy":
-              return handleBuy();
-            case "sell":
-              return sellChooser();
-            case "trade":
-              return handleTrade();
-            case "talk":
-              return handleTalk();
-            case "leave":
-              return handleLeave();
-            case "back":
-              return handleGoBack();
-            default:
-              break;
-          }
-        }
-        async function handleEnd(id, { ...additional } = {}) {
-          input.delReply(repObj.detectID);
-          input.setReply(id, {
-            key: obj.commandName,
-            author,
-            callback: self.onReply.bind(self),
-            detectID: id,
-            player,
-            ...additional,
-          });
-        }
-        async function handleSteal() {
-          const { money: cash, inventory = [] } = await money.get(
-            input.senderID
-          );
-          const items = self.stringItemData();
-          const dialogue = `You can take whatever you want. (you cannot take multiple.)`;
-          const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
-              cash
-            )}** **${inventory.length}/${inventoryLimit}**`
-          );
-          handleEnd(i.messageID, {
-            isItemChoose: true,
-          });
-        }
-        async function handleBuy() {
-          const userInfo = await money.get(input.senderID);
-          const { money: cash, inventory = [], boxItems = [] } = userInfo;
-          const { playersMap } = context.petPlayerMaps(userInfo);
-          const items = self.stringItemData({
-            userMoney: cash,
-            inventory: new Inventory(inventory),
-            boxInventory: new Inventory(boxItems, 100),
-            playersMap,
-            userData: userInfo,
-          });
-          const dialogue = self.rand(self.buyTexts);
-          const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
-              cash
-            )}** **${inventory.length}/${inventoryLimit}**`
-          );
-          handleEnd(i.messageID, {
-            isItemChoose: true,
-          });
-        }
-        function sanitizeSellInv(inventory) {
-          return inventory.map((i) => {
-            if (self.sellDisallowed.includes(i.key)) {
-              i.shopDisallowed = true;
-            }
-            if (i.sellPrice < 1 || !i.sellPrice) {
-              i.shopDisallowed = true;
-            }
-            return i;
-          });
-        }
-        async function sellChooser() {
-          if (!self.allowSell) {
-            return handleSell();
-          }
-          let {
-            money: cash,
-            inventory: rI = [],
-            boxItems: rB = [],
-          } = await money.get(input.senderID);
-          const inventory = new Inventory(rI);
-          const boxItems = new Inventory(rB, 100);
-          const dialogue = self.rand(self.askSellTexts);
-          const i = await output.reply(
-            `✦ ${dialogue}\n\n**A.** Sell **Items** **(${inventory.size()}/${invLimit})**\n**B**. Sell **Box** Items **(${boxItems.size()}/100)**\n\n**Back**\n**${formatCash(
-              cash
-            )}**`
-          );
-          handleEnd(i.messageID, {
-            sellChoose: true,
-          });
-        }
-        async function handleRealSell(isBox) {
-          const magicKey = isBox ? "boxItems" : "inventory";
-          const magicSize = isBox ? 100 : global.Cassidy.invLimit;
-
-          try {
-            let { [magicKey]: inI = [], money: cash = 0 } = await money.get(
-              input.senderID
-            );
-            const inventory = new Inventory(sanitizeSellInv(inI), magicSize);
-            let items = self.stringSellData([...inventory]);
-            const dialogue = self.rand(self.askSellTexts);
-            const i = await output.reply(
-              `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
-                cash
-              )}** **${inventory.getAll().length}/${
-                isBox ? 100 : inventoryLimit
-              }**`
-            );
-            handleEnd(i.messageID, {
-              isTrueSell: true,
-              sellChoose: false,
-              isBox,
-            });
-          } catch (error) {
-            return output.error(error);
-          }
-        }
-        async function handleTrade() {
-          if (self.allowTrade) {
-            // return handleRealTrade();
-          }
-          const dialogue = self.rand(self.tradeRefuses) ?? "...";
-          const i = await output.reply(`✦ ${dialogue}\n\n**Back**`);
-          handleEnd(i.messageID);
-        }
-        async function handleSell(isBox) {
-          if (self.allowSell) {
-            return handleRealSell(isBox);
-          }
-          const index = repObj.sellIndex ?? 0;
-          const text = self.sellTexts[index];
-          if (text) {
-            const i = await output.reply(`✦ ${text}\n\n**Next**\n**Back**`);
-            handleEnd(i.messageID, {
-              isSellNext: true,
-              sellIndex: index + 1,
-            });
-          } else {
-            repObj.isSellNext = false;
-            repObj.sellIndex = 0;
-            return handleBack();
-          }
-        }
-        async function handleTake() {
-          const cash = 20;
-          const { money: playerMoney } = await money.get(input.senderID);
-          await money.set(input.senderID, {
-            money: playerMoney + cash,
-          });
-          const i = await output.reply(
-            `✦ You took ${cash}$ from the cash registry.\n\n**Back**`
-          );
-          handleEnd(i.messageID);
-        }
-        async function handleNote() {
-          const i = await output.reply(
-            `✦ The note says "${self.genoNote}"\n\n**Back**`
-          );
-          handleEnd(i.messageID);
-        }
-        async function handleTalk() {
-          repObj.isTalkNext = false;
-          repObj.talkIndex = 0;
-
-          const talks = self.stringTalkTexts();
-          const i = await output.reply(
-            `✦ ${self.rand(self.askTalkTexts)}\n\n${talks}\n**Back**`
-          );
-          handleEnd(i.messageID, {
-            isTalkChoose: true,
-          });
-        }
-        async function handleLeave() {
-          return output.reply(`(This option does nothing.)`);
-        }
-        async function handleStealItem() {
-          const items = self.stringItemData();
-          const num = parseInt(input.words[0]);
-          if (String(input.words[0]).toLowerCase() === "back") {
-            return handleGoBack();
-          }
-
-          const targetItem = self.itemData.find(
-            (item) => String(item.num) === String(num)
-          );
-          if (isNaN(num) || !targetItem) {
-            return output.reply(
-              `(Go back and reply with a valid number that you can see at the left side of the item name.)`
-            );
-          }
-          const { onPurchase } = targetItem;
-          const price = 0;
-          const { money: cash, inventory = [] } = await money.get(
-            input.senderID
-          );
-          if (inventory.length >= inventoryLimit) {
-            return output.reply(
-              `(You cannot steal anything right now.. Your inventory is full (${inventory.length}/${inventoryLimit})`
-            );
-          }
-          try {
-            const argu = {
-              money: cash - price,
-              inventory,
-            };
-            context.moneySet = argu;
-            await onPurchase(context);
-            await money.set(input.senderID, argu);
-          } catch (error) {
-            console.error(error);
-            output.error(error);
-          }
-          const dialogue = `Done, just take more, nobody stops you.`;
-          const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
-              cash - price
-            )} (-${formatCash(price)})** **${
-              inventory.length
-            }/${inventoryLimit}**`
-          );
-          handleEnd(i.messageID, {
-            isItemChoose: true,
-          });
-        }
-
-        async function handleBuyItem() {
-          const { petPlayerMaps } = context;
-          const userInfo = await money.get(input.senderID);
-          const {
-            money: cash = 0,
-            inventory = [],
-            boxItems: boxInventory = [],
-
-            cassEXP: cxp,
-          } = userInfo;
-
-          const cassEXP = new CassEXP(cxp);
-
-          let { playersMap } = petPlayerMaps(userInfo);
-
-          let items = self.stringItemData({
-            userMoney: cash,
-            inventory: new Inventory(inventory),
-            boxInventory: new Inventory(boxInventory, 100),
-            playersMap,
-            userData: userInfo,
-          });
-          const num = parseInt(input.words[0]);
-          let amount = parseInt(String(input.words[1] || 1));
-          if (isNaN(amount) || amount <= 0) {
-            amount = 1;
-          }
-          if (String(input.words[0]).toLowerCase() === "back") {
-            return handleGoBack();
-          }
-
-          const targetItem = self.itemData.find(
-            (item) => String(item.num) === String(num)
-          );
-          if (isNaN(num) || !targetItem) {
-            return output.reply(
-              `(Go back and reply with a valid number that you can see at the left side of the item name.)`
-            );
-          }
-          let { price = 0, onPurchase } = targetItem;
-          if (amount > inventoryLimit - inventory.length) {
-            amount = inventoryLimit - inventory.length;
-          }
-
-          price = amount * price;
-          if (cash < price) {
-            return output.reply(
-              `(You don't have enough money to buy this item (${cash}$ < ${price}$), please go back and choose a valid option, or just choose "back")`
-            );
-          }
-          if (targetItem.cannotBuy) {
-            return output.reply(
-              `(No matter what you do, you won't be able to buy this item.)`
-            );
-          }
-          if (inventory.length >= inventoryLimit) {
-            return output.reply(
-              `(You cannot buy anything right now.. Your inventory is full (${inventory.length}/${inventoryLimit})`
-            );
-          }
-          cassEXP.expControls.raise(
-            targetItem.expReward ??
-              clamp(0, targetItem.price / 500000, 10) * amount
-          );
-          const argu = {
-            money: cash - price,
-            inventory,
-            cassEXP: cassEXP.raw(),
-            boxInventory,
-          };
-          context.moneySet = argu;
-          for (let i = 0; i < amount; i++) {
-            try {
-              await onPurchase(context);
-            } catch (error) {
-              console.error(error);
-              output.error(error);
-            }
-          }
-          await money.set(input.senderID, argu);
-          items = self.stringItemData({
-            userMoney: cash - price,
-            inventory: new Inventory(inventory),
-            boxInventory: new Inventory(boxInventory, 100),
-            playersMap,
-            userData: userInfo,
-          });
-
-          const dialogue = self.rand(self.thankTexts);
-          const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
-              cash - price
-            )} (-${formatCash(price)})** **${
-              inventory.length
-            }/${inventoryLimit}** (+${amount} item(s))`
-          );
-          handleEnd(i.messageID, {
-            isItemChoose: true,
-          });
-        }
-        async function handleSellItem(isBox) {
-          const magicKey = isBox ? "boxItems" : "inventory";
-          const magicSize = isBox ? 100 : global.Cassidy.invLimit;
-          let { money: cash, [magicKey]: iI = [] } = await money.get(
-            input.senderID
-          );
-          const inventory = new Inventory(sanitizeSellInv(iI), magicSize);
-
-          const num = parseInt(input.words[0]);
-          let amount = parseInt(String(input.words[1] || 1));
-          if (isNaN(amount) || amount <= 0) {
-            amount = 1;
-          }
-          if (String(input.words[0]).toLowerCase() === "back") {
-            return handleGoBack();
-          }
-          const targetKey = inventory.findKey(
-            (i) => String(i.index + 1) === String(num)
-          );
-          if (!targetKey) {
-            return output.reply(
-              `(Go back and reply with a valid number of item that exists.`
-            );
-          }
-          const targetItems = inventory
-            .getAll()
-            .filter((item) => item.key === targetKey);
-          let disallowed = [];
-          if (amount > inventory.getAmount(targetKey)) {
-            amount = inventory.getAmount(targetKey);
-          }
-
-          let price = 0;
-          for (let i = 0; i < amount; i++) {
-            const targetItem = targetItems[i];
-            let { sellPrice: indivPrice = 0, shopDisallowed = false } =
-              targetItem ?? {
-                shopDisallowed: false,
-              };
-            if (shopDisallowed) {
-              disallowed.push(targetItem);
-              continue;
-            }
-            price += indivPrice;
-            if (typeof self.onSell === "function") {
-              try {
-                // @ts-ignore
-                await self.onSell({ ...context, targetItem });
-              } catch (error) {
-                console.error(error);
-              }
-            }
-            inventory.deleteRef(targetItem);
-          }
-          if (disallowed.length === targetItems.length) {
-            return output.reply(
-              `(Go back and reply with a valid number that you can see at the left side of the item name.)`
-            );
-          }
-
-          const argu = {
-            money: cash + price,
-            [magicKey]: Array.from(inventory),
-          };
-          await money.set(input.senderID, argu);
-
-          const dialogue = self.rand(self.askSellTexts);
-          const items = self.stringSellData([
-            ...new Inventory(inventory.raw(), magicSize).getAll(),
-          ]);
-
-          const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
-              cash + price
-            )} (+${formatCash(price)})** **${inventory.getAll().length}/${
-              isBox ? 100 : inventoryLimit
-            }** (-${amount} item(s))`
-          );
-          handleEnd(i.messageID, {
-            isTrueSell: true,
-          });
-        }
-
-        async function handleTalkChoices() {
-          if (input.words[0] === "back") {
-            if (!repObj.isTalkNext) {
-              return handleBack();
-            }
-            return handleTalk();
-          }
-          const num = parseInt(input.words[0]);
-          const targetTalk =
-            repObj.targetTalk ??
-            self.talkTexts.find((talk) => String(talk.num) === String(num));
-          if ((!repObj.isTalkNext && isNaN(num)) || !targetTalk) {
-            return output.reply(
-              `(Go back and reply with a valid number that you can see at the left side of the choice name.)`
-            );
-          }
-          const { responses } = targetTalk;
-          const index = repObj.talkIndex ?? 0;
-          const text = responses[index];
-          repObj.isTalkChoose = false;
-          if (text) {
-            const i = await output.reply(`✦ ${text}\n\n**Next**\n**Back**`);
-            handleEnd(i.messageID, {
-              isTalkNext: true,
-              talkIndex: index + 1,
-              targetTalk,
-              isBox: repObj.isBox,
-            });
-          } else {
-            repObj.isTalkNext = false;
-            repObj.talkIndex = 0;
-            repObj.targetTalk = null;
-            return handleTalk();
-          }
-        }
-        async function handleBack() {
-          return handleGoBack();
-        }
-        async function handleGoBack() {
-          const { money: cash, inventory = [] } = await money.get(
-            input.senderID
-          );
-
-          const i = await output.reply(`✦ ${
-            self.isGenoR() ? `Nobody is here.` : self.rand(self.goBackTexts)
-          }
-
-${self.optionText()}
-
-**${formatCash(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
-          handleEnd(i.messageID);
-        }
-      } catch (error) {
-        console.error(error);
-        obj.output?.error?.(error);
-      }
-    }
-  }
   function petPlayerMaps(data) {
     const { GearsManage, Inventory, PetPlayer } = obj;
     const gearsManage = new GearsManage(data.gearsData);
@@ -1564,3 +656,1036 @@ ${self.optionText()}
 }
 
 export const treasureInv = new Inventory(treasures, Infinity);
+
+/**
+ * @typedef {Map<string, Map<string, number>>} StockData
+ */
+export class UTShop {
+  /**
+   * @type {Map<string, StockData>}
+   */
+  static stocksData = new Map();
+
+  /**
+   * @type {Map<string, number>}
+   */
+  static stockTS = new Map();
+  constructor({
+    itemData = [],
+    sellTexts = [],
+    talkTexts = [],
+    buyTexts = [],
+    welcomeTexts = [],
+    goBackTexts = [],
+    askTalkTexts = [],
+    thankTexts = [],
+    notScaredGeno = true,
+    genoNote = null,
+    allowSell = false,
+    askSellTexts = [],
+    sellDisallowed = [],
+    onSell = async () => {},
+    tradeRefuses = [],
+    allowTrade = false,
+    tradeData = [],
+    style = null,
+    key = "x",
+    stockInterval = 5 * 60 * 1000,
+  }) {
+    this.key = key;
+    this.allowTrade = allowTrade;
+    this.tradeData = tradeData;
+    this.onSell = onSell;
+    this.style = style;
+    this.sellDisallowed = sellDisallowed;
+    this.tradeRefuses = tradeRefuses;
+    this.allowSell = !!allowSell;
+
+    this.itemData = this.mapItemData(itemData);
+    this.notScaredGeno = notScaredGeno;
+    this.genoNote =
+      genoNote ?? "Take whatever you want, but please don't hurt my family.";
+    this.sellTexts = sellTexts || [
+      "I would be in bankrupt if I started buying these",
+      "Don't expect me to give you money.",
+      "I'm not a bank, I'm a shop!",
+      "Go find other shopkeeper that will buy your stuff.",
+    ];
+    this.askSellTexts = askSellTexts;
+    this.talkTexts = this.mapTalkTexts(talkTexts);
+    this.buyTexts = buyTexts || ["Which do you want?"];
+    this.welcomeTexts = welcomeTexts || ["Welcome to the shop!"];
+    this.goBackTexts = goBackTexts || ["Oh it's okay, what do you want?"];
+    this.askTalkTexts = askTalkTexts || ["What do you want to talk about?"];
+    this.thankTexts = thankTexts || ["Thanks for buying!"];
+    this.playerRoute = "Neutral";
+    this.stockInterval = stockInterval;
+  }
+
+  resetAllStock() {
+    UTShop.stocksData.set(this.key, new Map());
+    UTShop.stockTS.delete(this.key);
+  }
+
+  /**
+   * Ensures stock data and resets it if expired.
+   * Always sets correct stock value based on `stockLimit`.
+   *
+   * @param {string} userID
+   * @param {string} stockID
+   */
+  ensureStock(userID, stockID) {
+    const now = Date.now();
+
+    if (!(UTShop.stocksData.get(this.key) instanceof Map)) {
+      UTShop.stocksData.set(this.key, new Map());
+    }
+    const shopMap = UTShop.stocksData.get(this.key);
+
+    if (!(shopMap.get(userID) instanceof Map)) {
+      shopMap.set(userID, new Map());
+    }
+    const userStockMap = shopMap.get(userID);
+
+    const item = this.itemData.find((i) => i?.key === stockID);
+    const stockLimit =
+      typeof item?.stockLimit === "number" ? item.stockLimit : Infinity;
+
+    const lastReset = UTShop.stockTS.get(this.key);
+    const interval = this.stockInterval;
+    const shouldReset =
+      typeof lastReset !== "number" || now - lastReset >= interval;
+
+    if (shouldReset && Number.isFinite(stockLimit)) {
+      UTShop.stockTS.set(this.key, now);
+      userStockMap.set(stockID, stockLimit);
+    }
+
+    if (!userStockMap.has(stockID)) {
+      userStockMap.set(stockID, stockLimit);
+    }
+  }
+
+  /**
+   * Sets or updates the stock timestamp (stockTS) for this shop.
+   *
+   * @param {number} [time] Optional timestamp to set; defaults to Date.now()
+   * @returns {number} The timestamp set for the stock
+   */
+  setStamp(time) {
+    const now = typeof time === "number" ? time : Date.now();
+    UTShop.stockTS.set(this.key, now);
+    return now;
+  }
+
+  /**
+   * Decreases the stock for a given user and stock item.
+   * Depends on `getStock` to handle reset and initialization.
+   *
+   * @param {string} userID
+   * @param {string} stockID
+   * @returns {boolean}
+   */
+  decreaseStock(userID, stockID) {
+    const currentStock = this.getStock(userID, stockID);
+
+    if (currentStock <= 0) {
+      return false;
+    }
+
+    const map = UTShop.stocksData.get(this.key);
+    const userMap = map.get(userID);
+
+    userMap.set(stockID, currentStock - 1);
+    return true;
+  }
+
+  /**
+   * Returns current stock value for a user and stock item.
+   * Handles resets and ensures data.
+   *
+   * @param {string} userID
+   * @param {string} stockID
+   * @returns {number}
+   */
+  getStock(userID, stockID) {
+    this.ensureStock(userID, stockID);
+
+    const shopMap = UTShop.stocksData.get(this.key);
+    const userStockMap = shopMap.get(userID);
+
+    return userStockMap.get(stockID) ?? 0;
+  }
+
+  mapItemData(itemData) {
+    const result = itemData.map((item, index) => {
+      const {
+        price = 0,
+        flavorText = "What does this do?",
+        name = "Unknown Item",
+        icon = "❓",
+        onPurchase = () => {},
+        atk = null,
+        def = null,
+        heal = null,
+        key,
+      } = item;
+      return {
+        ...item,
+        price,
+        flavorText,
+        name,
+        icon,
+        atk,
+        def,
+        heal,
+        onPurchase,
+        num: index + 1,
+        key,
+      };
+    });
+    return result;
+  }
+  mapTalkTexts(talkTexts) {
+    const result = talkTexts.map((text, index) => {
+      const { name = "Unknown Topic", responses = [], icon = "🤍" } = text;
+      return {
+        name,
+        icon,
+        responses,
+        num: index + 1,
+      };
+    });
+    return result;
+  }
+  stringTalkTexts() {
+    const result = this.talkTexts
+      .map((text) => {
+        return `${text.num} ${text.icon} **${text.name}**`;
+      })
+      .join("\n");
+    return result;
+  }
+  stringSellData(inventory) {
+    const result = inventory
+      .map(
+        (item) =>
+          `${item.index + 1}. **${item.icon} ${item.name}** - **${
+            item.shopDisallowed ? `🚫` : `${pCy(item.sellPrice || 0)}$`
+          }**\n✦ ${item.flavorText}`
+      )
+      .join("\n\n");
+    return result;
+  }
+  /**
+   *
+   * @param {{ inventory: Inventory; boxInventory: Inventory; userMoney: number; playersMap: Map<string, PetPlayer>; userData: UserData }} param0
+   * @returns
+   */
+  stringItemData(
+    { inventory, boxInventory, userMoney = 0, playersMap, userData } = {
+      inventory: undefined,
+      boxInventory: undefined,
+      playersMap: undefined,
+      userMoney: 0,
+      userData: null,
+    }
+  ) {
+    let isLegacy = true;
+    if (inventory instanceof Inventory && boxInventory instanceof Inventory) {
+      isLegacy = false;
+    }
+    /**
+     * @type {import("@cass-modules/cassidyUser").InventoryItem[]}
+     */
+    const data = this.itemData;
+    let result;
+    if (!isLegacy) {
+      if (data.length === 0) {
+        result = `🧹 No items available!`;
+      }
+      result = data
+        .map((item) => {
+          const stocks = this.getStock(userData.userID, item.key);
+          const invAmount = inventory.getAmount(item.key);
+          const boxAmount = boxInventory.getAmount(item.key);
+          const ndrive = new Inventory(userData.ndrive?.items ?? [], Infinity);
+          const bank = new Inventory(userData.bankData?.items ?? [], Infinity);
+          const ndriveAmount = ndrive.getAmount(item.key);
+          const bankAmount = bank.getAmount(item.key);
+          let isAffordable = userMoney >= Number(item.price ?? 0);
+          let isSellable = true;
+          if (item.cannotBuy === true) {
+            isSellable = false;
+          }
+          if (stocks <= 0) {
+            isSellable = false;
+          }
+          let hasInv = invAmount && boxAmount;
+          let result = ``;
+          if (isSellable) {
+            result += `${item.num}. **${item.icon} ${item.name}**\n`;
+          } else {
+            result += `${item.num}. ${item.icon} ${item.name}\n`;
+          }
+          result +=
+            `- ${
+              isSellable
+                ? `**${formatCash(
+                    Number(this.isGenoR() ? 0 : item.price ?? 0)
+                  )}** ${
+                    isSellable
+                      ? isAffordable
+                        ? hasInv
+                          ? "✅"
+                          : "💰"
+                        : "❌"
+                      : "🚫"
+                  }${
+                    stocks !== Infinity && typeof item.stockLimit === "number"
+                      ? ` 「 **${stocks}**/${item.stockLimit ?? 5} 」`
+                      : ""
+                  }`
+                : "🚫 No Stock"
+            } ${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
+              boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
+            }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
+              bankAmount ? ` 🏦 **x${bankAmount}**` : ""
+            }${
+              item.inflation ? ` [ 📈 **+${item.inflation ?? 0}$** ]` : ""
+            }`.trim() +
+            (item.flavorText || (!isSellable && item.cannotBuyFlavor)
+              ? "\n"
+              : "");
+          if (!(playersMap instanceof Map)) {
+            throw new Error(`playersMap must be a Map`);
+          }
+          if (
+            playersMap &&
+            playersMap instanceof Map &&
+            (item.type === "weapon" || item.type === "armor")
+          ) {
+            let hasLine = false;
+            for (const [, petPlayer] of playersMap) {
+              const clone = petPlayer.clone();
+              let isHead = false;
+              const applyHead = () => {
+                if (!isHead) {
+                  result += `☆ ${petPlayer.petIcon} `;
+                  isHead = true;
+                  hasLine = true;
+                }
+              };
+              if (item.type === "weapon") {
+                clone.weapon[0] = JSON.parse(JSON.stringify(item));
+                const diff = clone.ATK - petPlayer.ATK;
+                const defDiff = clone.DF - petPlayer.DF;
+                if (diff !== 0) {
+                  let i = diff > 0;
+                  let b = i ? "**" : "";
+                  applyHead();
+                  result += `**${diff > 0 ? "+" : ""}${diff}** ${b}ATK${b}, `;
+                }
+                if (defDiff !== 0) {
+                  let i = defDiff > 0;
+                  let b = i ? "**" : "";
+                  applyHead();
+                  result += `**${
+                    defDiff > 0 ? "+" : ""
+                  }${defDiff}** ${b}DEF${b}, `;
+                }
+              } else if (item.type === "armor") {
+                if (clone.armors[0] && clone.armors[0].def > Number(item.def)) {
+                  clone.armors[1] = JSON.parse(JSON.stringify(item));
+                } else {
+                  clone.armors[0] = JSON.parse(JSON.stringify(item));
+                }
+
+                const diff = clone.DF - petPlayer.DF;
+                const atkDiff = clone.ATK - petPlayer.ATK;
+                if (diff !== 0) {
+                  applyHead();
+                  let i = diff > 0;
+                  let b = i ? "**" : "";
+                  result += `**${diff > 0 ? "+" : ""}${diff}** ${b}DEF${b}, `;
+                }
+                if (atkDiff !== 0) {
+                  let i = atkDiff > 0;
+                  let b = i ? "**" : "";
+                  applyHead();
+                  result += `**${
+                    atkDiff > 0 ? "+" : ""
+                  }${atkDiff}** ${b}ATK${b}, `;
+                }
+              }
+              if (isHead) {
+                result += `\n`;
+              }
+            }
+            if (hasLine) {
+              result += `\n`;
+            }
+          }
+
+          if (item.flavorText || (!isSellable && item.cannotBuyFlavor)) {
+            result += `✦ ${
+              isSellable
+                ? item.flavorText
+                : item.cannotBuyFlavor ?? item.flavorText
+            }`;
+          }
+          return result;
+        })
+        .join("\n\n");
+    } else {
+      result = data
+        .map(
+          (item) =>
+            `${item.num}. **${item.icon} ${item.name}** - **${
+              this.isGenoR() ? 0 : item.price
+            }$**\n✦ ${item.flavorText}`
+        )
+        .join("\n\n");
+    }
+    return result;
+  }
+  rand(arr) {
+    if (arr.length === 1) {
+      return arr[0];
+    }
+    if (arr.length === 2) {
+      return Math.random() < 0.5 ? arr[0] : arr[1];
+    }
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  isGenoR() {
+    return false;
+    return this.playerRoute.toLowerCase() === "genocide" && !this.notScaredGeno;
+  }
+  optionText() {
+    if (this.isGenoR()) {
+      return `🗃️ **Steal**\n💰 **Take**\n📄 **Read**\n🏠 **Leave**`;
+    }
+    //return `💵 **Buy**\n💰 **Sell**\n⚒️ **Trade**\n💬 **Talk**\n🏠 **Leave**`;
+    return `      💵        💰         ⚒ 
+     **Buy**     **Sell**     **Trade**
+
+            💬         🏠 
+          **Talk**     **Leave**\n\n***Reply with an option***`;
+  }
+  /**
+   *
+   * @param {CommandContext} context
+   * @returns
+   */
+  async onPlay(context) {
+    if (!context) {
+      throw new TypeError(
+        "No context provided! Please update your SHOP FILE to include the entire CommandContext as first argument of onPlay. DO NOT PUT INCOMPLETE CONTEXT"
+      );
+    }
+    try {
+      const { invLimit } = global.Cassidy;
+
+      const { UTYPlayer } = global.utils;
+      const inventoryLimit = invLimit;
+      const { input, output, money, args, Inventory, getInflationRate } =
+        context;
+
+      if (context.command.style) {
+        output.setStyle(context.command.style);
+      }
+      if (this.style) {
+        output.setStyle(this.style);
+      }
+      if (args[0]) {
+        return output.reply(`(You can reply to the shop texts instead)`);
+      }
+      const inflationRate = await getInflationRate();
+      this.itemData = this.itemData.map((item) => {
+        const originalPrice = Number(item.price ?? 0);
+        const inflation = Math.round(inflationRate * originalPrice);
+        const newPrice = originalPrice + inflation;
+        return {
+          ...item,
+          price: newPrice,
+          originalPrice,
+          inflation,
+        };
+      });
+
+      this.itemData.forEach((i) => this.ensureStock(input.senderID, i.key));
+
+      const {
+        money: cash,
+        money: gold,
+        kills = 0,
+        spares = 0,
+        progress = {},
+        name = "Chara",
+        exp = 0,
+        inventory = [],
+      } = await money.get(input.senderID);
+      // @ts-ignore
+      const player = new UTYPlayer({
+        gold,
+        kills,
+        spares,
+        progress,
+        name,
+        exp,
+        inv: new Inventory(inventory),
+      });
+      this.playerRoute = player.getRoute();
+      const i = await output.reply(`✦ ${
+        this.isGenoR() ? `But nobody came.` : this.rand(this.welcomeTexts)
+      }
+
+${this.optionText()}
+
+**${formatCash(cash)}** **${inventory.length}/${inventoryLimit}**`);
+      const self = this;
+      input.setReply(i.messageID, {
+        key: context.commandName,
+        author: input.senderID,
+        callback: self.onReply.bind(self),
+        detectID: i.messageID,
+        player,
+        command: context.command,
+      });
+    } catch (error) {
+      console.error(error);
+      context.output?.error?.(error);
+    }
+  }
+  /**
+   * @param {CommandContext & { repObj?: Record<string, any> }} context
+   */
+  async onReply(context) {
+    try {
+      const { invLimit } = global.Cassidy;
+
+      const { input, output, money, repObj } = context;
+      if (repObj.command?.style) {
+        output.setStyle(repObj.command.style);
+      }
+      if (this.style) {
+        output.setStyle(this.style);
+      }
+      const { author, player } = repObj;
+      const inventoryLimit = invLimit;
+      const self = this;
+      if (input.senderID !== author) {
+        return;
+      }
+      let [option] = input.splitBody(" ");
+      option = option.toLowerCase();
+      if (self.isGenoR()) {
+        if (repObj.isItemChoose) {
+          return handleStealItem();
+        }
+        switch (option) {
+          case "steal":
+            return handleSteal();
+          case "take":
+            return handleTake();
+          case "read":
+            return handleNote();
+          case "leave":
+            return handleLeave();
+          case "back":
+            return handleGoBack();
+          default:
+            break;
+        }
+      } else {
+        if (repObj.isItemChoose) {
+          return handleBuyItem();
+        }
+        if (repObj.isTalkChoose) {
+          return handleTalkChoices();
+        }
+        if (repObj.isSellNext && option === "next") {
+          return handleSell(repObj.isBox);
+        }
+        if (repObj.isTalkNext && (option === "next" || option === "back")) {
+          return handleTalkChoices();
+        }
+        if (repObj.isTrueSell) {
+          return handleSellItem(repObj.isBox);
+        }
+        if (repObj.sellChoose && option !== "back") {
+          return handleSell(option.startsWith("b") ? true : false);
+        }
+        switch (option) {
+          case "buy":
+            return handleBuy();
+          case "sell":
+            return sellChooser();
+          case "trade":
+            return handleTrade();
+          case "talk":
+            return handleTalk();
+          case "leave":
+            return handleLeave();
+          case "back":
+            return handleGoBack();
+          default:
+            break;
+        }
+      }
+      async function handleEnd(id, { ...additional } = {}) {
+        input.delReply(repObj.detectID);
+        input.setReply(id, {
+          key: context.commandName,
+          author,
+          callback: self.onReply.bind(self),
+          detectID: id,
+          player,
+          ...additional,
+        });
+      }
+      async function handleSteal() {
+        const { money: cash, inventory = [] } = await money.get(input.senderID);
+        const items = self.stringItemData();
+        const dialogue = `You can take whatever you want. (you cannot take multiple.)`;
+        const i = await output.reply(
+          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(cash)}** **${
+            inventory.length
+          }/${inventoryLimit}**`
+        );
+        handleEnd(i.messageID, {
+          isItemChoose: true,
+        });
+      }
+      async function handleBuy() {
+        const userInfo = await money.get(input.senderID);
+        const { money: cash, inventory = [], boxItems = [] } = userInfo;
+        const { playersMap } = context.petPlayerMaps(userInfo);
+        const items = self.stringItemData({
+          userMoney: cash,
+          inventory: new Inventory(inventory),
+          boxInventory: new Inventory(boxItems, 100),
+          playersMap,
+          userData: userInfo,
+        });
+        const dialogue = self.rand(self.buyTexts);
+        const i = await output.reply(
+          `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
+            cash
+          )}** **${inventory.length}/${inventoryLimit}**`
+        );
+        handleEnd(i.messageID, {
+          isItemChoose: true,
+        });
+      }
+      function sanitizeSellInv(inventory) {
+        return inventory.map((i) => {
+          if (self.sellDisallowed.includes(i.key)) {
+            i.shopDisallowed = true;
+          }
+          if (i.sellPrice < 1 || !i.sellPrice) {
+            i.shopDisallowed = true;
+          }
+          return i;
+        });
+      }
+      async function sellChooser() {
+        if (!self.allowSell) {
+          return handleSell();
+        }
+        let {
+          money: cash,
+          inventory: rI = [],
+          boxItems: rB = [],
+        } = await money.get(input.senderID);
+        const inventory = new Inventory(rI);
+        const boxItems = new Inventory(rB, 100);
+        const dialogue = self.rand(self.askSellTexts);
+        const i = await output.reply(
+          `✦ ${dialogue}\n\n**A.** Sell **Items** **(${inventory.size()}/${invLimit})**\n**B**. Sell **Box** Items **(${boxItems.size()}/100)**\n\n**Back**\n**${formatCash(
+            cash
+          )}**`
+        );
+        handleEnd(i.messageID, {
+          sellChoose: true,
+        });
+      }
+      async function handleRealSell(isBox) {
+        const magicKey = isBox ? "boxItems" : "inventory";
+        const magicSize = isBox ? 100 : global.Cassidy.invLimit;
+
+        try {
+          let { [magicKey]: inI = [], money: cash = 0 } = await money.get(
+            input.senderID
+          );
+          const inventory = new Inventory(sanitizeSellInv(inI), magicSize);
+          let items = self.stringSellData([...inventory]);
+          const dialogue = self.rand(self.askSellTexts);
+          const i = await output.reply(
+            `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
+              cash
+            )}** **${inventory.getAll().length}/${
+              isBox ? 100 : inventoryLimit
+            }**`
+          );
+          handleEnd(i.messageID, {
+            isTrueSell: true,
+            sellChoose: false,
+            isBox,
+          });
+        } catch (error) {
+          return output.error(error);
+        }
+      }
+      async function handleTrade() {
+        if (self.allowTrade) {
+          // return handleRealTrade();
+        }
+        const dialogue = self.rand(self.tradeRefuses) ?? "...";
+        const i = await output.reply(`✦ ${dialogue}\n\n**Back**`);
+        handleEnd(i.messageID);
+      }
+      async function handleSell(isBox) {
+        if (self.allowSell) {
+          return handleRealSell(isBox);
+        }
+        const index = repObj.sellIndex ?? 0;
+        const text = self.sellTexts[index];
+        if (text) {
+          const i = await output.reply(`✦ ${text}\n\n**Next**\n**Back**`);
+          handleEnd(i.messageID, {
+            isSellNext: true,
+            sellIndex: index + 1,
+          });
+        } else {
+          repObj.isSellNext = false;
+          repObj.sellIndex = 0;
+          return handleBack();
+        }
+      }
+      async function handleTake() {
+        const cash = 20;
+        const { money: playerMoney } = await money.get(input.senderID);
+        await money.set(input.senderID, {
+          money: playerMoney + cash,
+        });
+        const i = await output.reply(
+          `✦ You took ${cash}$ from the cash registry.\n\n**Back**`
+        );
+        handleEnd(i.messageID);
+      }
+      async function handleNote() {
+        const i = await output.reply(
+          `✦ The note says "${self.genoNote}"\n\n**Back**`
+        );
+        handleEnd(i.messageID);
+      }
+      async function handleTalk() {
+        repObj.isTalkNext = false;
+        repObj.talkIndex = 0;
+
+        const talks = self.stringTalkTexts();
+        const i = await output.reply(
+          `✦ ${self.rand(self.askTalkTexts)}\n\n${talks}\n**Back**`
+        );
+        handleEnd(i.messageID, {
+          isTalkChoose: true,
+        });
+      }
+      async function handleLeave() {
+        return output.reply(`(This option does nothing.)`);
+      }
+      async function handleStealItem() {
+        const items = self.stringItemData();
+        const num = parseInt(input.words[0]);
+        if (String(input.words[0]).toLowerCase() === "back") {
+          return handleGoBack();
+        }
+
+        const targetItem = self.itemData.find(
+          (item) => String(item.num) === String(num)
+        );
+        if (isNaN(num) || !targetItem) {
+          return output.reply(
+            `(Go back and reply with a valid number that you can see at the left side of the item name.)`
+          );
+        }
+        const { onPurchase } = targetItem;
+        const price = 0;
+        const { money: cash, inventory = [] } = await money.get(input.senderID);
+        if (inventory.length >= inventoryLimit) {
+          return output.reply(
+            `(You cannot steal anything right now.. Your inventory is full (${inventory.length}/${inventoryLimit})`
+          );
+        }
+        try {
+          const argu = {
+            money: cash - price,
+            inventory,
+          };
+          context.moneySet = argu;
+          await onPurchase(context);
+          await money.set(input.senderID, argu);
+        } catch (error) {
+          console.error(error);
+          output.error(error);
+        }
+        const dialogue = `Done, just take more, nobody stops you.`;
+        const i = await output.reply(
+          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
+            cash - price
+          )} (-${formatCash(price)})** **${
+            inventory.length
+          }/${inventoryLimit}**`
+        );
+        handleEnd(i.messageID, {
+          isItemChoose: true,
+        });
+      }
+
+      async function handleBuyItem() {
+        const { petPlayerMaps } = context;
+        const userInfo = await money.get(input.senderID);
+        const {
+          money: cash = 0,
+          inventory = [],
+          boxItems: boxInventory = [],
+
+          cassEXP: cxp,
+        } = userInfo;
+
+        const cassEXP = new CassEXP(cxp);
+
+        let { playersMap } = petPlayerMaps(userInfo);
+
+        let items = self.stringItemData({
+          userMoney: cash,
+          inventory: new Inventory(inventory),
+          boxInventory: new Inventory(boxInventory, 100),
+          playersMap,
+          userData: userInfo,
+        });
+        const num = parseInt(input.words[0]);
+        let amount = parseInt(String(input.words[1] || 1));
+        if (isNaN(amount) || amount <= 0) {
+          amount = 1;
+        }
+        if (String(input.words[0]).toLowerCase() === "back") {
+          return handleGoBack();
+        }
+
+        const targetItem = self.itemData.find(
+          (item) => String(item.num) === String(num)
+        );
+        if (isNaN(num) || !targetItem) {
+          return output.reply(
+            `(Go back and reply with a valid number that you can see at the left side of the item name.)`
+          );
+        }
+        let { price = 0, onPurchase } = targetItem;
+        const stocks = self.getStock(input.senderID, targetItem.key);
+        if (amount > inventoryLimit - inventory.length) {
+          amount = inventoryLimit - inventory.length;
+        }
+
+        if (amount >= stocks) {
+          amount = stocks;
+        }
+
+        price = amount * price;
+        if (cash < price) {
+          return output.reply(
+            `(You don't have enough money to buy this item (${cash}$ < ${price}$), please go back and choose a valid option, or just choose "back")`
+          );
+        }
+        if (targetItem.cannotBuy || stocks <= 0) {
+          return output.reply(
+            `(No matter what you do, you won't be able to buy this item.)`
+          );
+        }
+        if (inventory.length >= inventoryLimit) {
+          return output.reply(
+            `(You cannot buy anything right now.. Your inventory is full (${inventory.length}/${inventoryLimit})`
+          );
+        }
+        cassEXP.expControls.raise(
+          targetItem.expReward ??
+            clamp(0, targetItem.price / 500000, 10) * amount
+        );
+        const argu = {
+          money: cash - price,
+          inventory,
+          cassEXP: cassEXP.raw(),
+          boxInventory,
+        };
+        context.moneySet = argu;
+        for (let i = 0; i < amount; i++) {
+          try {
+            await onPurchase(context);
+            self.decreaseStock(input.senderID, targetItem.key);
+          } catch (error) {
+            console.error(error);
+            output.error(error);
+          }
+        }
+        await money.set(input.senderID, argu);
+        items = self.stringItemData({
+          userMoney: cash - price,
+          inventory: new Inventory(inventory),
+          boxInventory: new Inventory(boxInventory, 100),
+          playersMap,
+          userData: userInfo,
+        });
+
+        const dialogue = self.rand(self.thankTexts);
+        const i = await output.reply(
+          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
+            cash - price
+          )} (-${formatCash(price)})** **${
+            inventory.length
+          }/${inventoryLimit}** (+${amount} item(s))`
+        );
+        handleEnd(i.messageID, {
+          isItemChoose: true,
+        });
+      }
+      async function handleSellItem(isBox) {
+        const magicKey = isBox ? "boxItems" : "inventory";
+        const magicSize = isBox ? 100 : global.Cassidy.invLimit;
+        let { money: cash, [magicKey]: iI = [] } = await money.get(
+          input.senderID
+        );
+        const inventory = new Inventory(sanitizeSellInv(iI), magicSize);
+
+        const num = parseInt(input.words[0]);
+        let amount = parseInt(String(input.words[1] || 1));
+        if (isNaN(amount) || amount <= 0) {
+          amount = 1;
+        }
+        if (String(input.words[0]).toLowerCase() === "back") {
+          return handleGoBack();
+        }
+        const targetKey = inventory.findKey(
+          (i) => String(i.index + 1) === String(num)
+        );
+        if (!targetKey) {
+          return output.reply(
+            `(Go back and reply with a valid number of item that exists.`
+          );
+        }
+        const targetItems = inventory
+          .getAll()
+          .filter((item) => item.key === targetKey);
+        let disallowed = [];
+        if (amount > inventory.getAmount(targetKey)) {
+          amount = inventory.getAmount(targetKey);
+        }
+
+        let price = 0;
+        for (let i = 0; i < amount; i++) {
+          const targetItem = targetItems[i];
+          let { sellPrice: indivPrice = 0, shopDisallowed = false } =
+            targetItem ?? {
+              shopDisallowed: false,
+            };
+          if (shopDisallowed) {
+            disallowed.push(targetItem);
+            continue;
+          }
+          price += indivPrice;
+          if (typeof self.onSell === "function") {
+            try {
+              // @ts-ignore
+              await self.onSell({ ...context, targetItem });
+            } catch (error) {
+              console.error(error);
+            }
+          }
+          inventory.deleteRef(targetItem);
+        }
+        if (disallowed.length === targetItems.length) {
+          return output.reply(
+            `(Go back and reply with a valid number that you can see at the left side of the item name.)`
+          );
+        }
+
+        const argu = {
+          money: cash + price,
+          [magicKey]: Array.from(inventory),
+        };
+        await money.set(input.senderID, argu);
+
+        const dialogue = self.rand(self.askSellTexts);
+        const items = self.stringSellData([
+          ...new Inventory(inventory.raw(), magicSize).getAll(),
+        ]);
+
+        const i = await output.reply(
+          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
+            cash + price
+          )} (+${formatCash(price)})** **${inventory.getAll().length}/${
+            isBox ? 100 : inventoryLimit
+          }** (-${amount} item(s))`
+        );
+        handleEnd(i.messageID, {
+          isTrueSell: true,
+        });
+      }
+
+      async function handleTalkChoices() {
+        if (input.words[0] === "back") {
+          if (!repObj.isTalkNext) {
+            return handleBack();
+          }
+          return handleTalk();
+        }
+        const num = parseInt(input.words[0]);
+        const targetTalk =
+          repObj.targetTalk ??
+          self.talkTexts.find((talk) => String(talk.num) === String(num));
+        if ((!repObj.isTalkNext && isNaN(num)) || !targetTalk) {
+          return output.reply(
+            `(Go back and reply with a valid number that you can see at the left side of the choice name.)`
+          );
+        }
+        const { responses } = targetTalk;
+        const index = repObj.talkIndex ?? 0;
+        const text = responses[index];
+        repObj.isTalkChoose = false;
+        if (text) {
+          const i = await output.reply(`✦ ${text}\n\n**Next**\n**Back**`);
+          handleEnd(i.messageID, {
+            isTalkNext: true,
+            talkIndex: index + 1,
+            targetTalk,
+            isBox: repObj.isBox,
+          });
+        } else {
+          repObj.isTalkNext = false;
+          repObj.talkIndex = 0;
+          repObj.targetTalk = null;
+          return handleTalk();
+        }
+      }
+      async function handleBack() {
+        return handleGoBack();
+      }
+      async function handleGoBack() {
+        const { money: cash, inventory = [] } = await money.get(input.senderID);
+
+        const i = await output.reply(`✦ ${
+          self.isGenoR() ? `Nobody is here.` : self.rand(self.goBackTexts)
+        }
+
+${self.optionText()}
+
+**${formatCash(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
+        handleEnd(i.messageID);
+      }
+    } catch (error) {
+      console.error(error);
+      context.output?.error?.(error);
+    }
+  }
+}

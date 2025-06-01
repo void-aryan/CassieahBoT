@@ -4,6 +4,7 @@ export namespace gardenShop {
   export let key = "gardenShop";
   export let lastRestock = 0;
   export const stockRefreshInterval = 5 * 60 * 1000;
+  export const stockInterval = stockRefreshInterval;
   export let itemData = [
     {
       icon: "🥕",
@@ -15,6 +16,7 @@ export namespace gardenShop {
       inStock: true,
       isEventItem: false,
       stockChance: 1.0,
+      stockLimit: 20,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsCarrot",
@@ -39,7 +41,7 @@ export namespace gardenShop {
       price: 50,
       rarity: "Common",
       inStock: true,
-
+      stockLimit: 20,
       stockChance: 1.0,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -65,7 +67,7 @@ export namespace gardenShop {
       price: 400,
       rarity: "Uncommon",
       inStock: true,
-
+      stockLimit: 20,
       stockChance: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -91,6 +93,7 @@ export namespace gardenShop {
       price: 600,
       rarity: "Uncommon",
       inStock: true,
+      stockLimit: 12,
       stockChance: 0.34,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -116,6 +119,7 @@ export namespace gardenShop {
       price: 800,
       rarity: "Rare",
       inStock: true,
+      stockLimit: 20,
       stockChance: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -139,6 +143,7 @@ export namespace gardenShop {
       key: "gsCorn",
       flavorText: "Golden grain with steady yield.",
       price: 1300,
+      stockLimit: 6,
       rarity: "Rare",
       inStock: true,
       stockChance: 0.17,
@@ -164,6 +169,7 @@ export namespace gardenShop {
       key: "gsDaffodil",
       flavorText: "Cheerful flower with fair value.",
       price: 1000,
+      stockLimit: 15,
       rarity: "Rare",
       inStock: true,
       stockChance: 0.145,
@@ -191,7 +197,7 @@ export namespace gardenShop {
       price: 2500,
       rarity: "Legendary",
       inStock: true,
-
+      stockLimit: 5,
       stockChance: 0.14,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -217,6 +223,7 @@ export namespace gardenShop {
       price: 3000,
       rarity: "Legendary",
       inStock: true,
+      stockLimit: 17,
       stockChance: 0.1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -240,6 +247,7 @@ export namespace gardenShop {
       key: "gsApple",
       flavorText: "A classic fruit for every season.",
       price: 3250,
+      stockLimit: 5,
       rarity: "Legendary",
       inStock: true,
       stockChance: 0.07,
@@ -265,6 +273,7 @@ export namespace gardenShop {
       key: "gsBamboo",
       flavorText: "Fast-growing and sturdy.",
       price: 4000,
+      stockLimit: 20,
       rarity: "Legendary",
       inStock: true,
       stockChance: 0.3,
@@ -290,6 +299,7 @@ export namespace gardenShop {
       key: "gsCoconut",
       flavorText: "Tropical and rich in value.",
       price: 6000,
+      stockLimit: 30,
       rarity: "Mythical",
       inStock: true,
       stockChance: 0.05,
@@ -315,6 +325,7 @@ export namespace gardenShop {
       key: "gsCactus",
       flavorText: "Tough crop for extreme climates.",
       price: 15_000,
+      stockLimit: 20,
       rarity: "Mythical",
       inStock: true,
       stockChance: 0.03,
@@ -342,6 +353,7 @@ export namespace gardenShop {
       flavorText: "Exotic and magical fruit.",
       price: 50_000,
       rarity: "Mythical",
+      stockLimit: 7,
       inStock: true,
       stockChance: 0.022,
       onPurchase({ moneySet }) {
@@ -368,6 +380,8 @@ export namespace gardenShop {
       price: 100_000,
       rarity: "Mythical",
       inStock: true,
+      stockLimit: 5,
+
       stockChance: 0.013,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -390,6 +404,7 @@ export namespace gardenShop {
       icon: "🍇",
       name: "Grape Seed",
       key: "gsGrape",
+      stockLimit: 9,
       flavorText: "Sweet clusters perfect for wine.",
       price: 850_000,
       rarity: "Divine",
@@ -417,6 +432,7 @@ export namespace gardenShop {
       key: "gsMushroom",
       flavorText: "Fungi with earthy flavor and value.",
       price: 150_000,
+      stockLimit: 12,
       rarity: "Divine",
       inStock: true,
       stockChance: 0.09,
@@ -440,6 +456,7 @@ export namespace gardenShop {
       icon: "🌶️",
       name: "Pepper Seed",
       key: "gsPepper",
+      stockLimit: 12,
       flavorText: "Spicy crop that adds heat to dishes.",
       price: 1_000_000,
       rarity: "Divine",
@@ -467,6 +484,7 @@ export namespace gardenShop {
       key: "gsCacao",
       flavorText: "Bean for rich chocolate production.",
       price: 2_500_000,
+      stockLimit: 5,
       rarity: "Divine",
       inStock: true,
       stockChance: 0.01,
@@ -597,6 +615,7 @@ export namespace gardenShop {
       price: 10_000_000,
       rarity: "Prismatic",
       inStock: true,
+      stockLimit: 10,
       stockChance: 0.03,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -698,7 +717,7 @@ export namespace gardenShop {
       price: 100000,
       rarity: "Common",
       inStock: true,
-
+      stockLimit: 1,
       stockChance: 0.8,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -719,7 +738,7 @@ export namespace gardenShop {
     {
       icon: "💦",
       inStock: true,
-
+      stockLimit: 1,
       name: "Sprinkler",
       key: "gtSprinkler",
       flavorText:
@@ -740,6 +759,7 @@ export namespace gardenShop {
       },
     },
     {
+      stockLimit: 1,
       icon: "🌿",
       name: "Fertilizer",
       key: "gtFertilizer",

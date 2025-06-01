@@ -253,7 +253,13 @@ const darkWorldShop = {
     "😺 Farewell, and may the shadows guide your path.",
   ],
 };
-export async function entry({ UTShop }) {
+
+/**
+ *
+ * @param {CommandContext} param0
+ * @returns
+ */
+export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(darkWorldShop);
-  return shop.onPlay();
+  return shop.onPlay(ctx);
 }

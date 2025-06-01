@@ -5,6 +5,7 @@ import type {
   generateChequeGift,
   generateTrashOld,
   treasureInv,
+  UTShop,
 } from "./CommandFiles/plugins/ut-shop.js";
 import type { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 
@@ -519,7 +520,7 @@ declare global {
     /**
      * @deprecated Provides access to the UTShop utility.
      */
-    UTShop?: AnyConstructor;
+    UTShop?: typeof UTShop;
 
     /**
      * Provides access to the TagParser utility.
