@@ -307,7 +307,7 @@ async function applyMutation(
   const mutationBoosts = new Map<string, number>();
 
   CROP_CONFIG.MUTATIONS.forEach((mutation) => {
-    mutationBoosts.set(mutation.name, 0.1);
+    mutationBoosts.set(mutation.name, 0.0);
   });
 
   tools.getAll().forEach((tool) => {
@@ -351,7 +351,10 @@ async function applyMutation(
     }
 
     const roll = Math.random();
-    const boost = Math.min(0.99, mutationBoosts.get(mutation.name) ?? 0);
+    const boost =
+      mchance === 0
+        ? 0
+        : Math.min(0.99, mutationBoosts.get(mutation.name) ?? 0);
     const chance = Math.min(0.5, mchance + safeEX(mchance / (1 - boost), 0.9));
 
     if (roll <= chance && Math.random() < 0.5) {
@@ -365,9 +368,9 @@ async function applyMutation(
 }
 
 function formatMutationStr(plot: GardenPlot) {
-  return `[ ${
+  return `${
     (plot.mutation ?? []).length > 0
-      ? `${plot.mutation
+      ? `[ ${plot.mutation
           .map((i) => FontSystem.fonts.double_struck(i.toUpperCase?.()))
           .join(", ")} ] `
       : ""
