@@ -1213,7 +1213,9 @@ export async function entry(ctx: CommandContext) {
           `${UNISpectra.arrowFromT} Favorite crops: ${prefix}${commandName}${
             isHypen ? "-" : " "
           }favorite`;
-
+        await money.setItem(input.senderID, {
+          gardenPlots: plots.raw(),
+        });
         return output.replyStyled(result, style);
       },
     },
