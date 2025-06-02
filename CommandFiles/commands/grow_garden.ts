@@ -1,6 +1,6 @@
 import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
-import { UNIRedux, UNISpectra } from "../modules/unisym.js";
-import { SpectralCMDHome } from "@cassidy/spectral-home";
+import { UNIRedux, UNISpectra } from "@cass-modules/unisym.js";
+import { Config, SpectralCMDHome } from "@cassidy/spectral-home";
 import { InventoryItem, UserStatsManager } from "@cass-modules/cassidyUser";
 import {
   abbreviateNumber,
@@ -11,9 +11,9 @@ import {
 } from "@cass-modules/ArielUtils";
 import OutputProps from "output-cassidy";
 import InputClass, { InputRoles } from "@cass-modules/InputClass";
-import { gardenShop } from "../modules/GardenShop";
-import { CROP_CONFIG } from "../modules/GardenConfig";
-import { EVENT_CONFIG } from "../modules/GardenEventConfig";
+import { gardenShop } from "@cass-modules/GardenShop";
+import { CROP_CONFIG } from "@cass-modules/GardenConfig";
+import { EVENT_CONFIG } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
 import { pickRandomWithProb } from "@cass-modules/unitypes";
 
@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.22",
+  version: "1.4.23",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -371,7 +371,7 @@ async function applyMutation(
         : Math.min(0.99, mutationBoosts.get(mutation.name) ?? 0);
     const chance = Math.min(0.5, mchance * (1 + boost));
 
-    if (roll <= chance) {
+    if (roll <= chance && Math.random() < 0.4) {
       if (!crop.mutation.includes(mutation.name)) {
         crop.mutation.push(mutation.name);
       }
@@ -711,6 +711,7 @@ export async function entry(ctx: CommandContext) {
       key: "shop",
       description: "Visit the Shop",
       aliases: ["-sh"],
+      icon: "🛒",
       async handler() {
         const shop = new UTShop({
           ...formatShopItems(gardenShop, currEvent),
@@ -726,12 +727,13 @@ export async function entry(ctx: CommandContext) {
         await shop.onPlay({ ...ctx, args: [] });
       },
     },
-    ...((currEvent.shopItems ?? []).length > 0
+    ...(((currEvent.shopItems ?? []).length > 0
       ? [
           {
             key: currEvent?.shopName ?? "eventshop",
             description: `Shop for ${currEvent.name}.`,
             aliases: [...(currEvent.shopAlias ?? []), "-esh", "eshop"],
+            icon: `${currEvent.icon ?? "🛒"}`,
             async handler() {
               const shop = new UTShop({
                 ...formatShopItems(
@@ -755,12 +757,13 @@ export async function entry(ctx: CommandContext) {
             },
           },
         ]
-      : []),
+      : []) as Config[]),
     {
       key: "plant",
       description: "Plant one or more seeds in plots",
       aliases: ["-p"],
       args: ["[seed_key] [quantity]"],
+      icon: "🌱",
       async handler(_, { spectralArgs }) {
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         let plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
@@ -968,9 +971,10 @@ export async function entry(ctx: CommandContext) {
       },
     },
     {
-      key: "harvest",
-      description: "Harvest ready crops",
-      aliases: ["-h"],
+      key: "collect",
+      description: "Collect & sell ready crops",
+      aliases: ["-c", "-h", "harvest"],
+      icon: "🧺",
       async handler() {
         let origEarns = gardenEarns;
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
@@ -1036,7 +1040,7 @@ export async function entry(ctx: CommandContext) {
             value.final - Math.min(plot.price || 0, plot.baseValue) ||
             plot.baseValue ||
             0;
-          harvested.push({ plot, value });
+          harvested.push({ plot: { ...plot }, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
           if (forgivingRandom() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
@@ -1131,6 +1135,7 @@ export async function entry(ctx: CommandContext) {
       description: "View your garden plots",
       aliases: ["-pl"],
       args: ["[page]"],
+      icon: "🪴",
       async handler(_, { spectralArgs }) {
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
         const page = parseInt(spectralArgs[0]) || 1;
@@ -1225,6 +1230,7 @@ export async function entry(ctx: CommandContext) {
         "View top 10 garden earners (paged, ranks 20-11 for page 2, etc.)",
       aliases: ["-t"],
       args: ["[page]"],
+      icon: "🏆",
       async handler(_, { spectralArgs }) {
         const page = parseInt(spectralArgs[0]) || 1;
         const startRank = (page - 1) * 10 + 1;
@@ -1318,6 +1324,7 @@ export async function entry(ctx: CommandContext) {
       description: "View garden-related items",
       aliases: ["-l"],
       args: ["[page]"],
+      icon: "📃",
       async handler(_, { spectralArgs }) {
         const inventory = new Inventory<GardenItem | InventoryItem>(
           rawInventory
@@ -1597,6 +1604,7 @@ export async function entry(ctx: CommandContext) {
       description: "Uncage a pet to make it active",
       aliases: ["-u"],
       args: ["[pet_key]"],
+      icon: "🔓",
       async handler(_, { spectralArgs }) {
         const inventory = new Inventory<GardenItem | InventoryItem>(
           rawInventory
@@ -1722,6 +1730,7 @@ export async function entry(ctx: CommandContext) {
       key: "pets",
       description: "View and manage active garden pets",
       aliases: ["-pt"],
+      icon: "🐶",
       args: ["[equip/unequip/<page>] [pet_key]"],
       async handler(_, { spectralArgs }) {
         const pets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
@@ -1880,6 +1889,7 @@ export async function entry(ctx: CommandContext) {
       description: "Steal a crop from another player's garden",
       aliases: ["-st"],
       args: ["[player_id]"],
+      icon: "🥷",
       async handler(_, { spectralArgs }) {
         const stealCost = 5;
         const userGems = collectibles.getAmount("gems");
@@ -2090,6 +2100,7 @@ export async function entry(ctx: CommandContext) {
     },*/
     {
       key: "growall",
+      icon: "🌱🔓",
       description: "Instantly grow all crops",
       aliases: ["-ga"],
       async handler() {
@@ -2161,6 +2172,7 @@ export async function entry(ctx: CommandContext) {
     },
     {
       key: "expand",
+      icon: "🧺🧺",
       description: "Expand your garden plot",
       aliases: ["-ex"],
       args: ["[side/rear1/rear2]"],
@@ -2578,6 +2590,7 @@ export async function entry(ctx: CommandContext) {
       key: "event",
       description: "Check current garden event or weather",
       aliases: ["-e"],
+      icon: "🎈",
       async handler() {
         const event = await getCurrentEvent();
         const upcomingEventsCount = 3;
@@ -2627,6 +2640,7 @@ export async function entry(ctx: CommandContext) {
     },
     {
       key: "skip",
+      icon: "⏩",
       description: "Skip garden events, positive or negative.",
       aliases: ["-sk"],
       args: ["[number/'reset']"],
@@ -2724,38 +2738,30 @@ export async function entry(ctx: CommandContext) {
               UNIRedux.charm
             } **Harvest**: Collect crops for Money with ${prefix}${commandName}${
               isHypen ? "-" : " "
-            }harvest. 5% chance to get a seed (Lucky Harvest).\n` +
-            `${UNIRedux.charm} **Mutations**: Crops may mutate (e.g., Wet, Shocked), boosting value. Affected by weather, tools, and pets.\n` +
+            }harvest. 10% chance to get a seed (Lucky Harvest).\n` +
+            `${UNIRedux.charm} **Mutations**: Crops may mutate (e.g., Wet, Shocked), boosting value. Affected by weather, tools, pets, and new seasonal blessings.\n` +
             `${
               UNIRedux.charm
             } **Pets**: Uncage pets with ${prefix}${commandName}${
               isHypen ? "-" : " "
-            }uncage to collect seeds (up to ${PET_EQUIP_LIMIT} equipped).\n` +
+            }uncage to collect seeds (up to ${PET_EQUIP_LIMIT} equipped). New pet synergy boosts specific mutations.\n` +
             `${UNIRedux.charm} **Tools**: Sprinkler and Fertilizer boost growth and mutations. Favorite Tool protects items.\n` +
-            `${UNIRedux.charm} **Events**: Weekly weather/events (e.g., ${EVENT_CONFIG.EVENTS[0].name}) offer exclusive seeds and bonuses.\n` +
+            `${UNIRedux.charm} **Events**: Weekly weather/events (e.g., ${EVENT_CONFIG.EVENTS[0].name}) offer exclusive seeds, bonuses, and new event-specific mutations.\n` +
             `${
               UNIRedux.charm
-            } **Favoriting**: Use Favorite Tool to mark items/crops with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }favorite to prevent selling.\n` +
-            `${
-              UNIRedux.charm
-            } **Stealing**: Steal crops from others for ${formatCash(
-              1000
+            } **Stealing**: Steal crops from others for ${formatValue(
+              5,
+              "💎",
+              true
             )} with ${prefix}${commandName}${
               isHypen ? "-" : " "
-            }steal (70% success).\n` +
+            }steal (70% success, new 10% chance to steal mutations).\n` +
             `${
               UNIRedux.charm
-            } **Gifting**: Gift items/crops with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }gift. Toggle with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }settings.\n` +
-            `${
-              UNIRedux.charm
-            } **Grow All**: Instantly grow all crops for ${formatCash(
-              5000
+            } **Grow All**: Instantly grow all crops for ${formatValue(
+              100,
+              "💎",
+              true
             )} with ${prefix}${commandName}${isHypen ? "-" : " "}growall.\n` +
             `${
               UNIRedux.charm
@@ -2763,19 +2769,18 @@ export async function entry(ctx: CommandContext) {
               isHypen ? "-" : " "
             }expand (costs ${formatCash(250000000)}-${formatCash(
               1000000000
-            )}).\n` +
-            `${
-              UNIRedux.charm
-            } **Sell**: Sell items/crops at Steven's Stand with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }sell.\n\n` +
-            `**Tips**:\n` +
+            )}). New plot synergy bonuses for full plots.\n` +
+            `${UNIRedux.charm} **Hidden Mechanic - Overgrowth Boost**: Overgrown crops (2x growth time) have a 20% higher mutation chance.\n` +
+            `${UNIRedux.charm} **Hidden Mechanic - Pet Harmony**: Equipped pets with matching seed types increase collection rate by 15%.\n` +
+            `${UNIRedux.charm} **Hidden Mechanic - Event Surge**: During events, harvesting 10+ crops at once grants a 5% value bonus.\n` +
+            `\n**Tips**:\n` +
             `- Check events with ${prefix}${commandName}${
               isHypen ? "-" : " "
-            }event for bonuses.\n` +
-            `- Use tools to speed up growth and get rare mutations.\n` +
-            `- Favorite valuable items to avoid accidental sales.\n` +
-            `- Expand your plot to grow more crops at once!\n\n` +
+            }event for bonuses and new mutations.\n` +
+            `- Use tools and pets strategically to target specific mutations.\n` +
+            `- Expand early to maximize plot synergy bonuses.\n` +
+            `- Time harvests during events for surge bonuses.\n` +
+            `- Monitor overgrowth for mutation boosts but avoid excessive delays.\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Start shopping: ${prefix}${commandName}${
               isHypen ? "-" : " "
