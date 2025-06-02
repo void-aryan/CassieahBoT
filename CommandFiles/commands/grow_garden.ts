@@ -1245,29 +1245,11 @@ export async function entry(ctx: CommandContext) {
           ) {
             continue;
           }
-          const plots = new Inventory<GardenPlot>(
-            user.gardenPlots || [],
-            user.plotLimit || PLOT_LIMIT
-          );
-
-          let potentialEarnings = 0;
-
-          plots.getAll().forEach((plot) => {
-            if (isCropReady(plot)) {
-              const value = calculateCropValue(
-                plot,
-                plots,
-                user.gardenStats?.expansions || 0,
-                user.gardenEarns || 0
-              );
-              potentialEarnings += value.noExtra * plot.harvestsLeft;
-            }
-          });
 
           userStats.push({
             userId: user.senderID,
             name: user.name || "Farmer",
-            totalEarns: (user.gardenEarns || 0) + potentialEarnings,
+            totalEarns: user.gardenEarns || 0,
             user,
           });
         }
