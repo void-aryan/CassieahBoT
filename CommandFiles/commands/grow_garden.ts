@@ -15,13 +15,13 @@ import { gardenShop } from "@cass-modules/GardenShop";
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { EVENT_CONFIG } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
-import { pickRandomWithProb } from "@cass-modules/unitypes";
+import { pickRandomWithProb, randomBiased } from "@cass-modules/unitypes";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.23",
+  version: "1.4.24",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -77,6 +77,8 @@ export type GardenPlot = InventoryItem & {
   price: number;
   lastMutation: number;
   noAutoMutation?: never;
+  kiloGrams: number;
+  maxKiloGrams: number;
 };
 
 export type GardenPetActive = InventoryItem & {
@@ -129,7 +131,8 @@ function calculateCropValue(
     crop.baseValue *
       combinedMultiplier *
       (1 + plantingBonus + expansionBonus) *
-      earnMultiplier
+      earnMultiplier *
+      crop.maxKiloGrams
   );
 
   const noExtra = Math.floor(final - crop.baseValue * combinedMultiplier);
@@ -154,12 +157,49 @@ function safeEX(a: number, p: number) {
   return a === 0 ? 0 : a < 0 ? -Math.pow(-a, p) : Math.pow(a, p);
 }
 
+function calculateCropKG(crop: GardenPlot): number {
+  const percent = getCropFullnessPercent(crop);
+  const rawKG = crop.maxKiloGrams * percent;
+  return Number(rawKG.toFixed(2));
+}
+
+// function getOvergrownBonusPercent(crop: GardenPlot): number {
+//   const timeLeft = cropTimeLeft(crop, true);
+//   const originalGrowth = crop.growthTime;
+//   const elapsed = originalGrowth - timeLeft;
+
+//   const overgrownElapsed = elapsed - 2 * originalGrowth;
+//   if (overgrownElapsed <= 0) return 0;
+
+//   const bonusPercent = overgrownElapsed / originalGrowth;
+
+//   return Math.min(bonusPercent, 1);
+// }
+
+function getCropFullnessPercent(plot: GardenPlot): number {
+  const timeLeft = cropTimeLeft(plot, true);
+  const growthTime = plot.growthTime;
+  const elapsed = growthTime - timeLeft;
+
+  const percent = elapsed / growthTime;
+  return Math.min(Math.max(percent, 0), 1);
+}
+
 async function autoUpdateCropData(
   crop: GardenPlot,
   tools: Inventory<GardenTool>,
   pets: Inventory<GardenPetActive>
 ) {
   if (!crop) return null;
+  crop.maxKiloGrams ??= randomBiased(
+    CROP_CONFIG.MIN_KG,
+    CROP_CONFIG.MAX_KG,
+    CROP_CONFIG.KILO_BIAS
+  );
+  crop.maxKiloGrams = Math.max(
+    Math.min(CROP_CONFIG.MAX_KG, crop.maxKiloGrams),
+    CROP_CONFIG.MIN_KG
+  );
   crop.originalGrowthTime ??= crop.growthTime;
   crop.mutation ??= [];
   if (typeof crop.mutation === "string") {
@@ -219,6 +259,8 @@ async function autoUpdateCropData(
   }
 
   crop.mutation = [...new Set(crop.mutation)];
+
+  crop.kiloGrams = calculateCropKG(crop);
 
   return crop;
 }
@@ -389,7 +431,7 @@ function formatMutationStr(plot: GardenPlot) {
           .map((i) => FontSystem.fonts.double_struck(i.toUpperCase?.()))
           .join(", ")} ] `
       : ""
-  }${plot.icon} **${plot.name}**`;
+  }${plot.icon} **${plot.name}** (${plot.kiloGrams}kg)`;
 }
 
 function updatePetCollection(
@@ -887,6 +929,12 @@ export async function entry(ctx: CommandContext) {
             isFavorite: false,
             price,
             lastMutation: null,
+            kiloGrams: 0,
+            maxKiloGrams: randomBiased(
+              CROP_CONFIG.MIN_KG,
+              CROP_CONFIG.MAX_KG,
+              CROP_CONFIG.KILO_BIAS
+            ),
           };
           if (Math.random() < 0.1) {
             plot = await applyMutation(
@@ -953,6 +1001,8 @@ export async function entry(ctx: CommandContext) {
                 {
                   ...plots.getAll()[plots.getAll().length - 1],
                   mutation: [],
+                  maxKiloGrams: 1,
+                  kiloGrams: 1,
                 },
                 plots,
                 gardenStats.expansions || 0,
@@ -1105,7 +1155,10 @@ export async function entry(ctx: CommandContext) {
                       value.noExtra - plot.baseValue
                     )} ] `
                   : ""
-              }${plot.icon} ${plot.name} - ${formatCash(value.final, true)}`
+              }${plot.icon} ${plot.name} (${plot.kiloGrams}kg) - ${formatCash(
+                value.final,
+                true
+              )}`
           );
         const addedEarns = gardenEarns - origEarns;
 
@@ -1178,6 +1231,15 @@ export async function entry(ctx: CommandContext) {
             exiPets
           );
           const timeLeft = cropTimeLeft(plot);
+          const price =
+            Math.min(plot.price || 0, plot.baseValue) || plot.baseValue || 0;
+          const cropValue = calculateCropValue(
+            plot,
+            plots,
+            gardenStats.expansions || 0,
+            gardenEarns
+          ).final;
+          const earns = cropValue - price;
           result +=
             `${start + index + 1}. ${formatMutationStr(plot)}${
               plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""
@@ -1187,19 +1249,18 @@ export async function entry(ctx: CommandContext) {
               formatTimeSentence(timeLeft) ||
               (!isCropReady(plot) ? "***BUGGED***!" : "***READY***!")
             }\n` +
-            `${UNIRedux.charm} Value: ${formatCash(
-              calculateCropValue(
-                plot,
-                plots,
-                gardenStats.expansions || 0,
-                gardenEarns
-              ).final
-            )}${
+            `${UNIRedux.charm} Value: ${formatCash(cropValue, true)}${
               isCropOvergrown(plot)
                 ? `\n${UNIRedux.charm} Overgrown Since: ${formatTimeSentence(
                     getOvergrownElapsed(plot)
                   )}`
                 : ""
+            }\n${UNIRedux.charm} Earns: ${formatCash(earns)} ${
+              earns <= price
+                ? "😭 ***LUGI***"
+                : earns > plot.baseValue * 100
+                ? "💰🍾 ***PALDO***"
+                : "✅ ***KUMITA***"
             }\n\n`;
         }
         if (plots.getAll().length > end) {
@@ -1366,7 +1427,14 @@ export async function entry(ctx: CommandContext) {
             }\n` +
             `${UNIRedux.charm} Type: ${item.type}\n` +
             `${UNIRedux.charm} Key: **${item.key}**\n` +
-            `${UNIRedux.charm} Sell Price: ${formatCash(item.sellPrice)}\n` +
+            `${
+              item.type === "gardenSeed"
+                ? `${UNIRedux.charm} Base Value: ${formatCash(
+                    item.cropData.baseValue,
+                    true
+                  )}`
+                : `${UNIRedux.charm} Sell Price: ${formatCash(item.sellPrice)}`
+            }\n` +
             (item.type === "gardenPetCage"
               ? `${UNIRedux.charm} Collects: ${item.petData.seedTypes.join(
                   ", "
@@ -1378,7 +1446,9 @@ export async function entry(ctx: CommandContext) {
                     ? "Enables favoriting"
                     : `Growth ${
                         item.toolData.growthMultiplier || 1
-                      }x, Mutations +${
+                      }x, Mutations (${Object.keys(
+                        item.toolData.mutationChance
+                      ).join(", ")}) +${
                         Object.values(
                           item.toolData.mutationChance || {}
                         ).reduce((a, b) => a + b, 0) * 100
@@ -1840,7 +1910,7 @@ export async function entry(ctx: CommandContext) {
             totalSeedsCollected
           );
           result +=
-            `${start + index + 1}. ${pet.icon} **${pet.name}**${
+            `${start + index + 1}. ${pet.icon} **${pet.name}** [${pet.key}]${
               pet.isEquipped ? ` (Equipped)` : ""
             }\n` +
             `${UNIRedux.charm} Collects: ${pet.petData.seedTypes.join(

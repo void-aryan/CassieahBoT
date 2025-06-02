@@ -220,3 +220,13 @@ export function pickRandomWithProb<T>(
 
   return normalized[low]?.value;
 }
+
+export function randomBiased(
+  min: number,
+  max: number,
+  exponent: number
+): number {
+  const r = Math.random();
+  const biased = Math.pow(r, exponent);
+  return min + (max - min) * biased;
+}

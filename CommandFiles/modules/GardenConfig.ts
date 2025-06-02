@@ -39,4 +39,7 @@ export const CROP_CONFIG = {
     { key: "expand_1", name: "Land Baron", expansions: 1, reward: 2000 },
   ],
   MUTATION_INTERVAL: 15 * 60 * 1000,
+  MIN_KG: 0.18,
+  MAX_KG: 4.32,
+  KILO_BIAS: 6,
 };
