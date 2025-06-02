@@ -1258,7 +1258,7 @@ export async function entry(ctx: CommandContext) {
             }\n${UNIRedux.charm} Earns: ${formatCash(earns)} ${
               earns <= price
                 ? "😭 ***LUGI***"
-                : earns > plot.baseValue * 100
+                : earns > plot.baseValue * 10
                 ? "💰🍾 ***PALDO***"
                 : "✅ ***KUMITA***"
             }\n\n`;
