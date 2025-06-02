@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export const CROP_CONFIG = {
   MUTATIONS: [
     { name: "Wet", valueMultiplier: 2, chance: 0.01 },
@@ -42,4 +44,24 @@ export const CROP_CONFIG = {
   MIN_KG: 0.18,
   MAX_KG: 4.32,
   KILO_BIAS: 6,
+  get STOCK_SEED_URL() {
+    return `https://growagardenstock.com/api/stock?type=gear-seeds&ts=${Date.now()}`;
+  },
 };
+
+export async function fetchSeedStock() {
+  try {
+    const res = await axios.get<FetchedSeedStock>(CROP_CONFIG.STOCK_SEED_URL);
+    console.log("STOCK", res.data);
+    return res.data;
+  } catch (error) {
+    console.error(error?.stack);
+    return null;
+  }
+}
+
+export interface FetchedSeedStock {
+  updatedAt: number;
+  gear: string[];
+  seeds: string[];
+}

@@ -12,7 +12,7 @@ import {
 import OutputProps from "output-cassidy";
 import InputClass, { InputRoles } from "@cass-modules/InputClass";
 import { gardenShop } from "@cass-modules/GardenShop";
-import { CROP_CONFIG } from "@cass-modules/GardenConfig";
+import { CROP_CONFIG, fetchSeedStock } from "@cass-modules/GardenConfig";
 import { EVENT_CONFIG } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
 import { pickRandomWithProb, randomBiased } from "@cass-modules/unitypes";
@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.24",
+  version: "1.4.25",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -556,6 +556,7 @@ async function refreshShopStock() {
   if (currentTime - gardenShop.lastRestock < gardenShop.stockRefreshInterval) {
     return false;
   }
+  const stocks = await fetchSeedStock();
   gardenShop.lastRestock = currentTime;
 
   const event = await getCurrentEvent();
@@ -577,9 +578,23 @@ async function refreshShopStock() {
     });
   }
 
-  gardenShop.itemData.forEach((item) => {
-    item.inStock = forgivingRandom() < item.stockChance;
-  });
+  for (const item of gardenShop.itemData) {
+    let isFetched =
+      stocks && Array.isArray(stocks.seeds)
+        ? stocks.seeds.some(
+            (i) =>
+              item.name.includes(i) ||
+              String(i).includes(item.name) ||
+              item.name.split(" ")[0] === String(i).split(" ")[0]
+          )
+        : false;
+    item.inStock = isFetched || forgivingRandom() < item.stockChance;
+    item.isOfficialStock = isFetched;
+  }
+
+  // gardenShop.itemData.forEach((item) => {
+  //   item.inStock = forgivingRandom() < item.stockChance;
+  // });
   gardenShop.eventItems.forEach((item) => {
     item.inStock = forgivingRandom() < item.stockChance;
   });
@@ -610,6 +625,9 @@ function formatShopItems(
       .map((item) => {
         let noStock = item.inStock === false;
         let flavor = item.flavorText || "";
+        if (item.isOfficialStock) {
+          flavor = `🌱 **STOCKED IN ROBLOX!**\n${flavor}`;
+        }
         const moneySet: { inventory: GardenItem[] } = { inventory: [] };
         item.onPurchase({ moneySet });
         const purchased = moneySet.inventory[0];

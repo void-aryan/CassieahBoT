@@ -40,6 +40,7 @@ export namespace gardenShop {
       flavorText: "Sweet berries with multiple harvests.",
       price: 50,
       rarity: "Common",
+      isOfficialStock: false,
       inStock: true,
       stockLimit: 20,
       stockChance: 1.0,
