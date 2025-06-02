@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.21",
+  version: "1.4.22",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -75,7 +75,8 @@ export type GardenPlot = InventoryItem & {
   isFavorite?: boolean;
   originalGrowthTime: number;
   price: number;
-  noAutoMutation: boolean;
+  lastMutation: number;
+  noAutoMutation?: never;
 };
 
 export type GardenPetActive = InventoryItem & {
@@ -170,8 +171,12 @@ async function autoUpdateCropData(
   }
 
   const isOver = isCropOvergrown(crop);
+  let now = Date.now();
+  const allowM = crop.lastMutation
+    ? now - crop.lastMutation >= CROP_CONFIG.MUTATION_INTERVAL
+    : true;
 
-  if (isOver && !crop.noAutoMutation) {
+  if (isOver && allowM) {
     await applyMutation(crop, tools, pets);
   }
 
@@ -373,7 +378,7 @@ async function applyMutation(
     }
   }
 
-  crop.noAutoMutation = true;
+  crop.lastMutation = Date.now();
   return crop;
 }
 
@@ -878,7 +883,7 @@ export async function entry(ctx: CommandContext) {
             type: "activePlot",
             isFavorite: false,
             price,
-            noAutoMutation: false,
+            lastMutation: null,
           };
           if (Math.random() < 0.1) {
             plot = await applyMutation(
@@ -900,7 +905,6 @@ export async function entry(ctx: CommandContext) {
             ),
             exiPets
           );
-          plot.noAutoMutation = false;
 
           firstPlot ??= plot;
           plots.addOne(plot);
@@ -1062,7 +1066,6 @@ export async function entry(ctx: CommandContext) {
               ),
               exiPets
             );
-            plot.noAutoMutation = false;
             plots.deleteRef(plot);
             plots.addOne(plot);
           }

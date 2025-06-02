@@ -38,4 +38,5 @@ export const CROP_CONFIG = {
     { key: "mutation_10", name: "Mutation Maniac", mutations: 10, reward: 500 },
     { key: "expand_1", name: "Land Baron", expansions: 1, reward: 2000 },
   ],
+  MUTATION_INTERVAL: 15 * 60 * 1000,
 };
