@@ -382,7 +382,7 @@ export const EVENT_CONFIG = {
       shopName2: "Poppy's Easter Shop",
       shopAlias: ["easter", "eash"],
       effect: {
-        mutationChance: 0.2,
+        mutationChance: 0.7,
         growthMultiplier: 1.2,
         mutationType: "Chocolate",
       },
@@ -556,9 +556,7 @@ export const EVENT_CONFIG = {
       shopName: "angryshop",
       shopAlias: ["ashop", "angshop", "angry"],
       effect: {
-        mutationChance: 0.25,
         growthMultiplier: 1.1,
-        mutationType: "Angry",
       },
       shopItems: [
         // {
@@ -993,8 +991,8 @@ export const EVENT_CONFIG = {
               sellPrice: 1_000_000_000,
               cropData: {
                 baseValue: 100_000_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 10.5,
-                harvests: 15,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 30.5,
+                harvests: 12,
               },
             });
           },
@@ -1088,7 +1086,7 @@ export const EVENT_CONFIG = {
           rarity: "Uncommon",
           stockLimit: 1,
 
-          stockChance: 0.6,
+          stockChance: 0.01,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -1113,7 +1111,7 @@ export const EVENT_CONFIG = {
           flavorText: "A mystical frog from the Lunar Glow Event.",
           price: 3000000,
           rarity: "Rare",
-          stockChance: 0.4,
+          stockChance: 0.001,
           stockLimit: 1,
 
           inStock: true,
@@ -1142,7 +1140,7 @@ export const EVENT_CONFIG = {
           stockLimit: 1,
 
           rarity: "Rare",
-          stockChance: 0.3,
+          stockChance: 0.1,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -1169,7 +1167,7 @@ export const EVENT_CONFIG = {
           stockLimit: 1,
 
           rarity: "Rare",
-          stockChance: 0.4,
+          stockChance: 0.1,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -1196,7 +1194,7 @@ export const EVENT_CONFIG = {
           flavorText: "A fuzzy pet from the Lunar Glow Event.",
           price: 4000000,
           rarity: "Legendary",
-          stockChance: 0.2,
+          stockChance: 0.0002,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -1208,7 +1206,7 @@ export const EVENT_CONFIG = {
               sellPrice: 200000,
               petData: {
                 name: "Kiwi",
-                collectionRate: 0.2,
+                collectionRate: 0.01,
                 seedTypes: ["gsMoonMango", "gsNightshade"],
               },
             });
@@ -1277,7 +1275,7 @@ export const EVENT_CONFIG = {
           stockLimit: 1,
 
           rarity: "Mythical",
-          stockChance: 0.1,
+          stockChance: 0.0001,
           inStock: true,
           onPurchase({ moneySet }) {
             moneySet.inventory.push({
@@ -1289,7 +1287,7 @@ export const EVENT_CONFIG = {
               sellPrice: 300000,
               petData: {
                 name: "Blood Hedgehog",
-                collectionRate: 0.25,
+                collectionRate: 0.025,
                 seedTypes: ["gsCelestiberry", "gsMoonMango"],
               },
             });
@@ -1379,7 +1377,7 @@ export const EVENT_CONFIG = {
           icon: "🥚🌙",
           name: "Night Egg",
           key: "gtNightEgg",
-          stockLimit: 1,
+          stockLimit: 0.3,
 
           flavorText: "A mysterious egg from the Lunar Glow Event.",
           price: 1000,

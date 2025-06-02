@@ -162,3 +162,61 @@ export function pickWithRest<T, K extends keyof T>(
 
   return { ...picked, ...rest } as PickWithRest<T, K>;
 }
+
+export type RandomWithProbParameter<T> = {
+  chance: number;
+  value: T;
+};
+
+/**
+ * Normalize and sort array of { chance, value } by descending chance.
+ */
+export function randomWithProb<T>(
+  items: RandomWithProbParameter<T>[]
+): RandomWithProbParameter<T>[] {
+  const totalChance = items.reduce((sum, item) => sum + item.chance, 0);
+
+  if (totalChance === 0) return [...items];
+
+  const normalized = items.map((item) => ({
+    chance: item.chance / totalChance,
+    value: item.value,
+  }));
+
+  normalized.sort((a, b) => b.chance - a.chance);
+
+  return normalized;
+}
+
+/**
+ * Picks a random value from items weighted by chance.
+ */
+export function pickRandomWithProb<T>(
+  items: RandomWithProbParameter<T>[]
+): T | undefined {
+  const totalChance = items.reduce((sum, item) => sum + item.chance, 0);
+  if (totalChance === 0) return undefined;
+
+  const normalized = items.map((item) => ({
+    chance: item.chance / totalChance,
+    value: item.value,
+  }));
+
+  const cumulative = normalized.reduce<number[]>((acc, item, i) => {
+    if (i === 0) acc.push(item.chance);
+    else acc.push(acc[i - 1] + item.chance);
+    return acc;
+  }, []);
+
+  const rand = Math.random();
+
+  let low = 0,
+    high = cumulative.length - 1;
+  while (low < high) {
+    const mid = Math.floor((low + high) / 2);
+    if (rand < cumulative[mid]) high = mid;
+    else low = mid + 1;
+  }
+
+  return normalized[low]?.value;
+}

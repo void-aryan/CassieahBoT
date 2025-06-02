@@ -615,7 +615,7 @@ export namespace gardenShop {
       price: 10_000_000,
       rarity: "Prismatic",
       inStock: true,
-      stockLimit: 10,
+      stockLimit: 5,
       stockChance: 0.03,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({

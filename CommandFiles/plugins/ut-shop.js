@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.0.1",
+  version: "2.0.2",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -1109,8 +1109,9 @@ export class UTShop {
       const inventoryLimit = invLimit;
       const { input, output, money, args, Inventory, getInflationRate } =
         context;
+      this.style ??= context.command?.style;
 
-      if (context.command.style) {
+      if (context.command?.style) {
         output.setStyle(context.command.style);
       }
       if (this.style) {

@@ -15,6 +15,7 @@ import { gardenShop } from "../modules/GardenShop";
 import { CROP_CONFIG } from "../modules/GardenConfig";
 import { EVENT_CONFIG } from "../modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
+import { pickRandomWithProb } from "@cass-modules/unitypes";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
@@ -70,7 +71,7 @@ export type GardenPlot = InventoryItem & {
   growthTime: number;
   harvestsLeft: number;
   baseValue: number;
-  mutation: string | null;
+  mutation: string[];
   isFavorite?: boolean;
   originalGrowthTime: number;
   price: number;
@@ -100,26 +101,36 @@ function calculateCropValue(
   expansions: number,
   totalEarns: number
 ) {
-  const mutation = CROP_CONFIG.MUTATIONS.find((m) => m.name === crop.mutation);
+  const mutations = (crop.mutation || [])
+    .map((mutationName) =>
+      CROP_CONFIG.MUTATIONS.find((m) => m.name === mutationName)
+    )
+    .filter(Boolean);
+
+  const totalMutationBonus = mutations.reduce(
+    (acc, curr) => acc + (curr.valueMultiplier - 1),
+    0
+  );
+  const combinedMultiplier = 1 + totalMutationBonus;
+
   const plantedCount = plots.getAll().length;
   const plantingBonus = Math.min(1, 0.1 * Math.floor(plantedCount / 10));
   const expansionBonus = 0.05 * expansions;
 
   const earnMultiplier = Math.max(
     1,
-    Math.min(1000000000, safeEX((1 / 1_000_000) * totalEarns, 0.15))
+    Math.min(10, safeEX((1 / 1_000_000) * totalEarns, 0.15))
   );
 
   const final = Math.floor(
     crop.baseValue *
-      (mutation ? mutation.valueMultiplier : 1) *
+      combinedMultiplier *
       (1 + plantingBonus + expansionBonus) *
       earnMultiplier
   );
+
   const noExtra = Math.floor(
-    crop.baseValue *
-      (mutation ? mutation.valueMultiplier : 1) *
-      (1 + plantingBonus + expansionBonus)
+    crop.baseValue * combinedMultiplier * (1 + plantingBonus + expansionBonus)
   );
 
   return { final: Math.max(final, 0) || 0, noExtra: Math.max(0, noExtra) || 0 };
@@ -129,8 +140,12 @@ function isCropReady(crop: GardenPlot) {
   return cropTimeLeft(crop) <= 0;
 }
 
-function cropTimeLeft(plot: GardenPlot) {
-  const timeLeft = Math.max(0, plot.plantedAt + plot.growthTime - Date.now());
+function cropTimeLeft(plot: GardenPlot, allowNegative = false) {
+  const e = plot.plantedAt + plot.growthTime - Date.now();
+  if (allowNegative) {
+    return e;
+  }
+  const timeLeft = Math.max(0, e);
   return timeLeft;
 }
 
@@ -140,16 +155,31 @@ function safeEX(a: number, p: number) {
 
 async function autoUpdateCropData(
   crop: GardenPlot,
-  tools: Inventory<GardenTool>
+  tools: Inventory<GardenTool>,
+  pets: Inventory<GardenPetActive>
 ) {
   if (!crop) return null;
   crop.originalGrowthTime ??= crop.growthTime;
+  crop.mutation ??= [];
+  if (typeof crop.mutation === "string") {
+    crop.mutation = [crop.mutation];
+  }
+
+  if (!Array.isArray(crop.mutation)) {
+    crop.mutation = [];
+  }
+
+  const isOver = isCropOvergrown(crop);
+
+  if (isOver && crop.mutation.length === 0) {
+    await applyMutation(crop, tools, pets);
+  }
 
   const event = await getCurrentEvent();
 
   const baseGrowthMultiplier = event.effect?.growthMultiplier || 1;
 
-  let growthBoost = safeEX(baseGrowthMultiplier, 0.9);
+  let growthBoost = Math.min(0.99, safeEX(baseGrowthMultiplier, 0.9));
 
   tools.getAll().forEach((tool) => {
     if (tool.toolData?.growthMultiplier) {
@@ -166,13 +196,34 @@ async function autoUpdateCropData(
     )
   );
 
-  if (crop.mutation && crop.harvestsLeft > 1) {
+  if ((crop.mutation ?? []).length > 0 && crop.harvestsLeft > 1) {
     crop.growthTime = Math.floor(
       crop.growthTime * CROP_CONFIG.OVERGROWTH_PENALTY
     );
   }
 
+  for (const mutation of CROP_CONFIG.MUTATIONS) {
+    if (Array.isArray(mutation.both)) {
+      if (
+        mutation.both.every((i) => crop.mutation.includes(i)) &&
+        !crop.mutation.includes(mutation.name)
+      ) {
+        crop.mutation.push(mutation.name);
+      }
+    }
+  }
+
+  crop.mutation = [...new Set(crop.mutation)];
+
   return crop;
+}
+
+function isCropOvergrown(crop: GardenPlot) {
+  const timeLeft = cropTimeLeft(crop, true);
+  const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
+  const growthProgress = (originalGrowth - timeLeft) / originalGrowth;
+
+  return growthProgress >= 0.75;
 }
 
 async function getTimeForNextEvent() {
@@ -244,17 +295,19 @@ async function skipEvent(
   return skipStamp;
 }
 
-async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
+async function applyMutation(
+  crop: GardenPlot,
+  tools: Inventory<GardenTool>,
+  pets: Inventory<GardenPetActive>
+) {
+  crop.mutation = [];
+
   const event = await getCurrentEvent();
-
-  const baseMutationChance = event.effect?.mutationChance || 0;
-
-  const baseNonlinearBoost = safeEX(baseMutationChance, 0.9);
 
   const mutationBoosts = new Map<string, number>();
 
   CROP_CONFIG.MUTATIONS.forEach((mutation) => {
-    mutationBoosts.set(mutation.name, Math.min(0.5, baseNonlinearBoost));
+    mutationBoosts.set(mutation.name, 0.1);
   });
 
   tools.getAll().forEach((tool) => {
@@ -273,7 +326,7 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
           CROP_CONFIG.MUTATIONS.find(
             (m) => m.name === event.effect.mutationType
           )
-        ),
+        ).filter(Boolean),
         ...CROP_CONFIG.MUTATIONS.filter(
           (m) => m.name !== event.effect.mutationType
         ),
@@ -281,16 +334,30 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
     : CROP_CONFIG.MUTATIONS;
 
   for (const mutation of mutations) {
-    const roll = Math.random();
-    const boost = mutationBoosts.get(mutation.name) ?? 0;
-    const chance = Math.min(
-      0.5,
-      mutation.chance + safeEX(mutation.chance / (1 - boost), 0.9)
-    );
+    if (!mutation) continue;
+    let mchance =
+      mutation.name === event.effect?.mutationType
+        ? event.effect.mutationChance ?? mutation.chance
+        : mutation.chance;
+    if (Array.isArray(mutation.pet)) {
+      if (
+        mutation.pet.some((i) => pets.has(i)) &&
+        !crop.mutation.includes(mutation.name)
+      ) {
+        mchance = mutation.chance;
+      } else {
+        mchance = 0;
+      }
+    }
 
-    if (roll <= chance && Math.random() < 0.25) {
-      crop.mutation = mutation.name;
-      return crop;
+    const roll = Math.random();
+    const boost = Math.min(0.99, mutationBoosts.get(mutation.name) ?? 0);
+    const chance = Math.min(0.5, mchance + safeEX(mchance / (1 - boost), 0.9));
+
+    if (roll <= chance && Math.random() < 0.5) {
+      if (!crop.mutation.includes(mutation.name)) {
+        crop.mutation.push(mutation.name);
+      }
     }
   }
 
@@ -298,13 +365,13 @@ async function applyMutation(crop: GardenPlot, tools: Inventory<GardenTool>) {
 }
 
 function formatMutationStr(plot: GardenPlot) {
-  return `${plot.icon} **${plot.name}**${
-    plot.mutation
-      ? ` ${UNISpectra.disc} ${FontSystem.fonts.double_struck(
-          plot.mutation.toUpperCase?.()
-        )}`
+  return `[ ${
+    (plot.mutation ?? []).length > 0
+      ? `${plot.mutation
+          .map((i) => FontSystem.fonts.double_struck(i.toUpperCase?.()))
+          .join(", ")} ] `
       : ""
-  }`;
+  }${plot.icon} **${plot.name}**`;
 }
 
 function updatePetCollection(
@@ -325,15 +392,28 @@ function updatePetCollection(
   );
   const collected: GardenItem[] = [];
   if (collections >= 1) {
+    const shopItems = [...gardenShop.itemData, ...gardenShop.eventItems];
     pet.lastCollect = currentTime;
     for (let i = 0; i < collections; i++) {
-      const seed =
-        pet.petData.seedTypes[
-          Math.floor(Math.random() * pet.petData.seedTypes.length)
-        ];
-      const shopItem = [...gardenShop.itemData, ...gardenShop.eventItems].find(
-        (item) => item.key === seed
+      // const seed =
+      //   pet.petData.seedTypes[
+      //     Math.floor(Math.random() * pet.petData.seedTypes.length)
+      //   ];
+      const seed = pickRandomWithProb(
+        pet.petData.seedTypes.map((i) => {
+          const shopItem = shopItems.find((item) => item.key === i);
+          return {
+            chance: shopItem?.stockChance ?? 0,
+            value: i,
+          };
+        })
       );
+
+      if (!seed) {
+        continue;
+      }
+
+      const shopItem = shopItems.find((item) => item.key === seed);
       if (shopItem && inventory.size() < global.Cassidy.invLimit) {
         const cache = inventory.getAll();
         const cache2 = [...cache];
@@ -565,6 +645,13 @@ export async function entry(ctx: CommandContext) {
   let isHypen = !!input.propertyArray[0];
   const collectibles = new Collectibles(rawCLL);
   correctItems(rawInventory as GardenItem[]);
+  const exiTool = new Inventory(
+    rawInventory.filter(
+      (item): item is GardenTool => item.type === "gardenTool"
+    )
+  );
+  const exiPets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
+  rawPlots.forEach((i: GardenPlot) => autoUpdateCropData(i, exiTool, exiPets));
 
   gardenEarns = gardenEarns || 0;
   gardenEarns = Math.max(gardenEarns, 0);
@@ -774,31 +861,36 @@ export async function entry(ctx: CommandContext) {
             originalGrowthTime: seed.cropData.growthTime,
             harvestsLeft: seed.cropData.harvests,
             baseValue: seed.cropData.baseValue,
-            mutation: null,
+            mutation: [],
             type: "activePlot",
             isFavorite: false,
             price,
           };
-          plot = await applyMutation(
-            plot,
-            new Inventory<GardenTool>(
-              rawInventory.filter(
-                (item) => item.type === "gardenTool"
-              ) as GardenTool[]
-            )
-          );
+          if (Math.random() < 0.1) {
+            plot = await applyMutation(
+              plot,
+              new Inventory<GardenTool>(
+                rawInventory.filter(
+                  (item) => item.type === "gardenTool"
+                ) as GardenTool[]
+              ),
+              exiPets
+            );
+          }
           plot = await autoUpdateCropData(
             plot,
             new Inventory<GardenTool>(
               rawInventory.filter(
                 (item) => item.type === "gardenTool"
               ) as GardenTool[]
-            )
+            ),
+            exiPets
           );
           firstPlot ??= plot;
           plots.addOne(plot);
-          if (plot.mutation) {
-            gardenStats.mutationsFound = (gardenStats.mutationsFound || 0) + 1;
+          if (plot.mutation.length > 0) {
+            gardenStats.mutationsFound =
+              (gardenStats.mutationsFound || 0) + plot.mutation.length;
           }
 
           planted.push(
@@ -837,7 +929,7 @@ export async function entry(ctx: CommandContext) {
               calculateCropValue(
                 {
                   ...plots.getAll()[plots.getAll().length - 1],
-                  mutation: null,
+                  mutation: [],
                 },
                 plots,
                 gardenStats.expansions || 0,
@@ -877,7 +969,7 @@ export async function entry(ctx: CommandContext) {
 
         const readyPlots: GardenPlot[] = [];
         for (const plot of plots) {
-          const item = await autoUpdateCropData(plot, tools);
+          const item = await autoUpdateCropData(plot, tools, exiPets);
           if (isCropReady(item) && readyPlots.length < 20) {
             readyPlots.push(item);
           }
@@ -905,8 +997,14 @@ export async function entry(ctx: CommandContext) {
               rawInventory.filter(
                 (item) => item.type === "gardenTool"
               ) as GardenTool[]
-            )
+            ),
+            exiPets
           );
+
+          if (plot.mutation.length > 0) {
+            gardenStats.mutationsFound =
+              (gardenStats.mutationsFound || 0) + plot.mutation.length;
+          }
           const value = calculateCropValue(
             plot,
             plots,
@@ -944,7 +1042,8 @@ export async function entry(ctx: CommandContext) {
                 rawInventory.filter(
                   (item) => item.type === "gardenTool"
                 ) as GardenTool[]
-              )
+              ),
+              exiPets
             );
             plots.deleteRef(plot);
             plots.addOne(plot);
@@ -973,18 +1072,20 @@ export async function entry(ctx: CommandContext) {
           .sort((a, b) => b.value.final - a.value.final)
           .map(
             ({ plot, value }) =>
-              `${plot.icon} ${plot.name}${
-                plot.mutation
-                  ? ` ${UNISpectra.disc} (${fonts.double_struck(
-                      plot.mutation.toUpperCase?.()
-                    )} +${abbreviateNumber(value.noExtra - plot.baseValue)})`
+              `${
+                (plot.mutation ?? []).length > 0
+                  ? `[ ${plot.mutation
+                      .map((i) => fonts.double_struck(i.toUpperCase?.()))
+                      .join(", ")} +${abbreviateNumber(
+                      value.noExtra - plot.baseValue
+                    )} ] `
                   : ""
-              } - ${formatCash(value.final, true)}`
+              }${plot.icon} ${plot.name} - ${formatCash(value.final, true)}`
           );
         const addedEarns = gardenEarns - origEarns;
 
         return output.replyStyled(
-          `✅🧺 **Harvested**:\n${harvestedStr.join("\n")}\n\n` +
+          `✅🧺 **Automatically Sold!**:\n${harvestedStr.join("\n")}\n\n` +
             (seedsGained.length > 0
               ? `🌱🧺 **Lucky Harvest Seeds**:\n${seedsGained.join("\n")}\n\n`
               : "") +
@@ -1047,7 +1148,8 @@ export async function entry(ctx: CommandContext) {
               rawInventory.filter(
                 (item) => item.type === "gardenTool"
               ) as GardenTool[]
-            )
+            ),
+            exiPets
           );
           const timeLeft = cropTimeLeft(plot);
           result +=
