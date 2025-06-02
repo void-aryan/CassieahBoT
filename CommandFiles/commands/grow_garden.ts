@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.19",
+  version: "1.4.21",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -75,6 +75,7 @@ export type GardenPlot = InventoryItem & {
   isFavorite?: boolean;
   originalGrowthTime: number;
   price: number;
+  noAutoMutation: boolean;
 };
 
 export type GardenPetActive = InventoryItem & {
@@ -108,10 +109,11 @@ function calculateCropValue(
     .filter(Boolean);
 
   const totalMutationBonus = mutations.reduce(
-    (acc, curr) => acc + (curr.valueMultiplier - 1),
-    0
+    (acc, curr) => acc * curr.valueMultiplier,
+    1
   );
-  const combinedMultiplier = 1 + totalMutationBonus;
+
+  const combinedMultiplier = totalMutationBonus;
 
   const plantedCount = plots.getAll().length;
   const plantingBonus = Math.min(1, 0.1 * Math.floor(plantedCount / 10));
@@ -129,9 +131,7 @@ function calculateCropValue(
       earnMultiplier
   );
 
-  const noExtra = Math.floor(
-    crop.baseValue * combinedMultiplier * (1 + plantingBonus + expansionBonus)
-  );
+  const noExtra = Math.floor(final - crop.baseValue * combinedMultiplier);
 
   return { final: Math.max(final, 0) || 0, noExtra: Math.max(0, noExtra) || 0 };
 }
@@ -171,7 +171,7 @@ async function autoUpdateCropData(
 
   const isOver = isCropOvergrown(crop);
 
-  if (isOver && crop.mutation.length === 0) {
+  if (isOver && !crop.noAutoMutation) {
     await applyMutation(crop, tools, pets);
   }
 
@@ -223,7 +223,16 @@ function isCropOvergrown(crop: GardenPlot) {
   const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
   const growthProgress = (originalGrowth - timeLeft) / originalGrowth;
 
-  return growthProgress >= 0.75;
+  return growthProgress >= 2;
+}
+
+function getOvergrownElapsed(crop: GardenPlot): number {
+  const timeLeft = cropTimeLeft(crop, true);
+  const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
+  const elapsed = originalGrowth - timeLeft;
+  const overgrownThreshold = 2 * originalGrowth;
+
+  return Math.max(0, elapsed - overgrownThreshold);
 }
 
 async function getTimeForNextEvent() {
@@ -355,15 +364,16 @@ async function applyMutation(
       mchance === 0
         ? 0
         : Math.min(0.99, mutationBoosts.get(mutation.name) ?? 0);
-    const chance = Math.min(0.5, mchance + safeEX(mchance / (1 - boost), 0.9));
+    const chance = Math.min(0.5, mchance * (1 + boost));
 
-    if (roll <= chance && Math.random() < 0.5) {
+    if (roll <= chance) {
       if (!crop.mutation.includes(mutation.name)) {
         crop.mutation.push(mutation.name);
       }
     }
   }
 
+  crop.noAutoMutation = true;
   return crop;
 }
 
@@ -868,6 +878,7 @@ export async function entry(ctx: CommandContext) {
             type: "activePlot",
             isFavorite: false,
             price,
+            noAutoMutation: false,
           };
           if (Math.random() < 0.1) {
             plot = await applyMutation(
@@ -889,6 +900,8 @@ export async function entry(ctx: CommandContext) {
             ),
             exiPets
           );
+          plot.noAutoMutation = false;
+
           firstPlot ??= plot;
           plots.addOne(plot);
           if (plot.mutation.length > 0) {
@@ -1039,6 +1052,7 @@ export async function entry(ctx: CommandContext) {
           } else {
             plot.plantedAt = Date.now();
             plot.growthTime = Math.floor(plot.growthTime * 1.2);
+
             await applyMutation(
               plot,
               new Inventory<GardenTool>(
@@ -1048,6 +1062,7 @@ export async function entry(ctx: CommandContext) {
               ),
               exiPets
             );
+            plot.noAutoMutation = false;
             plots.deleteRef(plot);
             plots.addOne(plot);
           }
@@ -1171,7 +1186,13 @@ export async function entry(ctx: CommandContext) {
                 gardenStats.expansions || 0,
                 gardenEarns
               ).final
-            )}\n\n`;
+            )}${
+              isCropOvergrown(plot)
+                ? `\n${UNIRedux.charm} Overgrown Since: ${formatTimeSentence(
+                    getOvergrownElapsed(plot)
+                  )}`
+                : ""
+            }\n\n`;
         }
         if (plots.getAll().length > end) {
           result += `View more: ${prefix}${commandName}${

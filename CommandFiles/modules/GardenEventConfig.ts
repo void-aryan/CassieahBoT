@@ -382,7 +382,7 @@ export const EVENT_CONFIG = {
       shopName2: "Poppy's Easter Shop",
       shopAlias: ["easter", "eash"],
       effect: {
-        mutationChance: 0.7,
+        mutationChance: 0.3,
         growthMultiplier: 1.2,
         mutationType: "Chocolate",
       },
