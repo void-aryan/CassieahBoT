@@ -176,7 +176,7 @@ async function autoUpdateCropData(
     ? now - crop.lastMutation >= CROP_CONFIG.MUTATION_INTERVAL
     : true;
 
-  if (isOver && allowM) {
+  if (isOver && allowM && crop.mutation.length === 0) {
     await applyMutation(crop, tools, pets);
   }
 
