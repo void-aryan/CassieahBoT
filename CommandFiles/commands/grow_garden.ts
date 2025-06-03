@@ -2272,6 +2272,7 @@ export async function entry(ctx: CommandContext) {
         collectibles.raise("gems", -stealCost);
         await money.setItem(input.senderID, {
           collectibles: Array.from(collectibles),
+          gardenPlots: Array.from(myPlots),
         });
         await money.setItem(UID, {
           gardenPlots: Array.from(targetPlots),
