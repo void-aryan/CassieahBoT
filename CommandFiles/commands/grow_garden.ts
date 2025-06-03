@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.29",
+  version: "1.5.0",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -222,7 +222,7 @@ async function autoUpdateCropData(
       ? Math.floor((now - crop.lastMutation) / CROP_CONFIG.MUTATION_INTERVAL)
       : 1;
     for (let i = 0; i < repeats; i++) {
-      await applyMutation(crop, tools, pets);
+      await applyMutation(crop, tools, pets, true);
     }
   }
 
@@ -360,9 +360,12 @@ async function skipEvent(
 async function applyMutation(
   crop: GardenPlot,
   tools: Inventory<GardenTool>,
-  pets: Inventory<GardenPetActive>
+  pets: Inventory<GardenPetActive>,
+  accum = false
 ) {
-  crop.mutation = [];
+  if (!accum) {
+    crop.mutation = [];
+  }
 
   const event = await getCurrentEvent();
 
