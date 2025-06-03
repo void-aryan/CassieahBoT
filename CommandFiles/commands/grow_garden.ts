@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.27",
+  version: "1.4.28",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -554,9 +554,11 @@ async function checkAchievements(
 
 let officialUpdatedAt: number = null;
 
-async function refreshShopStock() {
+async function refreshShopStock(force = false) {
   const currentTime = Date.now();
-  if (currentTime - gardenShop.lastRestock < gardenShop.stockRefreshInterval) {
+  const timePassed = currentTime - gardenShop.lastRestock;
+
+  if (timePassed >= gardenShop.stockRefreshInterval - 1000 && !force) {
     return false;
   }
   const stocks = await fetchSeedStock();
@@ -565,13 +567,16 @@ async function refreshShopStock() {
     officialUpdatedAt = stocks.updatedAt;
 
     const timePassed = currentTime - officialUpdatedAt;
-    const timeLeft = timePassed;
-    gardenShop.lastRestock = currentTime - timeLeft;
+    const timeLeft = Math.abs(timePassed) % gardenShop.stockRefreshInterval;
+    gardenShop.lastRestock = currentTime - Math.abs(timeLeft);
     console.log({
       timeLeft,
       timePassed,
       newRestock: currentTime - timeLeft,
     });
+    if (getTimeUntilRestock() <= 0) {
+      gardenShop.lastRestock = currentTime;
+    }
   } else {
     gardenShop.lastRestock = currentTime;
   }
@@ -628,7 +633,8 @@ async function refreshShopStock() {
 
 function getTimeUntilRestock() {
   const currentTime = Date.now();
-  const timePassed = currentTime - gardenShop.lastRestock;
+  const timePassed =
+    (currentTime - gardenShop.lastRestock) % gardenShop.stockRefreshInterval;
   const timeLeft = gardenShop.stockRefreshInterval - timePassed;
 
   return Math.max(0, timeLeft);
@@ -2926,3 +2932,5 @@ export const style: CassidySpectra.CommandStyle = {
     text_font: "fancy",
   },
 };
+
+refreshShopStock(true);
