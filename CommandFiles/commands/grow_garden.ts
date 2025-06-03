@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.3",
+  version: "1.5.4",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -112,7 +112,7 @@ function calculateCropValue(
     .filter(Boolean);
 
   const totalMutationBonus = mutations.reduce(
-    (acc, curr) => acc * curr.valueMultiplier,
+    (acc, curr) => acc * (curr.valueMultiplier ?? 1),
     1
   );
 
@@ -432,12 +432,20 @@ async function applyMutation(
   crop.lastMutation = Date.now();
   return crop;
 }
+function getMutation(name: string) {
+  return CROP_CONFIG.MUTATIONS.find((m) => m.name === name);
+}
 
 function formatMutationStr(plot: GardenPlot) {
   return `${
     (plot.mutation ?? []).length > 0
       ? `[ ${plot.mutation
-          .map((i) => FontSystem.fonts.double_struck(i))
+          .map(
+            (i) =>
+              `${getMutation(i)?.icon ?? "❓"} ${FontSystem.fonts.double_struck(
+                i
+              )}`
+          )
           .join(" + ")} ] `
       : ""
   }${plot.icon} **${plot.name}** (${plot.kiloGrams}kg)`;
@@ -1349,7 +1357,12 @@ export async function entry(ctx: CommandContext) {
               `${
                 (plot.mutation ?? []).length > 0
                   ? `[ ${plot.mutation
-                      .map((i) => fonts.double_struck(i))
+                      .map(
+                        (i) =>
+                          `${
+                            getMutation(i)?.icon ?? "❓"
+                          } ${fonts.double_struck(i)}`
+                      )
                       .join(" + ")} +${abbreviateNumber(
                       value.noExtra - plot.baseValue
                     )} ] `
