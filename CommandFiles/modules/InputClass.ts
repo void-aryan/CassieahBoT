@@ -97,6 +97,8 @@ export class InputClass extends String implements InputProps {
   public ReplySystem: ReplySystem;
   public ReactSystem: ReactSystem;
 
+  public attachmentUrls: string[];
+
   constructor(obj: CommandContext) {
     const { replies, reacts } = global.Cassidy;
 
@@ -306,6 +308,12 @@ export class InputClass extends String implements InputProps {
 
       this.sid = this.senderID;
       this.tid = this.threadID;
+      this.attachmentUrls = [];
+      if (Array.isArray(this.attachments)) {
+        this.attachmentUrls = this.attachments
+          .map((i) => i?.url)
+          .filter(Boolean);
+      }
       this.hasMentions = Object.keys(this.mentions).length > 0;
       this.firstMention = this.hasMentions
         ? {

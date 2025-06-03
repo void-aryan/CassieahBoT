@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.0",
+  version: "1.5.1",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -478,7 +478,7 @@ function updatePetCollection(
         })
       );
 
-      if (!seed) {
+      if (!seed || Math.random() < 0.6) {
         continue;
       }
 
@@ -2045,9 +2045,10 @@ export async function entry(ctx: CommandContext) {
             style
           );
         }
-        if (!spectralArgs[0]) {
+        const UID = spectralArgs[0] || input.detectID;
+        if (!UID) {
           return output.replyStyled(
-            `❌ Please specify a player ID to steal from!\n\n` +
+            `❌ Please specify a player ID to steal from or reply to their message, or mention them!\n\n` +
               `**Next Steps**:\n` +
               `${UNISpectra.arrowFromT} Try again: ${prefix}${commandName}${
                 isHypen ? "-" : " "
@@ -2055,7 +2056,7 @@ export async function entry(ctx: CommandContext) {
             style
           );
         }
-        const target = await money.getCache(spectralArgs[0]);
+        const target = await money.getCache(UID);
         const targetPlots = new Inventory<GardenPlot>(target.gardenPlots || []);
         const stealablePlots = targetPlots
           .getAll()
@@ -2111,7 +2112,7 @@ export async function entry(ctx: CommandContext) {
           collectibles: Array.from(collectibles),
           inventory: Array.from(inventory),
         });
-        await money.setItem(spectralArgs[0], {
+        await money.setItem(UID, {
           gardenPlots: Array.from(targetPlots),
         });
 
@@ -2275,9 +2276,14 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
-        plots.getAll().forEach((plot) => {
-          plot.plantedAt = 0;
-        });
+        for (let plot of plots) {
+          plot = await autoUpdateCropData(plot, exiTool, exiPets);
+          const timeLeft = cropTimeLeft(plot);
+          if (timeLeft <= 0) {
+            continue;
+          }
+          plot.plantedAt -= timeLeft;
+        }
         collectibles.raise("gems", -growAllCost);
         await money.setItem(input.senderID, {
           gardenPlots: Array.from(plots),
