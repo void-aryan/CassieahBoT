@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.1",
+  version: "1.5.2",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -472,7 +472,7 @@ function updatePetCollection(
         pet.petData.seedTypes.map((i) => {
           const shopItem = shopItems.find((item) => item.key === i);
           return {
-            chance: shopItem?.stockChance ?? 0,
+            chance: (shopItem?.stockChance ?? 0) ** 6,
             value: i,
           };
         })
@@ -725,7 +725,149 @@ function correctItems(rawInv: GardenItem[]) {
   return rawInv;
 }
 
+// interface NotifMapItem {
+//   threads: Array<{
+//     timeout: NodeJS.Timeout;
+//     threadID: string;
+//     output: OutputProps;
+//     ts: number;
+//   }>;
+//   userID: string;
+// }
+
+// export async function registerNotif(ctx: CommandContext) {
+//   const { input, output } = ctx;
+//   if (input.isWeb) return;
+
+//   const now = Date.now();
+//   const userID = input.senderID;
+//   const threadID = input.threadID;
+
+//   let notifMap = NOTIF_MAP.find((i) => i.userID === userID);
+//   if (!notifMap) {
+//     notifMap = { userID, threads: [] };
+//     NOTIF_MAP.push(notifMap);
+//   }
+
+//   const threads = notifMap.threads;
+//   const ex = threads.find((i) => i.threadID === threadID);
+
+//   if (!ex) {
+//     const timeout = setTimeout(() => {
+//       notifJob(output, userID, threadID);
+//       const idx = threads.findIndex((i) => i.threadID === threadID);
+//       if (idx !== -1) threads.splice(idx, 1);
+//     }, CROP_CONFIG.NOTIF_TIMEOUT);
+
+//     threads.push({
+//       output,
+//       threadID,
+//       timeout,
+//       ts: now,
+//     });
+//   }
+// }
+
+// export const NOTIF_MAP: NotifMapItem[] = [];
+
+// export async function notifJob(
+//   output: OutputProps,
+//   uid: string,
+//   threadID: string
+// ) {
+//   const { databases } = global.Cassidy;
+//   const { usersDB } = databases;
+//   let {
+//     name = "",
+//     gardenPlots: rawPlots = [],
+//     gardenPets: rawPets = [],
+//     inventory: rawInventory = [],
+//     // money: userMoney = 0,
+//     // gardenStats = {
+//     //   plotsHarvested: 0,
+//     //   mutationsFound: 0,
+//     //   expansions: 0,
+//     //   achievements: [],
+//     // },
+//     // plotLimit = PLOT_LIMIT,
+//     // lastSideExpansion = 0,
+//     // lastRearExpansion1 = 0,
+//     // lastRearExpansion2 = 0,
+//     // allowGifting = true,
+//     // gardenEarns = 0,
+//     // collectibles: rawCLL,
+//     // enableGardenNotif = false,
+//   } = await usersDB.getCache(uid);
+//   // if (!enableGardenNotif) {
+//   //   return;
+//   // }
+
+//   const plots = new Inventory<GardenPlot>(rawPlots);
+//   const exiTool = new Inventory(
+//     rawInventory.filter(
+//       (item): item is GardenTool => item.type === "gardenTool"
+//     )
+//   );
+//   const exiPets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
+//   rawPlots.forEach((i: GardenPlot) => autoUpdateCropData(i, exiTool, exiPets));
+
+//   const updatedPlots = new Inventory<GardenPlot>();
+
+//   for (const plot of plots) {
+//     const updated = await autoUpdateCropData(plot, exiTool, exiPets);
+//     updatedPlots.addOne(updated);
+//   }
+
+//   const mutationUpdates: Array<{
+//     added: string[];
+//     all: string[];
+//     plot: GardenPlot;
+//   }> = [];
+
+//   for (const plot of updatedPlots) {
+//     const outdated = plots.getOne(plot.key);
+//     if (!outdated) continue;
+
+//     const oldMut = outdated.mutation ?? [];
+//     const newMut = plot.mutation ?? [];
+
+//     const addedMut = newMut.filter((i) => !oldMut.includes(i));
+//     if (addedMut.length > 0) {
+//       mutationUpdates.push({
+//         added: addedMut,
+//         all: newMut,
+//         plot,
+//       });
+//     }
+//   }
+
+//   if (mutationUpdates.length > 0) {
+//     return output.sendStyled(
+//       `🌱 Congratulations, **${name}**! Some of your crops mutated!\n\n${mutationUpdates
+//         .slice(0, 20)
+//         .map((i) => formatMutationStr(i.plot))
+//         .join("\n")}`,
+//       gardenNotif,
+//       threadID
+//     );
+//   }
+// }
+
+// const gardenNotif: CommandStyle = {
+//   title: {
+//     content: `🔔 ${UNISpectra.charm} **G🍓rden** Notification`,
+//     text_font: "fancy",
+//     line_bottom: "default",
+//   },
+//   contentFont: "fancy",
+//   footer: {
+//     content: "Rewards multiply with success.",
+//     text_font: "fancy",
+//   },
+// };
+
 export async function entry(ctx: CommandContext) {
+  // await registerNotif(ctx);
   const {
     input,
     output,
