@@ -2177,7 +2177,7 @@ export async function entry(ctx: CommandContext) {
       args: ["[player_id]"],
       icon: "🥷",
       async handler(_, { spectralArgs }) {
-        const stealCost = 5;
+        const stealCost = 80;
         const userGems = collectibles.getAmount("gems");
         if (userGems < stealCost) {
           return output.replyStyled(
@@ -2201,7 +2201,7 @@ export async function entry(ctx: CommandContext) {
           );
         }
         const UID = spectralArgs[0] || input.detectID;
-        if (!UID) {
+        if (!UID || UID === input.sid) {
           return output.replyStyled(
             `❌ Please specify a player ID to steal from or reply to their message, or mention them!\n\n` +
               `**Next Steps**:\n` +
