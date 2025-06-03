@@ -25,9 +25,9 @@ export const EVENT_CONFIG = {
       shopName2: "Batak Mag Relapse Shop",
       shopAlias: ["rshop", "relapse", "rsh"],
       effect: {
-        mutationChance: 1,
+        mutationChance: 0.25,
         growthMultiplier: 2.5,
-        mutationType: "Gold",
+        mutationType: "Relapsed",
       },
       shopItems: [
         {
@@ -358,7 +358,7 @@ export const EVENT_CONFIG = {
       name: "Frost",
       icon: "❄️",
       effect: {
-        mutationChance: 0.2,
+        mutationChance: 0.3,
         growthMultiplier: 0.9,
         mutationType: "Chilled",
       },
@@ -368,7 +368,7 @@ export const EVENT_CONFIG = {
       name: "Thunderstorm",
       icon: "⛈️",
       effect: {
-        mutationChance: 0.25,
+        mutationChance: 0.1,
         growthMultiplier: 1.5,
         mutationType: "Shocked",
       },

@@ -29,6 +29,7 @@ export const CROP_CONFIG = {
     { name: "Celestial", valueMultiplier: 120, chance: 0 },
     { name: "Disco", valueMultiplier: 125, chance: 0 },
     { name: "VoidTouched", valueMultiplier: 135, chance: 0 },
+    { name: "Relapsed", valueMultiplier: 70, chance: 0 },
   ],
   MBIAS: 3,
   GROWTH_BASE_OLD: 5 * 60 * 1000,
