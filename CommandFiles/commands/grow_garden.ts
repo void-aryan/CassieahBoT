@@ -1130,7 +1130,7 @@ export async function entry(ctx: CommandContext) {
           );
           moneyEarned += value.final || 0;
           gardenEarns += value.final - (plot.price || plot.baseValue || 0);
-          gardenEarns = Math.max(0, gardenEarns);
+          gardenEarns = Math.round(Math.max(0, gardenEarns));
           harvested.push({ plot: { ...plot }, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
