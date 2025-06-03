@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.26",
+  version: "1.4.27",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1130,7 +1130,7 @@ export async function entry(ctx: CommandContext) {
           );
           moneyEarned += value.final || 0;
           gardenEarns += value.final - (plot.price || plot.baseValue || 0);
-          gardenEarns = Math.min(0, gardenEarns);
+          gardenEarns = Math.max(0, gardenEarns);
           harvested.push({ plot: { ...plot }, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
