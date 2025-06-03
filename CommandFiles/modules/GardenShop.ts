@@ -13,6 +13,7 @@ export namespace gardenShop {
       flavorText: "A basic crop for quick profits.",
       price: 10,
       rarity: "Common",
+      stockLimitOfficial: 20,
       inStock: true,
       isEventItem: false,
       stockChance: 1.0,

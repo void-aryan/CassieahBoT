@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.4.25",
+  version: "1.4.26",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -158,23 +158,24 @@ function safeEX(a: number, p: number) {
 }
 
 function calculateCropKG(crop: GardenPlot): number {
-  const percent = getCropFullnessPercent(crop);
+  const percent = getCropFullnessPercent(crop) + getOvergrownBonusPercent(crop);
   const rawKG = crop.maxKiloGrams * percent;
   return Number(rawKG.toFixed(2));
 }
 
-// function getOvergrownBonusPercent(crop: GardenPlot): number {
-//   const timeLeft = cropTimeLeft(crop, true);
-//   const originalGrowth = crop.growthTime;
-//   const elapsed = originalGrowth - timeLeft;
+function getOvergrownBonusPercent(crop: GardenPlot): number {
+  const timeLeft = cropTimeLeft(crop, true);
+  const originalGrowth = crop.growthTime;
+  const elapsed = originalGrowth - timeLeft;
 
-//   const overgrownElapsed = elapsed - 2 * originalGrowth;
-//   if (overgrownElapsed <= 0) return 0;
+  const overgrownElapsed = elapsed * originalGrowth;
 
-//   const bonusPercent = overgrownElapsed / originalGrowth;
+  if (overgrownElapsed <= 0) return 0;
 
-//   return Math.min(bonusPercent, 1);
-// }
+  const bonusPercent = overgrownElapsed / originalGrowth;
+
+  return Math.floor(Math.min(bonusPercent, 2) / 2);
+}
 
 function getCropFullnessPercent(plot: GardenPlot): number {
   const timeLeft = cropTimeLeft(plot, true);
@@ -428,8 +429,8 @@ function formatMutationStr(plot: GardenPlot) {
   return `${
     (plot.mutation ?? []).length > 0
       ? `[ ${plot.mutation
-          .map((i) => FontSystem.fonts.double_struck(i.toUpperCase?.()))
-          .join(", ")} ] `
+          .map((i) => FontSystem.fonts.double_struck(i))
+          .join(" + ")} ] `
       : ""
   }${plot.icon} **${plot.name}** (${plot.kiloGrams}kg)`;
 }
@@ -551,13 +552,29 @@ async function checkAchievements(
   }
 }
 
+let officialUpdatedAt: number = null;
+
 async function refreshShopStock() {
   const currentTime = Date.now();
   if (currentTime - gardenShop.lastRestock < gardenShop.stockRefreshInterval) {
     return false;
   }
   const stocks = await fetchSeedStock();
-  gardenShop.lastRestock = currentTime;
+
+  if (typeof stocks.updatedAt === "number") {
+    officialUpdatedAt = stocks.updatedAt;
+
+    const timePassed = currentTime - officialUpdatedAt;
+    const timeLeft = timePassed;
+    gardenShop.lastRestock = currentTime - timeLeft;
+    console.log({
+      timeLeft,
+      timePassed,
+      newRestock: currentTime - timeLeft,
+    });
+  } else {
+    gardenShop.lastRestock = currentTime;
+  }
 
   const event = await getCurrentEvent();
   gardenShop.eventItems = gardenShop.eventItems.filter((item) => {
@@ -579,17 +596,24 @@ async function refreshShopStock() {
   }
 
   for (const item of gardenShop.itemData) {
-    let isFetched =
+    let fetched =
       stocks && Array.isArray(stocks.seeds)
-        ? stocks.seeds.some(
+        ? stocks.seeds.find(
             (i) =>
               item.name.includes(i) ||
               String(i).includes(item.name) ||
               item.name.split(" ")[0] === String(i).split(" ")[0]
           )
-        : false;
-    item.inStock = isFetched || forgivingRandom() < item.stockChance;
-    item.isOfficialStock = isFetched;
+        : null;
+    item.inStock = !!fetched || forgivingRandom() < item.stockChance;
+    item.isOfficialStock = !!fetched;
+    const reg = /\*\*x(\d+)\*\*/;
+    const stockOf = Number(fetched?.match(reg)?.[1]);
+    if (!isNaN(stockOf)) {
+      item.stockLimitOfficial = stockOf;
+    } else {
+      delete item.stockLimitOfficial;
+    }
   }
 
   // gardenShop.itemData.forEach((item) => {
@@ -646,6 +670,7 @@ function formatShopItems(
         return {
           ...item,
           cannotBuy: noStock,
+          stockLimit: item.stockLimitOfficial ?? item.stockLimit,
           flavorText: noStock ? `` : flavor,
         };
       })
@@ -1104,10 +1129,8 @@ export async function entry(ctx: CommandContext) {
             gardenEarns
           );
           moneyEarned += value.final || 0;
-          gardenEarns +=
-            value.final - Math.min(plot.price || 0, plot.baseValue) ||
-            plot.baseValue ||
-            0;
+          gardenEarns += value.final - (plot.price || plot.baseValue || 0);
+          gardenEarns = Math.min(0, gardenEarns);
           harvested.push({ plot: { ...plot }, value });
           plot.harvestsLeft -= 1;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
@@ -1168,8 +1191,8 @@ export async function entry(ctx: CommandContext) {
               `${
                 (plot.mutation ?? []).length > 0
                   ? `[ ${plot.mutation
-                      .map((i) => fonts.double_struck(i.toUpperCase?.()))
-                      .join(", ")} +${abbreviateNumber(
+                      .map((i) => fonts.double_struck(i))
+                      .join(" + ")} +${abbreviateNumber(
                       value.noExtra - plot.baseValue
                     )} ] `
                   : ""
@@ -1257,7 +1280,7 @@ export async function entry(ctx: CommandContext) {
             gardenStats.expansions || 0,
             gardenEarns
           ).final;
-          const earns = cropValue - price;
+          const earns = Math.floor(cropValue - price);
           result +=
             `${start + index + 1}. ${formatMutationStr(plot)}${
               plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""
@@ -1273,12 +1296,16 @@ export async function entry(ctx: CommandContext) {
                     getOvergrownElapsed(plot)
                   )}`
                 : ""
-            }\n${UNIRedux.charm} Earns: ${formatCash(earns)} ${
-              earns <= price
-                ? "😭 ***LUGI***"
-                : earns > plot.baseValue * 10
-                ? "💰🍾 ***PALDO***"
-                : "✅ ***KUMITA***"
+            }${
+              isCropReady(plot)
+                ? `\n${UNIRedux.charm} Earns: ${formatCash(earns)} ${
+                    earns <= price
+                      ? "😭 ***LUGI***"
+                      : earns > plot.baseValue * 10
+                      ? "💰🍾 ***PALDO***"
+                      : "✅ ***KUMITA***"
+                  }`
+                : ""
             }\n\n`;
         }
         if (plots.getAll().length > end) {
@@ -1465,7 +1492,7 @@ export async function entry(ctx: CommandContext) {
                     : `Growth ${
                         item.toolData.growthMultiplier || 1
                       }x, Mutations (${Object.keys(
-                        item.toolData.mutationChance
+                        item.toolData.mutationChance || {}
                       ).join(", ")}) +${
                         Object.values(
                           item.toolData.mutationChance || {}
