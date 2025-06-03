@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.2",
+  version: "1.5.3",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -2203,6 +2203,10 @@ export async function entry(ctx: CommandContext) {
         const stealablePlots = targetPlots
           .getAll()
           .filter((plot) => isCropReady(plot) && !plot.isFavorite);
+        for (const plot of stealablePlots) {
+          await autoUpdateCropData(plot, exiTool, exiPets);
+        }
+
         if (stealablePlots.length === 0) {
           return output.replyStyled(
             `❌ No stealable crops in that player's garden!\n\n` +
@@ -2216,6 +2220,12 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
+        const sortedPlots = stealablePlots.toSorted(
+          (a, b) =>
+            calculateCropValue(b, targetPlots, 0, 0).final -
+            calculateCropValue(a, targetPlots, 0, 0).final
+        );
+        const stolenPlot = sortedPlots[0];
         const stealSuccess = Math.random() > 0.3;
         if (!stealSuccess) {
           await money.setItem(input.senderID, { money: userMoney + 100 });
@@ -2235,24 +2245,33 @@ export async function entry(ctx: CommandContext) {
             style
           );
         }
-
-        const stolenPlot =
-          stealablePlots[Math.floor(Math.random() * stealablePlots.length)];
-        let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
-        const shopItem = [
-          ...gardenShop.itemData,
-          ...gardenShop.eventItems,
-        ].find((item) => item.key === stolenPlot.seedKey);
-        if (shopItem && inventory.size() < global.Cassidy.invLimit) {
-          const cache = inventory.getAll();
-          shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
-          inventory = new Inventory(cache);
+        const myPlots = new Inventory<GardenPlot>(rawPlots);
+        const availablePlots = plotLimit - myPlots.getAll().length;
+        if (availablePlots <= 0) {
+          return output.replyStyled(
+            `🌱 Max plots reached (${
+              myPlots.getAll().length
+            }/${plotLimit})! Harvest with ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }harvest or expand with ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }expand.\n\n` +
+              `**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} Harvest crops: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }harvest\n` +
+              `${UNISpectra.arrowFromT} Expand plot: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }expand`,
+            style
+          );
         }
-        targetPlots.deleteRef(stolenPlot);
+        myPlots.addOne(stolenPlot);
+        targetPlots.deleteOne(stolenPlot.key);
+
         collectibles.raise("gems", -stealCost);
         await money.setItem(input.senderID, {
           collectibles: Array.from(collectibles),
-          inventory: Array.from(inventory),
         });
         await money.setItem(UID, {
           gardenPlots: Array.from(targetPlots),
@@ -2263,7 +2282,17 @@ export async function entry(ctx: CommandContext) {
             stealCost,
             "💎",
             true
-          )}!\n\n` +
+          )}! It was added to your plots!\n\n${
+            UNISpectra.charm
+          } Value: ${formatCash(
+            calculateCropValue(
+              stolenPlot,
+              myPlots,
+              gardenStats.expansions || 0,
+              gardenEarns
+            ).final,
+            true
+          )}\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
               isHypen ? "-" : " "
