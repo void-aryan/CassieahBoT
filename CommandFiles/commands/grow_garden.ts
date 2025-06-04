@@ -16,16 +16,17 @@ import { CROP_CONFIG, fetchSeedStock } from "@cass-modules/GardenConfig";
 import { EVENT_CONFIG } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
 import { pickRandomWithProb, randomBiased } from "@cass-modules/unitypes";
+import { Datum } from "@cass-modules/Datum";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.4",
+  version: "1.5.5",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
-  permissions: [0],
+  role: 0,
   // self, please do not use "both" or true, i hate noprefix
   noPrefix: false,
   waitingTime: 1,
@@ -422,7 +423,7 @@ async function applyMutation(
         : Math.min(0.99, mutationBoosts.get(mutation.name) ?? 0);
     const chance = Math.min(0.5, mchance * (1 + boost));
 
-    if (roll <= chance && Math.random() < 0.4) {
+    if (roll <= chance && Math.random() < 0.3) {
       if (!crop.mutation.includes(mutation.name)) {
         crop.mutation.push(mutation.name);
       }
@@ -480,7 +481,7 @@ function updatePetCollection(
         pet.petData.seedTypes.map((i) => {
           const shopItem = shopItems.find((item) => item.key === i);
           return {
-            chance: (shopItem?.stockChance ?? 0) ** 6,
+            chance: (shopItem?.stockChance ?? 0) ** 9,
             value: i,
           };
         })
@@ -925,6 +926,15 @@ export async function entry(ctx: CommandContext) {
 
   const currEvent = await getCurrentEvent();
   let hasEvent = !currEvent.isNoEvent;
+  const plotSorts = [
+    "latest",
+    "lowest",
+    "highest",
+    "smallest",
+    "largest",
+    "least-time",
+    "most-time",
+  ] as const;
 
   const style: CommandStyle = {
     ...command.style,
@@ -1229,10 +1239,11 @@ export async function entry(ctx: CommandContext) {
     },
     {
       key: "collect",
-      description: "Collect & sell ready crops",
+      description: "Collect & automatically sell ready crops",
       aliases: ["-c", "-h", "harvest"],
       icon: "🧺",
-      async handler() {
+      args: ["'all'|seed_key"],
+      async handler(_, { spectralArgs }) {
         let origEarns = gardenEarns;
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
@@ -1248,11 +1259,57 @@ export async function entry(ctx: CommandContext) {
           ) as GardenTool[]
         );
 
+        const sortedPlots = [...plots].sort(
+          (a, b) =>
+            calculateCropValue(
+              b,
+              plots,
+              gardenStats.expansions || 0,
+              gardenEarns
+            ).final -
+            calculateCropValue(
+              a,
+              plots,
+              gardenStats.expansions || 0,
+              gardenEarns
+            ).final
+        );
+
+        const type = spectralArgs[0];
+
+        const isAll = type === "all";
+
+        if ((!type || !sortedPlots.some((i) => i.seedKey === type)) && !isAll) {
+          const plotList = Datum.toUniqueArray(sortedPlots, (i) => i.seedKey)
+            .filter(isCropReady)
+            .map(
+              (s) =>
+                `**x${
+                  plots.getAll().filter((i) => i.seedKey === s.seedKey).length
+                }** ${s.icon} **${s.name}** (Key: **${s.seedKey}**)`
+            )
+            .join("\n");
+          return output.replyStyled(
+            `🌱 Please specify "all" or a seed key to collect.\n\n` +
+              `**Plots**:\n${plotList || "None"}\n\n` +
+              `**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} List plots: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }plots\n` +
+              `${UNISpectra.arrowFromT} Buy seeds: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }shop`,
+            style
+          );
+        }
+
         const readyPlots: GardenPlot[] = [];
-        for (const plot of plots) {
+        for (const plot of sortedPlots) {
           const item = await autoUpdateCropData(plot, tools, exiPets);
           if (isCropReady(item) && readyPlots.length < 20) {
-            readyPlots.push(item);
+            if (isAll || item.seedKey === type) {
+              readyPlots.push(item);
+            }
           }
         }
         if (readyPlots.length === 0) {
@@ -1313,19 +1370,22 @@ export async function entry(ctx: CommandContext) {
           if (plot.harvestsLeft <= 0) {
             plots.deleteRef(plot);
           } else {
+            plot.mutation = [];
             plot.plantedAt = Date.now();
             plot.growthTime = Math.floor(plot.growthTime * 1.2);
 
-            await applyMutation(
-              plot,
-              new Inventory<GardenTool>(
-                rawInventory.filter(
-                  (item) => item.type === "gardenTool"
-                ) as GardenTool[]
-              ),
-              exiPets
-            );
-            plots.deleteRef(plot);
+            if (Math.random() < 0.1) {
+              await applyMutation(
+                plot,
+                new Inventory<GardenTool>(
+                  rawInventory.filter(
+                    (item) => item.type === "gardenTool"
+                  ) as GardenTool[]
+                ),
+                exiPets
+              );
+            }
+            plots.deleteOne(plot.key);
             plots.addOne(plot);
           }
         }
@@ -1399,24 +1459,87 @@ export async function entry(ctx: CommandContext) {
       key: "plots",
       description: "View your garden plots",
       aliases: ["-pl"],
-      args: ["[page]"],
+      args: [`[${plotSorts.join("/")}]`, "[page]"],
       icon: "🪴",
       async handler(_, { spectralArgs }) {
+        type PlotSorts = (typeof plotSorts)[number];
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
-        const page = parseInt(spectralArgs[0]) || 1;
+        const page = parseInt(spectralArgs[1]) || 1;
+        const type: PlotSorts = `${
+          spectralArgs[0] || "least-time"
+        }`.toLowerCase() as PlotSorts;
+        if (!isNaN(parseInt(spectralArgs[0])) && spectralArgs[0]) {
+          return output.reply(
+            `🌱 Please use the page number as second argument. For the first argument, choose from: **${plotSorts.join(
+              ", "
+            )}**`
+          );
+        }
+        if (!plotSorts.includes(type)) {
+          return output.reply(
+            `🌱 Invalid sorting type as first argument. Choose from: **${plotSorts.join(
+              ", "
+            )}**`
+          );
+        }
         const start = (page - 1) * ITEMS_PER_PAGE;
         const end = page * ITEMS_PER_PAGE;
-        const currentPlots = [...plots.getAll()]
+        for (const plot of plots) {
+          await autoUpdateCropData(
+            plot,
+            new Inventory<GardenTool>(
+              rawInventory.filter(
+                (item) => item.type === "gardenTool"
+              ) as GardenTool[]
+            ),
+            exiPets
+          );
+        }
+        const sortedPlots = [...plots.getAll()]
           .sort((a, b) => {
-            const at = a.plantedAt + a.growthTime - Date.now();
-            const ab = b.plantedAt + b.growthTime - Date.now();
-            return at - ab;
+            const timeA = cropTimeLeft(a, true);
+            const timeB = cropTimeLeft(b, true);
+            if (type === "least-time") {
+              return timeA - timeB;
+            }
+            if (type === "most-time") {
+              return timeB - timeA;
+            }
+            const priceA = calculateCropValue(
+              a,
+              plots,
+              gardenStats.expansions || 0,
+              gardenEarns
+            ).final;
+            const priceB = calculateCropValue(
+              b,
+              plots,
+              gardenStats.expansions || 0,
+              gardenEarns
+            ).final;
+            if (type === "highest") {
+              return priceB - priceA;
+            }
+            if (type === "lowest") {
+              return priceA - priceB;
+            }
+            const sizeA = calculateCropKG(a);
+            const sizeB = calculateCropKG(b);
+            if (type === "largest") {
+              return sizeB - sizeA;
+            }
+            if (type === "smallest") {
+              return sizeA - sizeB;
+            }
+            if (type === "latest") {
+              return b.plantedAt - a.plantedAt;
+            }
           })
           .slice(start, end);
         let result = `🌱 **${name}'s Garden Plots (${
           plots.getAll().length
         }/${plotLimit}, Page ${page})**:\n\n`;
-        if (currentPlots.length === 0) {
+        if (sortedPlots.length === 0) {
           return output.replyStyled(
             `🌱 No plots! Plant seeds with ${prefix}${commandName}${
               isHypen ? "-" : " "
@@ -1432,7 +1555,7 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
-        for (let [index, plot] of currentPlots.entries()) {
+        for (let [index, plot] of sortedPlots.entries()) {
           plot = await autoUpdateCropData(
             plot,
             new Inventory<GardenTool>(
@@ -1482,7 +1605,7 @@ export async function entry(ctx: CommandContext) {
         if (plots.getAll().length > end) {
           result += `View more: ${prefix}${commandName}${
             isHypen ? "-" : " "
-          }plots ${page + 1}\n`;
+          }plots ${type} ${page + 1}\n`;
         }
 
         result += `\n📈 Total Earns: ${formatCash(gardenEarns, true)}\n\n`;
@@ -2177,7 +2300,7 @@ export async function entry(ctx: CommandContext) {
       args: ["[player_id]"],
       icon: "🥷",
       async handler(_, { spectralArgs }) {
-        const stealCost = 80;
+        const stealCost = 200;
         const userGems = collectibles.getAmount("gems");
         if (userGems < stealCost) {
           return output.replyStyled(
