@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.7",
+  version: "1.5.8",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -582,10 +582,14 @@ async function refreshShopStock(force = false) {
   const stocks = await fetchSeedStock();
 
   if (typeof stocks.updatedAt === "number") {
+    if (officialUpdatedAt === stocks.updatedAt) {
+      return false;
+    }
     officialUpdatedAt = stocks.updatedAt;
 
     const timePassed = currentTime - officialUpdatedAt;
-    const timeLeft = Math.abs(timePassed) % gardenShop.stockRefreshInterval;
+    const timeLeft =
+      (Math.abs(timePassed) % gardenShop.stockRefreshInterval) + 1000;
     gardenShop.lastRestock = currentTime - Math.abs(timeLeft);
     console.log({
       timeLeft,
