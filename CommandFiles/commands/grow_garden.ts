@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.6",
+  version: "1.5.7",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -578,6 +578,7 @@ async function refreshShopStock(force = false) {
   if (timeLeft > 0 && !force) {
     return false;
   }
+  console.log("Restocking...");
   const stocks = await fetchSeedStock();
 
   if (typeof stocks.updatedAt === "number") {
@@ -676,7 +677,7 @@ function formatShopItems(
         let noStock = item.inStock === false;
         let flavor = item.flavorText || "";
         if (item.isOfficialStock) {
-          flavor = `🌱 **STOCKED IN ROBLOX!**\n${flavor}`;
+          // flavor = `🌱 **STOCKED IN ROBLOX!**\n${flavor}`;
         }
         const moneySet: { inventory: GardenItem[] } = { inventory: [] };
         item.onPurchase({ moneySet });
