@@ -1439,11 +1439,11 @@ export class BriefcaseAPI {
             `📬 **Trade Proposal** ${
               isAnyTrade ? "to anyone" : `to ${recipientData.name}`
             }!\n` +
-              `You give: ${listItem(
+              `${userData.name} will give: ${listItem(
                 customInventory.getOne(yourKey),
                 yourNum
               )}\n` +
-              `You get: ${listItem(
+              `${userData.name} will get: ${listItem(
                 rInventory?.getOne(theirKey) ||
                   customInventory.getOne(theirKey) || {
                     key: theirKey,
