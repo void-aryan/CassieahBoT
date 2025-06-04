@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.5",
+  version: "1.5.6",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -573,9 +573,9 @@ let officialUpdatedAt: number = null;
 
 async function refreshShopStock(force = false) {
   const currentTime = Date.now();
-  const timePassed = currentTime - gardenShop.lastRestock;
+  const timeLeft = getTimeUntilRestock();
 
-  if (timePassed >= gardenShop.stockRefreshInterval - 1000 && !force) {
+  if (timeLeft > 0 && !force) {
     return false;
   }
   const stocks = await fetchSeedStock();
@@ -599,15 +599,16 @@ async function refreshShopStock(force = false) {
   }
 
   const event = await getCurrentEvent();
-  gardenShop.eventItems = gardenShop.eventItems.filter((item) => {
-    if (item.isEventItem) {
-      return (
-        event.shopItems &&
-        event.shopItems.some((shopItem) => shopItem.key === item.key)
-      );
-    }
-    return true;
-  });
+  // gardenShop.eventItems = gardenShop.eventItems.filter((item) => {
+  //   if (item.isEventItem) {
+  //     return (
+  //       event.shopItems &&
+  //       event.shopItems.some((shopItem) => shopItem.key === item.key)
+  //     );
+  //   }
+  //   return true;
+  // });
+  gardenShop.eventItems = [];
 
   if (event.shopItems && event.shopItems.length > 0) {
     event.shopItems.forEach((shopItem) => {
@@ -627,7 +628,7 @@ async function refreshShopStock(force = false) {
               item.name.split(" ")[0] === String(i).split(" ")[0]
           )
         : null;
-    item.inStock = !!fetched || forgivingRandom() < item.stockChance;
+    item.inStock = !!fetched || (forgivingRandom() < item.stockChance, false);
     item.isOfficialStock = !!fetched;
     const reg = /\*\*x(\d+)\*\*/;
     const stockOf = Number(fetched?.match(reg)?.[1]);
@@ -644,14 +645,16 @@ async function refreshShopStock(force = false) {
   gardenShop.eventItems.forEach((item) => {
     item.inStock = forgivingRandom() < item.stockChance;
   });
+  gardenShop.gnpShop.forEach((item) => {
+    item.inStock = forgivingRandom() < item.stockChance;
+  });
 
   return true;
 }
 
 function getTimeUntilRestock() {
   const currentTime = Date.now();
-  const timePassed =
-    (currentTime - gardenShop.lastRestock) % gardenShop.stockRefreshInterval;
+  const timePassed = currentTime - gardenShop.lastRestock;
   const timeLeft = gardenShop.stockRefreshInterval - timePassed;
 
   return Math.max(0, timeLeft);
@@ -979,6 +982,29 @@ export async function entry(ctx: CommandContext) {
         if (isRef) {
           shop.resetStocks(
             ...gardenShop.itemData
+              .filter((i) => i.inStock !== false)
+              .map((i) => i.key)
+          );
+        }
+        await shop.onPlay({ ...ctx, args: [] });
+      },
+    },
+    {
+      key: "gnpshop",
+      description: "Visit the Gears & Pets Shop",
+      aliases: ["-gnpsh", "-gnp"],
+      icon: "🛒",
+      async handler() {
+        const shop = new UTShop({
+          ...formatShopItems(
+            { ...gardenShop, itemData: gardenShop.gnpShop },
+            currEvent
+          ),
+          style,
+        });
+        if (isRef) {
+          shop.resetStocks(
+            ...gardenShop.gnpShop
               .filter((i) => i.inStock !== false)
               .map((i) => i.key)
           );

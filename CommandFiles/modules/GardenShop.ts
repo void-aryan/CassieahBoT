@@ -711,6 +711,8 @@ export namespace gardenShop {
     //     });
     //   },
     // },
+  ];
+  export let gnpShop = [
     {
       icon: "🐶",
       name: "Dog",
