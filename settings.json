@@ -11,6 +11,11 @@
   "knownURL": "https://cassidyredux.onrender.com",
   "noFB": false,
   "PREFIX": "#",
+  "CUSTOM_STYLE": {
+    "enabled": false,
+    "note": "When enabled, this will allow you to customize certain styles of bot responses. {word} represents non-emoji texts and {emojis} represents emojis. Change the TITLE_PATTERN to your likings.",
+    "TITLE_PATTERN": "{emojis}【 {word} 】{emojis}"
+  },
   "LOGO": "",
   "ADMINBOT": ["100075058221244", "YOUR_UID"],
   "EXTRAPREFIX": ["_"],

@@ -1,3 +1,4 @@
+import { forceTitleFormat } from "cassidy-styler";
 import {
   UNIRedux,
   UNISpectra,
@@ -40,6 +41,9 @@ whiteline - its just \n
 */
 
 export function convertLegacyStyling(style) {
+  const { CUSTOM_STYLE = { enabled: false, TITLE_PATTERN: "" } } =
+    global.Cassidy.config;
+  const { enabled: customEnabled = false } = CUSTOM_STYLE;
   return {
     ...style,
     titleStyle: undefined,
@@ -51,6 +55,11 @@ export function convertLegacyStyling(style) {
             content:
               typeof style.title === "object"
                 ? "Title Invalid"
+                : customEnabled
+                ? forceTitleFormat(
+                    String(style.title),
+                    CUSTOM_STYLE.TITLE_PATTERN
+                  )
                 : emojiEnd(String(style.title)),
             line_bottom: "default",
             ...(typeof style.title === "object" && style.title
