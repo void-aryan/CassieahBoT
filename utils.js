@@ -3528,9 +3528,15 @@ const goatbotUtils = {
   uploadZippyshare,
   uploadImgbb,
 };
+import * as xaviaUtils from "./CommandFiles/modules/XaviaSupport/utils";
 
-export default {
+/**
+ * @satisfies {globalThis["utils"]}
+ */
+const def = {
   ...goatbotUtils,
+  xaviaUtils,
+  ...xaviaUtils,
   goatbotUtils,
   generateCaptchaCode,
   convertTimeSentence,
@@ -3595,3 +3601,4 @@ export default {
   StylerGlobal,
 };
 //i should have used export named and import * as util from "./utils.js"
+export default def;

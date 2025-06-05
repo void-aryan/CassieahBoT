@@ -1,3 +1,4 @@
+// @ts-check
 import { evaluate } from "mathjs";
 
 const config = {
@@ -26,7 +27,7 @@ async function onCall({ message, args }) {
     return message.reply("The maximum bet is 50,000,00$.");
   }
 
-  const userBalance = await Users.getMoney(message.senderID);
+  const userBalance = Users.getMoney(message.senderID);
 
   if (userBalance < userBet) {
     return message.reply("You don't have enough money to place this bet.");

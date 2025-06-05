@@ -176,7 +176,7 @@ export type TOnCallCommand = (props: {
   xDB: XDatabase;
   userPermissions: number[];
   prefix: string;
-}) => any | Promise<any>;
+}) => Promise<any>;
 
 export type XaviaCommandContext = Parameters<TOnCallOnMessage>[0];
 
@@ -210,11 +210,11 @@ export type TOnCallCustom = (props: {
 }) => void | Promise<void>;
 
 export interface IBaseEventListenerData {
-  threadID: string;
-  messageID: string;
-  author: string;
-  author_only: boolean;
-  name: string;
+  threadID?: string;
+  messageID?: string;
+  author?: string;
+  author_only?: boolean;
+  name?: string;
   [prop: string]: any;
 }
 
@@ -237,7 +237,7 @@ export type TReplyCallback = (props: {
   };
   xDB: XDatabase;
   eventData: IBaseEventListenerData;
-}) => void | Promise<void>;
+}) => Promise<void>;
 
 export type TReactCallback = (props: {
   message: TReactionObject & {

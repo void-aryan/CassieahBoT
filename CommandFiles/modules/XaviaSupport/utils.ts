@@ -12,7 +12,6 @@ import FormData from "form-data";
 import { randomInt } from "crypto";
 import { join } from "path";
 import { TMessageSendFunc, XaviaCommandContext } from "./XaviaTypes";
-import { ReflectiveMap } from "@cassidy/polyfills/goatbot";
 
 export function request(url: string, options = {}, callback = null) {
   if (typeof options === "function") {
@@ -259,7 +258,7 @@ export function getRandomPassword(length = 8, specialChars = false) {
   return password;
 }
 
-export function addCommas(x: null) {
+export function addCommas(x: string | number | bigint) {
   if (x === null || x === undefined) return null;
   return String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }

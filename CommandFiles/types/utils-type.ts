@@ -1,4 +1,7 @@
+import * as xaviaUtils from "../modules/XaviaSupport/utils";
+
 declare namespace _default {
+  export { xaviaUtils };
   export { goatbotUtils };
   export { generateCaptchaCode };
   export { convertTimeSentence };
@@ -87,7 +90,7 @@ declare namespace _default {
   export { uploadZippyshare };
   export { uploadImgbb };
 }
-export default _default;
+export default { ...xaviaUtils, ..._default };
 
 declare namespace goatbotUtils {
   export { getStreamFromURL };

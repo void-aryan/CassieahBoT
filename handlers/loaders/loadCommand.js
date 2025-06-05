@@ -273,7 +273,12 @@ export async function loadCommand(
       meta.category &&
       Cassidy.config.disabledCategories.includes(meta.category)
     ) {
-      throw new Error(`Category "${meta.category}" is disabled.`);
+      // throw new Error(`Category "${meta.category}" is disabled.`);
+      global.logger(
+        `Skipped command ${meta.name}@${version} (Category "${meta.category}" is disabled.)`,
+        fileName
+      );
+      return;
     }
     await cassWatchJob({ commandData: command, fileName, version });
 
@@ -301,7 +306,7 @@ export async function loadCommand(
       command.style.footer = {
         content: `Credits: **${meta.author ?? "No Author"}**`,
         text_font: "fancy",
-        line_bottom: "none",
+        line_bottom: "hidden",
       };
     }
 
