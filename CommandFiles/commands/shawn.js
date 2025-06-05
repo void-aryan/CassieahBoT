@@ -3,16 +3,17 @@
  * @type {CassidySpectra.CommandMeta}
  */
 export const meta = {
-  name: "shawn",
+  name: "seam",
   description:
     "A mysterious shop in the Dark World, selling artifacts and sharing tales.",
   version: "1.0.3",
   author: "Liane Cagara",
-  usage: "{prefix}shawn",
+  usage: "{prefix}seam",
   category: "Shopping",
   permissions: [0],
   noPrefix: false,
   requirement: "3.0.0",
+  otherNames: ["shawn"],
   icon: "🗡️",
   cmdType: "cplx_g",
 };
@@ -156,7 +157,7 @@ const darkWorldShop = {
       icon: "🏰",
     },
     {
-      name: "Shawn's Origin",
+      name: "Seams's Origin",
       responses: [
         "🐺 My story? I came from a distant land, drawn to the mysteries of the Dark World.",
         "🦇 Opening this shop was my way of contributing to the adventures of travelers.",
@@ -225,7 +226,7 @@ const darkWorldShop = {
     "😺 Take your pick and uncover its hidden powers!",
   ],
   welcomeTexts: [
-    "😺 Welcome to Shawn's Shop in the Dark World!",
+    "😺 Welcome to Seam's Shop in the Dark World!",
     "😸 Greetings! Step into the realm of mystery and wonder.",
     "😺 Ah, a traveler! Come, explore the artifacts of the Dark World.",
     "😸 Welcome, welcome! Seeker of secrets and bearer of curiosity.",
@@ -246,7 +247,7 @@ const darkWorldShop = {
     "😸 Seek knowledge and adventure? You've come to the right place.",
   ],
   thankTexts: [
-    "😺 Thank you for choosing Shawn's Shop!",
+    "😺 Thank you for choosing Seam's Shop!",
     "😸 May your journey through the Dark World be filled with discoveries!",
     "😺 Until we meet again, adventurer!",
     "😸 Your patronage is greatly appreciated!",
@@ -263,3 +264,12 @@ export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(darkWorldShop);
   return shop.onPlay(ctx);
 }
+
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "🐺 Seam's Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
+};

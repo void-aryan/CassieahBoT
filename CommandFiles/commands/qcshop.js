@@ -173,3 +173,12 @@ export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(qcShop);
   return shop.onPlay(ctx);
 }
+
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "👒 QC Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
+};

@@ -16,7 +16,7 @@ export function secureRandom() {
   return randomInt / 0xffffffff;
 }
 
-export function emojiEnd(str) {
+export function emojiEndOld(str) {
   const { emojiRegex } = UNISpectra;
 
   let emojis = [...str].filter((char) => emojiRegex.test(char)).join("");
@@ -26,12 +26,6 @@ export function emojiEnd(str) {
     .trim()
     .replaceAll("|", "");
 
-  const resIdk =
-    nonEmojis +
-    " " +
-    UNISpectra.nextArrow.repeat(2) +
-    "" +
-    (emojis ? " " + emojis : "");
   const res = (
     UNISpectra.nextArrow.repeat(1) +
     "  " +
@@ -46,8 +40,34 @@ export function emojiEnd(str) {
       })
       .join(" ")
   ).trim();
-  // console.log(str, " => ", res);
   return res;
+}
+
+import emojiRegex from "emoji-regex";
+
+/**
+ *
+ * @param {string} str
+ * @returns
+ */
+export function emojiEnd(str) {
+  const regex = emojiRegex();
+  const matchedEmojis = str.match(regex) || [];
+  const emojis = matchedEmojis.join("");
+
+  const nonEmojis = str.replace(regex, "").trim().replaceAll("|", "");
+
+  const formattedText = nonEmojis
+    .split(" ")
+    .map((word, idx) => (idx === 0 ? `**${word}**` : word))
+    .join(" ");
+
+  return (
+    UNISpectra.nextArrow +
+    "  " +
+    (emojis ? UNISpectra.wrapEmoji(emojis) + "  " : "") +
+    formattedText
+  ).trim();
 }
 
 export class UNIRedux {

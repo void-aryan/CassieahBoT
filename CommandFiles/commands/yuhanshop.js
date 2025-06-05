@@ -271,3 +271,12 @@ export async function entry({
   const shop = new UTShop(yuhanshop);
   return shop.onPlay({ ...ctx, args: [] });
 }
+
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "🐶 Yuhan's Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
+};

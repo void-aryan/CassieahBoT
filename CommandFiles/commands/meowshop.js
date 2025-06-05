@@ -336,3 +336,12 @@ export async function entry({ UTShop, isTimeAvailable, output, ctx }) {
   const shop = new UTShop(meowShop);
   return shop.onPlay(ctx);
 }
+
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "😺 Meow Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
+};

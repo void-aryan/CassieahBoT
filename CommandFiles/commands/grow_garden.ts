@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.5.9",
+  version: "1.6.0",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -218,7 +218,7 @@ async function autoUpdateCropData(
     ? now - crop.lastMutation >= CROP_CONFIG.MUTATION_INTERVAL
     : true;
 
-  if (isOver && allowM && getCropOvergrown(crop) <= 2) {
+  if (isOver && allowM && getOvergrownElapsed(crop) <= 2 * 60 * 60 * 1000) {
     const repeats = crop.lastMutation
       ? Math.floor((now - crop.lastMutation) / CROP_CONFIG.MUTATION_INTERVAL)
       : 1;
@@ -284,7 +284,7 @@ function getCropOvergrown(crop: GardenPlot) {
   const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
   const growthProgress = (originalGrowth - timeLeft) / originalGrowth;
 
-  return growthProgress - 2;
+  return Math.max(0, growthProgress - 2);
 }
 
 function getOvergrownElapsed(crop: GardenPlot): number {

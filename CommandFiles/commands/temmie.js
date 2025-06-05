@@ -267,3 +267,12 @@ export async function entry({ UTShop, money, input, ctx }) {
   const shop = new UTShop(temmieShop);
   return shop.onPlay(ctx);
 }
+
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "😺 tEmMiEs sHoP!!!",
+  titleFont: "bold",
+  contentFont: "fancy",
+};

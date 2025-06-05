@@ -182,6 +182,15 @@ const bakery = {
 };
 
 /**
+ * @type {CommandStyle}
+ */
+export const style = {
+  title: "🍰 Bakery",
+  titleFont: "bold",
+  contentFont: "fancy",
+};
+
+/**
  *
  * @param {CommandContext} param0
  * @returns

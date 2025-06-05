@@ -308,3 +308,12 @@ export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(rosaShop);
   return shop.onPlay(ctx);
 }
+
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "🌹 Rosa's Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
+};

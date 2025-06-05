@@ -267,3 +267,12 @@ export async function entry({ UTShop, ctx }) {
   const shop = new UTShop(sanshop);
   return shop.onPlay(ctx);
 }
+
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "🦴 Sans' Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
+};

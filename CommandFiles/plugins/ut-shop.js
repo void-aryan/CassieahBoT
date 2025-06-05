@@ -1,6 +1,6 @@
 // @ts-check
 import { CassEXP } from "../modules/cassEXP.js";
-import { clamp } from "@cassidy/unispectra";
+import { clamp, UNISpectra } from "@cassidy/unispectra";
 import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 import { PetPlayer } from "./pet-fight";
 import { formatCash } from "@cass-modules/ArielUtils";
@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.0.2",
+  version: "2.1.2",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -674,11 +674,11 @@ export class UTShop {
     itemData = [],
     sellTexts = [],
     talkTexts = [],
-    buyTexts = [],
-    welcomeTexts = [],
-    goBackTexts = [],
-    askTalkTexts = [],
-    thankTexts = [],
+    buyTexts = ["Which item do you want to buy?"],
+    welcomeTexts = ["Welcome to the shop."],
+    goBackTexts = ["Take your time."],
+    askTalkTexts = ["What do you want to talk about?"],
+    thankTexts = ["Thank you for your purchase!"],
     notScaredGeno = true,
     genoNote = null,
     allowSell = false,
@@ -879,7 +879,7 @@ export class UTShop {
   stringTalkTexts() {
     const result = this.talkTexts
       .map((text) => {
-        return `${text.num} ${text.icon} **${text.name}**`;
+        return `**${text.num}.** ${text.icon} ${text.name}`;
       })
       .join("\n");
     return result;
@@ -890,7 +890,7 @@ export class UTShop {
         (item) =>
           `${item.index + 1}. **${item.icon} ${item.name}** - **${
             item.shopDisallowed ? `🚫` : `${pCy(item.sellPrice || 0)}$`
-          }**\n✦ ${item.flavorText}`
+          }**\n${UNISpectra.charm} 💬 ${item.flavorText}`
       )
       .join("\n\n");
     return result;
@@ -921,147 +921,157 @@ export class UTShop {
     if (!isLegacy) {
       if (data.length === 0) {
         result = `🧹 No items available!`;
-      }
-      result = data
-        .map((item) => {
-          const stocks = this.getStock(userData.userID, item.key);
-          const invAmount = inventory.getAmount(item.key);
-          const boxAmount = boxInventory.getAmount(item.key);
-          const ndrive = new Inventory(userData.ndrive?.items ?? [], Infinity);
-          const bank = new Inventory(userData.bankData?.items ?? [], Infinity);
-          const ndriveAmount = ndrive.getAmount(item.key);
-          const bankAmount = bank.getAmount(item.key);
-          let isAffordable = userMoney >= Number(item.price ?? 0);
-          let isSellable = true;
-          if (item.cannotBuy === true) {
-            isSellable = false;
-          }
-          if (stocks <= 0) {
-            isSellable = false;
-          }
-          let hasInv = invAmount && boxAmount;
-          let result = ``;
-          if (isSellable) {
-            result += `${item.num}. **${item.icon} ${item.name}**\n`;
-          } else {
-            result += `${item.num}. ${item.icon} ${item.name}\n`;
-          }
-          result +=
-            `- ${
-              isSellable
-                ? `**${formatCash(
-                    Number(this.isGenoR() ? 0 : item.price ?? 0)
-                  )}** ${
-                    isSellable
-                      ? isAffordable
-                        ? hasInv
-                          ? "✅"
-                          : "💰"
-                        : "❌"
-                      : "🚫"
-                  }${
-                    stocks !== Infinity && typeof item.stockLimit === "number"
-                      ? ` 「 **${stocks}**/${item.stockLimit ?? 5} 」`
-                      : ""
-                  }`
-                : "🚫 No Stock"
-            } ${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
-              boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
-            }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
-              bankAmount ? ` 🏦 **x${bankAmount}**` : ""
-            }${
-              item.inflation ? ` [ 📈 **+${item.inflation ?? 0}$** ]` : ""
-            }`.trim() +
-            (item.flavorText || (!isSellable && item.cannotBuyFlavor)
-              ? "\n"
-              : "");
-          if (!(playersMap instanceof Map)) {
-            throw new Error(`playersMap must be a Map`);
-          }
-          if (
-            playersMap &&
-            playersMap instanceof Map &&
-            (item.type === "weapon" || item.type === "armor")
-          ) {
-            let hasLine = false;
-            for (const [, petPlayer] of playersMap) {
-              const clone = petPlayer.clone();
-              let isHead = false;
-              const applyHead = () => {
-                if (!isHead) {
-                  result += `☆ ${petPlayer.petIcon} `;
-                  isHead = true;
-                  hasLine = true;
-                }
-              };
-              if (item.type === "weapon") {
-                clone.weapon[0] = JSON.parse(JSON.stringify(item));
-                const diff = clone.ATK - petPlayer.ATK;
-                const defDiff = clone.DF - petPlayer.DF;
-                if (diff !== 0) {
-                  let i = diff > 0;
-                  let b = i ? "**" : "";
-                  applyHead();
-                  result += `**${diff > 0 ? "+" : ""}${diff}** ${b}ATK${b}, `;
-                }
-                if (defDiff !== 0) {
-                  let i = defDiff > 0;
-                  let b = i ? "**" : "";
-                  applyHead();
-                  result += `**${
-                    defDiff > 0 ? "+" : ""
-                  }${defDiff}** ${b}DEF${b}, `;
-                }
-              } else if (item.type === "armor") {
-                if (clone.armors[0] && clone.armors[0].def > Number(item.def)) {
-                  clone.armors[1] = JSON.parse(JSON.stringify(item));
-                } else {
-                  clone.armors[0] = JSON.parse(JSON.stringify(item));
-                }
+      } else {
+        result = data
+          .map((item) => {
+            const stocks = this.getStock(userData.userID, item.key);
+            const invAmount = inventory.getAmount(item.key);
+            const boxAmount = boxInventory.getAmount(item.key);
+            const ndrive = new Inventory(
+              userData.ndrive?.items ?? [],
+              Infinity
+            );
+            const bank = new Inventory(
+              userData.bankData?.items ?? [],
+              Infinity
+            );
+            const ndriveAmount = ndrive.getAmount(item.key);
+            const bankAmount = bank.getAmount(item.key);
+            let isAffordable = userMoney >= Number(item.price ?? 0);
+            let isSellable = true;
+            if (item.cannotBuy === true) {
+              isSellable = false;
+            }
+            if (stocks <= 0) {
+              isSellable = false;
+            }
+            let hasInv = invAmount && boxAmount;
+            let result = ``;
+            if (isSellable) {
+              result += `${item.num}. **${item.icon} ${item.name}**\n`;
+            } else {
+              result += `${item.num}. ${item.icon} ${item.name}\n`;
+            }
+            result +=
+              `- ${
+                isSellable
+                  ? `**${formatCash(
+                      Number(this.isGenoR() ? 0 : item.price ?? 0)
+                    )}** ${
+                      isSellable
+                        ? isAffordable
+                          ? hasInv
+                            ? "✅"
+                            : "💰"
+                          : "❌"
+                        : "🚫"
+                    }${
+                      stocks !== Infinity && typeof item.stockLimit === "number"
+                        ? ` 「 **${stocks}**/${item.stockLimit ?? 5} 」`
+                        : ""
+                    }`
+                  : "🚫 No Stock"
+              } ${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
+                boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
+              }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
+                bankAmount ? ` 🏦 **x${bankAmount}**` : ""
+              }${
+                item.inflation ? ` [ 📈 **+${item.inflation ?? 0}$** ]` : ""
+              }`.trim() +
+              (item.flavorText || (!isSellable && item.cannotBuyFlavor)
+                ? "\n"
+                : "");
+            if (!(playersMap instanceof Map)) {
+              throw new Error(`playersMap must be a Map`);
+            }
+            if (
+              playersMap &&
+              playersMap instanceof Map &&
+              (item.type === "weapon" || item.type === "armor")
+            ) {
+              let hasLine = false;
+              for (const [, petPlayer] of playersMap) {
+                const clone = petPlayer.clone();
+                let isHead = false;
+                const applyHead = () => {
+                  if (!isHead) {
+                    result += `☆ ${petPlayer.petIcon} `;
+                    isHead = true;
+                    hasLine = true;
+                  }
+                };
+                if (item.type === "weapon") {
+                  clone.weapon[0] = JSON.parse(JSON.stringify(item));
+                  const diff = clone.ATK - petPlayer.ATK;
+                  const defDiff = clone.DF - petPlayer.DF;
+                  if (diff !== 0) {
+                    let i = diff > 0;
+                    let b = i ? "**" : "";
+                    applyHead();
+                    result += `**${diff > 0 ? "+" : ""}${diff}** ${b}ATK${b}, `;
+                  }
+                  if (defDiff !== 0) {
+                    let i = defDiff > 0;
+                    let b = i ? "**" : "";
+                    applyHead();
+                    result += `**${
+                      defDiff > 0 ? "+" : ""
+                    }${defDiff}** ${b}DEF${b}, `;
+                  }
+                } else if (item.type === "armor") {
+                  if (
+                    clone.armors[0] &&
+                    clone.armors[0].def > Number(item.def)
+                  ) {
+                    clone.armors[1] = JSON.parse(JSON.stringify(item));
+                  } else {
+                    clone.armors[0] = JSON.parse(JSON.stringify(item));
+                  }
 
-                const diff = clone.DF - petPlayer.DF;
-                const atkDiff = clone.ATK - petPlayer.ATK;
-                if (diff !== 0) {
-                  applyHead();
-                  let i = diff > 0;
-                  let b = i ? "**" : "";
-                  result += `**${diff > 0 ? "+" : ""}${diff}** ${b}DEF${b}, `;
+                  const diff = clone.DF - petPlayer.DF;
+                  const atkDiff = clone.ATK - petPlayer.ATK;
+                  if (diff !== 0) {
+                    applyHead();
+                    let i = diff > 0;
+                    let b = i ? "**" : "";
+                    result += `**${diff > 0 ? "+" : ""}${diff}** ${b}DEF${b}, `;
+                  }
+                  if (atkDiff !== 0) {
+                    let i = atkDiff > 0;
+                    let b = i ? "**" : "";
+                    applyHead();
+                    result += `**${
+                      atkDiff > 0 ? "+" : ""
+                    }${atkDiff}** ${b}ATK${b}, `;
+                  }
                 }
-                if (atkDiff !== 0) {
-                  let i = atkDiff > 0;
-                  let b = i ? "**" : "";
-                  applyHead();
-                  result += `**${
-                    atkDiff > 0 ? "+" : ""
-                  }${atkDiff}** ${b}ATK${b}, `;
+                if (isHead) {
+                  result += `\n`;
                 }
               }
-              if (isHead) {
+              if (hasLine) {
                 result += `\n`;
               }
             }
-            if (hasLine) {
-              result += `\n`;
-            }
-          }
 
-          if (item.flavorText || (!isSellable && item.cannotBuyFlavor)) {
-            result += `✦ ${
-              isSellable
-                ? item.flavorText
-                : item.cannotBuyFlavor ?? item.flavorText
-            }`;
-          }
-          return result;
-        })
-        .join("\n\n");
+            if (item.flavorText || (!isSellable && item.cannotBuyFlavor)) {
+              result += `${UNISpectra.charm} ${
+                isSellable
+                  ? item.flavorText
+                  : item.cannotBuyFlavor ?? item.flavorText
+              }`;
+            }
+            return result;
+          })
+          .join("\n\n");
+      }
     } else {
       result = data
         .map(
           (item) =>
             `${item.num}. **${item.icon} ${item.name}** - **${
               this.isGenoR() ? 0 : item.price
-            }$**\n✦ ${item.flavorText}`
+            }$**\n${UNISpectra.charm} ${item.flavorText}`
         )
         .join("\n\n");
     }
@@ -1081,6 +1091,23 @@ export class UTShop {
     return this.playerRoute.toLowerCase() === "genocide" && !this.notScaredGeno;
   }
   optionText() {
+    return (
+      `      💵        💬 \n` +
+      `     **Buy**     **Talk**\n` +
+      `\n💌 ***Reply with an option without a prefix.***`
+    );
+  }
+  optionTextOld2() {
+    return (
+      `      💵        💰         ⚒ \n` +
+      `     **Buy**     **Sell**     **Trade**\n` +
+      `\n` +
+      `            💬         🏠\n` +
+      `          **Talk**     **Leave**\n` +
+      `\n***Reply with an option***`
+    );
+  }
+  optionTextOld() {
     if (this.isGenoR()) {
       return `🗃️ **Steal**\n💰 **Take**\n📄 **Read**\n🏠 **Leave**`;
     }
@@ -1105,10 +1132,8 @@ export class UTShop {
     try {
       const { invLimit } = global.Cassidy;
 
-      const { UTYPlayer } = global.utils;
       const inventoryLimit = invLimit;
-      const { input, output, money, args, Inventory, getInflationRate } =
-        context;
+      const { input, output, money, getInflationRate } = context;
       this.style ??= context.command?.style;
 
       if (context.command?.style) {
@@ -1117,9 +1142,7 @@ export class UTShop {
       if (this.style) {
         output.setStyle(this.style);
       }
-      if (args[0]) {
-        return output.reply(`(You can reply to the shop texts instead)`);
-      }
+
       const inflationRate = await getInflationRate();
       this.itemData = this.itemData.map((item) => {
         const originalPrice = Number(item.price ?? 0);
@@ -1135,41 +1158,23 @@ export class UTShop {
 
       this.itemData.forEach((i) => this.ensureStock(input.senderID, i.key));
 
-      const {
-        money: cash,
-        money: gold,
-        kills = 0,
-        spares = 0,
-        progress = {},
-        name = "Chara",
-        exp = 0,
-        inventory = [],
-      } = await money.get(input.senderID);
-      // @ts-ignore
-      const player = new UTYPlayer({
-        gold,
-        kills,
-        spares,
-        progress,
-        name,
-        exp,
-        inv: new Inventory(inventory),
-      });
-      this.playerRoute = player.getRoute();
-      const i = await output.reply(`✦ ${
+      const { money: cash, inventory = [] } = await money.getItem(
+        input.senderID
+      );
+
+      const i = await output.reply(`${UNISpectra.charm} 💬 ${
         this.isGenoR() ? `But nobody came.` : this.rand(this.welcomeTexts)
       }
 
 ${this.optionText()}
 
-**${formatCash(cash)}** **${inventory.length}/${inventoryLimit}**`);
+**${formatCash(cash)}** 🧰 **${inventory.length}/${inventoryLimit}**`);
       const self = this;
       input.setReply(i.messageID, {
         key: context.commandName,
         author: input.senderID,
         callback: self.onReply.bind(self),
         detectID: i.messageID,
-        player,
         command: context.command,
       });
     } catch (error) {
@@ -1191,7 +1196,7 @@ ${this.optionText()}
       if (this.style) {
         output.setStyle(this.style);
       }
-      const { author, player } = repObj;
+      const { author } = repObj;
       const inventoryLimit = invLimit;
       const self = this;
       if (input.senderID !== author) {
@@ -1199,60 +1204,28 @@ ${this.optionText()}
       }
       let [option] = input.splitBody(" ");
       option = option.toLowerCase();
-      if (self.isGenoR()) {
-        if (repObj.isItemChoose) {
-          return handleStealItem();
-        }
-        switch (option) {
-          case "steal":
-            return handleSteal();
-          case "take":
-            return handleTake();
-          case "read":
-            return handleNote();
-          case "leave":
-            return handleLeave();
-          case "back":
-            return handleGoBack();
-          default:
-            break;
-        }
-      } else {
-        if (repObj.isItemChoose) {
-          return handleBuyItem();
-        }
-        if (repObj.isTalkChoose) {
-          return handleTalkChoices();
-        }
-        if (repObj.isSellNext && option === "next") {
-          return handleSell(repObj.isBox);
-        }
-        if (repObj.isTalkNext && (option === "next" || option === "back")) {
-          return handleTalkChoices();
-        }
-        if (repObj.isTrueSell) {
-          return handleSellItem(repObj.isBox);
-        }
-        if (repObj.sellChoose && option !== "back") {
-          return handleSell(option.startsWith("b") ? true : false);
-        }
-        switch (option) {
-          case "buy":
-            return handleBuy();
-          case "sell":
-            return sellChooser();
-          case "trade":
-            return handleTrade();
-          case "talk":
-            return handleTalk();
-          case "leave":
-            return handleLeave();
-          case "back":
-            return handleGoBack();
-          default:
-            break;
-        }
+      if (repObj.isItemChoose) {
+        return handleBuyItem();
       }
+      if (repObj.isTalkChoose) {
+        return handleTalkChoices();
+      }
+
+      if (repObj.isTalkNext && (option === "next" || option === "back")) {
+        return handleTalkChoices();
+      }
+
+      switch (option) {
+        case "buy":
+          return handleBuy();
+        case "talk":
+          return handleTalk();
+        case "back":
+          return handleGoBack();
+        default:
+          break;
+      }
+
       async function handleEnd(id, { ...additional } = {}) {
         input.delReply(repObj.detectID);
         input.setReply(id, {
@@ -1260,23 +1233,10 @@ ${this.optionText()}
           author,
           callback: self.onReply.bind(self),
           detectID: id,
-          player,
           ...additional,
         });
       }
-      async function handleSteal() {
-        const { money: cash, inventory = [] } = await money.get(input.senderID);
-        const items = self.stringItemData();
-        const dialogue = `You can take whatever you want. (you cannot take multiple.)`;
-        const i = await output.reply(
-          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(cash)}** **${
-            inventory.length
-          }/${inventoryLimit}**`
-        );
-        handleEnd(i.messageID, {
-          isItemChoose: true,
-        });
-      }
+
       async function handleBuy() {
         const userInfo = await money.get(input.senderID);
         const { money: cash, inventory = [], boxItems = [] } = userInfo;
@@ -1290,176 +1250,31 @@ ${this.optionText()}
         });
         const dialogue = self.rand(self.buyTexts);
         const i = await output.reply(
-          `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
-            cash
-          )}** **${inventory.length}/${inventoryLimit}**`
-        );
-        handleEnd(i.messageID, {
-          isItemChoose: true,
-        });
-      }
-      function sanitizeSellInv(inventory) {
-        return inventory.map((i) => {
-          if (self.sellDisallowed.includes(i.key)) {
-            i.shopDisallowed = true;
-          }
-          if (i.sellPrice < 1 || !i.sellPrice) {
-            i.shopDisallowed = true;
-          }
-          return i;
-        });
-      }
-      async function sellChooser() {
-        if (!self.allowSell) {
-          return handleSell();
-        }
-        let {
-          money: cash,
-          inventory: rI = [],
-          boxItems: rB = [],
-        } = await money.get(input.senderID);
-        const inventory = new Inventory(rI);
-        const boxItems = new Inventory(rB, 100);
-        const dialogue = self.rand(self.askSellTexts);
-        const i = await output.reply(
-          `✦ ${dialogue}\n\n**A.** Sell **Items** **(${inventory.size()}/${invLimit})**\n**B**. Sell **Box** Items **(${boxItems.size()}/100)**\n\n**Back**\n**${formatCash(
-            cash
-          )}**`
-        );
-        handleEnd(i.messageID, {
-          sellChoose: true,
-        });
-      }
-      async function handleRealSell(isBox) {
-        const magicKey = isBox ? "boxItems" : "inventory";
-        const magicSize = isBox ? 100 : global.Cassidy.invLimit;
-
-        try {
-          let { [magicKey]: inI = [], money: cash = 0 } = await money.get(
-            input.senderID
-          );
-          const inventory = new Inventory(sanitizeSellInv(inI), magicSize);
-          let items = self.stringSellData([...inventory]);
-          const dialogue = self.rand(self.askSellTexts);
-          const i = await output.reply(
-            `✦ ${dialogue}\n\n${items}\n\n\n(Reply with <num> <amount>)\n**Back**\n**${formatCash(
-              cash
-            )}** **${inventory.getAll().length}/${
-              isBox ? 100 : inventoryLimit
-            }**`
-          );
-          handleEnd(i.messageID, {
-            isTrueSell: true,
-            sellChoose: false,
-            isBox,
-          });
-        } catch (error) {
-          return output.error(error);
-        }
-      }
-      async function handleTrade() {
-        if (self.allowTrade) {
-          // return handleRealTrade();
-        }
-        const dialogue = self.rand(self.tradeRefuses) ?? "...";
-        const i = await output.reply(`✦ ${dialogue}\n\n**Back**`);
-        handleEnd(i.messageID);
-      }
-      async function handleSell(isBox) {
-        if (self.allowSell) {
-          return handleRealSell(isBox);
-        }
-        const index = repObj.sellIndex ?? 0;
-        const text = self.sellTexts[index];
-        if (text) {
-          const i = await output.reply(`✦ ${text}\n\n**Next**\n**Back**`);
-          handleEnd(i.messageID, {
-            isSellNext: true,
-            sellIndex: index + 1,
-          });
-        } else {
-          repObj.isSellNext = false;
-          repObj.sellIndex = 0;
-          return handleBack();
-        }
-      }
-      async function handleTake() {
-        const cash = 20;
-        const { money: playerMoney } = await money.get(input.senderID);
-        await money.set(input.senderID, {
-          money: playerMoney + cash,
-        });
-        const i = await output.reply(
-          `✦ You took ${cash}$ from the cash registry.\n\n**Back**`
-        );
-        handleEnd(i.messageID);
-      }
-      async function handleNote() {
-        const i = await output.reply(
-          `✦ The note says "${self.genoNote}"\n\n**Back**`
-        );
-        handleEnd(i.messageID);
-      }
-      async function handleTalk() {
-        repObj.isTalkNext = false;
-        repObj.talkIndex = 0;
-
-        const talks = self.stringTalkTexts();
-        const i = await output.reply(
-          `✦ ${self.rand(self.askTalkTexts)}\n\n${talks}\n**Back**`
-        );
-        handleEnd(i.messageID, {
-          isTalkChoose: true,
-        });
-      }
-      async function handleLeave() {
-        return output.reply(`(This option does nothing.)`);
-      }
-      async function handleStealItem() {
-        const items = self.stringItemData();
-        const num = parseInt(input.words[0]);
-        if (String(input.words[0]).toLowerCase() === "back") {
-          return handleGoBack();
-        }
-
-        const targetItem = self.itemData.find(
-          (item) => String(item.num) === String(num)
-        );
-        if (isNaN(num) || !targetItem) {
-          return output.reply(
-            `(Go back and reply with a valid number that you can see at the left side of the item name.)`
-          );
-        }
-        const { onPurchase } = targetItem;
-        const price = 0;
-        const { money: cash, inventory = [] } = await money.get(input.senderID);
-        if (inventory.length >= inventoryLimit) {
-          return output.reply(
-            `(You cannot steal anything right now.. Your inventory is full (${inventory.length}/${inventoryLimit})`
-          );
-        }
-        try {
-          const argu = {
-            money: cash - price,
-            inventory,
-          };
-          context.moneySet = argu;
-          await onPurchase(context);
-          await money.set(input.senderID, argu);
-        } catch (error) {
-          console.error(error);
-          output.error(error);
-        }
-        const dialogue = `Done, just take more, nobody stops you.`;
-        const i = await output.reply(
-          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
-            cash - price
-          )} (-${formatCash(price)})** **${
+          `🔎 Reply with **<item_number> <item_amount>** to purchase.\n\n${
+            UNISpectra.charm
+          } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(cash)}** 🧰 **${
             inventory.length
           }/${inventoryLimit}**`
         );
         handleEnd(i.messageID, {
           isItemChoose: true,
+        });
+      }
+
+      async function handleTalk() {
+        repObj.isTalkNext = false;
+        repObj.talkIndex = 0;
+        if (self.talkTexts.length === 0) {
+          return output.reply(`${UNISpectra.charm} 💬 No topics available.`);
+        }
+        const talks = self.stringTalkTexts();
+        const i = await output.reply(
+          `${UNISpectra.charm} 💬 ${self.rand(
+            self.askTalkTexts
+          )}\n\n${talks}\n💌 ***Reply with a topic number***.`
+        );
+        handleEnd(i.messageID, {
+          isTalkChoose: true,
         });
       }
 
@@ -1499,9 +1314,10 @@ ${this.optionText()}
         );
         if (isNaN(num) || !targetItem) {
           return output.reply(
-            `(Go back and reply with a valid number that you can see at the left side of the item name.)`
+            `❗ **Invalid input:** Please reply with a valid number (1st argument) shown to the **left of the item name**.`
           );
         }
+
         let { price = 0, onPurchase } = targetItem;
         const stocks = self.getStock(input.senderID, targetItem.key);
         if (amount > inventoryLimit - inventory.length) {
@@ -1512,20 +1328,32 @@ ${this.optionText()}
           amount = stocks;
         }
 
+        if (amount <= 0) {
+          return output.reply(
+            `💌 **Invalid amount:** The number you entered (2nd argument) is **not valid**.`
+          );
+        }
+
         price = amount * price;
         if (cash < price) {
           return output.reply(
-            `(You don't have enough money to buy this item (${cash}$ < ${price}$), please go back and choose a valid option, or just choose "back")`
+            `💸 **Insufficient funds:** You have ${formatCash(
+              cash,
+              true
+            )}, but need ${formatCash(
+              price,
+              true
+            )}.\nPlease choose a valid option or type **back**.`
           );
         }
         if (targetItem.cannotBuy || stocks <= 0) {
           return output.reply(
-            `(No matter what you do, you won't be able to buy this item.)`
+            `🚫 **OUT OF STOCK:** You can't buy this item at the moment.`
           );
         }
         if (inventory.length >= inventoryLimit) {
           return output.reply(
-            `(You cannot buy anything right now.. Your inventory is full (${inventory.length}/${inventoryLimit})`
+            `📦 **Inventory full:** You have **${inventory.length}/${inventoryLimit}** items.\nPlease free up space before buying more.`
           );
         }
         cassEXP.expControls.raise(
@@ -1539,6 +1367,7 @@ ${this.optionText()}
           boxInventory,
         };
         context.moneySet = argu;
+        const invCache = [...inventory];
         for (let i = 0; i < amount; i++) {
           try {
             await onPurchase(context);
@@ -1548,7 +1377,9 @@ ${this.optionText()}
             output.error(error);
           }
         }
-        await money.set(input.senderID, argu);
+        const added = argu.inventory.filter((i) => !invCache.includes(i));
+        const firstAdded = added[0];
+        await money.setItem(input.senderID, argu);
         items = self.stringItemData({
           userMoney: cash - price,
           inventory: new Inventory(inventory),
@@ -1558,97 +1389,19 @@ ${this.optionText()}
         });
 
         const dialogue = self.rand(self.thankTexts);
+        const header = `✅ Added **x${amount} ${firstAdded.icon} ${
+          firstAdded.name
+        }** (${firstAdded.key}) for ${formatCash(price)}`;
+
         const i = await output.reply(
-          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
+          `${header}\n\n${
+            UNISpectra.charm
+          } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(
             cash - price
-          )} (-${formatCash(price)})** **${
-            inventory.length
-          }/${inventoryLimit}** (+${amount} item(s))`
+          )}** 🧰 **${inventory.length}/${inventoryLimit}**`
         );
         handleEnd(i.messageID, {
           isItemChoose: true,
-        });
-      }
-      async function handleSellItem(isBox) {
-        const magicKey = isBox ? "boxItems" : "inventory";
-        const magicSize = isBox ? 100 : global.Cassidy.invLimit;
-        let { money: cash, [magicKey]: iI = [] } = await money.get(
-          input.senderID
-        );
-        const inventory = new Inventory(sanitizeSellInv(iI), magicSize);
-
-        const num = parseInt(input.words[0]);
-        let amount = parseInt(String(input.words[1] || 1));
-        if (isNaN(amount) || amount <= 0) {
-          amount = 1;
-        }
-        if (String(input.words[0]).toLowerCase() === "back") {
-          return handleGoBack();
-        }
-        const targetKey = inventory.findKey(
-          (i) => String(i.index + 1) === String(num)
-        );
-        if (!targetKey) {
-          return output.reply(
-            `(Go back and reply with a valid number of item that exists.`
-          );
-        }
-        const targetItems = inventory
-          .getAll()
-          .filter((item) => item.key === targetKey);
-        let disallowed = [];
-        if (amount > inventory.getAmount(targetKey)) {
-          amount = inventory.getAmount(targetKey);
-        }
-
-        let price = 0;
-        for (let i = 0; i < amount; i++) {
-          const targetItem = targetItems[i];
-          let { sellPrice: indivPrice = 0, shopDisallowed = false } =
-            targetItem ?? {
-              shopDisallowed: false,
-            };
-          if (shopDisallowed) {
-            disallowed.push(targetItem);
-            continue;
-          }
-          price += indivPrice;
-          if (typeof self.onSell === "function") {
-            try {
-              // @ts-ignore
-              await self.onSell({ ...context, targetItem });
-            } catch (error) {
-              console.error(error);
-            }
-          }
-          inventory.deleteRef(targetItem);
-        }
-        if (disallowed.length === targetItems.length) {
-          return output.reply(
-            `(Go back and reply with a valid number that you can see at the left side of the item name.)`
-          );
-        }
-
-        const argu = {
-          money: cash + price,
-          [magicKey]: Array.from(inventory),
-        };
-        await money.set(input.senderID, argu);
-
-        const dialogue = self.rand(self.askSellTexts);
-        const items = self.stringSellData([
-          ...new Inventory(inventory.raw(), magicSize).getAll(),
-        ]);
-
-        const i = await output.reply(
-          `✦ ${dialogue}\n\n${items}\n\n\n**Back**\n**${formatCash(
-            cash + price
-          )} (+${formatCash(price)})** **${inventory.getAll().length}/${
-            isBox ? 100 : inventoryLimit
-          }** (-${amount} item(s))`
-        );
-        handleEnd(i.messageID, {
-          isTrueSell: true,
         });
       }
 
@@ -1673,7 +1426,9 @@ ${this.optionText()}
         const text = responses[index];
         repObj.isTalkChoose = false;
         if (text) {
-          const i = await output.reply(`✦ ${text}\n\n**Next**\n**Back**`);
+          const i = await output.reply(
+            `${UNISpectra.charm} 💬 ${text}\n\n**Next**\n**Back**`
+          );
           handleEnd(i.messageID, {
             isTalkNext: true,
             talkIndex: index + 1,
@@ -1693,13 +1448,13 @@ ${this.optionText()}
       async function handleGoBack() {
         const { money: cash, inventory = [] } = await money.get(input.senderID);
 
-        const i = await output.reply(`✦ ${
+        const i = await output.reply(`${UNISpectra.charm} 💬 ${
           self.isGenoR() ? `Nobody is here.` : self.rand(self.goBackTexts)
         }
 
 ${self.optionText()}
 
-**${formatCash(cash)}**$ **${inventory.length}/${inventoryLimit}**`);
+**${formatCash(cash)}**$ 🧰 **${inventory.length}/${inventoryLimit}**`);
         handleEnd(i.messageID);
       }
     } catch (error) {

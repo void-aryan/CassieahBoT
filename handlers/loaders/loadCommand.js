@@ -66,10 +66,7 @@ import {
   isValidVersion,
   deprecationWarning,
 } from "./util.js";
-import {
-  emojiEnd,
-  extractCommandRole,
-} from "../../CommandFiles/modules/unisym.js";
+import { extractCommandRole } from "../../CommandFiles/modules/unisym.js";
 
 /**
  *
@@ -362,9 +359,7 @@ export async function loadCommand(
         assignCommand(name, command, commands);
       });
     }
-    if (typeof command.style?.title === "string") {
-      emojiEnd(command.style.title);
-    }
+
     const ms = performance.now() - startTime;
     global.logger(
       `Loaded command ${meta.name}@${version} ${

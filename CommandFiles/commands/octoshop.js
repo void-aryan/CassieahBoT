@@ -28,6 +28,15 @@ export async function entry({ UTShop, ctx }) {
   return shop.onPlay(ctx);
 }
 
+/**
+ * @type {CassidySpectra.CommandStyle}
+ */
+export const style = {
+  title: "🐙 Octobot Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
+};
+
 const octoShop = {
   key: "octoshop",
   welcomeTexts: ["🐙 Welcome to the **OctoShop** in **Cassidy**!"],

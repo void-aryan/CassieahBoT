@@ -15,6 +15,16 @@ export const meta = {
   cmdType: "cplx_g",
 };
 
+/**
+ * @type {CommandStyle}
+ */
+export const style = {
+  title: "✨ Kate Shop",   
+  titleFont: "bold",       
+  contentFont: "fancy",    
+};
+
+
 const kateShop = {
   key: "kateShop",
   itemData: [
