@@ -580,12 +580,12 @@ declare global {
     /**
      * @deprecated Provides access to user-related utilities.
      */
-    Users?: AnyRecord;
+    Users?: ReturnType<typeof createUsers>;
 
     /**
      * @deprecated Provides access to thread-related utilities.
      */
-    Threads?: AnyRecord;
+    Threads?: ReturnType<typeof createThreads>;
 
     /**
      * @deprecated Provides access to a requester utility.
@@ -883,6 +883,10 @@ declare global {
       event?: CommandHandler;
       pack?: Record<string, CassidyCommand>;
       default?: CassidyCommand;
+
+      run?: CommandEntry;
+      handleEvent?: CommandHandler;
+      handleReply?: CommandHandler;
       [name: string]: any;
     }
 
@@ -946,6 +950,9 @@ declare global {
 
       [name: string]: any;
       cmdType?: CommandTypes;
+
+      hasPermssion?: number;
+      usePrefix?: boolean;
     }
 
     export type CommandTypes =
@@ -1149,6 +1156,7 @@ import getCUser from "@cass-modules/XaviaSupport/User";
 import { ObjectKey } from "@cass-modules/unitypes";
 import { FormatArgs } from "@cass-modules/format-with";
 import { FontSystem } from "cassidy-styler";
+import { createThreads, createUsers } from "@cass-plugins/botpack-utils";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {

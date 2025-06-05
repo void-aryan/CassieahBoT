@@ -153,6 +153,33 @@ export async function loadCommand(
     if (command.onCall) {
       command.entry = command.onCall;
     }
+    if (command.meta.hasPermssion && command.meta.role === undefined) {
+      command.meta.role = command.meta.hasPermssion;
+    }
+    if (command.meta.usePrefix === false) {
+      command.meta.noPrefix = "both";
+    }
+    if (command.meta.usePrefix === true) {
+      command.meta.noPrefix = false;
+    }
+    if (
+      typeof command.run === "function" &&
+      typeof command.entry !== "function"
+    ) {
+      command.entry = command.run;
+    }
+    if (
+      typeof command.handleEvent === "function" &&
+      typeof command.event !== "function"
+    ) {
+      command.event = command.handleEvent;
+    }
+    if (
+      typeof command.handleReply === "function" &&
+      typeof command.reply !== "function"
+    ) {
+      command.reply = command.handleReply;
+    }
     fileName = String(fileName);
     const { meta, entry, duringLoad, noPrefix, reply } = command;
     const verRegex = /,?\s*version:\s*"([^"]*)"\s*,/;
