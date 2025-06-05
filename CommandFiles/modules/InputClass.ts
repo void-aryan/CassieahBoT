@@ -143,6 +143,7 @@ export class InputClass extends String implements InputProps {
           repObj,
           commandKey: key,
           detectID,
+          command: self.#__context.command as CassidyCommand,
         };
         logger(`Reply Detector Added: ${detectID}`, "INPUT");
 
@@ -201,6 +202,7 @@ export class InputClass extends String implements InputProps {
           reactObj,
           commandKey: key,
           detectID,
+          command: self.#__context.command as CassidyCommand,
         };
         logger(`Reaction Detector Added: ${detectID}`, "INPUT");
         return reacts[detectID] as ReactObj<T>;
@@ -675,17 +677,25 @@ export class InputClass extends String implements InputProps {
 
       if (this.hasReplyListener()) {
         isCancelCommand = true;
-        const { repObj, commandKey, detectID } =
-          replies[input.replier.messageID];
+        const {
+          repObj,
+          commandKey,
+          detectID,
+          command: repCommand,
+        } = replies[input.replier.messageID];
         console.log("ReplySystem", replies[input.replier.messageID]);
         const { callback } = repObj;
-        const command: Partial<CassidySpectra.CassidyCommand> =
+        let command: Partial<CassidySpectra.CassidyCommand> =
           (multiCommands.getOne(commandKey) ||
             multiCommands.getOne(commandKey.toLowerCase())) ??
+          repCommand ??
           {};
 
         obj.repCommand = command;
-        const targetFunc = callback || command.reply;
+        const targetFunc = callback || command?.reply;
+        if (command && command.style) {
+          obj.output.setStyle(command?.style);
+        }
         if (typeof targetFunc === "function") {
           try {
             await targetFunc({
@@ -695,6 +705,7 @@ export class InputClass extends String implements InputProps {
               eventData: repObj,
               commandName: commandKey,
               command,
+              getLang: obj.langParser.createGetLang(command?.langs),
             });
           } catch (error) {
             obj.output.error(error);

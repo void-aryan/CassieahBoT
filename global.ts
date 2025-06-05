@@ -1599,21 +1599,14 @@ declare global {
     ): { returned: ReturnType<T>; error: unknown }[];
   }
 
-  namespace NodeJS {
-    interface Require {
-      url?: (url: string) => Promise<any>;
-      ensure?: (id: string) => any;
-    }
-  }
-
-  interface OutputJSX {
+  export interface OutputJSX {
     reply?: boolean;
     send?: boolean;
     reaction?: boolean;
     form?: StrictOutputForm;
   }
 
-  interface UserStatsJSX {
+  export interface UserStatsJSX {
     key: keyof UserData;
   }
 
@@ -1622,7 +1615,7 @@ declare global {
     : never;
   type ETCTags = typeof etcTagMappings;
 
-  namespace JSX {
+  export namespace JSX {
     type Element = string;
     type ElementFragment = string;
 
@@ -1644,13 +1637,13 @@ declare global {
   var client: typeof GoatFill.client;
   var db: typeof GoatFill.db;
 
-  namespace Express {
+  export namespace Express {
     interface Request {
       trueIP: string;
     }
   }
 
-  interface Math {
+  export interface Math {
     /**
      * @see {@link Math.random}
      */
@@ -1660,6 +1653,13 @@ declare global {
   var requireEsm: (url: string) => Promise<any>;
   var originalRequire: NodeRequire;
   var requireProc: (m: string) => any;
+
+  export namespace NodeJS {
+    interface Require {
+      url?: (url: string) => Promise<any>;
+      ensure?: (id: string) => any;
+    }
+  }
 }
 
 export default {};

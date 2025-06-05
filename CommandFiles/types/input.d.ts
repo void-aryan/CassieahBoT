@@ -92,12 +92,14 @@ export interface RepliesObj<T extends Record<string, any>> {
   repObj: T;
   commandKey: T["key"];
   detectID: string;
+  command: CassidyCommand | undefined;
 }
 
 export interface ReactObj<T extends Record<string, any>> {
   reactObj: T;
   commandKey: T["key"];
   detectID: string;
+  command: CassidyCommand | undefined;
 }
 
 export interface StandardReplyArg {
