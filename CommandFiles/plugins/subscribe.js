@@ -1,4 +1,5 @@
 // @ts-check
+import InputClass from "@cass-modules/InputClass";
 import {
   getWelcomeCardStream,
   listArrayStr,
@@ -10,7 +11,7 @@ export const meta = {
   author: "Liane Cagara 🎀 & MrKimsters",
   description:
     "Handles subscription events such as adding or removing the bot from groups, sending welcome messages, and logging these events for administrators.",
-  version: "1.4",
+  version: "1.4.1",
   supported: "^1.0.0",
   type: "plugin",
   category: "events",
@@ -21,7 +22,7 @@ export const meta = {
 const { Cassidy } = global;
 
 /**
- * @type {Map<string, { addedParticipants: { userFbId: string; fullName: string; }[] }>}
+ * @type {Map<string, { timeout: NodeJS.Timeout; data: InputClass["logMessageData"]}>}
  */
 const welcomeCaches = new Map();
 
@@ -58,8 +59,19 @@ export async function use(obj) {
             (item) => item.userFbId === api.getCurrentUserID()
           )
         ) {
+          if (Cassidy.config.NICKNAME) {
+            await api.changeNickname(
+              Cassidy.config.NICKNAME,
+              input.tid,
+              api.getCurrentUserID()
+            );
+          }
           return output.sendStyled(
-            `${UNISpectra.arrow} ***Connected Successfully!*** ✅\n\nThanks for adding me to this group. Type **${prefix}menu** without fonts to see the list of available commands.\n\n🎀 **Added By**: ${authorName}`,
+            `${
+              UNISpectra.arrow
+            } ***Connected Successfully!*** ✅\n\nThanks for adding me to this group. Type **${prefix}menu** without fonts to see the list of available commands.\n\n✨ **Nickname**: ${
+              Cassidy.config.NICKNAME || "No nickname."
+            }\n🎀 **Added By**: ${authorName}`,
             {
               title: global.Cassidy.logo,
               contentFont: "fancy",
@@ -68,9 +80,17 @@ export async function use(obj) {
           );
         }
 
-        const ex = welcomeCaches.get(input.tid) ?? { addedParticipants: [] };
-        ex.addedParticipants.push(...dataAddedParticipants);
-
+        /**
+         * @type {{ data: InputClass["logMessageData"]; timeout: NodeJS.Timeout }}
+         */
+        const ex = welcomeCaches.get(input.tid) ?? {
+          data: { addedParticipants: [] },
+          timeout: null,
+        };
+        ex.data.addedParticipants.push(...dataAddedParticipants);
+        if (ex.timeout) {
+          clearTimeout(ex.timeout);
+        }
         setTimeout(async () => {
           const { threadInfo, ...threadData } = await threadsDB.getItem(
             input.tid
@@ -81,10 +101,12 @@ export async function use(obj) {
               ? threadData.settings.sendWelcomeMessage
               : true;
           if (!isEnabled) return;
-          const { addedParticipants: dataAddedParticipants } =
-            welcomeCaches.get(input.tid) ?? {
-              addedParticipants: [],
-            };
+          const {
+            data: { addedParticipants: dataAddedParticipants },
+          } = welcomeCaches.get(input.tid) ?? {
+            data: { addedParticipants: [] },
+            timeout: null,
+          };
           await threadsDB.ensureThreadInfo(input.tid, api);
           if (!threadInfo) {
             throw new Error("Missing thread info.");
