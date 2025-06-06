@@ -9,8 +9,8 @@ export const meta: CassidySpectra.CommandMeta = {
   author: "Liane",
   description:
     "Evaluate JavaScript code or Evalute Typescript Code using eval-ts, eval-dts",
-  usage: "eval [code]",
-  version: "2.0.0",
+  usage: "eval [code/reply to bot]",
+  version: "2.0.1",
   permissions: [2],
   botAdmin: true,
   noPrefix: false,
@@ -44,7 +44,7 @@ export async function entry(context: CommandContext) {
     if (inspect !== false) {
       str = util.inspect(data, { depth, showHidden: true });
     }
-    return output.reply({ body: str });
+    return output.reply({ body: str, noStyle: true });
   }
 
   if (type === "dts") {
@@ -66,7 +66,9 @@ export async function entry(context: CommandContext) {
     let result: any;
     while (true) {
       try {
-        let code = args.join(" ");
+        let code = input.is("message_reply")
+          ? input.replier.toString()
+          : args.join(" ");
         if (type === "ts") {
           code = compileTS(code);
         }
@@ -99,7 +101,10 @@ Are you use you want to install this package? Please send a reaction to proceed.
 
     if (result !== undefined) {
       const resultInfo = util.inspect(result, { depth: 0, showHidden: true });
-      await output.reply(`Console:\n${resultInfo}`);
+      await output.reply({
+        body: `Returned:\n\n${resultInfo}`,
+        noStyle: true,
+      });
     }
   } catch (error) {
     await output.error(error);
