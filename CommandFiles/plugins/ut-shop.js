@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.1.2",
+  version: "2.1.3",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -1250,7 +1250,7 @@ ${this.optionText()}
         });
         const dialogue = self.rand(self.buyTexts);
         const i = await output.reply(
-          `🔎 Reply with **<item_number> <item_amount>** to purchase.\n\n${
+          `🔎 Reply with **<num> <quantity>** to purchase.\n\n${
             UNISpectra.charm
           } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(cash)}** 🧰 **${
             inventory.length
@@ -1280,7 +1280,7 @@ ${this.optionText()}
 
       async function handleBuyItem() {
         const { petPlayerMaps } = context;
-        const userInfo = await money.get(input.senderID);
+        const userInfo = await money.getItem(input.senderID);
         const {
           money: cash = 0,
           inventory = [],
@@ -1327,6 +1327,16 @@ ${this.optionText()}
         if (amount >= stocks) {
           amount = stocks;
         }
+        if (targetItem.cannotBuy || stocks <= 0) {
+          return output.reply(
+            `🚫 **OUT OF STOCK:** You can't buy this item at the moment.`
+          );
+        }
+        if (inventory.length >= inventoryLimit) {
+          return output.reply(
+            `📦 **Inventory full:** You have **${inventory.length}/${inventoryLimit}** items.\nPlease free up space before buying more.`
+          );
+        }
 
         if (amount <= 0) {
           return output.reply(
@@ -1346,16 +1356,7 @@ ${this.optionText()}
             )}.\nPlease choose a valid option or type **back**.`
           );
         }
-        if (targetItem.cannotBuy || stocks <= 0) {
-          return output.reply(
-            `🚫 **OUT OF STOCK:** You can't buy this item at the moment.`
-          );
-        }
-        if (inventory.length >= inventoryLimit) {
-          return output.reply(
-            `📦 **Inventory full:** You have **${inventory.length}/${inventoryLimit}** items.\nPlease free up space before buying more.`
-          );
-        }
+
         cassEXP.expControls.raise(
           targetItem.expReward ??
             clamp(0, targetItem.price / 500000, 10) * amount
