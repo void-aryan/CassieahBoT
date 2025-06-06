@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.1",
+  version: "1.6.2",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -101,12 +101,7 @@ export interface GardenStats {
 
 export type GardenItem = GardenSeed | GardenPetCage | GardenTool;
 
-function calculateCropValue(
-  crop: GardenPlot,
-  plots: Inventory<GardenPlot>,
-  expansions: number,
-  totalEarns: number
-) {
+function calculateCropValue(crop: GardenPlot) {
   const mutations = (crop.mutation || [])
     .map((mutationName) =>
       CROP_CONFIG.MUTATIONS.find((m) => m.name === mutationName)
@@ -120,21 +115,8 @@ function calculateCropValue(
 
   const combinedMultiplier = totalMutationBonus;
 
-  const plantedCount = plots.getAll().length;
-  const plantingBonus = Math.min(1, 0.1 * Math.floor(plantedCount / 10));
-  const expansionBonus = 0.05 * expansions;
-
-  const earnMultiplier = Math.max(
-    1,
-    Math.min(10, safeEX((1 / 1_000_000) * totalEarns, 0.15))
-  );
-
   const final = Math.floor(
-    crop.baseValue *
-      combinedMultiplier *
-      (1 + plantingBonus + expansionBonus) *
-      earnMultiplier *
-      crop.maxKiloGrams
+    crop.baseValue * combinedMultiplier * crop.maxKiloGrams
   );
 
   const noExtra = Math.floor(final - crop.baseValue * combinedMultiplier);
@@ -285,13 +267,13 @@ function isCropOvergrown(crop: GardenPlot) {
 
   return growthProgress >= 2;
 }
-function getCropOvergrown(crop: GardenPlot) {
-  const timeLeft = cropTimeLeft(crop, true);
-  const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
-  const growthProgress = (originalGrowth - timeLeft) / originalGrowth;
+// function getCropOvergrown(crop: GardenPlot) {
+//   const timeLeft = cropTimeLeft(crop, true);
+//   const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
+//   const growthProgress = (originalGrowth - timeLeft) / originalGrowth;
 
-  return Math.max(0, growthProgress - 2);
-}
+//   return Math.max(0, growthProgress - 2);
+// }
 
 function getOvergrownElapsed(crop: GardenPlot): number {
   const timeLeft = cropTimeLeft(crop, true);
@@ -1261,17 +1243,12 @@ export async function entry(ctx: CommandContext) {
               "***ALREADY READY!***"
             }\n` +
             `💰 Base Value: ${formatCash(
-              calculateCropValue(
-                {
-                  ...plots.getAll()[plots.getAll().length - 1],
-                  mutation: [],
-                  maxKiloGrams: 1,
-                  kiloGrams: 1,
-                },
-                plots,
-                gardenStats.expansions || 0,
-                gardenEarns
-              ).final
+              calculateCropValue({
+                ...plots.getAll()[plots.getAll().length - 1],
+                mutation: [],
+                maxKiloGrams: 1,
+                kiloGrams: 1,
+              }).final
             )}\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Check plots: ${prefix}${commandName}${
@@ -1307,19 +1284,7 @@ export async function entry(ctx: CommandContext) {
         );
 
         const sortedPlots = [...plots].sort(
-          (a, b) =>
-            calculateCropValue(
-              b,
-              plots,
-              gardenStats.expansions || 0,
-              gardenEarns
-            ).final -
-            calculateCropValue(
-              a,
-              plots,
-              gardenStats.expansions || 0,
-              gardenEarns
-            ).final
+          (a, b) => calculateCropValue(b).final - calculateCropValue(a).final
         );
 
         const type = spectralArgs[0];
@@ -1390,12 +1355,7 @@ export async function entry(ctx: CommandContext) {
             gardenStats.mutationsFound =
               (gardenStats.mutationsFound || 0) + plot.mutation.length;
           }
-          const value = calculateCropValue(
-            plot,
-            plots,
-            gardenStats.expansions || 0,
-            gardenEarns
-          );
+          const value = calculateCropValue(plot);
           moneyEarned += value.final || 0;
           gardenEarns += value.final - (plot.price || plot.baseValue || 0);
 
@@ -1553,18 +1513,8 @@ export async function entry(ctx: CommandContext) {
             if (type === "most-time") {
               return timeB - timeA;
             }
-            const priceA = calculateCropValue(
-              a,
-              plots,
-              gardenStats.expansions || 0,
-              gardenEarns
-            ).final;
-            const priceB = calculateCropValue(
-              b,
-              plots,
-              gardenStats.expansions || 0,
-              gardenEarns
-            ).final;
+            const priceA = calculateCropValue(a).final;
+            const priceB = calculateCropValue(b).final;
             if (type === "highest") {
               return priceB - priceA;
             }
@@ -1616,12 +1566,7 @@ export async function entry(ctx: CommandContext) {
           const timeLeft = cropTimeLeft(plot);
           const price =
             Math.min(plot.price || 0, plot.baseValue) || plot.baseValue || 0;
-          const cropValue = calculateCropValue(
-            plot,
-            plots,
-            gardenStats.expansions || 0,
-            gardenEarns
-          ).final;
+          const cropValue = calculateCropValue(plot).final;
           const earns = Math.floor(cropValue - price);
           result +=
             `${start + index + 1}. ${formatMutationStr(plot)}${
@@ -2409,9 +2354,7 @@ export async function entry(ctx: CommandContext) {
         }
 
         const sortedPlots = stealablePlots.toSorted(
-          (a, b) =>
-            calculateCropValue(b, targetPlots, 0, 0).final -
-            calculateCropValue(a, targetPlots, 0, 0).final
+          (a, b) => calculateCropValue(b).final - calculateCropValue(a).final
         );
         const stolenPlot = sortedPlots[0];
         const stealSuccess = Math.random() > 0.3;
@@ -2474,12 +2417,7 @@ export async function entry(ctx: CommandContext) {
           )}! It was added to your plots!\n\n${
             UNISpectra.charm
           } Value: ${formatCash(
-            calculateCropValue(
-              stolenPlot,
-              myPlots,
-              gardenStats.expansions || 0,
-              gardenEarns
-            ).final,
+            calculateCropValue(stolenPlot).final,
             true
           )}\n\n` +
             `**Next Steps**:\n` +

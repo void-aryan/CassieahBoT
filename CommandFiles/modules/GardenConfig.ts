@@ -33,25 +33,25 @@ export const CROP_CONFIG = {
     { name: "VoidTouched", valueMultiplier: 135, chance: 0, icon: "🌌" },
     { name: "Relapsed", valueMultiplier: 70, chance: 0, icon: "💔" },
   ],
-  MBIAS: 3,
+  MBIAS: 3 as const,
   GROWTH_BASE_OLD: 5 * 60 * 1000,
   GROWTH_BASE: 4 * 60 * 1000,
-  OVERGROWTH_PENALTY: 1.5,
-  LUCKY_HARVEST_CHANCE: 0.05,
+  OVERGROWTH_PENALTY: 1.5 as const,
+  LUCKY_HARVEST_CHANCE: 0.05 as const,
   ACHIEVEMENTS: [
     { key: "harvest_100", name: "Harvest Master", harvests: 100, reward: 1000 },
     { key: "mutation_10", name: "Mutation Maniac", mutations: 10, reward: 500 },
     { key: "expand_1", name: "Land Baron", expansions: 1, reward: 2000 },
   ],
   MUTATION_INTERVAL: 15 * 60 * 1000,
-  MIN_KG: 0.18,
-  MAX_KG: 6.32,
-  KILO_BIAS: 6,
+  MIN_KG: 0.18 as const,
+  MAX_KG: 6.32 as const,
+  KILO_BIAS: 6 as const,
   get STOCK_SEED_URL() {
     return `https://growagardenstock.com/api/stock?type=gear-seeds&ts=${Date.now()}`;
   },
-  NOTIF_TIMEOUT: 10,
-  MAX_MUTATION_ATT: 10,
+  NOTIF_TIMEOUT: 10 as const,
+  MAX_MUTATION_ATT: 10 as const,
 };
 
 export async function fetchSeedStock() {
