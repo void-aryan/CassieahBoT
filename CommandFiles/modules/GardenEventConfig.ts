@@ -365,6 +365,304 @@ export const EVENT_CONFIG = {
       shopItems: [],
     },
     {
+      name: "Astral Festival",
+      icon: "✨🌌",
+      shopName: "astralshop",
+      shopName2: "Stellar Caravan Shop",
+      shopAlias: ["ash", "astral", "starshop"],
+      effect: {
+        mutationChance: 0.35,
+        growthMultiplier: 1.4,
+        mutationType: "Astral",
+      },
+      shopItems: [
+        {
+          icon: "🌠",
+          name: "Stellar Sprout Seed",
+          key: "gsStellarSprout",
+          flavorText: "A glowing sprout born under a cosmic sky.",
+          price: 5_000,
+          rarity: "Common",
+          stockLimit: 20,
+          stockChance: 1.0,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsStellarSprout",
+              name: "Stellar Sprout Seed",
+              flavorText: "A glowing sprout born under a cosmic sky.",
+              icon: "🌠",
+              type: "gardenSeed",
+              sellPrice: 2_500,
+              cropData: {
+                baseValue: 4_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 8,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌟",
+          name: "Cosmo Petal Seed",
+          key: "gsCosmoPetal",
+          flavorText: "A radiant flower that mirrors distant galaxies.",
+          price: 15_000,
+          rarity: "Uncommon",
+          stockLimit: 18,
+          stockChance: 1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCosmoPetal",
+              name: "Cosmo Petal Seed",
+              flavorText: "A radiant flower that mirrors distant galaxies.",
+              icon: "🌟",
+              type: "gardenSeed",
+              sellPrice: 7_500,
+              cropData: {
+                baseValue: 12_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 8,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🪐",
+          name: "Nebula Fruit Seed",
+          key: "gsNebulaFruit",
+          flavorText: "A juicy fruit infused with stardust.",
+          price: 50_000,
+          rarity: "Rare",
+          stockLimit: 15,
+          stockChance: 0.6,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsNebulaFruit",
+              name: "Nebula Fruit Seed",
+              flavorText: "A juicy fruit infused with stardust.",
+              icon: "🪐",
+              type: "gardenSeed",
+              sellPrice: 25_000,
+              cropData: {
+                baseValue: 40_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 8,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "💫",
+          name: "Aether Bloom Seed",
+          key: "gsAetherBloom",
+          flavorText: "A rare flower that pulses with cosmic energy.",
+          price: 200_000,
+          rarity: "Legendary",
+          stockLimit: 10,
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsAetherBloom",
+              name: "Aether Bloom Seed",
+              flavorText: "A rare flower that pulses with cosmic energy.",
+              icon: "💫",
+              type: "gardenSeed",
+              sellPrice: 100_000,
+              cropData: {
+                baseValue: 150_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 8,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌌",
+          name: "Starweave Vine Seed",
+          key: "gsStarweaveVine",
+          flavorText: "A divine vine that connects the stars.",
+          price: 1_000_000,
+          rarity: "Mythical",
+          stockLimit: 5,
+          stockChance: 0.05,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsStarweaveVine",
+              name: "Starweave Vine Seed",
+              flavorText: "A divine vine that connects the stars.",
+              icon: "🌌",
+              type: "gardenSeed",
+              sellPrice: 500_000,
+              cropData: {
+                baseValue: 800_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 10,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "☄️",
+          name: "Comet Shard Seed",
+          key: "gsCometShard",
+          flavorText: "A celestial seed that blazes with astral power.",
+          price: 5_000_000,
+          rarity: "Divine",
+          stockLimit: 3,
+          stockChance: 0.02,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCometShard",
+              name: "Comet Shard Seed",
+              flavorText: "A celestial seed that blazes with astral power.",
+              icon: "☄️",
+              type: "gardenSeed",
+              sellPrice: 2_500_000,
+              cropData: {
+                baseValue: 4_000_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 12,
+                harvests: 2,
+              },
+            });
+          },
+        },
+        {
+          icon: "🦋",
+          name: "Stellar Butterfly",
+          key: "gpStellarButterfly",
+          flavorText: "A cosmic pet that flutters through starlight.",
+          price: 20_000_000,
+          rarity: "Rare",
+          stockLimit: 1,
+          stockChance: 0.3,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpStellarButterfly",
+              name: "Stellar Butterfly",
+              flavorText: "Caged pet. Uncage to dig up Astral seeds!",
+              icon: "🦋",
+              type: "gardenPetCage",
+              sellPrice: 10_000_000,
+              petData: {
+                name: "Stellar Butterfly",
+                collectionRate: 0.15,
+                seedTypes: ["gsStellarSprout", "gsCosmoPetal", "gsNebulaFruit"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🦅",
+          name: "Astral Hawk",
+          key: "gpAstralHawk",
+          flavorText: "A majestic pet soaring through the cosmos.",
+          price: 30_500_000,
+          rarity: "Legendary",
+          stockLimit: 1,
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpAstralHawk",
+              name: "Astral Hawk",
+              flavorText: "Caged pet. Uncage to dig up Astral seeds!",
+              icon: "🦅",
+              type: "gardenPetCage",
+              sellPrice: 10_750_000,
+              petData: {
+                name: "Astral Hawk",
+                collectionRate: 0.2,
+                seedTypes: ["gsAetherBloom", "gsStarweaveVine"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🦁🌌",
+          name: "Cosmic Lion",
+          key: "gpCosmicLion",
+          flavorText: "A divine pet that roars with stellar might.",
+          price: 60_000_000,
+          rarity: "Mythical",
+          stockLimit: 1,
+          stockChance: 0.1,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gpCosmicLion",
+              name: "Cosmic Lion",
+              flavorText: "Caged pet. Uncage to dig up Astral seeds!",
+              icon: "🦁🌌",
+              type: "gardenPetCage",
+              sellPrice: 30_000_000,
+              petData: {
+                name: "Cosmic Lion",
+                collectionRate: 0.25,
+                seedTypes: ["gsStarweaveVine", "gsCometShard"],
+              },
+            });
+          },
+        },
+        {
+          icon: "🔭",
+          name: "Astral Lens",
+          key: "gtAstralLens",
+          flavorText: "Enhances Astral mutations for cosmic crops.",
+          price: 10_500_000,
+          rarity: "Rare",
+          stockLimit: 1,
+          stockChance: 0.4,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtAstralLens",
+              name: "Astral Lens",
+              flavorText: "Enhances Astral mutations for cosmic crops.",
+              icon: "🔭",
+              type: "gardenTool",
+              sellPrice: 750_000,
+              toolData: {
+                growthMultiplier: 1.3,
+                mutationChance: { Astral: 0.3 },
+              },
+            });
+          },
+        },
+        {
+          icon: "✨",
+          name: "Starlight Dust",
+          key: "gtStarlightDust",
+          flavorText: "Boosts growth speed for crops.",
+          price: 5_000_000,
+          rarity: "Uncommon",
+          stockLimit: 5,
+          stockChance: 0.6,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gtStarlightDust",
+              name: "Starlight Dust",
+              flavorText: "Boosts growth speed for crops.",
+              icon: "✨",
+              type: "gardenTool",
+              sellPrice: 250_000,
+              toolData: {
+                growthMultiplier: 1.5,
+              },
+            });
+          },
+        },
+      ],
+    },
+
+    {
       name: "Thunderstorm",
       icon: "⛈️",
       effect: {
