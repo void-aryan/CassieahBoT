@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.0",
+  version: "1.6.1",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -80,6 +80,7 @@ export type GardenPlot = InventoryItem & {
   noAutoMutation?: never;
   kiloGrams: number;
   maxKiloGrams: number;
+  mutationAttempts: number;
 };
 
 export type GardenPetActive = InventoryItem & {
@@ -193,6 +194,7 @@ async function autoUpdateCropData(
   pets: Inventory<GardenPetActive>
 ) {
   if (!crop) return null;
+  crop.mutationAttempts ??= 0;
   crop.maxKiloGrams ??= randomBiased(
     CROP_CONFIG.MIN_KG,
     CROP_CONFIG.MAX_KG,
@@ -218,7 +220,11 @@ async function autoUpdateCropData(
     ? now - crop.lastMutation >= CROP_CONFIG.MUTATION_INTERVAL
     : true;
 
-  if (isOver && allowM && getOvergrownElapsed(crop) <= 2 * 60 * 60 * 1000) {
+  if (
+    isOver &&
+    allowM &&
+    crop.mutationAttempts <= CROP_CONFIG.MAX_MUTATION_ATT
+  ) {
     const repeats = crop.lastMutation
       ? Math.floor((now - crop.lastMutation) / CROP_CONFIG.MUTATION_INTERVAL)
       : 1;
@@ -436,8 +442,9 @@ async function applyMutation(
       }
     }
   }
-
+  crop.mutationAttempts ??= 0;
   crop.lastMutation = Date.now();
+  crop.mutationAttempts++;
   return crop;
 }
 function getMutation(name: string) {
@@ -1190,6 +1197,7 @@ export async function entry(ctx: CommandContext) {
               CROP_CONFIG.MAX_KG,
               CROP_CONFIG.KILO_BIAS
             ),
+            mutationAttempts: 0,
           };
           if (Math.random() < 0.1) {
             plot = await applyMutation(
@@ -1202,6 +1210,7 @@ export async function entry(ctx: CommandContext) {
               exiPets
             );
           }
+          plot.mutationAttempts = 0;
           plot = await autoUpdateCropData(
             plot,
             new Inventory<GardenTool>(
@@ -1423,6 +1432,7 @@ export async function entry(ctx: CommandContext) {
                 exiPets
               );
             }
+            plot.mutationAttempts = 0;
             plots.deleteOne(plot.key);
             plots.addOne(plot);
           }
@@ -1637,6 +1647,10 @@ export async function entry(ctx: CommandContext) {
                       ? "💰🍾 ***PALDO***"
                       : "✅ ***KUMITA***"
                   }`
+                : ""
+            }${
+              plot.mutationAttempts >= CROP_CONFIG.MAX_MUTATION_ATT
+                ? `\n${UNIRedux.charm} ❌ Can no longer mutate!`
                 : ""
             }\n\n`;
         }

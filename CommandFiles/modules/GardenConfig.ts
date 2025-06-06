@@ -51,6 +51,7 @@ export const CROP_CONFIG = {
     return `https://growagardenstock.com/api/stock?type=gear-seeds&ts=${Date.now()}`;
   },
   NOTIF_TIMEOUT: 10,
+  MAX_MUTATION_ATT: 10,
 };
 
 export async function fetchSeedStock() {
