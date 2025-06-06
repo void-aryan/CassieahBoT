@@ -464,6 +464,7 @@ export class BriefcaseAPI {
           let mctx = ctx;
           const usagePlugins = new MultiMap(
             Cassidy.multiCommands
+              .toUnique((i) => i.meta?.name)
               .entries()
               .map((i) => Object.entries(i[1].briefcaseUsage ?? {}))
               .filter((i) => i?.length)
@@ -994,7 +995,7 @@ export class BriefcaseAPI {
             );
           }
           const targetUsages = usagePlugins.get(item.type);
-          let errs: Error[];
+          let errs: Error[] = [];
           let responses: string[] = [];
           if (targetUsages.length > 0) {
             for (const usage of targetUsages) {

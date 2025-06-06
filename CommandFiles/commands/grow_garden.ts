@@ -17,12 +17,13 @@ import { EVENT_CONFIG } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
 import { pickRandomWithProb, randomBiased } from "@cass-modules/unitypes";
 import { Datum } from "@cass-modules/Datum";
+import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.4",
+  version: "1.6.5",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -33,6 +34,29 @@ export const meta: CassidySpectra.CommandMeta = {
   requirement: "3.0.0",
   icon: "🌱",
   cmdType: "cplx_g",
+};
+
+export const briefcaseUsage: Record<string, BreifcaseUsagePlugin> = {
+  gardenSeed(arg, ctx, _bctx) {
+    const item = arg.item as GardenSeed;
+    return `${UNISpectra.arrowFromT} ${item.icon} **${
+      item.name
+    }** is a garden seed! You can **plant** this item.\n\n${
+      UNIRedux.charm
+    } Base Value: ${formatCash(item.cropData?.baseValue, true)}\n\nType **${
+      ctx.prefix
+    }${meta.name} plant ${item.key} ${arg.customInventory.getAmount(
+      item.key
+    )}** without fonts to plant it.`;
+  },
+  gardenPet(arg, ctx, _bctx) {
+    const item = arg.item as GardenSeed;
+    return `${UNISpectra.arrowFromT} ${item.icon} **${item.name}** is a garden pet! You can **uncage** this pet.\n\nType **${ctx.prefix}${meta.name} uncage ${item.key}** without fonts to uncage it.`;
+  },
+  gardenTool(arg, _ctx, _bctx) {
+    const item = arg.item as GardenSeed;
+    return `${UNISpectra.arrowFromT} ${item.icon} **${item.name}** is a garden gear! Just **keep** it in your inventory/briefcase and it will have an **effect**.`;
+  },
 };
 
 export const PLOT_LIMIT = 36;
