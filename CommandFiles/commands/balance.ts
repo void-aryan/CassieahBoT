@@ -6,7 +6,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "balance",
   description: "Check your virtual cash",
   otherNames: ["bal", "money"],
-  version: "3.2.9",
+  version: "3.2.10",
   usage: "{prefix}{name}",
   category: "Finance",
   author: "Liane Cagara",
@@ -96,6 +96,7 @@ const configs: Config[] = [
       { money, input, output, prefix, commandName },
       { spectralArgs }
     ) {
+      await money.ensureUserInfo(input.senderID);
       let senderID = input.senderID;
       if (input.replier) senderID = input.replier.senderID;
       if (input.hasMentions) senderID = input.firstMention.senderID;
@@ -148,12 +149,13 @@ const configs: Config[] = [
     key: "raw",
     description: "Your raw balance overview.",
     args: ["[uid]"],
-    aliases: ["-r"],
+    aliases: ["-r", "rem"],
     icon: "💸",
     validator: new CassCheckly([
       { index: 0, type: "string", required: false, name: "userID" },
     ]),
     async handler({ money, input, output }, { spectralArgs }) {
+      await money.ensureUserInfo(input.senderID);
       let senderID = input.senderID;
       if (input.replier) senderID = input.replier.senderID;
       if (input.hasMentions) senderID = input.firstMention.senderID;
@@ -191,6 +193,7 @@ const configs: Config[] = [
       { money, input, output, prefix, Collectibles, commandName },
       { itemList, spectralArgs }
     ) {
+      await money.ensureUserInfo(input.senderID);
       let senderID = input.senderID;
       if (input.replier) senderID = input.replier.senderID;
       if (input.hasMentions) senderID = input.firstMention.senderID;

@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.3",
+  version: "1.6.4",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -142,7 +142,8 @@ function safeEX(a: number, p: number) {
 }
 
 function calculateCropKG(crop: GardenPlot): number {
-  const percent = getCropFullnessPercent(crop) + getOvergrownBonusPercent(crop);
+  const percent =
+    getCropFullnessPercent(crop) + getOvergrownBonusPercent(crop) / 2;
   const rawKG = crop.maxKiloGrams * percent;
   return Number(rawKG.toFixed(2));
 }
@@ -895,6 +896,17 @@ export async function entry(ctx: CommandContext) {
     fonts,
   } = ctx;
   await money.ensureUserInfo(input.senderID);
+
+  await (async () => {
+    const { money: balance, gardenPlots: rawPlots = [] } = await money.getCache(
+      input.senderID
+    );
+    if (balance <= 0 && rawPlots.length === 0) {
+      await money.setItem(input.senderID, {
+        money: balance + 40,
+      });
+    }
+  })();
 
   let {
     name = "",
