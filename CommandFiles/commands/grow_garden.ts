@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.2",
+  version: "1.6.3",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -483,18 +483,20 @@ function updatePetCollection(
         })
       );
 
-      if (!seed || Math.random() < 0.6) {
+      if (!seed) {
         continue;
       }
 
       const shopItem = shopItems.find((item) => item.key === seed);
-      if (shopItem && inventory.size() < global.Cassidy.invLimit) {
-        const cache = inventory.getAll();
-        const cache2 = [...cache];
-        shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
-        inventory = new Inventory(cache);
-        const newItems = cache.filter((i) => !cache2.includes(i));
-        collected.push(...newItems);
+      if (Math.random() < shopItem.stockChance) {
+        if (shopItem && inventory.size() < global.Cassidy.invLimit) {
+          const cache = inventory.getAll();
+          const cache2 = [...cache];
+          shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
+          inventory = new Inventory(cache);
+          const newItems = cache.filter((i) => !cache2.includes(i));
+          collected.push(...newItems);
+        }
       }
     }
   }
