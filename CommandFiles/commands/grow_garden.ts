@@ -23,7 +23,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.5",
+  version: "1.6.6",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -281,6 +281,8 @@ async function autoUpdateCropData(
   crop.mutation = [...new Set(crop.mutation)];
 
   crop.kiloGrams = calculateCropKG(crop);
+
+  crop.name === String(crop.name).replaceAll("Seed", "").trim();
 
   return crop;
 }
