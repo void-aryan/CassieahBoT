@@ -935,6 +935,64 @@ export class BriefcaseAPI {
             });
             return;
           }
+          if (item.type === "pack") {
+            const packCount = item.packMax
+              ? Math.min(
+                  Math.max(Number(item.packMin || 3), 3),
+                  Number(item.packMax)
+                )
+              : Math.floor(Math.random() * 3) + 3;
+
+            if (!customInventory.has(item.key)) {
+              return output.replyStyled(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `❌ The pack’s gone! Did it slip out of your ${inventoryIcon}?`,
+                style
+              );
+            }
+
+            if (
+              customInventory.getAll().length + Number(item.packMax || 5) >
+              invLimit
+            ) {
+              return output.reply(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `❌ Your ${inventoryIcon} is full! Toss something with "${prefix}${commandName} toss".`
+              );
+            }
+
+            const treasures = [];
+            for (let i = 0; i < packCount; i++) {
+              let newTreasure: InventoryItem;
+              newTreasure = generateTreasure(String(item.treasureKey));
+              treasures.push(newTreasure);
+            }
+
+            treasures.forEach((treasure) => customInventory.addOne(treasure));
+            customInventory.deleteOne(item.key);
+
+            await money.setItem(input.senderID, {
+              [ikey]: Array.from(customInventory),
+            });
+
+            return output.replyStyled(
+              `👤 **${
+                userData.name || "Unregistered"
+              }** (${inventoryName})\n\n` +
+                `${UNIRedux.arrow} ***Pack Opened!***\n\n` +
+                `${item.icon} Unpacked **${item.name}**!\n\n` +
+                `${UNIRedux.arrow} ***Rewards***\n` +
+                `${treasures
+                  .map((t) => `${t.icon} **${t.name}** [${t.key}]`)
+                  .join("\n")}\n\n` +
+                `Check them out with "${prefix}${commandName} check <key>"!`,
+              style
+            );
+          }
           const targetUsages = usagePlugins.get(item.type);
           let errs: Error[];
           let responses: string[] = [];
