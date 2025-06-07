@@ -1048,9 +1048,12 @@ export class BriefcaseAPI {
         key: "transfer",
         description: "Sends an item to another user or entity.",
         aliases: ["give", "send", "-t"],
-        args: ["<item_id | index>*<num|'all'>", "<uid>"],
+        args: ["<item_id | index>*<num|'all'>", "<uid/reply/mention>"],
         async handler() {
           let [keyTX = "", recipientID] = actionArgs;
+          if (!recipientID && input.detectID) {
+            recipientID = input.detectID;
+          }
           /**
            * @type {[string?, (string | number)?, ...a: any[]]}
            */

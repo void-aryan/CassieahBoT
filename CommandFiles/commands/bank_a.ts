@@ -9,7 +9,7 @@ const ABANK = fonts.serif("AC-BANK");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.9",
+  version: "3.0.10",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
@@ -64,7 +64,7 @@ export const style: CassidySpectra.CommandStyle = {
     line_bottom: "default",
   },
   titleFont: "none",
-  contentFont: "fancy",
+  contentFont: "none",
   footer: {
     content: "",
   },
@@ -79,7 +79,7 @@ export const notifStyle: CassidySpectra.CommandStyle = {
     line_bottom: "default",
   },
   titleFont: "none",
-  contentFont: "fancy",
+  contentFont: "none",
   footer: {
     content: "",
   },
@@ -245,7 +245,11 @@ export async function entry({
           trophys.length > 0 && !isPeek
             ? `\n${UNIRedux.arrow} You can still withdraw your old bank if you have **zero** bank balance. It will also remove your trophy.`
             : ""
-        }\n${UNIRedux.arrowBW} Items 🛍️\n\n${itemStr || "No items."}`,
+        }${
+          bdataItems.size() > 0
+            ? `\n${UNIRedux.arrowBW} Items 🛍️\n\n${itemStr || "No items."}`
+            : ""
+        }`,
         style
       );
     },
