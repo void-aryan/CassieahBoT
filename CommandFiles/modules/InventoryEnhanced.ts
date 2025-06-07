@@ -195,6 +195,31 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
   }
 
   /**
+   * Checks if an item with the same UUID exists in the inventory.
+   * @param item - The UUID string or InventoryItem to check.
+   * @returns True if an item with the same UUID exists, false otherwise.
+   */
+  isDuplicate(item: string | T): boolean {
+    const uuid = typeof item === "string" ? item : item.uuid;
+    return this.countByID(uuid) > 1;
+  }
+
+  /**
+   * Checks if the inventory contains any items with duplicate UUIDs.
+   * @returns True if any UUID appears more than once, false otherwise.
+   */
+  hasDuplicates(): boolean {
+    return this.inv.some((item) => this.isDuplicate(item));
+  }
+
+  /**
+   * Removes duplicate items from the inventory based on UUID, keeping the first occurrence.
+   */
+  removeDuplicates(): void {
+    this.inv = this.toUnique((i) => i.uuid);
+  }
+
+  /**
    * Retrieves all items matching the specified property and value.
    * @param prop - The property to search by.
    * @param value - The value to match.
