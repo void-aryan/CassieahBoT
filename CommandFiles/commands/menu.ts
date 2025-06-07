@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
 export const style: CassidySpectra.CommandStyle = {
   title: Cassidy.logo,
   titleFont: "none",
-  contentFont: "none",
+  contentFont: "fancy",
 };
 
 export async function entry({

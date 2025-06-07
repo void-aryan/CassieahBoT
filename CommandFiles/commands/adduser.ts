@@ -119,5 +119,7 @@ export async function entry({ input, api, output, args }: CommandContext) {
       (a, b) => (a += `\n  ${b.type}`),
       ""
     )}`;
-  await output.reply(msg.trimEnd());
+  await output.reply(
+    msg.trimEnd() || "💌 Please enter a **valid** sender ID as first argument."
+  );
 }

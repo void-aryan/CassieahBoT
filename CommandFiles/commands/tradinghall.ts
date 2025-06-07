@@ -1,29 +1,31 @@
-// @ts-check
-
+import { formatCash, parseBet } from "@cass-modules/ArielUtils";
+import { InventoryItem } from "@cass-modules/cassidyUser";
 import { defineEntry } from "@cass/define";
+import { UNIRedux } from "@cassidy/unispectra";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
-  name: "tradinghall",
+export const meta: CommandMeta = {
+  name: "trade",
   description: "Manage your trading hall.",
   author: "Liane Cagara",
-  version: "1.0.0",
+  version: "2.0.0",
   usage: "{prefix}tradinghall",
   category: "Inventory",
   permissions: [0],
   noPrefix: false,
   waitingTime: 1,
-  otherNames: ["tradehall", "trade"],
+  otherNames: ["tradehall", "tradinghall"],
   requirement: "3.0.0",
   icon: "🛒",
   cmdType: "cplx_g",
 };
-const { parseCurrency: pCy } = global.utils;
+const pCy = formatCash;
 const { invLimit } = global.Cassidy;
 
-export const style = {
+type TradeVentory = (InventoryItem & { price: number })[] & {
+  userID: string;
+};
+
+export const style: CommandStyle = {
   title: "Trading Hall 🛒",
   titleFont: "bold",
   contentFont: "fancy",
@@ -32,12 +34,12 @@ export const style = {
 export const entry = defineEntry({
   async sell({ input, output, money, Inventory, args }) {
     const userData = await money.getItem(input.senderID);
-    const guide = `**Guide**: ${input.words[0]} <item key> <price> <amount ?? 1>`;
+    const guide = `**Guide**: ${input.words[0]} <item key> <price> <amount>`;
     const tradeVentory = new Inventory(userData.tradeVentory ?? []);
     const inventory = new Inventory(userData.inventory ?? []);
     const key = args[0];
-    const price = parseInt(args[1]);
-    const amount = parseInt(args[2] ?? "1");
+    const price = parseBet(args[1], Infinity) || 0;
+    const amount = parseBet(args[2] ?? "1", inventory.getAmount(key)) || 1;
     if (!key || !price || !amount) {
       return output.reply(guide);
     }
@@ -78,7 +80,7 @@ export const entry = defineEntry({
       });
     tradeVentory.add(items);
     inventory.toss(key, amount);
-    await money.set(input.senderID, {
+    await money.setItem(input.senderID, {
       tradeVentory: Array.from(tradeVentory),
       inventory: Array.from(inventory),
     });
@@ -88,7 +90,6 @@ export const entry = defineEntry({
         .join("\n")}`
     );
   },
-  // @ts-ignore
   async buy({
     input,
     output,
@@ -99,14 +100,14 @@ export const entry = defineEntry({
     TagParser,
     CassExpress,
   }) {
-    const allUsers = await money.getAll();
+    const allUsers = await money.getAllCache();
     let mappedTrades = Object.entries(allUsers)
       .filter(([, u]) => u?.tradeVentory)
 
       .filter(([, u]) => u.tradeVentory?.length > 0)
       .sort(([, a], [, b]) => b.tradeVentory.length - a.tradeVentory.length)
       .map(([id, data]) => {
-        const copy = data.tradeVentory ?? [];
+        const copy: TradeVentory = data.tradeVentory ?? [];
         copy.userID = id;
         return copy;
       });
@@ -163,12 +164,12 @@ export const entry = defineEntry({
             : "❌";
         result += `${item.icon} **x${tradeX.getAmount(item.key)}** **${
           item.name
-        }** (${item.key}) ${emoji1}\n- $**${pCy(item.price)} each**${
+        }** (${item.key}) ${emoji1}\n- **${pCy(item.price)} each**${
           invAmount ? ` 🎒 **x${invAmount}**` : ""
         }${boxAmount ? ` 📦 **x${boxAmount}**` : ""}\n✦ ${item.flavorText}\n\n`;
         existedKeys.push(item.key);
       }
-      result += "━━━━━━━━━━━━━━━\n\n";
+      result += `${UNIRedux.standardLine}`;
     }
     result += `\nType **${input.words[0]}** <page number> to view more trades.
 You can also use **tags** like:
@@ -176,7 +177,7 @@ ${input.words[0]} 1[key=gift, icon=🎁]
 
 Reply with <index> <key> <amount> to **purchase**.
 
-$**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
+**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
     const inf = await output.reply(result);
     input.setReply(inf.messageID, {
       author: input.senderID,
@@ -187,12 +188,9 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
       callback: handleBuy,
     });
 
-    /**
-     *
-     * @param {CommandContext & { repObj: any; detectID: string; }} r
-     * @returns
-     */
-    async function handleBuy(r) {
+    async function handleBuy(
+      r: CommandContext & { repObj: any; detectID: string }
+    ) {
       if (r.repObj.author !== r.input.senderID) {
         return;
       }
@@ -202,12 +200,9 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
       const userCass = new CassExpress(userData.cassExpress ?? {});
       const { input, output, Inventory, money } = r;
       const inventory = new Inventory(userData.inventory ?? []);
-      /**
-       * @type {Array<string | number>}
-       */
-      let [index, key, amount = "1"] = input.words;
+
+      let [index, key, amount = "1"]: (string | number)[] = input.words;
       index = parseInt(index);
-      amount = parseInt(amount);
 
       const userID = preservedIndex[index];
       if (!userID) {
@@ -218,11 +213,12 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
           `❌ | You can't buy your own items! Consider **cancelling** instead.`
         );
       }
-      const trades = allUsers[userID].tradeVentory ?? [];
+      const trades: TradeVentory = allUsers[userID].tradeVentory ?? [];
       const { name: trader } = allUsers[userID];
       const traderCass = new CassExpress(allUsers[userID].cassExpress ?? {});
       const tradeVentory = new Inventory(trades);
       let traderMoney = allUsers[userID].money ?? 0;
+      amount = parseBet(amount, tradeVentory.getAmount(key));
       if (!key) {
         return output.reply(
           `❌ | Please enter a **key** to buy, haven't you read the guide?`
@@ -240,7 +236,7 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
       if (amount > tradeVentory.getAmount(key)) {
         amount = tradeVentory.getAmount(key);
       }
-      let bought = [];
+      let bought: InventoryItem[] = [];
       let total = 0;
       for (let i = 0; i < amount; i++) {
         const item = tradeVentory.getOne(key);
@@ -270,18 +266,6 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
         bought.push(item);
       }
       if (total > 0) {
-        /*userCass.setMailSent({
-          name: trader,
-          amount: total,
-          author: input.senderID,
-          uid: userID,
-        });*/
-        /*traderCass.setMailReceived({
-          name: userData.name ?? "Unregistered",
-          amount: total,
-          author: input.senderID,
-          uid: input.senderID,
-        });*/
         const success = bought.filter((i) => !i.error);
         const firstItem = success[0];
         traderCass.createMail({
@@ -293,7 +277,7 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
           }** of your trading hall item(s) for a total of $${pCy(
             total
           )}💵\n\n${success
-            .map((i) => `${i.icon} **${i.name}** $${pCy(i.price)}💵`)
+            .map((i) => `${i.icon} **${i.name}** $${pCy(Number(i.price))}💵`)
             .join("\n")}\n\nIf you need more info, here is the UID: ${
             input.senderID
           }`,
@@ -307,18 +291,18 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
           }** for purchasing **${
             success.length
           }** item(s) from **${trader}**!\n\n${success
-            .map((i) => `${i.icon} **${i.name}** $${pCy(i.price)}💵`)
+            .map((i) => `${i.icon} **${i.name}** $${pCy(Number(i.price))}💵`)
             .join(
               "\n"
             )}\n\nIf you need more info, here is the UID of trader: ${userID}`,
         });
       }
-      await money.set(input.senderID, {
+      await money.setItem(input.senderID, {
         inventory: Array.from(inventory),
         money: userMoney,
         cassExpress: userCass.raw(),
       });
-      await money.set(userID, {
+      await money.setItem(userID, {
         tradeVentory: Array.from(tradeVentory),
         money: traderMoney,
         cassExpress: traderCass.raw(),
@@ -329,11 +313,11 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
         } items from **${trader}**!\n\n${bought
           .map(
             (i) =>
-              `${i.icon} **${i.name}** - $**${i.price}** ${
+              `${i.icon} **${i.name}** - **${i.price}** ${
                 i.error ? `\n❌ ${i.error}\n` : ""
               }`
           )
-          .join("\n")}\n**Total Spent**: $**${total}**`
+          .join("\n")}\n**Total Spent**: **${total}**`
       );
     }
   },
@@ -342,8 +326,10 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
     const tradeVentory = new Inventory(userData.tradeVentory ?? []);
     const { name = "Unregistered" } = userData;
     let result = `**${name}'s** Trading Hall\n\n`;
-    for (const item of tradeVentory) {
-      result += `${item.icon} **${item.name}** (${item.key}) - $**${item.price}**\n✦ ${item.flavorText}\n\n`;
+    for (const item of tradeVentory.toUnique()) {
+      result += `${item.icon} **x${tradeVentory.getAmount(item.key)}** **${
+        item.name
+      }** (${item.key}) - **${item.price}**\n✦ ${item.flavorText}\n\n`;
     }
     return output.reply(result);
   },
@@ -352,7 +338,7 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
     const tradeVentory = new Inventory(userData.tradeVentory ?? []);
     const inventory = new Inventory(userData.inventory ?? []);
     const key = args[0];
-    const amount = parseInt(args[1] ?? "1");
+    const amount = parseBet(args[1] ?? "1", tradeVentory.getAmount(key)) || 0;
     if (!key || !amount) {
       return output.reply(`❌ | Please enter a **key** and **amount**.`);
     }
@@ -379,7 +365,7 @@ $**${pCy(userMoney)}** **${inventory.getAll().length}/${invLimit}**`;
       });
     tradeVentory.toss(key, amount);
     inventory.add(items);
-    await money.set(input.senderID, {
+    await money.setItem(input.senderID, {
       tradeVentory: Array.from(tradeVentory),
       inventory: Array.from(inventory),
     });

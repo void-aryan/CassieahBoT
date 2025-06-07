@@ -29,7 +29,7 @@ const langs = {
     approveSuccess: "Approved successfully **%1 thread(s)**!",
     cantGetPendingList: "Can't get the pending list!",
     returnListPending:
-      "he whole number of threads to approve is: **%1 thread(s)**\n\n%2",
+      "The whole number of threads to approve is: **%1 thread(s)**\n\n%2",
     returnListClean: "There is **no thread** in the pending list",
   },
 };

@@ -1,17 +1,13 @@
-// @ts-check
-const moment = require("moment-timezone");
+import { UNISpectra } from "@cassidy/unispectra";
+import moment from "moment-timezone";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
+export const meta: CommandMeta = {
   name: "accept",
   otherNames: ["acp"],
-  version: "1.0.0",
+  version: "2.0.0",
   author: "JV Barcenas | Liane Cagara",
-  botAdmin: true,
-  permissions: [2],
-  description: "accept users",
+  role: 1.5,
+  description: "Accepts friend requests.",
   category: "Utilities",
   allowModerators: true,
   requirement: "3.0.0",
@@ -21,26 +17,32 @@ export const meta = {
   cmdType: "fb_utl",
 };
 
-/**
- * @type {CassidySpectra.CommandStyle}
- */
-export const style = {
+export const style: CommandStyle = {
   title: "💗 Accept Users",
   titleFont: "bold",
   contentFont: "fancy",
 };
 
-/**
- *
- * @param {CommandContext  & { repObj: {messageID: string; listRequest: any; author: string; unsendTimeout: any }}} param0
- * @returns
- */
-export async function onReply({ output: message, repObj: Reply, event, api }) {
-  const { author, listRequest, messageID } = Reply;
-  if (author !== event.senderID) return;
-  const args = event.body.replace(/ +/g, " ").toLowerCase().split(" ");
+interface ReplyObj {
+  messageID: string;
+  listRequest: ListRequest[];
+  author: string;
+  unsendTimeout: NodeJS.Timeout;
+}
 
-  clearTimeout(Reply.unsendTimeout);
+export async function onReply({
+  output,
+  repObj,
+  input,
+  api,
+}: CommandContext & {
+  repObj: ReplyObj;
+}) {
+  const { author, listRequest, messageID } = repObj;
+  if (author !== input.sid) return;
+  const args = input.words;
+
+  clearTimeout(repObj.unsendTimeout);
   const form = {
     av: api.getCurrentUserID(),
     fb_api_caller_class: "RelayModern",
@@ -49,10 +51,13 @@ export async function onReply({ output: message, repObj: Reply, event, api }) {
         source: "friends_tab",
         actor_id: api.getCurrentUserID(),
         client_mutation_id: Math.round(Math.random() * 19).toString(),
+        friend_requester_id: null,
       },
       scale: 3,
       refresh_num: 0,
     },
+    fb_api_req_friendly_name: null,
+    doc_id: null,
   };
 
   const success = [];
@@ -66,8 +71,8 @@ export async function onReply({ output: message, repObj: Reply, event, api }) {
     form.fb_api_req_friendly_name = "FriendingCometFriendRequestDeleteMutation";
     form.doc_id = "4108254489275063";
   } else {
-    return message.replyStyled(
-      'Please select <add | del > <target number | or "all">',
+    return output.replyStyled(
+      '🔎 Please reply with **<add | del > <target number | or "all">**',
       style
     );
   }
@@ -77,7 +82,8 @@ export async function onReply({ output: message, repObj: Reply, event, api }) {
   if (args[1] === "all") {
     targetIDs = [];
     const lengthList = listRequest.length;
-    for (let i = 1; i <= lengthList; i++) targetIDs.push(i);
+    for (let i = 1; i <= lengthList; i++)
+      targetIDs.push(i as unknown as string);
   }
 
   const newTargetIDs = [];
@@ -115,35 +121,41 @@ export async function onReply({ output: message, repObj: Reply, event, api }) {
   }
 
   if (success.length > 0) {
-    message.replyStyled(
-      `» The ${
+    output.replyStyled(
+      `${UNISpectra.arrowFromT} ✅ The ${
         args[0] === "add" ? "friend request" : "friend request deletion"
-      } has been processed for ${success.length} people:\n\n${success.join(
-        "\n"
-      )}${
+      } **has been processed for** **${success.length}** people:\n\n${success
+        .map((i, j) => `${j + 1}. **${i}**`)
+        .join("\n")}${
         failed.length > 0
-          ? `\n» The following ${
+          ? `\n${UNISpectra.arrowFromT} ❌ The following ${
               failed.length
-            } people encountered errors: ${failed.join("\n")}`
+            } people encountered **errors**: ${failed.join("\n")}`
           : ""
       }`,
       style
     );
   } else {
-    api.unsendMessage(messageID);
-    return message.replyStyled(
-      "Invalid response. Please provide a valid response.",
+    output.unsend(messageID);
+    return output.replyStyled(
+      "💌 **Invalid response**: Please go back and provide a **valid** response.",
       style
     );
   }
 
-  api.unsendMessage(messageID);
+  output.unsend(messageID);
 }
-/**
- *
- * @param {CommandContext } ctx
- */
-export async function entry({ event, api, output, input }) {
+
+interface ListRequest {
+  node: {
+    name: string;
+    id: string;
+    url: string;
+  };
+  time: number;
+}
+
+export async function entry({ event, api, output, input }: CommandContext) {
   const form = {
     av: api.getCurrentUserID(),
     fb_api_req_friendly_name:
@@ -152,31 +164,35 @@ export async function entry({ event, api, output, input }) {
     doc_id: "4499164963466303",
     variables: JSON.stringify({ input: { scale: 3 } }),
   };
-  const listRequest = JSON.parse(
+  const listRequest: ListRequest[] = JSON.parse(
     await api.httpPost("https://www.facebook.com/api/graphql/", form)
   ).data.viewer.friending_possibilities.edges;
   let msg = "";
   let i = 0;
   for (const user of listRequest) {
     i++;
-    msg += `\n${i}. Name: ${user.node.name}
-        + \nID: ${user.node.id}
-        + \nUrl: ${user.node.url.replace("www.facebook", "fb")}
-        + \nTime: ${moment(user.time * 1009)
-          .tz("Asia/Manila")
-          .format("DD/MM/YYYY HH:mm:ss")}\n`;
+    msg +=
+      `\n${i}. 👤 **${user.node.name}**` +
+      `\n🪪 **ID**: ${user.node.id}` +
+      `\n🌏 **Url**: ${user.node.url.replace("www.facebook", "fb")}` +
+      `\n⏳ **Time**: ${moment(user.time * 1009)
+        .tz("Asia/Manila")
+        .format("DD/MM/YYYY HH:mm:ss")}\n`;
   }
   const info = await output.reply(
-    `${msg}\nReply to this message with content: <add | del> <comparison | or "all"> to take action`
+    `${msg}\n${UNISpectra.arrowFromT} 💌 Please reply to this message with content: **<add | del> <comparison | or "all">** to take action.`
   );
-  input.setReply(info.messageID, {
-    messageID: info.messageID,
+  const rep: ReplyObj = {
     listRequest,
     author: event.senderID,
     unsendTimeout: setTimeout(() => {
       api.unsendMessage(info.messageID);
     }, 60 * 1000),
-    // @ts-ignore
-    callback: onReply,
+    messageID: info.messageID,
+  };
+
+  input.setReply(info.messageID, {
+    ...rep,
+    callback: onReply as CommandEntry,
   });
 }

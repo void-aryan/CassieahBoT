@@ -22,7 +22,7 @@ export const meta: CassidySpectra.CommandMeta = {
 };
 
 export const style: CassidySpectra.CommandStyle = {
-  title: "👑 Admins & Moderators",
+  title: "👑 Admods",
   titleFont: "bold",
   contentFont: "fancy",
 };

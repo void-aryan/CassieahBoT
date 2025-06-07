@@ -26,7 +26,7 @@ export async function entry(context: CommandContext) {
   const { args, output, input } = context;
   const type = input.propertyArray[0];
 
-  if (!args[0]) {
+  if (!args[0] && !input.is("message_reply")) {
     await output.reply(
       "⚠️ Please provide JavaScript code to evaluate.\n\nUse **eval-ts** to JIT evaluate typescript code.\nUse **eval-dts** to inspect possible types of an object."
     );
@@ -66,9 +66,10 @@ export async function entry(context: CommandContext) {
     let result: any;
     while (true) {
       try {
-        let code = input.is("message_reply")
-          ? input.replier.toString()
-          : args.join(" ");
+        let code =
+          input.is("message_reply") && args.length === 0
+            ? input.replier.toString()
+            : args.join(" ");
         if (type === "ts") {
           code = compileTS(code);
         }

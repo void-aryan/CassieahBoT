@@ -8,7 +8,7 @@ const style: CassidySpectra.CommandStyle = {
 export default defineCommand({
   meta: {
     name: "catchpastebin",
-    version: "1.0.0",
+    version: "2.0.0",
     author: "LiANE",
     waitingTime: 5,
     role: 0,
@@ -42,13 +42,18 @@ export default defineCommand({
       }`
     );
   },
-  async event({ api, output, usersDB, input, threadsDB }) {
+  async event({ api, output, usersDB, input, threadsDB, globalDB }) {
     if (!input.isFacebook) {
       return;
     }
 
     const chat = input.body;
     if (chat.includes("pastebin.com/raw/")) {
+      const data = await globalDB.getCache("catchpastebin");
+      const status: boolean = data.status;
+      if (!status) {
+        return;
+      }
       await usersDB.ensureUserInfo(input.senderID);
       const user = await usersDB.getCache(input.senderID);
       let name = user.userMeta?.name ?? user.name ?? "Unknown";

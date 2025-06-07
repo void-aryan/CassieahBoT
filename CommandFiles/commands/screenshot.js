@@ -32,6 +32,9 @@ export const style = {
  * @returns
  */
 export async function entry({ input, output }) {
+  if (!input.isAdmin) {
+    return output.reaction("😂");
+  }
   const url = input.arguments.join("");
   if (!url) {
     return output.reply("Please enter a URL as arguments.");

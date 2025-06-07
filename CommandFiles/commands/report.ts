@@ -26,7 +26,7 @@ export default easyCMD({
     });
     for (const id of Cassidy.config.ADMINBOT) {
       await output.sendStyled(
-        `*Report from ${userName}*:\n\n${message}\n\n🔍 ***User ID***: ${input.sid}\n📅 ***Time***: ${time}`,
+        `**Report from ${userName}**:\n\n${message}\n\n🔍 ***User ID***: ${input.sid}\n🔍 ***Thread ID***: ${input.tid}\n📅 ***Time***: ${time}`,
         {
           title: "‼️ Admin Report",
         },
@@ -34,6 +34,6 @@ export default easyCMD({
       );
     }
     output.reply("✅ Your report has been sent to the admins.");
-    output.react("✅");
+    output.reaction("✅");
   },
 });

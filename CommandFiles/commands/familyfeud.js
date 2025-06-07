@@ -2,15 +2,15 @@
 import fs from "fs";
 import stringSimilarity from "string-similarity";
 import { translate } from "@vitalets/google-translate-api";
-import { clamp, UNIRedux } from "@cassidy/unispectra";
+import { clamp, UNISpectra } from "@cassidy/unispectra";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "familyfeud",
   author: "Liane Cagara",
-  version: "1.0.0",
+  version: "2.0.0",
   waitingTime: 5,
   description: "Family Feud style game!",
   category: "Puzzle Games",
@@ -21,7 +21,17 @@ export const meta = {
   cmdType: "arl_g",
 };
 
-const logo = `🔎 [ **FAMILY FEUD** ] 🔍\n${UNIRedux.standardLine}\n`;
+/**
+ * @type {CommandStyle}
+ */
+export const style = {
+  title: {
+    content: `🔎 ${UNISpectra.wrapEmoji("Family Feud")} 🔍`,
+    text_font: "bold",
+    line_bottom: "default",
+  },
+  contentFont: "fancy",
+};
 
 function getRandomQuestion() {
   const data = JSON.parse(
@@ -63,9 +73,6 @@ export async function reply({
   CassEXP,
 }) {
   try {
-    const logo = "🔎 [ **FAMILY FEUD** ] 🔍\n";
-    output.prepend = logo;
-
     if (typeof receive !== "object" || !receive) return;
     receive.mid = detectID;
     if (input.senderID !== receive.author) {
@@ -128,7 +135,7 @@ export async function reply({
       if (allGuessed) {
         collectibles.raise("feudTickets", answers.length);
         cassEXP.expControls.raise(20);
-        await moneyH.set(input.senderID, {
+        await moneyH.setItem(input.senderID, {
           ...userData,
           cassEXP: cassEXP.raw(),
           collectibles: Array.from(collectibles),
@@ -242,42 +249,40 @@ export async function entry({
   money: moneyH,
   Inventory,
 }) {
-  output.prepend = logo;
-
   if (input.arguments[0] == "guide") {
-    return output.reply(`𝗢𝘃𝗲𝗿𝘃𝗶𝗲𝘄
+    return output.reply(`**Overview**
 Test your knowledge and try to guess the most popular answers in our Family Feud game!
 
-𝗛𝗼𝘄 𝘁𝗼 𝗣𝗮𝗿𝘁𝗶𝗰𝗶𝗽𝗮𝘁𝗲:
+**How to Participate**:
 1. Type ${prefix}familyfeud to start the game.
 2. Guess the most popular answers to the survey question.
 3. Answer by typing your response.
 
-𝗖𝗼𝗻𝗱𝗶𝘁𝗶𝗼𝗻𝘀:
+**Conditions**:
 - You can guess multiple times until you get it right or receive three strikes.
 - Points are awarded based on the popularity of the answer.
 
-𝗥𝗲𝘄𝗮𝗿𝗱𝘀:
+**Rewards**:
 - Correct answers earn you points.
 
-𝗦𝗽𝗲𝗰𝗶𝗮𝗹 𝗠𝗲𝘀𝘀𝗮𝗴𝗲𝘀:
+**Special Messages**:
 - If you guess wrong, you'll receive a fun response. Keep trying!
 - Humorous responses add to the fun of the game.
 
-𝗘𝘅𝗮𝗺𝗽𝗹𝗲 𝗨𝘀𝗮𝗴𝗲:
+**Example Usage**:
 - Input: ${prefix}familyfeud
 - Question: Name something you bring to a picnic.
 
 - Answer: food
 
-𝗦𝗰𝗼𝗿𝗶𝗻𝗴:
+**Scoring**:
 - Each correct answer earns you points based on its popularity.
 - Three strikes and the game ends.
 
-𝗔𝗰𝗵𝗶𝗲𝘃𝗲𝗺𝗲𝗻𝘁𝘀:
+**Achievements**:
 - Track your Family Feud wins and points earned in your profile.
 
-𝗘𝗻𝗷𝗼𝘆 𝘁𝗵𝗲 𝗙𝗮𝗺𝗶𝗹𝘆 𝗙𝗲𝘂𝗱 𝗚𝗮𝗺𝗲 𝗮𝗻𝗱 𝗛𝗮𝘃𝗲 𝗙𝘂𝗻! 👪🌟
+**Enjoy the family feud game and have fun!**! 👪🌟
 
 ---
 `);
@@ -291,11 +296,9 @@ Test your knowledge and try to guess the most popular answers in our Family Feud
     inventory: inv = [],
   } = await moneyH.getItem(input.senderID);
   const inventory = new Inventory(inv);
-  let isPendantUsed = false;
   limitCheck: {
     if (ffRunStamp && Date.now() - ffRunStamp < 10 * 60 * 1000) {
       if (inventory.has("timePendant")) {
-        isPendantUsed = true;
         inventory.deleteOne("timePendant");
         break limitCheck;
       }
@@ -308,7 +311,6 @@ Test your knowledge and try to guess the most popular answers in our Family Feud
     const elapsedTime = Date.now() - ffStamp;
     if (elapsedTime < 10 * 60 * 1000) {
       if (inventory.has("timePendant")) {
-        isPendantUsed = true;
         inventory.deleteOne("timePendant");
         break limitCheck;
       }
@@ -337,7 +339,7 @@ Test your knowledge and try to guess the most popular answers in our Family Feud
       guessed: false,
     }));
     lastFeudGame.timeStamp = Date.now();
-    await moneyH.set(input.senderID, {
+    await moneyH.setItem(input.senderID, {
       lastFeudGame,
     });
   }
