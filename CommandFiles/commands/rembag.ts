@@ -9,7 +9,7 @@ const REMOTEBAG = fonts.serif("REMOTE-BAG");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "remotebag",
-  version: "1.0.0",
+  version: "1.0.1",
   author: "Adapted from Duke's Ariel's Bank by Liane Cagara",
   waitingTime: 1,
   description: `Manage your items with Remote Bag (${REMOTEBAG} ®). Store, retrieve, and transfer items with upgradable slots.`,
@@ -201,7 +201,7 @@ export async function entry({
           targetData.userMeta?.name ?? targetData.name
         }\n${UNIRedux.standardLine}\n🎒: ${
           targetData.bagData.nickname
-        }\nSlots: ${bdataItems.size()}/${
+        }\nSlots: ${bdataItems.uniqueSize()}/${
           targetData.bagData.slots
         } (Max ${REMOTEBAG_MAX_SLOTS})\nStack Limit: ${
           targetData.bagData.stackLimit
@@ -387,6 +387,13 @@ export async function entry({
       if (recipient?.bagData?.nickname !== recipientNickname) {
         return output.replyStyled(
           `The recipient does not have a ${REMOTEBAG} ® account with the given nickname.`,
+          notifStyle
+        );
+      }
+
+      if (recipient?.userID === input.senderID) {
+        return output.replyStyled(
+          `You cannot transfer any items to your own ${REMOTEBAG} ® account.`,
           notifStyle
         );
       }

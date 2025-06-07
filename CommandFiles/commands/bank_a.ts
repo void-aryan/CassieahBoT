@@ -9,7 +9,7 @@ const ABANK = fonts.serif("AC-BANK");
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.8",
+  version: "3.0.9",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
@@ -510,6 +510,12 @@ export async function entry({
         if (recipient?.bankData?.nickname !== recipientNickname) {
           return output.replyStyled(
             `The recipient does not have a ${ABANK} ® account with the given nickname.`,
+            notifStyle
+          );
+        }
+        if (recipient?.userID === input.senderID) {
+          return output.replyStyled(
+            `You cannot transfer any items to your own ${ABANK} ® account.`,
             notifStyle
           );
         }
