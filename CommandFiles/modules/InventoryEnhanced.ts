@@ -40,6 +40,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
     this.limit = limit;
 
     this.inv = this.sanitize(JSON.parse(JSON.stringify(inventory)));
+    this.removeDuplicates();
   }
 
   /**
@@ -800,6 +801,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
    */
   resanitize() {
     this.inv = this.sanitize(this.inv);
+    this.removeDuplicates();
   }
 }
 
