@@ -291,19 +291,13 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
 
   /**
    * Deletes an item by reference or index.
-   * @param item - The item reference or index to delete.
+   * @param item - The item reference to delete.
    */
-  deleteRef(item: T | string | number) {
+  deleteRef(item: T) {
     let index =
-      typeof item === "string" || typeof item === "number"
-        ? -1
-        : this.inv.indexOf(item);
+      this.inv.indexOf(item) || this.inv.indexOf(this.getOneByID(item.uuid));
 
-    if (index === -1) {
-      index = parseInt(String(item)) - 1;
-    }
-
-    if (index !== -1 && !isNaN(index)) {
+    if (index !== -1) {
       this.inv.splice(index, 1);
     }
     this.resanitize();

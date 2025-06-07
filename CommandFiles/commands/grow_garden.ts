@@ -23,7 +23,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.6",
+  version: "1.6.7",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1415,7 +1415,7 @@ export async function entry(ctx: CommandContext) {
             }
           }
           if (plot.harvestsLeft <= 0) {
-            plots.deleteRef(plot);
+            plots.deleteByID(plot.uuid);
           } else {
             plot.mutation = [];
             plot.plantedAt = Date.now();
@@ -1433,7 +1433,7 @@ export async function entry(ctx: CommandContext) {
               );
             }
             plot.mutationAttempts = 0;
-            plots.deleteOne(plot.key);
+            plots.deleteByID(plot.uuid);
             plots.addOne(plot);
           }
         }
