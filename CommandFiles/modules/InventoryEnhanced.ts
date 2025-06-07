@@ -294,8 +294,9 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
    * @param item - The item reference to delete.
    */
   deleteRef(item: T) {
+    let index1 = this.inv.indexOf(item);
     let index =
-      this.inv.indexOf(item) || this.inv.indexOf(this.getOneByID(item.uuid));
+      index1 === -1 ? this.inv.indexOf(this.getOneByID(item.uuid)) : index1;
 
     if (index !== -1) {
       this.inv.splice(index, 1);
@@ -334,7 +335,9 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
    * @returns The index of the item or -1 if not found.
    */
   indexOf(item: T): number {
-    return this.inv.indexOf(item);
+    return this.inv.indexOf(item) === -1
+      ? this.inv.indexOf(this.getOneByID(item.uuid))
+      : this.inv.indexOf(item);
   }
 
   /**
