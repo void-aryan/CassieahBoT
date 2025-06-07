@@ -1,5 +1,6 @@
 // @ts-check
 import { creatorX } from "./handlers/page/webhook.js";
+import { Datum } from "@cass-modules/Datum";
 
 import { Readable } from "stream";
 import { MultiMap } from "@cass-modules/Multimap";
@@ -272,7 +273,6 @@ export class Event {
 }
 import fs from "fs";
 import fetchMeta from "./CommandFiles/modules/fetchMeta.js";
-import { Datum } from "@cass-modules/Datum";
 export function genericPage(...replacer) {
   return pageParse("public/generic.html", ...replacer);
 }
