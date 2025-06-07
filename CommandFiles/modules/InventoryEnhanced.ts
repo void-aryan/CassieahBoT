@@ -275,6 +275,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
       return false;
     }
     this.inv = this.inv.filter((_, i) => i !== index);
+    this.resanitize();
     return true;
   }
 
@@ -285,6 +286,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
    */
   deleteBy<K extends keyof T>(prop: K, value: T[K]) {
     this.inv = this.inv.filter((item) => item[prop] !== value);
+    this.resanitize();
   }
 
   /**
@@ -304,6 +306,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
     if (index !== -1 && !isNaN(index)) {
       this.inv.splice(index, 1);
     }
+    this.resanitize();
   }
 
   /**
@@ -314,6 +317,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
     for (const item of items) {
       this.deleteRef(item);
     }
+    this.resanitize();
   }
 
   /**
@@ -397,6 +401,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
       );
     }
     this.inv = this.sanitize(combined);
+    this.removeDuplicates();
     return this;
   }
 
@@ -481,6 +486,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
       return false;
     }
     [this.inv[index1], this.inv[index2]] = [this.inv[index2], this.inv[index1]];
+    this.resanitize();
     return true;
   }
 
@@ -622,6 +628,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
       return false;
     }
     this.inv = this.inv.filter((_, i) => i !== index);
+    this.resanitize();
     return true;
   }
 
@@ -641,6 +648,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
    */
   delete(key: string | number) {
     this.inv = this.inv.filter((item) => item.key !== key);
+    this.resanitize();
   }
 
   /**
@@ -690,7 +698,9 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
    * @returns The new length of the inventory.
    */
   addOne(item: T): number {
-    return this.inv.push(item);
+    const i = this.inv.push(item);
+    this.resanitize();
+    return i;
   }
 
   /**
@@ -699,7 +709,9 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
    * @returns The new length of the inventory.
    */
   add(item: T[]): number {
-    return this.inv.push(...item);
+    const i = this.inv.push(...item);
+    this.resanitize();
+    return i;
   }
 
   /**
@@ -715,6 +727,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
     for (let i = 0; i < amount; i++) {
       this.deleteOne(key);
     }
+    this.resanitize();
   }
 
   /**
@@ -738,6 +751,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
       this.deleteOne(key);
       r++;
     }
+    this.resanitize();
     return r;
   }
 
@@ -751,6 +765,7 @@ export class Inventory<T extends InventoryItem = InventoryItem> {
     for (let i = 0; i < amount; i++) {
       this.addOne(data[i]);
     }
+    this.resanitize();
   }
 
   /**
