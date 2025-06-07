@@ -67,6 +67,7 @@ export type BaseInventoryItem = {
    * @deprecated
    */
   index?: number;
+  uuid?: string;
 };
 
 export type WeaponInventoryItem = BaseInventoryItem & {
