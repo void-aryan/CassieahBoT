@@ -133,7 +133,9 @@ export async function postEvent(event) {
   }
 }
 
-export function formatIP(ip) {
+export const formatIP = Datum.encodeGameID;
+
+export function formatIP_OOPS(ip) {
   try {
     ip = ip?.replaceAll("custom_", "");
     if (ip.startsWith(pref)) {
@@ -270,6 +272,7 @@ export class Event {
 }
 import fs from "fs";
 import fetchMeta from "./CommandFiles/modules/fetchMeta.js";
+import { Datum } from "@cass-modules/Datum";
 export function genericPage(...replacer) {
   return pageParse("public/generic.html", ...replacer);
 }
