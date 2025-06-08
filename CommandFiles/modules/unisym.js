@@ -840,7 +840,7 @@ export function pluralize(str = "", amount = 0) {
  */
 export function limitString(str = "", length = 0) {
   return String(str).length > length
-    ? String(str).slice(0, Number(length))
+    ? String(str).slice(0, Number(length)) + "..."
     : String(str);
 }
 
