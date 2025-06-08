@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.8",
+  version: "1.6.9",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -3348,8 +3348,7 @@ export async function entry(ctx: CommandContext) {
         for (const item of currentItems) {
           const bres = evaluateItemBalance(item);
 
-          const i =
-            start + sortedItems.findIndex((i) => i.key === item.key) + 1;
+          const i = sortedItems.findIndex((i) => i.key === item.key) + 1;
           result += `${i}. ${bres.item.icon} **${bres.item.name}** (${
             bres.item.key
           })\n🏅 **SCORE**: ${bres.score}\n**Stock Chance**: ${(
@@ -3368,7 +3367,7 @@ export async function entry(ctx: CommandContext) {
           UNIRedux.arrowFromT
         } Next page: ${prefix}${commandName} bs ${page + 1}\n${
           UNIRedux.arrowFromT
-        } Total Pages: ${Math.ceil(allItems.length / ITEMS_PER_PAGE)}`;
+        } Total Pages: ${Math.ceil(sortedItems.length / ITEMS_PER_PAGE)}`;
 
         return output.replyStyled(result, style);
       },
