@@ -11,7 +11,7 @@ const ABANK_LINE = UNISpectra.getLine(18);
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.11",
+  version: "3.0.12",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel-Cass's Bank (Personalized Edition) (${ACBANK_LOGO}/${ABANK_LOGO} ®).`,
@@ -218,7 +218,16 @@ export async function entry({
         );
       }
       const nickname = args[1];
-      if (!nickname || nickname.length < 3) {
+      const all = await money.getAllCache();
+
+      if (
+        !nickname ||
+        nickname.length < 3 ||
+        Object.values(all)
+          .map((i) => i.bankData)
+          .filter(Boolean)
+          .some((i) => i?.nickname === nickname)
+      ) {
         return output.replyStyled(
           `Please provide a valid nickname (at least 3 characters) for your ${ABANK} ® account.`,
           targetNotif
@@ -748,8 +757,20 @@ export async function entry({
           targetNotif
         );
       }
+      const all = await money.getAllCache();
       const newNickname = args[1];
-      if (!newNickname || newNickname.length < 3) {
+
+      if (
+        !newNickname ||
+        newNickname.length < 3 ||
+        Object.values(all)
+          .map((i) => i.bankData)
+          .filter(Boolean)
+          .some(
+            (i) =>
+              i?.nickname === newNickname && i.nickname !== bankData.nickname
+          )
+      ) {
         return output.replyStyled(
           `Please provide a valid new nickname (at least 3 characters) for your ${ABANK} ® account.`,
           targetNotif
