@@ -11,7 +11,7 @@ const ABANK_LINE = UNISpectra.getLine(18);
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.12",
+  version: "3.0.13",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel-Cass's Bank (Personalized Edition) (${ACBANK_LOGO}/${ABANK_LOGO} ®).`,
@@ -208,6 +208,7 @@ export async function entry({
   }
   const trophys = getTrophy(userData);
   const extraLine = isAC ? "" : `${line}\n`;
+  const extraLineBottom = isAC ? "" : `\n${line}`;
 
   const handlers = {
     async register() {
@@ -244,7 +245,7 @@ export async function entry({
       return output.replyStyled(
         `${extraLine}${fonts.bold(
           `Your ${ABANK} ® account created successfully`
-        )}\n${line}\nFree ${formatCash(1000)} upon register.`,
+        )}\n${line}\nFree ${formatCash(1000)} upon register.${extraLineBottom}`,
         targetStyle
       );
     },
@@ -372,7 +373,7 @@ export async function entry({
               itemAmount
             )}\nFrom your ${ABANK} ® account.\n${line}\n${
               UNIRedux.arrowBW
-            } Items 🛍️\n\n${itemStr || "No items."}`,
+            } Items 🛍️\n\n${itemStr || "No items."}${extraLineBottom}`,
             targetStyle
           );
         }
@@ -420,7 +421,7 @@ export async function entry({
           isRemoveT ? `🏆❌ **Trophy Removed**\n${line}\n` : ""
         }${extraLine}${fonts.bold("Successfully")} withdrew:\n${formatCash(
           amount
-        )}\nfrom your ${ABANK} ® account.`,
+        )}\nfrom your ${ABANK} ® account.${extraLineBottom}`,
         targetStyle
       );
     },
@@ -506,7 +507,7 @@ export async function entry({
             itemAmount
           )}\nTo your ${ABANK} ® account.\n${line}\n${
             UNIRedux.arrowBW
-          } Items 🛍️\n\n${itemStr || "No items."}`,
+          } Items 🛍️\n\n${itemStr || "No items."}${extraLineBottom}`,
           targetStyle
         );
       }
@@ -540,7 +541,7 @@ export async function entry({
       return output.replyStyled(
         `${extraLine}${fonts.bold("Successfully")} deposited:\n${formatCash(
           amount
-        )}\nto your ${ABANK} ® account.`,
+        )}\nto your ${ABANK} ® account.${extraLineBottom}`,
         targetStyle
       );
     },
@@ -667,7 +668,7 @@ export async function entry({
             recipient
           )}\n➣ ${recipient.userMeta?.name ?? recipient.name} 🛍️\n\n${
             recipientStr || "No items."
-          }`,
+          }${extraLineBottom}`,
           targetStyle
         );
       }
@@ -746,7 +747,7 @@ export async function entry({
           amount
         )}\n${line}\n${fonts.bold("Receiver")}: ${formatTrophy(recipient)}\n➣ ${
           recipient.userMeta?.name ?? recipient.name
-        }`,
+        }${extraLineBottom}`,
         targetStyle
       );
     },
@@ -785,7 +786,7 @@ export async function entry({
       return output.replyStyled(
         `${extraLine}${fonts.bold(
           "Successfully"
-        )} renamed your ${ABANK} ® account to: ${newNickname}.`,
+        )} renamed your ${ABANK} ® account to: ${newNickname}.${extraLineBottom}`,
         targetStyle
       );
     },
