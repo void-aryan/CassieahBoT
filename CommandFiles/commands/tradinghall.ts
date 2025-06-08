@@ -7,7 +7,7 @@ export const meta: CommandMeta = {
   name: "trade",
   description: "Manage your trading hall.",
   author: "Liane Cagara",
-  version: "2.0.0",
+  version: "2.0.1",
   usage: "{prefix}tradinghall",
   category: "Inventory",
   permissions: [0],
@@ -35,7 +35,9 @@ export const entry = defineEntry({
   async sell({ input, output, money, Inventory, args }) {
     const userData = await money.getItem(input.senderID);
     const guide = `**Guide**: ${input.words[0]} <item key> <price> <amount>`;
-    const tradeVentory = new Inventory(userData.tradeVentory ?? []);
+    const tradeVentory = new Inventory<TradeVentory[number]>(
+      userData.tradeVentory ?? []
+    );
     const inventory = new Inventory(userData.inventory ?? []);
     const key = args[0];
     const price = parseBet(args[1], Infinity) || 0;
@@ -60,7 +62,9 @@ export const entry = defineEntry({
     const existing = tradeVentory.getOne(key);
     if (existing && existing.price && existing.price !== price) {
       return output.reply(
-        `❌ | The price of existing "${key}" was $${existing.price}, your prices must be consistent!`
+        `❌ | The price of existing "${key}" was ${pCy(
+          existing.price
+        )}, your prices must be consistent!`
       );
     }
     if (amount + tradeVentory.getAll().length > invLimit) {
@@ -77,7 +81,7 @@ export const entry = defineEntry({
       .map((item) => {
         item.price = price;
         return item;
-      });
+      }) as TradeVentory;
     tradeVentory.add(items);
     inventory.toss(key, amount);
     await money.setItem(input.senderID, {
@@ -85,7 +89,9 @@ export const entry = defineEntry({
       inventory: Array.from(inventory),
     });
     return output.reply(
-      `✅ | Added ${amount} item(s) for **$${price}** each to the trading hall!\n\n${items
+      `✅ | Added ${amount} item(s) for **${pCy(
+        price
+      )}** each to the trading hall!\n\n${items
         .map((item) => `${item.icon} **${item.name}**`)
         .join("\n")}`
     );
@@ -169,7 +175,7 @@ export const entry = defineEntry({
         }${boxAmount ? ` 📦 **x${boxAmount}**` : ""}\n✦ ${item.flavorText}\n\n`;
         existedKeys.push(item.key);
       }
-      result += `${UNIRedux.standardLine}`;
+      result += `${UNIRedux.standardLine}\n`;
     }
     result += `\nType **${input.words[0]}** <page number> to view more trades.
 You can also use **tags** like:
@@ -236,7 +242,8 @@ Reply with <index> <key> <amount> to **purchase**.
       if (amount > tradeVentory.getAmount(key)) {
         amount = tradeVentory.getAmount(key);
       }
-      let bought: InventoryItem[] = [];
+      let bought = [] as TradeVentory;
+
       let total = 0;
       for (let i = 0; i < amount; i++) {
         const item = tradeVentory.getOne(key);
@@ -313,11 +320,11 @@ Reply with <index> <key> <amount> to **purchase**.
         } items from **${trader}**!\n\n${bought
           .map(
             (i) =>
-              `${i.icon} **${i.name}** - **${i.price}** ${
+              `${i.icon} **${i.name}** - **${pCy(i.price)}** ${
                 i.error ? `\n❌ ${i.error}\n` : ""
               }`
           )
-          .join("\n")}\n**Total Spent**: **${total}**`
+          .join("\n")}\n**Total Spent**: **${pCy(total)}**`
       );
     }
   },
