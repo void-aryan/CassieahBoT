@@ -82,7 +82,10 @@ export async function use(obj) {
     } = obj;
 
     await input.detectAndProcessReactions();
-    const willCancelCommand = await input.detectAndProcessReplies();
+    let willCancelCommand = false;
+    if (!hasPrefix || !supposedCommand) {
+      willCancelCommand = await input.detectAndProcessReplies();
+    }
 
     const ShopClass = obj.ShopClass;
     global.runner = obj;

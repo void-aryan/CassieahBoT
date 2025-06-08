@@ -12,7 +12,7 @@ export const meta = {
   description: "Unsend bot's message",
   usage: "Reply to the bot's message and call the command",
   fbOnly: true,
-  noPrefix: "both",
+  noPrefix: false,
 };
 
 /**
@@ -24,7 +24,8 @@ export async function entry({ output, input, api, replySystem }) {
   if (!input.replier || input.replier.senderID !== api.getCurrentUserID()) {
     return output.reply("❌ Please reply to a bot's message.");
   }
-  if (replySystem.get(input.replier.messageID)) {
+  const rep = replySystem.get(input.replier.messageID);
+  if (rep && rep.registeredSender !== input.senderID) {
     return output.reply(
       "❌ This message has reply listener, you cannot unsend it."
     );

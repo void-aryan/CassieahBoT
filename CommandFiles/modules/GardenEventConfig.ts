@@ -17,6 +17,189 @@ export const EVENT_CONFIG = {
       shopItems: [],
     },
     {
+      name: "Cherry Blossom Event",
+      icon: "🌸🩷",
+      shopName: "Blossom Seed Shop",
+      shopName2: "Cherry Market",
+      shopAlias: ["cherryshop", "blossom"],
+      effect: {
+        mutationChance: 0.3,
+        growthMultiplier: 1.4,
+        mutationType: "Bloom",
+      },
+      shopItems: [
+        {
+          icon: "🌷",
+          name: "Cherry Tulip Seed",
+          key: "gsCherryTulip",
+          flavorText:
+            "A bright, cup-shaped flower with smooth petals and a tall, slender stem, often seen in vibrant spring colors like red, yellow, and pink.",
+          price: 10_500,
+          rarity: "Common",
+          stockLimit: 25,
+          stockChance: 1.0,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCherryTulip",
+              name: "Cherry Tulip Seed",
+              flavorText:
+                "Delicate pink or white flowers that bloom in clusters on tree branches, signaling the arrival of spring.",
+              icon: "🌷",
+              type: "gardenSeed",
+              sellPrice: 1_250,
+              cropData: {
+                baseValue: 3_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
+                harvests: 5,
+              },
+            });
+          },
+        },
+        {
+          icon: "🪷",
+          name: "Cherry Lotus Seed",
+          key: "gsCherryLotus",
+          flavorText:
+            "A large, round flower with smooth petals that floats gracefully on the water's surface.",
+          price: 30_000,
+          rarity: "Uncommon",
+          stockLimit: 20,
+          stockChance: 0.9,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsCherryLotus",
+              name: "Cherry Lotus Seed",
+              flavorText:
+                "A water flower with broad petals and a central seed pod, often seen resting on lily pads.",
+              icon: "🪷",
+              type: "gardenSeed",
+              sellPrice: 4_000,
+              cropData: {
+                baseValue: 6_500,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
+                harvests: 5,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌺",
+          name: "Blossom Hibiscus Seed",
+          key: "gsBlossomHibiscus",
+          flavorText:
+            "A bold, tropical flower with large trumpet-shaped petals and a long, protruding stamen.",
+          price: 100_000,
+          rarity: "Rare",
+          stockLimit: 5,
+          stockChance: 0.7,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsBlossomHibiscus",
+              name: "Blossom Hibiscus Seed",
+              flavorText:
+                "A vibrant bloom with wide, delicate petals and a striking central column, often found in warm, sunny places.",
+              icon: "🌺",
+              type: "gardenSeed",
+              sellPrice: 14_000,
+              cropData: {
+                baseValue: 20_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+                harvests: 6,
+              },
+            });
+          },
+        },
+        {
+          icon: "🏵️",
+          name: "Rosette Seed",
+          key: "gsRosette",
+          flavorText:
+            "A circular floral design with layered petals, often used as a decorative or celebratory symbol.",
+          price: 600_000,
+          rarity: "Legendary",
+          stockLimit: 7,
+          stockChance: 0.2,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsRosette",
+              name: "Rosette Seed",
+              flavorText:
+                "A stylized bloom with symmetrical, rounded petals arranged in a neat, spiral-like pattern.",
+              icon: "🏵️",
+              type: "gardenSeed",
+              sellPrice: 50_000,
+              cropData: {
+                baseValue: 80_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 5,
+                harvests: 8,
+              },
+            });
+          },
+        },
+        {
+          icon: "💮",
+          name: "White Flower Seed",
+          key: "gsWhiteFlower",
+          flavorText:
+            "A soft pink blossom with delicate petals in a circular bloom.",
+          price: 4_000_000,
+          rarity: "Mythical",
+          stockLimit: 5,
+          stockChance: 0.07,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsWhiteFlower",
+              name: "White Flower Seed",
+              flavorText:
+                "A floral symbol with a gentle glow, styled like a perfect seal of approval.",
+              icon: "💮",
+              type: "gardenSeed",
+              sellPrice: 250_000,
+              cropData: {
+                baseValue: 500_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 10,
+                harvests: 10,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌸🩷",
+          name: "Jane Blossom Seed",
+          key: "gsJaneBlossom",
+          flavorText:
+            "A delicate flower with soft pink petals that bloom in clusters on tree branches.",
+          price: 9_000_000,
+          rarity: "Divine",
+          stockLimit: 3,
+          stockChance: 0.05,
+          inStock: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsJaneBlossom",
+              name: "Jane Blossom Seed",
+              flavorText:
+                "Soft petals like pale confetti cover the branches, blooming all at once and falling just as quickly—a quiet celebration of spring’s gentle touch.",
+              icon: "🌸🩷",
+              type: "gardenSeed",
+              sellPrice: 1_000_000,
+              cropData: {
+                baseValue: 1_000_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 15,
+                harvests: 10,
+              },
+            });
+          },
+        },
+      ],
+    },
+
+    {
       name: "Relapse Event",
       icon: "🥀💔",
       timeStart: (12 + 10) * 60 * 60 * 1000,
@@ -1272,7 +1455,7 @@ export const EVENT_CONFIG = {
           icon: "🥭",
           name: "Moon Mango Seed",
           key: "gsMoonMango",
-          stockLimit: 5,
+          stockLimit: 2,
 
           flavorText: "A tropical fruit from the Lunar Glow Event.",
           price: 1_000_000_000,

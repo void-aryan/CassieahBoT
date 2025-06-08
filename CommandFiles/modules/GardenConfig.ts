@@ -33,6 +33,7 @@ export const CROP_CONFIG = {
     { name: "VoidTouched", valueMultiplier: 135, chance: 0, icon: "🌌" },
     { name: "Relapsed", valueMultiplier: 70, chance: 0, icon: "💔" },
     { name: "Astral", valueMultiplier: 6, chance: 0, icon: "🌌" },
+    { name: "Bloom", valueMultiplier: 3, chance: 0, icon: "🌸" },
   ],
   MBIAS: 3 as const,
   GROWTH_BASE_OLD: 5 * 60 * 1000,

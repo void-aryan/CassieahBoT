@@ -144,6 +144,7 @@ export class InputClass extends String implements InputProps {
           commandKey: key,
           detectID,
           command: self.#__context.command as CassidyCommand,
+          registeredSender: self.senderID,
         };
         logger(`Reply Detector Added: ${detectID}`, "INPUT");
 
@@ -686,9 +687,9 @@ export class InputClass extends String implements InputProps {
         console.log("ReplySystem", replies[input.replier.messageID]);
         const { callback } = repObj;
         let command: Partial<CassidySpectra.CassidyCommand> =
+          repCommand ??
           (multiCommands.getOne(commandKey) ||
             multiCommands.getOne(commandKey.toLowerCase())) ??
-          repCommand ??
           {};
 
         obj.repCommand = command;

@@ -18,12 +18,13 @@ import { FontSystem } from "cassidy-styler";
 import { pickRandomWithProb, randomBiased } from "@cass-modules/unitypes";
 import { Datum } from "@cass-modules/Datum";
 import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
+import { evaluateItemBalance, ShopItem } from "@cass-modules/GardenBalancer";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.7",
+  version: "1.6.8",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -3265,6 +3266,111 @@ export async function entry(ctx: CommandContext) {
             }plots`,
           style
         );
+      },
+    },
+    {
+      key: "best_seeds",
+      description: "View best seeds.",
+      aliases: ["-bs"],
+      args: ["[page]"],
+      icon: "✨",
+      async handler(_, { spectralArgs }) {
+        if (!input.hasRole(InputRoles.MODERATORBOT)) {
+          return output.reply(`🔒 | Only admins and moderators can see this.`);
+        }
+        const allItems: ShopItem[] = [
+          ...gardenShop.itemData,
+          ...EVENT_CONFIG.EVENTS.map(
+            (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+          ).flat(),
+        ];
+
+        const page = parseInt(spectralArgs[0]) || 1;
+
+        if (isNaN(parseInt(spectralArgs[0]))) {
+          const key = spectralArgs[0];
+          const target = allItems.find((i) => i.key === key);
+          if (target) {
+            const bres = evaluateItemBalance(target);
+            if (bres) {
+              const sortedItems = allItems
+                .toSorted(
+                  (a, b) =>
+                    (evaluateItemBalance(b)?.score || 0) -
+                    (evaluateItemBalance(a)?.score || 0)
+                )
+                .filter((i) => evaluateItemBalance(i) !== null);
+
+              const itemIndex = sortedItems.findIndex((i) => i.key === key);
+
+              const foundPage =
+                itemIndex === -1
+                  ? 1
+                  : Math.floor(itemIndex / ITEMS_PER_PAGE) + 1;
+              const topNumber = itemIndex + 1;
+
+              return output.replyStyled(
+                `Found in **Page**: ${foundPage}\n#${topNumber}. ${
+                  bres.item.icon
+                } **${bres.item.name}** (${bres.item.key})\n🏅 **SCORE**: ${
+                  bres.score
+                }\n**Stock Chance**: ${(bres.stockChance * 100).toFixed(
+                  2
+                )}%\n🛒 ${formatCash(bres.price, true)}\n🪙 ${abbreviateNumber(
+                  bres.item.cropData.baseValue || 0
+                )} | 🧺 ${abbreviateNumber(
+                  bres.item.cropData.harvests || 0
+                )} | ⏳ ${
+                  formatTimeSentence(bres.item.cropData.growthTime || 0) ||
+                  "Instant"
+                }\n\n`,
+                style
+              );
+            }
+          }
+        }
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const end = page * ITEMS_PER_PAGE;
+        const sortedItems = allItems
+          .toSorted(
+            (a, b) =>
+              (evaluateItemBalance(b)?.score || 0) -
+              (evaluateItemBalance(a)?.score || 0)
+          )
+          .filter((i) => evaluateItemBalance(i) !== null);
+        const currentItems = sortedItems.slice(start, end);
+        let result = `🛒 **Top Best Seeds**:\n\n`;
+
+        if (currentItems.length === 0) {
+          result += `No seeds in this page.\n\n`;
+        }
+
+        for (const item of currentItems) {
+          const bres = evaluateItemBalance(item);
+
+          const i =
+            start + sortedItems.findIndex((i) => i.key === item.key) + 1;
+          result += `${i}. ${bres.item.icon} **${bres.item.name}** (${
+            bres.item.key
+          })\n🏅 **SCORE**: ${bres.score}\n**Stock Chance**: ${(
+            bres.stockChance * 100
+          ).toFixed(2)}%\n🛒 ${formatCash(
+            bres.price,
+            true
+          )}\n🪙 ${abbreviateNumber(
+            bres.item.cropData.baseValue || 0
+          )} | 🧺 ${abbreviateNumber(bres.item.cropData.harvests || 0)} | ⏳ ${
+            formatTimeSentence(bres.item.cropData.growthTime || 0) || "Instant"
+          }\n\n`;
+        }
+
+        result += `${
+          UNIRedux.arrowFromT
+        } Next page: ${prefix}${commandName} bs ${page + 1}\n${
+          UNIRedux.arrowFromT
+        } Total Pages: ${Math.ceil(allItems.length / ITEMS_PER_PAGE)}`;
+
+        return output.replyStyled(result, style);
       },
     },
   ]);

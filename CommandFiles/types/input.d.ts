@@ -93,6 +93,7 @@ export interface RepliesObj<T extends Record<string, any>> {
   commandKey: T["key"];
   detectID: string;
   command: CassidyCommand | undefined;
+  registeredSender: string;
 }
 
 export interface ReactObj<T extends Record<string, any>> {
