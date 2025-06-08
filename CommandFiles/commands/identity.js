@@ -12,7 +12,7 @@ export const meta = {
   description:
     "Changes your identity or persona, allowing you to update your display name or alter how you are represented in the system. This command provides you with options to personalize your name, nickname, and other profile aspects.",
   author: "Liane | JenicaDev",
-  version: "1.1.2",
+  version: "1.1.3",
   usage: "{prefix}setname <newName>",
   category: "User Management",
 
@@ -138,7 +138,7 @@ const home = new ReduxCMDHome(
           );
         }
 
-        if (!/^[a-zA-Z0-9]+$/.test(newName)) {
+        if (!/^[a-zA-Z0-9 ]+$/.test(newName)) {
           return output.replyStyled(
             {
               body:

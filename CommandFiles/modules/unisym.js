@@ -144,6 +144,9 @@ export class UNIRedux {
 
 export class UNISpectra {
   static specialSpace = "ᅠ";
+  static getLine(length = 15) {
+    return "━".repeat(length);
+  }
   static wrapEmoji(emoji) {
     return `${this.wrapA} ${emoji} ${this.wrapB}`;
   }

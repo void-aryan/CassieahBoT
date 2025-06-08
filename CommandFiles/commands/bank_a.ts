@@ -1,18 +1,20 @@
-import { abbreviateNumber, UNIRedux } from "@cassidy/unispectra";
+import { abbreviateNumber, UNIRedux, UNISpectra } from "@cassidy/unispectra";
 import { parseBet } from "@cass-modules/ArielUtils";
 import { FontSystem } from "cassidy-styler";
 import { InventoryItem, UserData } from "@cass-modules/cassidyUser";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
 const { fonts } = FontSystem;
 
-const ABANK = fonts.serif("AC-BANK");
+const ACBANK_LOGO = fonts.serif("AC-BANK");
+const ABANK_LOGO = fonts.serif("A-BANK");
+const ABANK_LINE = UNISpectra.getLine(18);
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.10",
+  version: "3.0.11",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
-  description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
+  description: `Manage your finances and items with Ariel-Cass's Bank (Personalized Edition) (${ACBANK_LOGO}/${ABANK_LOGO} ®).`,
   category: "Finance",
   noPrefix: false,
   otherNames: ["bank", "arielbank", "b", "ac", "acbank"],
@@ -57,9 +59,42 @@ export function listABANKItem(
   }`;
 }
 
-export const style: CassidySpectra.CommandStyle = {
+export const styleH: CassidySpectra.CommandStyle = {
   title: {
-    content: `🏦 ${ABANK} ®`,
+    content: `🏦 ${ABANK_LOGO} ®`,
+    text_font: "none",
+    line_bottom: "18chars",
+  },
+  content: {
+    text_font: "none",
+    line_bottom: "hidden",
+  },
+  footer: {
+    content: "",
+  },
+};
+
+export const style0: CassidySpectra.CommandStyle = {};
+
+export const styleC: CassidySpectra.CommandStyle = {
+  title: {
+    content: `🏦 ${ACBANK_LOGO} ®`,
+    text_font: "none",
+    line_bottom: "default",
+  },
+  titleFont: "none",
+  contentFont: "fancy",
+  footer: {
+    content: "",
+  },
+};
+
+const NOTIF_AC = `🏦 ${fonts.bold("ARIEL-CASS NOTIF")} 👩🏻‍💼`;
+const NOTIF_A = `🏦 ${fonts.bold("ARIEL NOTIF")} 👩🏻‍💼`;
+
+export const notifStyleC: CassidySpectra.CommandStyle = {
+  title: {
+    content: `${NOTIF_AC}`,
     text_font: "none",
     line_bottom: "default",
   },
@@ -69,17 +104,16 @@ export const style: CassidySpectra.CommandStyle = {
     content: "",
   },
 };
-
-const NOTIF = `🏦 ${fonts.bold("ARIEL-CASS NOTIF")} 👩🏻‍💼`;
-
-export const notifStyle: CassidySpectra.CommandStyle = {
+export const notifStyle0: CassidySpectra.CommandStyle = {
   title: {
-    content: `${NOTIF}`,
+    content: `${NOTIF_A}`,
     text_font: "none",
-    line_bottom: "default",
+    line_bottom: "18chars",
   },
-  titleFont: "none",
-  contentFont: "none",
+  content: {
+    text_font: "none",
+    line_bottom: "hidden",
+  },
   footer: {
     content: "",
   },
@@ -119,10 +153,13 @@ const deductTrophy = (data: UserData & { awards?: Award[] }) => {
   }
 };
 
-const formatCash = (amount = 0, abbr = true) =>
+const formatCashORIG = (amount = 0, abbr = true) =>
   `${
     abbr ? `(**${abbreviateNumber(amount)}**) ` : ""
   }${amount.toLocaleString()} 💵`;
+
+const formatCashA = (amount = 0, _abbr = true) =>
+  `${amount.toLocaleString()} 💵`;
 
 export async function entry({
   input,
@@ -134,7 +171,6 @@ export async function entry({
   commandName,
 }: CommandContext) {
   const userData = await money.getItem(input.senderID);
-  // const inv = new Inventory(userData.inventory);
 
   const cassExpress = new CassExpress(userData.cassExpress ?? {});
   let {
@@ -143,13 +179,20 @@ export async function entry({
     bankData = { bank: 0, nickname: null, items: null },
   } = userData;
   let bankDataItems = new Inventory(bankData.items ?? [], 100);
+  const targetNotif = bankDataItems.size() > 0 ? notifStyleC : notifStyle0;
+  const targetStyle = bankDataItems.size() > 0 ? styleC : style0;
+  const targetStyleH = bankDataItems.size() > 0 ? styleC : styleH;
+  const ABANK = bankDataItems.size() > 0 ? ACBANK_LOGO : ABANK_LOGO;
+  const isAC = bankDataItems.size() > 0;
+  const formatCash = isAC ? formatCashORIG : formatCashA;
   const inventory = new Inventory(userData.inventory ?? [], invLimit);
+  const line = isAC ? UNIRedux.standardLine : ABANK_LINE;
 
   bankData.bank = Math.min(bankData.bank, Number.MAX_VALUE);
   if (!name) {
     return output.replyStyled(
       `Sorry, you must register your name with ${prefix}identity-setname first!`,
-      notifStyle
+      targetNotif
     );
   }
   if (bankData.bank >= Number.MAX_VALUE) {
@@ -164,20 +207,21 @@ export async function entry({
     return await money.setItem(id, info);
   }
   const trophys = getTrophy(userData);
+  const extraLine = isAC ? "" : `${line}\n`;
 
   const handlers = {
     async register() {
       if (bankData.nickname) {
         return output.replyStyled(
           `You already have an ${ABANK} ® account with nickname: ${bankData.nickname}.`,
-          notifStyle
+          targetNotif
         );
       }
       const nickname = args[1];
       if (!nickname || nickname.length < 3) {
         return output.replyStyled(
           `Please provide a valid nickname (at least 3 characters) for your ${ABANK} ® account.`,
-          notifStyle
+          targetNotif
         );
       }
       bankData.nickname = nickname;
@@ -189,10 +233,10 @@ export async function entry({
         cassExpress: cassExpress.raw(),
       });
       return output.replyStyled(
-        `${fonts.bold(`Your ${ABANK} ® account created successfully`)}\n${
-          UNIRedux.standardLine
-        }\nFree ${formatCash(1000)} upon register.`,
-        style
+        `${extraLine}${fonts.bold(
+          `Your ${ABANK} ® account created successfully`
+        )}\n${line}\nFree ${formatCash(1000)} upon register.`,
+        targetStyle
       );
     },
     async check() {
@@ -217,13 +261,13 @@ export async function entry({
       if (id && !isPeek) {
         return output.replyStyled(
           `The user does not have a ${ABANK} ® account with the given nickname.`,
-          notifStyle
+          targetNotif
         );
       }
       if (!targetData.bankData?.nickname) {
         return output.replyStyled(
           `You do not have an ${ABANK} ® account. Register with ${prefix}${commandName} register <nickname>.`,
-          notifStyle
+          targetNotif
         );
       }
       const bdataItems = new Inventory(targetData.bankData?.items ?? [], 100);
@@ -232,16 +276,16 @@ export async function entry({
 
       return output.replyStyled(
         `${
-          trophys.length > 0
-            ? `🏆 ***Bank Awardee*** 🏆\n${UNIRedux.standardLine}\n`
-            : ""
-        }➥ ${isPeek ? `**Peeking**: ` : ""}${
+          trophys.length > 0 ? `🏆 ***Bank Awardee*** 🏆\n${line}\n` : ""
+        }${extraLine}➥ ${isPeek ? `**Peeking**: ` : ""}${
           targetData.userMeta?.name ?? targetData.name
-        }\n${UNIRedux.standardLine}\n${
-          trophys.length > 0 ? "👑" : "💳"
-        }: ${formatTrophy(targetData)}\n${formatCash(
-          targetData.bankData?.bank
-        )}\n${UNIRedux.standardLine}${
+        }\n${line}\n${trophys.length > 0 ? "👑" : "💳"}: ${formatTrophy(
+          targetData
+        )}\n${formatCash(targetData.bankData?.bank)}${
+          bdataItems.size() > 0 || trophys.length > 0 || !isAC
+            ? `\n${line}`
+            : ""
+        }${
           trophys.length > 0 && !isPeek
             ? `\n${UNIRedux.arrow} You can still withdraw your old bank if you have **zero** bank balance. It will also remove your trophy.`
             : ""
@@ -250,14 +294,14 @@ export async function entry({
             ? `\n${UNIRedux.arrowBW} Items 🛍️\n\n${itemStr || "No items."}`
             : ""
         }`,
-        style
+        targetStyle
       );
     },
     async withdraw() {
       if (!bankData.nickname) {
         return output.replyStyled(
           `You do not have an ${ABANK} ® account. Register with ${prefix}${commandName} register <nickname>.`,
-          notifStyle
+          targetNotif
         );
       }
       const bet = args[1];
@@ -273,7 +317,7 @@ export async function entry({
           if (maxAmount === 0) {
             return output.replyStyled(
               `You do not have an item with "${itemKey}" in your ${ABANK} ® account.`,
-              notifStyle
+              targetNotif
             );
           }
           const itemAmount = Math.min(
@@ -283,13 +327,13 @@ export async function entry({
           if (inventory.size() + itemAmount > invLimit) {
             return output.replyStyled(
               `You're carrying too many items!`,
-              notifStyle
+              targetNotif
             );
           }
           if (itemAmount === 0) {
             return output.replyStyled(
               `No items were withdrawn from your ${ABANK} ® account.`,
-              notifStyle
+              targetNotif
             );
           }
           const itemsToDeposit = bankDataItems
@@ -312,13 +356,15 @@ export async function entry({
           const itemStr = listABANKItems(bankDataItems);
 
           return output.replyStyled(
-            `${fonts.bold("Successfully")} withdrew:\n${listABANKItem(
+            `${extraLine}${fonts.bold(
+              "Successfully"
+            )} withdrew:\n${listABANKItem(
               itemsToDeposit[0],
               itemAmount
-            )}\nFrom your ${ABANK} ® account.\n${UNIRedux.standardLine}\n${
+            )}\nFrom your ${ABANK} ® account.\n${line}\n${
               UNIRedux.arrowBW
             } Items 🛍️\n\n${itemStr || "No items."}`,
-            style
+            targetStyle
           );
         }
       }
@@ -327,7 +373,7 @@ export async function entry({
           `You cannot withdraw a value lower than ${formatCash(
             Math.floor(funds * percentLimit)
           )}`,
-          notifStyle
+          targetNotif
         );
       }
 
@@ -336,7 +382,7 @@ export async function entry({
           `Please provide a valid amount to withdraw. Your ${ABANK} ® balance is ${formatCash(
             funds
           )}.`,
-          notifStyle
+          targetNotif
         );
       }
 
@@ -344,7 +390,7 @@ export async function entry({
       if (userMoney >= Number.MAX_VALUE) {
         return output.replyStyled(
           `Your balance might reach the maximum number limit.`,
-          notifStyle
+          targetNotif
         );
       }
       funds -= amount;
@@ -362,24 +408,24 @@ export async function entry({
       });
       return output.replyStyled(
         `${
-          isRemoveT ? `🏆❌ **Trophy Removed**\n${UNIRedux.standardLine}\n` : ""
-        }${fonts.bold("Successfully")} withdrew:\n${formatCash(
+          isRemoveT ? `🏆❌ **Trophy Removed**\n${line}\n` : ""
+        }${extraLine}${fonts.bold("Successfully")} withdrew:\n${formatCash(
           amount
         )}\nfrom your ${ABANK} ® account.`,
-        style
+        targetStyle
       );
     },
     async deposit() {
       if (!bankData.nickname) {
         return output.replyStyled(
           `You do not have an ${ABANK} ® account. Register with ${prefix}${commandName} register <nickname>.`,
-          notifStyle
+          targetNotif
         );
       }
       if (bankData.bank >= Number.MAX_VALUE) {
         return output.replyStyled(
           `Your ${ABANK} ® account reached the maximum number limit.`,
-          notifStyle
+          targetNotif
         );
       }
       const bet = args[1];
@@ -393,14 +439,14 @@ export async function entry({
         ) {
           return output.replyStyled(
             `The item slots in your ${ABANK} ® account are full.`,
-            notifStyle
+            targetNotif
           );
         }
         const maxAmount = inventory.getAmount(itemKey);
         if (maxAmount === 0) {
           return output.replyStyled(
             `You do not have an item with "${itemKey}" in your inventory.`,
-            notifStyle
+            targetNotif
           );
         }
         const maxDepositPossible =
@@ -409,7 +455,7 @@ export async function entry({
         if (maxDepositPossible <= 0) {
           return output.replyStyled(
             `Your ${ABANK} ® account is full for "${itemKey}". Cannot deposit more.`,
-            notifStyle
+            targetNotif
           );
         }
 
@@ -423,7 +469,7 @@ export async function entry({
         if (itemAmount === 0) {
           return output.replyStyled(
             `No items were deposited into your ${ABANK} ® account.`,
-            notifStyle
+            targetNotif
           );
         }
         const itemsToDeposit = inventory.get(itemKey).slice(0, itemAmount);
@@ -444,13 +490,15 @@ export async function entry({
         const itemStr = listABANKItems(bankDataItems);
 
         return output.replyStyled(
-          `${fonts.bold("Successfully")} deposited:\n${listABANKItem(
+          `${extraLine}${fonts.bold(
+            "Successfully"
+          )} deposited:\n${listABANKItem(
             itemsToDeposit[0],
             itemAmount
-          )}\nTo your ${ABANK} ® account.\n${UNIRedux.standardLine}\n${
+          )}\nTo your ${ABANK} ® account.\n${line}\n${
             UNIRedux.arrowBW
           } Items 🛍️\n\n${itemStr || "No items."}`,
-          style
+          targetStyle
         );
       }
       amount = Math.min(amount, Number.MAX_VALUE - amount);
@@ -459,7 +507,7 @@ export async function entry({
           `You cannot deposit a value lower than ${formatCash(
             Math.floor(userMoney * percentLimit)
           )}`,
-          notifStyle
+          targetNotif
         );
       }
 
@@ -468,7 +516,7 @@ export async function entry({
           `Please provide a valid amount to deposit. Your wallet balance is ${formatCash(
             userMoney
           )}.`,
-          notifStyle
+          targetNotif
         );
       }
       userMoney -= amount;
@@ -481,17 +529,17 @@ export async function entry({
         cassExpress: cassExpress.raw(),
       });
       return output.replyStyled(
-        `${fonts.bold("Successfully")} deposited:\n${formatCash(
+        `${extraLine}${fonts.bold("Successfully")} deposited:\n${formatCash(
           amount
         )}\nto your ${ABANK} ® account.`,
-        style
+        targetStyle
       );
     },
     async transfer() {
       if (!bankData.nickname) {
         return output.replyStyled(
           `You do not have an ${ABANK} ® account. Register with ${prefix}${commandName} register <nickname>.`,
-          notifStyle
+          targetNotif
         );
       }
       const recipientNickname = args[1];
@@ -499,7 +547,7 @@ export async function entry({
       if (!recipientNickname) {
         return output.replyStyled(
           `Please provide a valid recipient's nickname and amount to transfer. Usage: ${prefix}${commandName} transfer <nickname> <amount>`,
-          notifStyle
+          targetNotif
         );
       }
 
@@ -514,13 +562,13 @@ export async function entry({
         if (recipient?.bankData?.nickname !== recipientNickname) {
           return output.replyStyled(
             `The recipient does not have a ${ABANK} ® account with the given nickname.`,
-            notifStyle
+            targetNotif
           );
         }
         if (recipient?.userID === input.senderID) {
           return output.replyStyled(
             `You cannot transfer any items to your own ${ABANK} ® account.`,
-            notifStyle
+            targetNotif
           );
         }
 
@@ -528,20 +576,27 @@ export async function entry({
         const senderItems = bankDataItems;
         const rnick = recipient.bankData?.nickname;
 
+        if (recipientItems.size() <= 0) {
+          return output.replyStyled(
+            `The recipient does not have an ${ACBANK_LOGO} ® account but it has an ${ABANK_LOGO} ® account.`,
+            targetNotif
+          );
+        }
+
         if (
           recipientItems.uniqueSize() >= ABANK_ITEM_SLOT &&
           !recipientItems.has(itemKey)
         ) {
           return output.replyStyled(
             `The item slots in ${rnick}'s ${ABANK} ® account are full.`,
-            notifStyle
+            targetNotif
           );
         }
         const maxAmount = senderItems.getAmount(itemKey);
         if (maxAmount === 0) {
           return output.replyStyled(
             `You do not have an item with "${itemKey}" in your ${ABANK} ® account.`,
-            notifStyle
+            targetNotif
           );
         }
         const maxTransPossible =
@@ -550,7 +605,7 @@ export async function entry({
         if (maxTransPossible <= 0) {
           return output.replyStyled(
             `${rnick}'s ${ABANK} ® account is full for "${itemKey}". Cannot transfer more.`,
-            notifStyle
+            targetNotif
           );
         }
 
@@ -564,7 +619,7 @@ export async function entry({
         if (itemAmount === 0) {
           return output.replyStyled(
             `No items were transferred into ${rnick}'s ${ABANK} ® account.`,
-            notifStyle
+            targetNotif
           );
         }
         const itemsToDeposit = senderItems.get(itemKey).slice(0, itemAmount);
@@ -592,17 +647,19 @@ export async function entry({
         const recipientStr = listABANKItems(recipientItems);
 
         return output.replyStyled(
-          `${fonts.bold("Successfully")} transferred:\n${listABANKItem(
+          `${extraLine}${fonts.bold(
+            "Successfully"
+          )} transferred:\n${listABANKItem(
             itemsToDeposit[0],
             itemAmount
-          )}\n${UNIRedux.standardLine}\n${UNIRedux.arrowBW} Your Items 🛍️\n\n${
+          )}\n${line}\n${UNIRedux.arrowBW} Your Items 🛍️\n\n${
             senderStr || "No items."
-          }\n${UNIRedux.standardLine}\n${fonts.bold(
-            "Receiver"
-          )}: ${formatTrophy(recipient)}\n➣ ${
-            recipient.userMeta?.name ?? recipient.name
-          } 🛍️\n\n${recipientStr || "No items."}`,
-          style
+          }\n${line}\n${fonts.bold("Receiver")}: ${formatTrophy(
+            recipient
+          )}\n➣ ${recipient.userMeta?.name ?? recipient.name} 🛍️\n\n${
+            recipientStr || "No items."
+          }`,
+          targetStyle
         );
       }
       if (amount < bankData.bank * percentLimit) {
@@ -610,20 +667,20 @@ export async function entry({
           `You cannot transfer a value lower than ${formatCash(
             Math.floor(bankData.bank * percentLimit)
           )}`,
-          notifStyle
+          targetNotif
         );
       }
 
       if (isNaN(amount) || amount <= 0) {
         return output.replyStyled(
           `You cannot transfer an invalid amount.`,
-          notifStyle
+          targetNotif
         );
       }
       if (amount > bankData.bank) {
         return output.replyStyled(
           `You do not have enough value to transfer.`,
-          notifStyle
+          targetNotif
         );
       }
 
@@ -633,14 +690,14 @@ export async function entry({
       if (recipient?.bankData?.nickname !== recipientNickname) {
         return output.replyStyled(
           `The recipient does not have a ${ABANK} ® account with the given nickname.`,
-          notifStyle
+          targetNotif
         );
       }
 
       if (recipient?.userID === input.senderID) {
         return output.replyStyled(
           `You cannot transfer any amount to your own ${ABANK} ® account.`,
-          notifStyle
+          targetNotif
         );
       }
 
@@ -649,7 +706,7 @@ export async function entry({
       if (recipient.bankData.bank >= Number.MAX_VALUE) {
         return output.replyStyled(
           `Your ${ABANK} ® account reached the maximum number limit.`,
-          notifStyle
+          targetNotif
         );
       }
       bankData.bank -= amount;
@@ -676,26 +733,26 @@ export async function entry({
         recipientID
       );
       return output.replyStyled(
-        `${fonts.bold("Successfully")} transferred: ${formatCash(amount)}\n${
-          UNIRedux.standardLine
-        }\n${fonts.bold("Receiver")}: ${formatTrophy(recipient)}\n➣ ${
+        `${extraLine}${fonts.bold("Successfully")} transferred: ${formatCash(
+          amount
+        )}\n${line}\n${fonts.bold("Receiver")}: ${formatTrophy(recipient)}\n➣ ${
           recipient.userMeta?.name ?? recipient.name
         }`,
-        style
+        targetStyle
       );
     },
     async rename() {
       if (!bankData.nickname) {
         return output.replyStyled(
           `You do not have an ${ABANK} ® account. Register with ${prefix}${commandName} register <nickname>.`,
-          notifStyle
+          targetNotif
         );
       }
       const newNickname = args[1];
       if (!newNickname || newNickname.length < 3) {
         return output.replyStyled(
           `Please provide a valid new nickname (at least 3 characters) for your ${ABANK} ® account.`,
-          notifStyle
+          targetNotif
         );
       }
       bankData.nickname = newNickname;
@@ -705,20 +762,21 @@ export async function entry({
         cassExpress: cassExpress.raw(),
       });
       return output.replyStyled(
-        `${fonts.bold(
+        `${extraLine}${fonts.bold(
           "Successfully"
         )} renamed your ${ABANK} ® account to: ${newNickname}.`,
-        style
+        targetStyle
       );
     },
     async top() {
-      let page = parseInt(args[1]);
+      let page = isAC ? parseInt(args[1]) : 1;
+      let lim = isAC ? 10 : parseInt(args[1]) || 10;
       if (!args[1] || isNaN(page)) {
         page = 1;
       }
       const per = 10;
       const allUsers = await money.getAll();
-      const sortedUsers = Object.entries(allUsers)
+      let sortedUsers = Object.entries(allUsers)
         .filter(
           ([_, u]) =>
             typeof u.bankData?.bank === "number" && u.bankData?.nickname
@@ -731,35 +789,48 @@ export async function entry({
               Number.MAX_VALUE * 1e-220 * getTrophy(a).length)
         )
         .slice((page - 1) * per, page * per);
-      let title = `${UNIRedux.standardLine}\n【 ${fonts.bold(
-        "TOP"
-      )} 10 ${fonts.bold("BANK BALANCES")} 】\n`;
+      if (!isAC && !isNaN(lim)) {
+        sortedUsers = sortedUsers.slice(0, lim);
+      }
+      let title = `${line}\n【 ${fonts.bold("TOP")} ${
+        !isAC ? lim : 10
+      } ${fonts.bold("BANK BALANCES")} 】\n`;
       let result = ``;
       sortedUsers.forEach(([_, user], index) => {
         result += `━━━━━━ ${
           index + 1 + (page - 1) * per
         } ━━━━━━\n☐ ${fonts.bold("name")}: ${
           user.userMeta?.name ?? user.name
-        }\n➥ ${formatTrophy(user)}\n${abbreviateNumber(
-          user.bankData.bank,
-          2,
-          true
-        )}\n`;
+        }\n➥ ${formatTrophy(user)}\n${
+          !isAC
+            ? formatCash(user.bankData.bank || 0)
+            : abbreviateNumber(user.bankData.bank, 2, true)
+        }\n`;
       });
       return output.replyStyled(result, {
-        ...style,
-        title: {
-          content: title,
-          line_bottom: "hidden",
-          text_font: "fancy",
-        },
+        ...targetStyle,
+        ...(isAC
+          ? {
+              title: {
+                content: title,
+                line_bottom: "hidden",
+                text_font: isAC ? "fancy" : "none",
+              },
+            }
+          : {
+              title: {
+                content: title,
+                line_bottom: "hidden",
+                text_font: "none",
+              },
+            }),
       });
     },
     async trophy() {
       if (!input.isAdmin) {
         return output.replyStyled(
           `You do not have an administrator-typed ${ABANK} ® account.`,
-          notifStyle
+          targetNotif
         );
       }
       const recipientNickname = args[1];
@@ -774,7 +845,7 @@ export async function entry({
       ) {
         return output.replyStyled(
           `The recipient does not have a ${ABANK} ® account with the given nickname.`,
-          notifStyle
+          targetNotif
         );
       }
       const recipientID = Object.keys(allUsers).find(
@@ -784,11 +855,11 @@ export async function entry({
       if (recipient.bankData.bank < Number.MAX_VALUE * 0.9) {
         return output.replyStyled(
           `The recipient does not deserve a trophy in ${ABANK} ®`,
-          notifStyle
+          targetNotif
         );
       }
       await saveTrophy(recipient, saveData, recipientID);
-      return output.replyStyled(`🏆 **Success**!`, style);
+      return output.replyStyled(`🏆 **Success**!`, targetStyle);
     },
     async stalk() {
       let targetData = userData;
@@ -797,7 +868,7 @@ export async function entry({
       if (!id) {
         return output.replyStyled(
           `Please provide a user ID, nickname, or reply to a message to stalk a user.`,
-          notifStyle
+          targetNotif
         );
       }
       if (id) {
@@ -818,7 +889,7 @@ export async function entry({
       if (id && !isPeek) {
         return output.replyStyled(
           `This user does not have an existing ${ABANK} ® account.`,
-          notifStyle
+          targetNotif
         );
       }
 
@@ -829,7 +900,7 @@ export async function entry({
           targetData?.userMeta?.name ?? targetData.name
         }\nBalance: ${formatCash(targetData.bankData?.bank)}`,
         {
-          ...style,
+          ...targetStyle,
           title: {
             content: `🏦 ${fonts.bold("STALKER")} 👀`,
             line_bottom: "default",
@@ -860,7 +931,7 @@ export async function entry({
       `${fonts.bold(
         "Usages"
       )}:\n➥ \`${prefix}${commandName} register/r <nickname>\` - Create a ${ABANK} ® account.\n➥ \`${prefix}${commandName} check/c <uid | reply | nickname>\` - Check your ${ABANK} ® balance.\n➥ \`${prefix}${commandName} withdraw/w <amount>\` - Withdraw money or items (ex: apple*5) from your ${ABANK} ® account.\n➥ \`${prefix}${commandName} deposit/d <amount>\` - Deposit money or items (ex: apple*5) to your ${ABANK} ® account.\n➥ \`${prefix}${commandName} transfer/t <nickName> <amount>\` - Transfer money to another user.\n➥ \`${prefix}${commandName} rename/rn\` - Rename your ${ABANK} ® nickname.\n➥ \`${prefix}${commandName} top <page=1>\` - Check the top 10 richest users of ${ABANK} ®.\n➥ \`${prefix}${commandName} stalk\` - Check someone's ${ABANK} ® balance.`,
-      style
+      targetStyleH
     );
   }
 }

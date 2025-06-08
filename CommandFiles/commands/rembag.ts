@@ -65,7 +65,7 @@ export const style: CassidySpectra.CommandStyle = {
     line_bottom: "default",
   },
   titleFont: "none",
-  contentFont: "none",
+  contentFont: "fancy",
   footer: {
     content: "",
   },
