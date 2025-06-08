@@ -21,6 +21,299 @@ import { Datum } from "./Datum";
 import { OutputForm } from "output-cassidy";
 const { parseCurrency: pCy } = global.utils;
 
+export const adminFeatures: BriefcaseAPIConfig[] = [
+  {
+    key: "add_item",
+    description: "Admin-only: Adds an existing item to a user's inventory.",
+    aliases: ["add", "_a"],
+    isAdmin: true,
+    args: ["<item_key>", "<amount=1>", "<uid|self>"],
+    async handler(
+      ctx: CommandContext,
+      _extra: Extra,
+      bcContext: BriefcaseAPIContext
+    ) {
+      if (!ctx.input.isAdmin) {
+        return ctx.output.reply(
+          "❌ You don't have admin permissions to use this command!"
+        );
+      }
+
+      const [itemKey, amountStr = "1", targetUid] = bcContext.actionArgs;
+      if (!itemKey || !targetUid) {
+        return ctx.output.reply(
+          `❌ Missing arguments! Usage: ${ctx.prefix}${ctx.commandName} add_item <item_key> [amount] <uid|self>`
+        );
+      }
+
+      const resolvedUid =
+        targetUid.toLowerCase() === "self" ? ctx.input.senderID : targetUid;
+      const targetData = await ctx.money.getCache(resolvedUid);
+      if (!(await ctx.money.exists(resolvedUid))) {
+        return ctx.output.reply(`❌ User with ID "${resolvedUid}" not found!`);
+      }
+
+      const targetInventory = new Inventory(
+        targetData[bcContext.iKey] ?? [],
+        bcContext.instance.extraConfig.inventoryLimit
+      );
+      const itemTemplate = targetInventory.getOne(itemKey);
+      if (!itemTemplate) {
+        return ctx.output.reply(
+          `❌ Item "${itemKey}" does not exist in their inventory!`
+        );
+      }
+      const amount = parseBet(
+        amountStr,
+        targetInventory.getAmount(itemTemplate.key)
+      );
+      if (isNaN(amount) || amount < 1) {
+        return ctx.output.reply("❌ Amount must be a positive number!");
+      }
+      if (
+        targetInventory.getAll().length + amount >
+        bcContext.instance.extraConfig.inventoryLimit
+      ) {
+        return ctx.output.reply(
+          `❌ Cannot add ${amount} items to ${targetData.name}'s inventory! It would exceed the limit (${bcContext.instance.extraConfig.inventoryLimit}).`
+        );
+      }
+
+      for (let i = 0; i < amount; i++) {
+        targetInventory.addOne({
+          ...itemTemplate,
+          uuid: Inventory.generateUUID(),
+        });
+      }
+
+      await ctx.money.setItem(resolvedUid, {
+        [bcContext.iKey]: Array.from(targetInventory),
+      });
+
+      return ctx.output.reply(
+        `✅ Added ${listItem(itemTemplate, amount)} to **${
+          targetData.name
+        }**'s inventory!\n` +
+          `New inventory count: **${targetInventory.getAll().length}/${
+            bcContext.instance.extraConfig.inventoryLimit
+          }**.`
+      );
+    },
+  },
+  {
+    key: "remove_item",
+    description: "Admin-only: Removes an item from a user's inventory.",
+    aliases: ["remove", "_r"],
+    isAdmin: true,
+    args: ["<item_key>", "<amount=1>", "<uid|self>"],
+    async handler(
+      ctx: CommandContext,
+      _extra: Extra,
+      bcContext: BriefcaseAPIContext
+    ) {
+      if (!ctx.input.isAdmin) {
+        return ctx.output.reply(
+          "❌ You don't have admin permissions to use this command!"
+        );
+      }
+
+      const [itemKey, amountStr = "1", targetUid] = bcContext.actionArgs;
+      if (!itemKey || !targetUid) {
+        return ctx.output.reply(
+          `❌ Missing arguments! Usage: ${ctx.prefix}${ctx.commandName} remove_item <item_key> [amount] <uid|self>`
+        );
+      }
+
+      const resolvedUid =
+        targetUid.toLowerCase() === "self" ? ctx.input.senderID : targetUid;
+      const targetData = await ctx.money.getCache(resolvedUid);
+      if (!(await ctx.money.exists(resolvedUid))) {
+        return ctx.output.reply(`❌ User with ID "${resolvedUid}" not found!`);
+      }
+
+      const targetInventory = new Inventory(
+        targetData[bcContext.iKey] ?? [],
+        bcContext.instance.extraConfig.inventoryLimit
+      );
+      if (!targetInventory.has(itemKey)) {
+        return ctx.output.reply(
+          `❌ No "${itemKey}" found in **${targetData.name}**'s inventory!`
+        );
+      }
+      const amount = parseBet(amountStr, targetInventory.getAmount(itemKey));
+      if (isNaN(amount) || amount < 1) {
+        return ctx.output.reply("❌ Amount must be a positive number!");
+      }
+
+      const availableAmount = targetInventory.getAmount(itemKey);
+      if (availableAmount < amount) {
+        return ctx.output.reply(
+          `❌ Only ${availableAmount} "${itemKey}" available in **${targetData.name}**'s inventory!`
+        );
+      }
+
+      const items = targetInventory.get(itemKey).slice(0, amount);
+      targetInventory.deleteRefs(items);
+
+      await ctx.money.setItem(resolvedUid, {
+        [bcContext.iKey]: Array.from(targetInventory),
+      });
+
+      return ctx.output.reply(
+        `✅ Removed ${listItem(items[0], amount)} from **${
+          targetData.name
+        }**'s inventory!\n` +
+          `New inventory count: **${targetInventory.getAll().length}/${
+            bcContext.instance.extraConfig.inventoryLimit
+          }**.`
+      );
+    },
+  },
+  {
+    key: "clear_inventory",
+    description: "Admin-only: Clears a user's entire inventory.",
+    aliases: ["clear", "_c"],
+    args: ["<uid|self>"],
+    isAdmin: true,
+    async handler(
+      ctx: CommandContext,
+      _extra: Extra,
+      bcContext: BriefcaseAPIContext
+    ) {
+      if (!ctx.input.isAdmin) {
+        return ctx.output.reply(
+          "❌ You don't have admin permissions to use this command!"
+        );
+      }
+
+      const [targetUid] = bcContext.actionArgs;
+      if (!targetUid) {
+        return ctx.output.reply(
+          `❌ Missing user ID! Usage: ${ctx.prefix}${ctx.commandName} clear_inventory <uid|self>`
+        );
+      }
+
+      const resolvedUid =
+        targetUid.toLowerCase() === "self" ? ctx.input.senderID : targetUid;
+      const targetData = await ctx.money.getCache(resolvedUid);
+      if (!(await ctx.money.exists(resolvedUid))) {
+        return ctx.output.reply(`❌ User with ID "${resolvedUid}" not found!`);
+      }
+
+      const targetInventory = new Inventory(
+        [],
+        bcContext.instance.extraConfig.inventoryLimit
+      );
+
+      await ctx.money.setItem(resolvedUid, {
+        [bcContext.iKey]: Array.from(targetInventory),
+      });
+
+      return ctx.output.reply(
+        `✅ Cleared **${targetData.name}**'s inventory!\n` +
+          `Now holding **0/${bcContext.instance.extraConfig.inventoryLimit}** items.`
+      );
+    },
+  },
+  {
+    key: "make_item",
+    description:
+      "Admin-only: Creates a new item and adds it to a user's inventory.",
+    aliases: ["create_item", "_mi"],
+    args: ["<json_item>", "<amount=1>", "<uid|self>"],
+    isAdmin: true,
+    async handler(
+      ctx: CommandContext,
+      _extra: Extra,
+      bcContext: BriefcaseAPIContext
+    ) {
+      if (!ctx.input.isAdmin) {
+        return ctx.output.reply(
+          "❌ You don't have admin permissions to use this command!"
+        );
+      }
+
+      const [jsonItemStr, amountStr = "1", targetUid] = bcContext.actionArgs;
+      if (!jsonItemStr || !targetUid) {
+        return ctx.output.reply(
+          `❌ Missing arguments! Usage: ${ctx.prefix}${ctx.commandName} make_item <json_item> [amount] <uid|self>`
+        );
+      }
+
+      const amount = parseInt(amountStr);
+      if (isNaN(amount) || amount < 1) {
+        return ctx.output.reply("❌ Amount must be a positive number!");
+      }
+
+      let itemTemplate: InventoryItem;
+      try {
+        itemTemplate = JSON.parse(jsonItemStr);
+      } catch (error) {
+        return ctx.output.reply(`❌ Invalid JSON format: ${error.message}`);
+      }
+
+      const requiredProps = ["key", "name", "type", "icon", "sellPrice"];
+      const missingProps = requiredProps.filter(
+        (prop) => !itemTemplate.hasOwnProperty(prop) || !itemTemplate[prop]
+      );
+      if (missingProps.length > 0) {
+        return ctx.output.reply(
+          `❌ Missing or empty required properties: ${missingProps.join(", ")}`
+        );
+      }
+
+      if (bcContext.inventory.getOne(itemTemplate.key)) {
+        return ctx.output.reply(
+          `❌ Item with key "${itemTemplate.key}" already exists! Use add_item instead.`
+        );
+      }
+
+      itemTemplate.flavorText =
+        itemTemplate.flavorText || "A newly crafted item.";
+      itemTemplate.sellPrice = Number(itemTemplate.sellPrice) || 100;
+
+      const resolvedUid =
+        targetUid.toLowerCase() === "self" ? ctx.input.senderID : targetUid;
+      const targetData = await ctx.money.getCache(resolvedUid);
+      if (!(await ctx.money.exists(resolvedUid))) {
+        return ctx.output.reply(`❌ User with ID "${resolvedUid}" not found!`);
+      }
+
+      const targetInventory = new Inventory(
+        targetData[bcContext.iKey] ?? [],
+        bcContext.instance.extraConfig.inventoryLimit
+      );
+      if (
+        targetInventory.getAll().length + amount >
+        bcContext.instance.extraConfig.inventoryLimit
+      ) {
+        return ctx.output.reply(
+          `❌ Cannot add ${amount} items to ${targetData.name}'s inventory! It would exceed the limit (${bcContext.instance.extraConfig.inventoryLimit}).`
+        );
+      }
+
+      for (let i = 0; i < amount; i++) {
+        targetInventory.addOne({
+          ...itemTemplate,
+          uuid: Inventory.generateUUID(),
+        });
+      }
+
+      await ctx.money.setItem(resolvedUid, {
+        [bcContext.iKey]: Array.from(targetInventory),
+      });
+
+      return ctx.output.reply(
+        `✅ Created and added ${listItem(itemTemplate, amount)} to **${
+          targetData.name
+        }**'s inventory!\n` +
+          `New inventory count: **${targetInventory.getAll().length}/${
+            bcContext.instance.extraConfig.inventoryLimit
+          }**.`
+      );
+    },
+  },
+];
 export interface BreifcaseUsagePlugin {
   (
     arg: BreifcaseUsagePluginArg,
@@ -63,12 +356,12 @@ export function groupItems(items: InventoryItem[]) {
   return itemCounts;
 }
 
-export type BriefcaseAPIConfig = Config & {
-  handler(
+export type BriefcaseAPIConfig = Omit<Config, "handler"> & {
+  handler: (
     ctx: CommandContext,
     extra: Extra,
     bcContext: BriefcaseAPIContext
-  ): Promise<any> | any;
+  ) => Promise<any> | any;
 };
 
 export interface BriefcaseAPIContext {
@@ -225,7 +518,7 @@ export class BriefcaseAPI {
       iKey: ikey,
       instance: this,
     };
-    const mappedExtra = this.extraItems.map((i) => {
+    const mappedExtra = [...this.extraItems, ...adminFeatures].map((i) => {
       return {
         ...i,
         handler(ctx: CommandContext, extra: Extra) {
