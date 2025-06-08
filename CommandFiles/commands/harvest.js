@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}harvest",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["plant"],
   shopPrice: 100,
   requirement: "3.0.0",

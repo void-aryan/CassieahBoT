@@ -20,7 +20,7 @@ export const meta = {
   usage: "{prefix}{name} [mtls_key] <bet>",
   category: "Gambling Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 30,
   shopPrice: 1000,
   requirement: "3.0.0",

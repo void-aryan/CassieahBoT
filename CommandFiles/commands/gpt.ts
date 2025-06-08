@@ -1,4 +1,4 @@
-import { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { StrictOutputForm } from "output-cassidy";
 
 export default easyCMD({
@@ -32,7 +32,7 @@ export default easyCMD({
     }
 
     if (input.attachmentUrls.length > 0) {
-      ask = `${ask}\n\nMy Attachments:\n\n${input.attachmentUrls.join("\n")}`;
+      ask = `${ask}\n\nImage URL:\n\n${input.attachmentUrls.join("\n")}`;
     }
 
     const headers: AxiosRequestConfig["headers"] = {
@@ -76,7 +76,14 @@ export default easyCMD({
           form.body = `${image.description}`;
         }
         if (typeof image.url === "string") {
-          form.attachment = await global.utils.getStreamFromURL(image.url);
+          const res = await axios.get(image.url, {
+            responseType: "stream",
+            headers: {
+              Accept: "image/*",
+            },
+          });
+
+          form.attachment = res.data;
         }
       }
     }

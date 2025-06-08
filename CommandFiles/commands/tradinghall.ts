@@ -14,7 +14,7 @@ export const meta: CommandMeta = {
   permissions: [0],
   noPrefix: false,
   waitingTime: 1,
-  otherNames: ["tradehall", "tradinghall"],
+  otherNames: ["tradehall", "tradinghall", "tr"],
   requirement: "3.0.0",
   icon: "🛒",
   cmdType: "cplx_g",

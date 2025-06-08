@@ -14,7 +14,7 @@ export const meta: CassidySpectra.CommandMeta = {
   waitingTime: 1,
   description: `Manage your finances and items with Ariel's Bank (${ABANK} ®).`,
   category: "Finance",
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["bank", "arielbank", "b", "ac", "acbank"],
   requirement: "3.0.0",
   icon: "🏦",

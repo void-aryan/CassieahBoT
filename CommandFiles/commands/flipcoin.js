@@ -9,7 +9,7 @@ module.exports = {
     usage: "flip",
     otherNames: ["toss", "tosscoin", "headtails", "ht", "flip"],
     waitingTime: 55,
-    noPrefix: "both",
+    noPrefix: false,
     shopPrice: 2500,
     requirement: "3.0.0",
     icon: "🪙",

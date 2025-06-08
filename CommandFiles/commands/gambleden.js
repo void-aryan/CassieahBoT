@@ -19,7 +19,7 @@ export const meta = {
   usage: "{prefix}{name} -<game> <betamount> [args]",
   category: "Gambling Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 10,
   otherNames: ["gden", "gd"],
   requirement: "2.5.0",

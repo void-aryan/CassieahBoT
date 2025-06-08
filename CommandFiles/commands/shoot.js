@@ -32,7 +32,7 @@ export const meta = {
 };
 
 export class style {
-  preset = ["cash_games.json"];
+  preset = ["cash_games_new.json"];
 }
 
 /**

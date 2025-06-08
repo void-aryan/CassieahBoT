@@ -84,7 +84,7 @@ export async function entry({
     let result = ``;
 
     for (const category of sortedCategories) {
-      result += `${UNISpectra.arrow} ***${category}*** 📁 (${categorizedCommands[category].length})\n`;
+      result += `${UNISpectra.arrowFromT} 📁 **${category}** (${categorizedCommands[category].length})\n`;
       for (const command of categorizedCommands[category]) {
         const { name, icon, shopPrice = 0 } = command.meta;
         const role = await extractCommandRole(command);
@@ -108,11 +108,11 @@ export async function entry({
         }
         result += `${statusIcon} ${toTitleCase(name)}, `;
       }
-      result += `\n\n`;
+      result += `\n${UNISpectra.standardLineOld}\n`;
     }
     result = result.trim();
 
-    result += `\n\n${UNISpectra.arrow} Command details: **${prefix}${commandName} <command>**\n`;
+    result += `\n${UNISpectra.arrow} Command details: **${prefix}${commandName} <command>**\n`;
 
     const resultStr = `🔍 | **Available Commands** 🧰 (${commands.size})\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
     return output.reply(resultStr);
@@ -125,6 +125,7 @@ export async function entry({
       bank: "Wanna store your coins somewhere? Try ***BANK**",
       quiz: "Grind ***MORE*** coins by guessing!",
       wordgame: "Grind ***MORE & MORE*** coins by guessing words too!",
+      garden: "Grow your ***GARDEN***!",
       buy: "Unlock ***HIDDEN*** commands by purchasing them!",
       rosashop:
         "Purchase items from shopkeepers and unlock ***NEW POSSIBILITIES***",
@@ -185,9 +186,9 @@ export async function entry({
       `✅ **Basic Commands**`,
       basicStr,
       ``,
-      `${UNISpectra.arrow} Try to ***Explore*** more commands!`,
-      `${UNISpectra.arrow} View by page: **${prefix}${commandName} <page>**`,
-      `${UNISpectra.arrow} View all: **${prefix}${commandName} all**`,
+      `${UNISpectra.arrowFromT} Try to ***Explore*** more commands!`,
+      `${UNISpectra.arrowFromT} View by page: **${prefix}${commandName} <page>**`,
+      `${UNISpectra.arrowFromT} View all: **${prefix}${commandName} all**`,
       `${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`,
     ].join("\n");
     if (1) {
@@ -424,6 +425,7 @@ export async function entry({
       bank: "Wanna store your coins somewhere? Try ***BANK**",
       quiz: "Grind ***MORE*** coins by guessing!",
       wordgame: "Grind ***MORE & MORE*** coins by guessing words too!",
+      garden: "Grow your ***GARDEN***!",
       buy: "Unlock ***HIDDEN*** commands by purchasing them!",
       rosashop:
         "Purchase items from shopkeepers and unlock ***NEW POSSIBILITIES***",
@@ -472,26 +474,20 @@ export async function entry({
       `✅ **Basic Commands**`,
       basicStr,
       ``,
-      `${UNISpectra.arrow} Try to ***Explore*** more commands!`,
-      `${UNISpectra.arrow} View ALL COMMANDS: **${prefix}${commandName} all**`,
-      `${UNISpectra.arrow} View by page: **${prefix}${commandName} <page>**`,
-      `${UNISpectra.arrow} View basics: **${prefix}${commandName} basics**`,
+      `${UNISpectra.arrowFromT} Try to ***Explore*** more commands!`,
+      `${UNISpectra.arrowFromT} View ALL COMMANDS: **${prefix}${commandName} all**`,
+      `${UNISpectra.arrowFromT} View by page: **${prefix}${commandName} <page>**`,
+      `${UNISpectra.arrowFromT} View basics: **${prefix}${commandName} basics**`,
 
       `${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`,
     ].join("\n");
     if (1) {
       return output.replyStyled(strs, {
         ...style,
-        content: {
-          text_font: "none",
-        },
       });
     }
     return output.attach(strs, "http://localhost:8000/start.png", {
       ...style,
-      content: {
-        text_font: "none",
-      },
     });
   }
 }

@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}trawl",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["boatfish"],
   shopPrice: 250,
   requirement: "1.0.0",

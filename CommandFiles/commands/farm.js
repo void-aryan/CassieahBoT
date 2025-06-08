@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}farm",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["livestock"],
   shopPrice: 200,
   requirement: "1.0.0",

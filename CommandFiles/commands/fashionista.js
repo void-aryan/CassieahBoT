@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}fashionista",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["runway", "fashion"],
   shopPrice: 200,
   requirement: "1.0.2",

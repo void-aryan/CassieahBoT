@@ -36,7 +36,7 @@ export const meta = {
   usage: "{prefix}{name} {gamename} {betamount} {additional arguments}",
   category: "Gambling Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 15,
   otherNames: ["cas", "cs"],
   shopPrice: 100000,

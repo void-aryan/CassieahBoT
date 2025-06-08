@@ -42,7 +42,7 @@ export const meta = {
   waitingTime: 5,
   description: "Liane's Bank",
   category: "Finance",
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["nb", "nicabank"],
   // botAdmin: true,
   cmdType: "arl_g",

@@ -13,7 +13,7 @@ export const meta = {
   usage: "{prefix}{name}num <bet>",
   category: "Utilities",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["num"],
   botAdmin: false,
   waitingTime: 1,

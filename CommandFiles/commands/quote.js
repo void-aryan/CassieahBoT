@@ -7,7 +7,7 @@ export const meta = {
   usage: "{prefix}{name} <text>",
   category: "Media",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 5,
   requirement: "3.0.0",
   otherNames: ["q"],

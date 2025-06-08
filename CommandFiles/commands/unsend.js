@@ -4,7 +4,7 @@
  */
 export const meta = {
   name: "unsend",
-  otherNames: ["uns"],
+  otherNames: ["uns", "u"],
   version: "1.1.0",
   author: "NTKhang // converted By MrkimstersDev",
   permissions: [0],
@@ -12,6 +12,7 @@ export const meta = {
   description: "Unsend bot's message",
   usage: "Reply to the bot's message and call the command",
   fbOnly: true,
+  noPrefix: "both",
 };
 
 /**

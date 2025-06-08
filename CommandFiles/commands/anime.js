@@ -14,7 +14,7 @@ export const meta = {
   usage: "{prefix}{name} <anime title>",
   category: "Entertainment",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 10,
   requirement: "3.0.0",
   otherNames: ["ani"],

@@ -11,7 +11,7 @@ export const meta = {
   usage: "{prefix}cook",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["chef"],
   shopPrice: 150,
   requirement: "2.0.0",
@@ -20,7 +20,7 @@ export const meta = {
 };
 
 export const style = {
-  title: "Cooking 🍳",
+  title: "Cooking Inamo 🍳",
   contentFont: "fancy",
   titleFont: "bold",
 };

@@ -13,7 +13,7 @@ export const meta = {
   category: "Finance",
   author: "Liane Cagara",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 0,
   icon: "🎁",
   cmdType: "cplx_g",

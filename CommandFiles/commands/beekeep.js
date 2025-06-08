@@ -11,7 +11,7 @@ export const meta = {
   usage: "{prefix}beekeep",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["honey"],
   shopPrice: 150,
   requirement: "1.0.0",

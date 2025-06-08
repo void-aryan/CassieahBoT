@@ -29,7 +29,8 @@ export const style = {
  * @returns
  */
 export async function entry({ input, output, prefix }) {
-  const [title, content] = input.splitArgs("|");
+  const [title, ...content_] = input.splitArgs("|");
+  const content = content_.join(" | ");
   if (!title || !content) {
     return output.reply(
       `Usage: ${prefix}style <title> | <content>\n\nThe ** symbol is allowed to make bold texts, use \\| for | symbols that is not meant to split.`

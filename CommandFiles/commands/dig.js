@@ -11,7 +11,7 @@ export const meta = {
   usage: "{prefix}dig",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["excavate"],
   shopPrice: 300,
   requirement: "1.0.0",

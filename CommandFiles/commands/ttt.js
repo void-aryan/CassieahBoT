@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}{name}",
   category: "Chance Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 60,
   requirement: "3.0.0",
   icon: "⭕",

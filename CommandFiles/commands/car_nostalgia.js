@@ -16,7 +16,7 @@ export const meta = {
   category: "Simulation Games",
   author: "JenicaDev & Liane Cagara",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 1,
   requirement: "2.5.0",
   icon: "🚗",

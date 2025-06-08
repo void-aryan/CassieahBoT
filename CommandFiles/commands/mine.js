@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}mine",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: [],
   shopPrice: 1000000,
   requirement: "3.0.0",

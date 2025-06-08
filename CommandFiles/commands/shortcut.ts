@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   category: "Thread",
   author: "Liane Cagara",
   role: 1,
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 0,
   requirement: "3.0.0",
   icon: "🔗",

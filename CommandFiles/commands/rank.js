@@ -12,7 +12,7 @@ export const meta = {
   category: "Utilities",
   author: "JenicaDev",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["level", "exp"],
   waitingTime: 0.1,
   cmdType: "cplx_g",

@@ -14,7 +14,7 @@ export const meta: CassidySpectra.CommandMeta = {
   waitingTime: 1,
   description: `Manage your items with Remote Bag (${REMOTEBAG} ®). Store, retrieve, and transfer items with upgradable slots.`,
   category: "Inventory",
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: ["rbag", "rembag", "bag"],
   requirement: "3.0.0",
   icon: "🎒",

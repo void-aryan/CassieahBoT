@@ -14,7 +14,7 @@ export const meta = {
   usage: "{prefix}tileshop",
   category: "Shopping",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   otherNames: [],
   requirement: "3.0.0",
   icon: "🛒",

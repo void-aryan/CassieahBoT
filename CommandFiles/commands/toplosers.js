@@ -7,7 +7,7 @@ export const meta = {
   description: "Lists the top 10 unluckiest users.",
   author: "Liane Cagara",
   version: "1.0.0",
-  noPrefix: "both",
+  noPrefix: false,
   permissions: [0, 1, 2],
   waitingTime: 3,
   requirement: "3.0.0",

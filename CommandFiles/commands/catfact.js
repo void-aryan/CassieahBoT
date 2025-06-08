@@ -27,7 +27,7 @@ const { delay } = global.utils;
  *
  * @param {CommandContext} ctx
  */
-export async function entry({ output, input, requester }) {
+export async function entry({ output, input }) {
   try {
     let i;
     if (!input.isWeb) {

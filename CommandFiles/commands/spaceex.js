@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}explorer",
   category: "Idle Accumulation Games",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   shopPrice: 500,
   cmdType: "cplx_g",
 };

@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}{name} [mtls_key] <bet>",
   category: "Media",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 10,
   requirement: "3.0.0",
   otherNames: ["shoti_"],
@@ -42,7 +42,7 @@ export async function entry({
 }) {
   if (input.arguments[0]) {
     const cashGames = new CassidyResponseStylerControl({
-      preset: ["cash_games.json"],
+      preset: ["cash_games_new.json"],
     });
     cashGames.activateAllPresets();
 

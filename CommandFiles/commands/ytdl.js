@@ -11,7 +11,7 @@ export const meta = {
   usage: "{prefix}{name} <search query>",
   category: "Media",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 10,
   requirement: "3.0.0",
   otherNames: ["vid", "youtube", "ytb"],

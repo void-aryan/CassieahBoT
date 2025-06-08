@@ -12,7 +12,7 @@ export const meta = {
   author: "Liane Cagara",
   category: "Utilities",
   permissions: [0],
-  noPrefix: "both",
+  noPrefix: false,
   waitingTime: 2,
   shopPrice: 100,
   requirement: "3.0.0",
