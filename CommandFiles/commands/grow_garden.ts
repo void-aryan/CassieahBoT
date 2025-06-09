@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.7.1",
+  version: "1.7.2",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -134,14 +134,14 @@ function calculateCropValue(crop: GardenPlot) {
     .filter(Boolean);
 
   const totalMutationBonus = mutations.reduce(
-    (acc, curr) => acc * (curr.valueMultiplier ?? 1),
+    (acc, curr) => acc + (curr.valueMultiplier ?? 0),
     1
   );
 
   const combinedMultiplier = totalMutationBonus;
 
   const final = Math.floor(
-    crop.baseValue * combinedMultiplier * crop.maxKiloGrams
+    crop.baseValue * combinedMultiplier * (crop.maxKiloGrams + 1)
   );
 
   const noExtra = Math.floor(final - crop.baseValue * combinedMultiplier);
@@ -283,7 +283,7 @@ async function autoUpdateCropData(
 
   crop.kiloGrams = calculateCropKG(crop);
 
-  crop.name === String(crop.name).replaceAll("Seed", "").trim();
+  crop.name = String(crop.name).replaceAll("Seed", "").trim();
 
   return crop;
 }
