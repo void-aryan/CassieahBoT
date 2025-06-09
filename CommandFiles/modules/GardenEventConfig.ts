@@ -63,7 +63,7 @@ export const EVENT_CONFIG = {
                 "Delicate pink or white flowers that bloom in clusters on tree branches, signaling the arrival of spring.",
               icon: "🌷",
               type: "gardenSeed",
-              sellPrice: 1_250,
+              sellPrice: 1,
               cropData: {
                 baseValue: 3_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
@@ -91,7 +91,7 @@ export const EVENT_CONFIG = {
                 "A water flower with broad petals and a central seed pod, often seen resting on lily pads.",
               icon: "🪷",
               type: "gardenSeed",
-              sellPrice: 4_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 6_500,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
@@ -119,7 +119,7 @@ export const EVENT_CONFIG = {
                 "A vibrant bloom with wide, delicate petals and a striking central column, often found in warm, sunny places.",
               icon: "🌺",
               type: "gardenSeed",
-              sellPrice: 14_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 20_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
@@ -147,7 +147,7 @@ export const EVENT_CONFIG = {
                 "A stylized bloom with symmetrical, rounded petals arranged in a neat, spiral-like pattern.",
               icon: "🏵️",
               type: "gardenSeed",
-              sellPrice: 50_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 80_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 5,
@@ -175,7 +175,7 @@ export const EVENT_CONFIG = {
                 "A floral symbol with a gentle glow, styled like a perfect seal of approval.",
               icon: "💮",
               type: "gardenSeed",
-              sellPrice: 250_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 500_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 10,
@@ -203,7 +203,7 @@ export const EVENT_CONFIG = {
                 "Soft petals like pale confetti cover the branches, blooming all at once and falling just as quickly—a quiet celebration of spring’s gentle touch.",
               icon: "🌸🩷",
               type: "gardenSeed",
-              sellPrice: 1_000_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 1_000_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 15,
@@ -246,7 +246,7 @@ export const EVENT_CONFIG = {
               flavorText: "A delicate flower duo that blooms in harmony.",
               icon: "🌸",
               type: "gardenSeed",
-              sellPrice: 1250,
+              sellPrice: 1,
               cropData: {
                 baseValue: 2000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2,
@@ -272,7 +272,7 @@ export const EVENT_CONFIG = {
               flavorText: "A bittersweet berry that lingers on the vine.",
               icon: "🍇",
               type: "gardenSeed",
-              sellPrice: 2500,
+              sellPrice: 1,
               cropData: {
                 baseValue: 2_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3,
@@ -299,7 +299,7 @@ export const EVENT_CONFIG = {
               flavorText: "A resilient herb that always finds its way back.",
               icon: "🌿",
               type: "gardenSeed",
-              sellPrice: 5000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 5_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
@@ -326,7 +326,7 @@ export const EVENT_CONFIG = {
               flavorText: "A vibrant flower symbolizing reunion.",
               icon: "🌺",
               type: "gardenSeed",
-              sellPrice: 25_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 10_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 5,
@@ -353,7 +353,7 @@ export const EVENT_CONFIG = {
               flavorText: "A humble seed with untapped potential.",
               icon: "🌱",
               type: "gardenSeed",
-              sellPrice: 50_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 20_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 6,
@@ -380,7 +380,7 @@ export const EVENT_CONFIG = {
               flavorText: "A mythical leaf woven from stories.",
               icon: "🍃",
               type: "gardenSeed",
-              sellPrice: 125_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 50_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 7,
@@ -407,7 +407,7 @@ export const EVENT_CONFIG = {
               flavorText: "An onion that brings tears of nostalgia.",
               icon: "🧅",
               type: "gardenSeed",
-              sellPrice: 250_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 700_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
@@ -434,7 +434,7 @@ export const EVENT_CONFIG = {
               flavorText: "A lavender with a hauntingly familiar scent.",
               icon: "🌷",
               type: "gardenSeed",
-              sellPrice: 500_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 100_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 9,
@@ -461,7 +461,7 @@ export const EVENT_CONFIG = {
               flavorText: "A four-leaf clover of past promises.",
               icon: "☘️",
               type: "gardenSeed",
-              sellPrice: 1_250_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 500_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 10,
@@ -488,7 +488,7 @@ export const EVENT_CONFIG = {
               flavorText: "A magical mint that captivates the senses.",
               icon: "🌿✨",
               type: "gardenSeed",
-              sellPrice: 2_500_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 500_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 11,
@@ -515,7 +515,7 @@ export const EVENT_CONFIG = {
               flavorText: "A string bean spun from tales of fate.",
               icon: "🌱",
               type: "gardenSeed",
-              sellPrice: 5_000_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 1_000_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 12,
@@ -542,7 +542,7 @@ export const EVENT_CONFIG = {
               flavorText: "The rarest bloom of destined but unplanted love.",
               icon: "🌸💫",
               type: "gardenSeed",
-              sellPrice: 25_000_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 4_000_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 15,
@@ -592,7 +592,7 @@ export const EVENT_CONFIG = {
               flavorText: "A glowing sprout born under a cosmic sky.",
               icon: "🌠",
               type: "gardenSeed",
-              sellPrice: 2_500,
+              sellPrice: 1,
               cropData: {
                 baseValue: 4_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
@@ -618,7 +618,7 @@ export const EVENT_CONFIG = {
               flavorText: "A radiant flower that mirrors distant galaxies.",
               icon: "🌟",
               type: "gardenSeed",
-              sellPrice: 7_500,
+              sellPrice: 1,
               cropData: {
                 baseValue: 12_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
@@ -644,7 +644,7 @@ export const EVENT_CONFIG = {
               flavorText: "A juicy fruit infused with stardust.",
               icon: "🪐",
               type: "gardenSeed",
-              sellPrice: 25_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 40_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
@@ -670,7 +670,7 @@ export const EVENT_CONFIG = {
               flavorText: "A rare flower that pulses with cosmic energy.",
               icon: "💫",
               type: "gardenSeed",
-              sellPrice: 100_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 150_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
@@ -696,7 +696,7 @@ export const EVENT_CONFIG = {
               flavorText: "A divine vine that connects the stars.",
               icon: "🌌",
               type: "gardenSeed",
-              sellPrice: 500_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 800_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 10,
@@ -722,7 +722,7 @@ export const EVENT_CONFIG = {
               flavorText: "A celestial seed that blazes with astral power.",
               icon: "☄️",
               type: "gardenSeed",
-              sellPrice: 2_500_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 4_000_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 12,
@@ -748,7 +748,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Astral seeds!",
               icon: "🦋",
               type: "gardenPetCage",
-              sellPrice: 10_000_000,
+              sellPrice: 1,
               petData: {
                 name: "Stellar Butterfly",
                 collectionRate: 0.15,
@@ -774,7 +774,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Astral seeds!",
               icon: "🦅",
               type: "gardenPetCage",
-              sellPrice: 10_750_000,
+              sellPrice: 1,
               petData: {
                 name: "Astral Hawk",
                 collectionRate: 0.2,
@@ -800,7 +800,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Astral seeds!",
               icon: "🦁🌌",
               type: "gardenPetCage",
-              sellPrice: 30_000_000,
+              sellPrice: 1,
               petData: {
                 name: "Cosmic Lion",
                 collectionRate: 0.25,
@@ -826,7 +826,7 @@ export const EVENT_CONFIG = {
               flavorText: "Enhances Astral mutations for cosmic crops.",
               icon: "🔭",
               type: "gardenTool",
-              sellPrice: 750_000,
+              sellPrice: 1,
               toolData: {
                 growthMultiplier: 1.3,
                 mutationChance: { Astral: 0.3 },
@@ -851,7 +851,7 @@ export const EVENT_CONFIG = {
               flavorText: "Boosts growth speed for crops.",
               icon: "✨",
               type: "gardenTool",
-              sellPrice: 250_000,
+              sellPrice: 1,
               toolData: {
                 growthMultiplier: 1.5,
               },
@@ -902,7 +902,7 @@ export const EVENT_CONFIG = {
               flavorText: "A sweet carrot from the Easter Event.",
               icon: "🍫",
               type: "gardenSeed",
-              sellPrice: 100,
+              sellPrice: 1,
               cropData: {
                 baseValue: 16_500,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 0.5,
@@ -929,7 +929,7 @@ export const EVENT_CONFIG = {
               flavorText: "A sugary treat from the Easter Event.",
               icon: "🍭",
               type: "gardenSeed",
-              sellPrice: 250,
+              sellPrice: 1,
               cropData: {
                 baseValue: 70_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2,
@@ -955,7 +955,7 @@ export const EVENT_CONFIG = {
               flavorText: "A radiant flower from the Easter Event.",
               icon: "🌻",
               type: "gardenSeed",
-              sellPrice: 600,
+              sellPrice: 1,
               cropData: {
                 baseValue: 145_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
@@ -982,7 +982,7 @@ export const EVENT_CONFIG = {
               flavorText: "A festive egg from the Easter Event.",
               icon: "🥚",
               type: "gardenSeed",
-              sellPrice: 1500,
+              sellPrice: 1,
               cropData: {
                 baseValue: 60_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3,
@@ -1009,7 +1009,7 @@ export const EVENT_CONFIG = {
               flavorText: "A divine bloom from the Easter Event.",
               icon: "🌸",
               type: "gardenSeed",
-              sellPrice: 3000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 1_200_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 11,
@@ -1036,7 +1036,7 @@ export const EVENT_CONFIG = {
               flavorText: "Boosts Chocolate mutations for Easter crops.",
               icon: "🍫💦",
               type: "gardenTool",
-              sellPrice: 500,
+              sellPrice: 1,
               toolData: {
                 growthMultiplier: 1.2,
                 mutationChance: { Chocolate: 0.3 },
@@ -1099,7 +1099,7 @@ export const EVENT_CONFIG = {
               flavorText: "A tart fruit from the Angry Plant Event.",
               icon: "🍒",
               type: "gardenSeed",
-              sellPrice: 1750,
+              sellPrice: 1,
               cropData: {
                 baseValue: 7000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
@@ -1126,7 +1126,7 @@ export const EVENT_CONFIG = {
               flavorText: "A pungent fruit from the Angry Plant Event.",
               icon: "🥭",
               type: "gardenSeed",
-              sellPrice: 2000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 8000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
@@ -1153,7 +1153,7 @@ export const EVENT_CONFIG = {
               flavorText: "A versatile veggie from the Angry Plant Event.",
               icon: "🍆",
               type: "gardenSeed",
-              sellPrice: 2500,
+              sellPrice: 1,
               cropData: {
                 baseValue: 10000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
@@ -1180,7 +1180,7 @@ export const EVENT_CONFIG = {
               flavorText: "A serene flower from the Angry Plant Event.",
               icon: "🪷",
               type: "gardenSeed",
-              sellPrice: 3000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 20_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
@@ -1207,7 +1207,7 @@ export const EVENT_CONFIG = {
               flavorText: "A carnivorous plant from the Angry Plant Event.",
               icon: "🪴",
               type: "gardenSeed",
-              sellPrice: 3250,
+              sellPrice: 1,
               cropData: {
                 baseValue: 17000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
@@ -1296,7 +1296,7 @@ export const EVENT_CONFIG = {
               flavorText: "Rare flower blooming under moonlight.",
               icon: "🌙",
               type: "gardenSeed",
-              sellPrice: 4000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 8500,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8.5,
@@ -1323,7 +1323,7 @@ export const EVENT_CONFIG = {
               flavorText: "Refreshing herb with culinary uses.",
               icon: "🍃",
               type: "gardenSeed",
-              sellPrice: 1100,
+              sellPrice: 1,
               cropData: {
                 baseValue: 4400,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2,
@@ -1350,7 +1350,7 @@ export const EVENT_CONFIG = {
               flavorText: "Bioluminescent mushroom with unique glow.",
               icon: "🍄",
               type: "gardenSeed",
-              sellPrice: 1500,
+              sellPrice: 1,
               cropData: {
                 baseValue: 6000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3,
@@ -1377,7 +1377,7 @@ export const EVENT_CONFIG = {
               flavorText: "A radiant fruit from the Lunar Glow Event.",
               icon: "🌟",
               type: "gardenSeed",
-              sellPrice: 1750,
+              sellPrice: 1,
               cropData: {
                 baseValue: 14000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
@@ -1404,7 +1404,7 @@ export const EVENT_CONFIG = {
               flavorText: "A glowing flower from the Lunar Glow Event.",
               icon: "🌼",
               type: "gardenSeed",
-              sellPrice: 2000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 18_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 9.5,
@@ -1431,7 +1431,7 @@ export const EVENT_CONFIG = {
               flavorText: "A divine bloom from the Lunar Glow Event.",
               icon: "🌸",
               type: "gardenSeed",
-              sellPrice: 3000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 45_125,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
@@ -1458,7 +1458,7 @@ export const EVENT_CONFIG = {
               flavorText: "A celestial berry from the Lunar Glow Event.",
               icon: "🫐",
               type: "gardenSeed",
-              sellPrice: 10_000_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 10_000_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 7.7,
@@ -1485,7 +1485,7 @@ export const EVENT_CONFIG = {
               flavorText: "A tropical fruit from the Lunar Glow Event.",
               icon: "🥭",
               type: "gardenSeed",
-              sellPrice: 1_000_000_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 100_000_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 30.5,
@@ -1512,7 +1512,7 @@ export const EVENT_CONFIG = {
               flavorText: "A mysterious crop from the Lunar Glow Event.",
               icon: "🌑",
               type: "gardenSeed",
-              sellPrice: 2250,
+              sellPrice: 1,
               cropData: {
                 baseValue: 9000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
@@ -1538,7 +1538,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦔",
               type: "gardenPetCage",
-              sellPrice: 100000,
+              sellPrice: 1,
               petData: {
                 name: "Hedgehog",
                 collectionRate: 0.1,
@@ -1565,7 +1565,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐹",
               type: "gardenPetCage",
-              sellPrice: 12500,
+              sellPrice: 1,
               petData: {
                 name: "Mole",
                 collectionRate: 0.1,
@@ -1592,7 +1592,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐸",
               type: "gardenPetCage",
-              sellPrice: 1000000,
+              sellPrice: 1,
               petData: {
                 name: "Frog",
                 collectionRate: 0.1,
@@ -1619,7 +1619,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐸🌙",
               type: "gardenPetCage",
-              sellPrice: 150000,
+              sellPrice: 1,
               petData: {
                 name: "Echo Frog",
                 collectionRate: 0.15,
@@ -1646,7 +1646,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦇",
               type: "gardenPetCage",
-              sellPrice: 1750000,
+              sellPrice: 1,
               petData: {
                 name: "Night Owl",
                 collectionRate: 0.15,
@@ -1673,7 +1673,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦝",
               type: "gardenPetCage",
-              sellPrice: 150000,
+              sellPrice: 1,
               petData: {
                 name: "Raccoon",
                 collectionRate: 0.15,
@@ -1700,7 +1700,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🥝",
               type: "gardenPetCage",
-              sellPrice: 200000,
+              sellPrice: 1,
               petData: {
                 name: "Kiwi",
                 collectionRate: 0.01,
@@ -1727,7 +1727,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦉",
               type: "gardenPetCage",
-              sellPrice: 250000,
+              sellPrice: 1,
               petData: {
                 name: "Owl",
                 collectionRate: 0.2,
@@ -1754,7 +1754,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🥝🌑",
               type: "gardenPetCage",
-              sellPrice: 300000,
+              sellPrice: 1,
               petData: {
                 name: "Blood Kiwi",
                 collectionRate: 0.25,
@@ -1781,7 +1781,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦔🌑",
               type: "gardenPetCage",
-              sellPrice: 300000,
+              sellPrice: 1,
               petData: {
                 name: "Blood Hedgehog",
                 collectionRate: 0.025,
@@ -1808,7 +1808,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🦉🌑",
               type: "gardenPetCage",
-              sellPrice: 325000,
+              sellPrice: 1,
               petData: {
                 name: "Blood Owl",
                 collectionRate: 0.25,
@@ -1835,7 +1835,7 @@ export const EVENT_CONFIG = {
               flavorText: "Caged pet. Uncage to dig up Lunar seeds!",
               icon: "🐔💀",
               type: "gardenPetCage",
-              sellPrice: 3500,
+              sellPrice: 1,
               petData: {
                 name: "Chicken Zombie",
                 collectionRate: 0.3,
@@ -1862,7 +1862,7 @@ export const EVENT_CONFIG = {
               flavorText: "Boosts Moonlit mutations for Lunar crops.",
               icon: "🌟",
               type: "gardenTool",
-              sellPrice: 750,
+              sellPrice: 1,
               toolData: {
                 growthMultiplier: 1.3,
                 mutationChance: { Moonlit: 0.3 },
@@ -1888,7 +1888,7 @@ export const EVENT_CONFIG = {
               flavorText: "A mysterious egg from the Lunar Glow Event.",
               icon: "🥚🌙",
               type: "gardenTool",
-              sellPrice: 500,
+              sellPrice: 1,
               toolData: { growthMultiplier: 1.1 },
             });
           },
@@ -1972,7 +1972,7 @@ export const EVENT_CONFIG = {
               flavorText: "A rare fruit from the Blood Moon Event.",
               icon: "🍌",
               type: "gardenSeed",
-              sellPrice: 150_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 150_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 7,
@@ -1999,7 +1999,7 @@ export const EVENT_CONFIG = {
               flavorText: "A juicy melon from the Lunar Blood Moon Event.",
               icon: "🍈",
               type: "gardenSeed",
-              sellPrice: 20_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 10400,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 7,
@@ -2026,7 +2026,7 @@ export const EVENT_CONFIG = {
               flavorText: "Enhances Celestial mutations for Blood Moon crops.",
               icon: "📡",
               type: "gardenTool",
-              sellPrice: 1000,
+              sellPrice: 1,
               toolData: {
                 growthMultiplier: 1.2,
                 mutationChance: { Celestial: 0.2 },
@@ -2052,7 +2052,7 @@ export const EVENT_CONFIG = {
               flavorText: "A rare seed from Blood Moon.",
               icon: "🌹",
               type: "gardenSeed",
-              sellPrice: 125_000,
+              sellPrice: 1,
               cropData: {
                 baseValue: 125_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 9,

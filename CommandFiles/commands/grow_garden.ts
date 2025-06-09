@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.7.0",
+  version: "1.7.1",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -476,60 +476,60 @@ function formatMutationStr(plot: GardenPlot) {
   }${plot.icon} **${plot.name}** (${plot.kiloGrams}kg)`;
 }
 
-function updatePetCollection(
-  pet: GardenPetActive,
-  inventory: Inventory<GardenItem>,
-  ctx: CommandContext
-): {
-  pet: GardenPetActive;
-  collections: number;
-  inventory: Inventory<GardenItem>;
-  collected: GardenItem[];
-} {
-  if (!pet.isEquipped) return { pet, collections: 0, inventory, collected: [] };
-  const currentTime = Date.now();
-  const timeSinceLastCollect = currentTime - (pet.lastCollect || currentTime);
-  const collections = Math.round(
-    Math.floor(timeSinceLastCollect / (60 * 1000)) * pet.petData.collectionRate
-  );
-  const collected: GardenItem[] = [];
-  if (collections >= 1) {
-    const shopItems = [...gardenShop.itemData, ...gardenShop.eventItems];
-    pet.lastCollect = currentTime;
-    for (let i = 0; i < collections; i++) {
-      // const seed =
-      //   pet.petData.seedTypes[
-      //     Math.floor(Math.random() * pet.petData.seedTypes.length)
-      //   ];
-      const seed = pickRandomWithProb(
-        pet.petData.seedTypes.map((i) => {
-          const shopItem = shopItems.find((item) => item.key === i);
-          return {
-            chance: (shopItem?.stockChance ?? 0) ** 9,
-            value: i,
-          };
-        })
-      );
+// function updatePetCollection(
+//   pet: GardenPetActive,
+//   inventory: Inventory<GardenItem>,
+//   ctx: CommandContext
+// ): {
+//   pet: GardenPetActive;
+//   collections: number;
+//   inventory: Inventory<GardenItem>;
+//   collected: GardenItem[];
+// } {
+//   if (!pet.isEquipped) return { pet, collections: 0, inventory, collected: [] };
+//   const currentTime = Date.now();
+//   const timeSinceLastCollect = currentTime - (pet.lastCollect || currentTime);
+//   const collections = Math.round(
+//     Math.floor(timeSinceLastCollect / (60 * 1000)) * pet.petData.collectionRate
+//   );
+//   const collected: GardenItem[] = [];
+//   if (collections >= 1) {
+//     const shopItems = [...gardenShop.itemData, ...gardenShop.eventItems];
+//     pet.lastCollect = currentTime;
+//     for (let i = 0; i < collections; i++) {
+//       // const seed =
+//       //   pet.petData.seedTypes[
+//       //     Math.floor(Math.random() * pet.petData.seedTypes.length)
+//       //   ];
+//       const seed = pickRandomWithProb(
+//         pet.petData.seedTypes.map((i) => {
+//           const shopItem = shopItems.find((item) => item.key === i);
+//           return {
+//             chance: (shopItem?.stockChance ?? 0) ** 9,
+//             value: i,
+//           };
+//         })
+//       );
 
-      if (!seed) {
-        continue;
-      }
+//       if (!seed) {
+//         continue;
+//       }
 
-      const shopItem = shopItems.find((item) => item.key === seed);
-      if (Math.random() < shopItem.stockChance) {
-        if (shopItem && inventory.size() < global.Cassidy.invLimit) {
-          const cache = inventory.getAll();
-          const cache2 = [...cache];
-          shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
-          inventory = new Inventory(cache);
-          const newItems = cache.filter((i) => !cache2.includes(i));
-          collected.push(...newItems);
-        }
-      }
-    }
-  }
-  return { pet, collections: collected.length, inventory, collected };
-}
+//       const shopItem = shopItems.find((item) => item.key === seed);
+//       if (Math.random() < shopItem.stockChance) {
+//         if (shopItem && inventory.size() < global.Cassidy.invLimit) {
+//           const cache = inventory.getAll();
+//           const cache2 = [...cache];
+//           shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
+//           inventory = new Inventory(cache);
+//           const newItems = cache.filter((i) => !cache2.includes(i));
+//           collected.push(...newItems);
+//         }
+//       }
+//     }
+//   }
+//   return { pet, collections: collected.length, inventory, collected };
+// }
 
 async function checkAchievements(
   user: UserData,
@@ -1291,7 +1291,7 @@ export async function entry(ctx: CommandContext) {
             }\n` +
             `💰 Base Value: ${formatCash(
               calculateCropValue({
-                ...plots.getAll()[plots.getAll().length - 1],
+                ...firstPlot,
                 mutation: [],
                 maxKiloGrams: 1,
                 kiloGrams: 1,
