@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.7.2",
+  version: "1.7.3",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -284,6 +284,8 @@ async function autoUpdateCropData(
   crop.kiloGrams = calculateCropKG(crop);
 
   crop.name = String(crop.name).replaceAll("Seed", "").trim();
+
+  crop = correctPlot(crop);
 
   return crop;
 }
@@ -769,6 +771,37 @@ function correctItems(rawInv: GardenItem[]) {
     }
   }
   return rawInv;
+}
+function correctPlot(plot: GardenPlot) {
+  const allItems = [
+    ...gardenShop.itemData,
+    ...EVENT_CONFIG.EVENTS.map(
+      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+    ).flat(),
+    ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
+      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+    ).flat(),
+  ];
+
+  const found = allItems.find((i) => i?.key === plot?.seedKey);
+  if (found) {
+    const temp = [];
+    found.onPurchase({ moneySet: { inventory: temp } });
+    const foundSeed = temp[0] as GardenSeed;
+    if (foundSeed && foundSeed.key === plot.seedKey && foundSeed.cropData) {
+      if (plot.baseValue !== foundSeed.cropData.baseValue) {
+        plot.baseValue = foundSeed.cropData.baseValue;
+        plot.harvestsLeft = foundSeed.cropData.harvests;
+        plot.price = Math.min(
+          foundSeed.cropData.baseValue || 0,
+          (found.price ?? foundSeed.cropData.baseValue) /
+            (foundSeed.cropData.harvests || 1)
+        );
+      }
+      plot.originalGrowthTime = foundSeed.cropData.growthTime;
+    }
+  }
+  return plot;
 }
 
 // interface NotifMapItem {
