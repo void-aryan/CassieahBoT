@@ -11,7 +11,7 @@ const ABANK_LINE = UNISpectra.getLine(18);
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.13",
+  version: "3.0.14",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel-Cass's Bank (Personalized Edition) (${ACBANK_LOGO}/${ABANK_LOGO} ®).`,
@@ -158,8 +158,7 @@ const formatCashORIG = (amount = 0, abbr = true) =>
     abbr ? `(**${abbreviateNumber(amount)}**) ` : ""
   }${amount.toLocaleString()} 💵`;
 
-const formatCashA = (amount = 0, _abbr = true) =>
-  `${amount.toLocaleString()} 💵`;
+const formatCashA = (amount = 0, _abbr = true) => `${amount} 💵`;
 
 export async function entry({
   input,
@@ -245,7 +244,7 @@ export async function entry({
       return output.replyStyled(
         `${extraLine}${fonts.bold(
           `Your ${ABANK} ® account created successfully`
-        )}\n${line}\nFree ${formatCash(1000)} upon register.${extraLineBottom}`,
+        )}\n${line}\nFree ${formatCash(1000)} upon register.`,
         targetStyle
       );
     },
@@ -421,7 +420,7 @@ export async function entry({
           isRemoveT ? `🏆❌ **Trophy Removed**\n${line}\n` : ""
         }${extraLine}${fonts.bold("Successfully")} withdrew:\n${formatCash(
           amount
-        )}\nfrom your ${ABANK} ® account.${extraLineBottom}`,
+        )}\nfrom your ${ABANK} ® account.`,
         targetStyle
       );
     },
@@ -541,7 +540,7 @@ export async function entry({
       return output.replyStyled(
         `${extraLine}${fonts.bold("Successfully")} deposited:\n${formatCash(
           amount
-        )}\nto your ${ABANK} ® account.${extraLineBottom}`,
+        )}\nto your ${ABANK} ® account.`,
         targetStyle
       );
     },
@@ -747,7 +746,7 @@ export async function entry({
           amount
         )}\n${line}\n${fonts.bold("Receiver")}: ${formatTrophy(recipient)}\n➣ ${
           recipient.userMeta?.name ?? recipient.name
-        }${extraLineBottom}`,
+        }`,
         targetStyle
       );
     },
@@ -786,7 +785,7 @@ export async function entry({
       return output.replyStyled(
         `${extraLine}${fonts.bold(
           "Successfully"
-        )} renamed your ${ABANK} ® account to: ${newNickname}.${extraLineBottom}`,
+        )} renamed your ${ABANK} ® account to: ${newNickname}.`,
         targetStyle
       );
     },
@@ -825,7 +824,7 @@ export async function entry({
           user.userMeta?.name ?? user.name
         }\n➥ ${formatTrophy(user)}\n${
           !isAC
-            ? formatCash(user.bankData.bank || 0)
+            ? formatCash(user.bankData.bank || 0).replaceAll("💵", "")
             : abbreviateNumber(user.bankData.bank, 2, true)
         }\n`;
       });
@@ -924,7 +923,7 @@ export async function entry({
         {
           ...targetStyle,
           title: {
-            content: `🏦 ${fonts.bold("STALKER")} 👀`,
+            content: `🏦 ${fonts.bold("STALK")} 👀`,
             line_bottom: "default",
           },
         }
