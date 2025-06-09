@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.6.9",
+  version: "1.7.0",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -753,6 +753,9 @@ function correctItems(rawInv: GardenItem[]) {
     ...EVENT_CONFIG.EVENTS.map(
       (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
     ).flat(),
+    ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
+      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+    ).flat(),
   ];
   for (const item of rawInv ?? []) {
     const found = allItems.find((i) => i?.key === item?.key);
@@ -1189,6 +1192,9 @@ export async function entry(ctx: CommandContext) {
           const allItems = [
             ...gardenShop.itemData,
             ...EVENT_CONFIG.EVENTS.map(
+              (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+            ).flat(),
+            ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
               (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
             ).flat(),
           ];
@@ -2046,291 +2052,291 @@ export async function entry(ctx: CommandContext) {
     //     );
     //   },
     // },
-    {
-      key: "uncage",
-      description: "Uncage a pet to make it active",
-      aliases: ["-u"],
-      args: ["[pet_key]"],
-      icon: "🔓",
-      async handler(_, { spectralArgs }) {
-        const inventory = new Inventory<GardenItem | InventoryItem>(
-          rawInventory
-        );
-        const pets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
-        const equippedPets = pets
-          .getAll()
-          .filter((pet) => pet.isEquipped).length;
-        const cagedPets = inventory
-          .getAll()
-          .filter(
-            (item): item is GardenPetCage => item.type === "gardenPetCage"
-          );
-        if (equippedPets >= PET_EQUIP_LIMIT) {
-          return output.replyStyled(
-            `🐾 Max ${PET_EQUIP_LIMIT} equipped pets! Unequip or sell pets first.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }pets\n` +
-              `${UNISpectra.arrowFromT} Sell pets: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }sell`,
-            style
-          );
-        }
-        if (cagedPets.length === 0) {
-          return output.replyStyled(
-            `🐾 No caged pets! Buy some with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }shop.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} Visit shop: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }shop\n` +
-              `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }list`,
-            style
-          );
-        }
+    // {
+    //   key: "uncage",
+    //   description: "Uncage a pet to make it active",
+    //   aliases: ["-u"],
+    //   args: ["[pet_key]"],
+    //   icon: "🔓",
+    //   async handler(_, { spectralArgs }) {
+    //     const inventory = new Inventory<GardenItem | InventoryItem>(
+    //       rawInventory
+    //     );
+    //     const pets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
+    //     const equippedPets = pets
+    //       .getAll()
+    //       .filter((pet) => pet.isEquipped).length;
+    //     const cagedPets = inventory
+    //       .getAll()
+    //       .filter(
+    //         (item): item is GardenPetCage => item.type === "gardenPetCage"
+    //       );
+    //     if (equippedPets >= PET_EQUIP_LIMIT) {
+    //       return output.replyStyled(
+    //         `🐾 Max ${PET_EQUIP_LIMIT} equipped pets! Unequip or sell pets first.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }pets\n` +
+    //           `${UNISpectra.arrowFromT} Sell pets: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }sell`,
+    //         style
+    //       );
+    //     }
+    //     if (cagedPets.length === 0) {
+    //       return output.replyStyled(
+    //         `🐾 No caged pets! Buy some with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }shop.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} Visit shop: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }shop\n` +
+    //           `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }list`,
+    //         style
+    //       );
+    //     }
 
-        if (!spectralArgs[0]) {
-          return output.replyStyled(
-            `❌ Specify a pet key to uncage! Check items with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }list.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }plant\n` +
-              `${UNISpectra.arrowFromT} Buy items: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }shop`,
-            style
-          );
-        }
+    //     if (!spectralArgs[0]) {
+    //       return output.replyStyled(
+    //         `❌ Specify a pet key to uncage! Check items with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }list.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }plant\n` +
+    //           `${UNISpectra.arrowFromT} Buy items: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }shop`,
+    //         style
+    //       );
+    //     }
 
-        let cagedPet: GardenPetCage;
+    //     let cagedPet: GardenPetCage;
 
-        const selected = inventory.getOne(spectralArgs[0]);
-        if (!selected || selected.type !== "gardenPetCage") {
-          return output.replyStyled(
-            `❌ Invalid pet key "${
-              spectralArgs[0]
-            }"! Check caged pets with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }list.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }list\n` +
-              `${UNISpectra.arrowFromT} Buy pets: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }shop`,
-            style
-          );
-        }
-        cagedPet = selected as GardenPetCage;
+    //     const selected = inventory.getOne(spectralArgs[0]);
+    //     if (!selected || selected.type !== "gardenPetCage") {
+    //       return output.replyStyled(
+    //         `❌ Invalid pet key "${
+    //           spectralArgs[0]
+    //         }"! Check caged pets with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }list.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }list\n` +
+    //           `${UNISpectra.arrowFromT} Buy pets: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }shop`,
+    //         style
+    //       );
+    //     }
+    //     cagedPet = selected as GardenPetCage;
 
-        if (pets.has(cagedPet.key)) {
-          return ctx.output.replyStyled(
-            "🐾 You cannot have this pet again.",
-            style
-          );
-        }
+    //     if (pets.has(cagedPet.key)) {
+    //       return ctx.output.replyStyled(
+    //         "🐾 You cannot have this pet again.",
+    //         style
+    //       );
+    //     }
 
-        inventory.deleteOne(cagedPet.key);
-        const isEquipped = equippedPets < 3;
-        pets.addOne({
-          ...cagedPet,
-          key: cagedPet.key,
-          name: cagedPet.petData.name,
-          icon: cagedPet.icon,
-          lastCollect: Date.now(),
-          petData: cagedPet.petData,
-          isEquipped,
-        });
+    //     inventory.deleteOne(cagedPet.key);
+    //     const isEquipped = equippedPets < 3;
+    //     pets.addOne({
+    //       ...cagedPet,
+    //       key: cagedPet.key,
+    //       name: cagedPet.petData.name,
+    //       icon: cagedPet.icon,
+    //       lastCollect: Date.now(),
+    //       petData: cagedPet.petData,
+    //       isEquipped,
+    //     });
 
-        await money.setItem(input.senderID, {
-          inventory: Array.from(inventory),
-          gardenPets: Array.from(pets),
-        });
+    //     await money.setItem(input.senderID, {
+    //       inventory: Array.from(inventory),
+    //       gardenPets: Array.from(pets),
+    //     });
 
-        return ctx.output.replyStyled(
-          `🐾 Uncaged ${cagedPet.icon} **${cagedPet.name}**! It's now ${
-            isEquipped
-              ? "equipped and collecting seeds"
-              : "active but not equipped"
-          }.\n\n` +
-            `**Next Steps**:\n` +
-            `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }pets\n` +
-            `${UNISpectra.arrowFromT} Equip pets: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }pets`,
-          style
-        );
-      },
-    },
-    {
-      key: "pets",
-      description: "View and manage active garden pets",
-      aliases: ["-pt"],
-      icon: "🐶",
-      args: ["[equip/unequip/<page>] [pet_key]"],
-      async handler(_, { spectralArgs }) {
-        const pets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
-        let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
-        const page = parseInt(spectralArgs[0]) || 1;
-        const action = spectralArgs[0];
-        const petKey = spectralArgs[1];
-        const equippedPets = pets
-          .getAll()
-          .filter((pet) => pet.isEquipped).length;
+    //     return ctx.output.replyStyled(
+    //       `🐾 Uncaged ${cagedPet.icon} **${cagedPet.name}**! It's now ${
+    //         isEquipped
+    //           ? "equipped and collecting seeds"
+    //           : "active but not equipped"
+    //       }.\n\n` +
+    //         `**Next Steps**:\n` +
+    //         `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }pets\n` +
+    //         `${UNISpectra.arrowFromT} Equip pets: ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }pets`,
+    //       style
+    //     );
+    //   },
+    // },
+    // {
+    //   key: "pets",
+    //   description: "View and manage active garden pets",
+    //   aliases: ["-pt"],
+    //   icon: "🐶",
+    //   args: ["[equip/unequip/<page>] [pet_key]"],
+    //   async handler(_, { spectralArgs }) {
+    //     const pets = new Inventory<GardenPetActive>(rawPets, PET_LIMIT);
+    //     let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
+    //     const page = parseInt(spectralArgs[0]) || 1;
+    //     const action = spectralArgs[0];
+    //     const petKey = spectralArgs[1];
+    //     const equippedPets = pets
+    //       .getAll()
+    //       .filter((pet) => pet.isEquipped).length;
 
-        if (action === "equip" && petKey) {
-          const pet = pets.getOne(petKey);
-          if (!pet) {
-            return output.replyStyled(
-              `❌ Invalid pet key "${petKey}"! Check pets with ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }pets.\n\n` +
-                `**Next Steps**:\n` +
-                `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }pets`,
-              style
-            );
-          }
-          if (equippedPets >= PET_EQUIP_LIMIT) {
-            return output.replyStyled(
-              `❌ Max ${PET_EQUIP_LIMIT} equipped pets! Unequip a pet first.\n\n` +
-                `**Next Steps**:\n` +
-                `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }pets`,
-              style
-            );
-          }
-          pet.isEquipped = true;
-          await money.setItem(input.senderID, { gardenPets: Array.from(pets) });
-          return output.replyStyled(
-            `🐾 Equipped ${pet.icon} **${pet.name}**! It's now collecting seeds.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }pets`,
-            style
-          );
-        } else if (action === "unequip" && petKey) {
-          const pet = pets.getOne(petKey);
-          if (!pet) {
-            return output.replyStyled(
-              `❌ Invalid pet key "${petKey}"! Check pets with ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }pets.\n\n` +
-                `**Next Steps**:\n` +
-                `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }pets`,
-              style
-            );
-          }
-          pet.isEquipped = false;
-          await money.setItem(input.senderID, { gardenPets: Array.from(pets) });
-          return output.replyStyled(
-            `🐾 Unequipped ${pet.icon} **${pet.name}**! It's no longer collecting seeds.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }pets`,
-            style
-          );
-        }
+    //     if (action === "equip" && petKey) {
+    //       const pet = pets.getOne(petKey);
+    //       if (!pet) {
+    //         return output.replyStyled(
+    //           `❌ Invalid pet key "${petKey}"! Check pets with ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }pets.\n\n` +
+    //             `**Next Steps**:\n` +
+    //             `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
+    //               isHypen ? "-" : " "
+    //             }pets`,
+    //           style
+    //         );
+    //       }
+    //       if (equippedPets >= PET_EQUIP_LIMIT) {
+    //         return output.replyStyled(
+    //           `❌ Max ${PET_EQUIP_LIMIT} equipped pets! Unequip a pet first.\n\n` +
+    //             `**Next Steps**:\n` +
+    //             `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
+    //               isHypen ? "-" : " "
+    //             }pets`,
+    //           style
+    //         );
+    //       }
+    //       pet.isEquipped = true;
+    //       await money.setItem(input.senderID, { gardenPets: Array.from(pets) });
+    //       return output.replyStyled(
+    //         `🐾 Equipped ${pet.icon} **${pet.name}**! It's now collecting seeds.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }pets`,
+    //         style
+    //       );
+    //     } else if (action === "unequip" && petKey) {
+    //       const pet = pets.getOne(petKey);
+    //       if (!pet) {
+    //         return output.replyStyled(
+    //           `❌ Invalid pet key "${petKey}"! Check pets with ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }pets.\n\n` +
+    //             `**Next Steps**:\n` +
+    //             `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
+    //               isHypen ? "-" : " "
+    //             }pets`,
+    //           style
+    //         );
+    //       }
+    //       pet.isEquipped = false;
+    //       await money.setItem(input.senderID, { gardenPets: Array.from(pets) });
+    //       return output.replyStyled(
+    //         `🐾 Unequipped ${pet.icon} **${pet.name}**! It's no longer collecting seeds.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} View pets: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }pets`,
+    //         style
+    //       );
+    //     }
 
-        const start = (page - 1) * ITEMS_PER_PAGE;
-        const end = page * ITEMS_PER_PAGE;
-        const currentPets = pets.getAll().slice(start, end);
-        let result = `🐾 **${name}'s Active Pets (Page ${page})**:\n\n`;
-        if (currentPets.length === 0) {
-          return output.replyStyled(
-            `🐾 No active pets! Uncage some with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }uncage.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} Uncage pets: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }uncage\n` +
-              `${
-                UNISpectra.arrowFromT
-              } Buy caged pets: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }shop`,
-            style
-          );
-        }
+    //     const start = (page - 1) * ITEMS_PER_PAGE;
+    //     const end = page * ITEMS_PER_PAGE;
+    //     const currentPets = pets.getAll().slice(start, end);
+    //     let result = `🐾 **${name}'s Active Pets (Page ${page})**:\n\n`;
+    //     if (currentPets.length === 0) {
+    //       return output.replyStyled(
+    //         `🐾 No active pets! Uncage some with ${prefix}${commandName}${
+    //           isHypen ? "-" : " "
+    //         }uncage.\n\n` +
+    //           `**Next Steps**:\n` +
+    //           `${UNISpectra.arrowFromT} Uncage pets: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }uncage\n` +
+    //           `${
+    //             UNISpectra.arrowFromT
+    //           } Buy caged pets: ${prefix}${commandName}${
+    //             isHypen ? "-" : " "
+    //           }shop`,
+    //         style
+    //       );
+    //     }
 
-        let totalSeedsCollected = 0;
-        let finalCollected: GardenItem[] = [];
-        currentPets.forEach((pet, index) => {
-          const {
-            collections,
-            collected,
-            inventory: rInv,
-          } = updatePetCollection(pet, inventory as Inventory<GardenItem>, ctx);
-          inventory = rInv;
-          finalCollected.push(...collected);
-          totalSeedsCollected += collections;
-          totalSeedsCollected = Math.min(
-            global.Cassidy.invLimit,
-            totalSeedsCollected
-          );
-          result +=
-            `${start + index + 1}. ${pet.icon} **${pet.name}** [${pet.key}]${
-              pet.isEquipped ? ` (Equipped)` : ""
-            }\n` +
-            `${UNIRedux.charm} Collects: ${pet.petData.seedTypes.join(
-              ", "
-            )}\n` +
-            `${UNIRedux.charm} Rate: ${pet.petData.collectionRate} seeds/min${
-              collections > 0 ? ` (+${collections} seeds)` : ""
-            }\n\n`;
-        });
+    //     let totalSeedsCollected = 0;
+    //     let finalCollected: GardenItem[] = [];
+    //     currentPets.forEach((pet, index) => {
+    //       const {
+    //         collections,
+    //         collected,
+    //         inventory: rInv,
+    //       } = updatePetCollection(pet, inventory as Inventory<GardenItem>, ctx);
+    //       inventory = rInv;
+    //       finalCollected.push(...collected);
+    //       totalSeedsCollected += collections;
+    //       totalSeedsCollected = Math.min(
+    //         global.Cassidy.invLimit,
+    //         totalSeedsCollected
+    //       );
+    //       result +=
+    //         `${start + index + 1}. ${pet.icon} **${pet.name}** [${pet.key}]${
+    //           pet.isEquipped ? ` (Equipped)` : ""
+    //         }\n` +
+    //         `${UNIRedux.charm} Collects: ${pet.petData.seedTypes.join(
+    //           ", "
+    //         )}\n` +
+    //         `${UNIRedux.charm} Rate: ${pet.petData.collectionRate} seeds/min${
+    //           collections > 0 ? ` (+${collections} seeds)` : ""
+    //         }\n\n`;
+    //     });
 
-        await money.setItem(input.senderID, {
-          inventory: Array.from(inventory),
-          gardenPets: Array.from(pets),
-        });
-        const finalCollInv = new Inventory(finalCollected);
+    //     await money.setItem(input.senderID, {
+    //       inventory: Array.from(inventory),
+    //       gardenPets: Array.from(pets),
+    //     });
+    //     const finalCollInv = new Inventory(finalCollected);
 
-        result +=
-          `🌱 Total Seeds Collected: **${totalSeedsCollected}${
-            totalSeedsCollected > 0 ? ` (+${totalSeedsCollected})` : ""
-          }**\n\n` +
-          `${finalCollInv
-            .toUnique()
-            .map(
-              (s) =>
-                `**x${finalCollInv.getAmount(s.key)}** ${s.icon} **${
-                  s.name
-                }** (Key: **${s.key}**)`
-            )
-            .join("\n")}\n\n` +
-          `**Next Steps**:\n` +
-          `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-            isHypen ? "-" : " "
-          }list\n` +
-          `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
-            isHypen ? "-" : " "
-          }plant\n` +
-          `${UNISpectra.arrowFromT} Uncage more: ${prefix}${commandName}${
-            isHypen ? "-" : " "
-          }uncage`;
+    //     result +=
+    //       `🌱 Total Seeds Collected: **${totalSeedsCollected}${
+    //         totalSeedsCollected > 0 ? ` (+${totalSeedsCollected})` : ""
+    //       }**\n\n` +
+    //       `${finalCollInv
+    //         .toUnique()
+    //         .map(
+    //           (s) =>
+    //             `**x${finalCollInv.getAmount(s.key)}** ${s.icon} **${
+    //               s.name
+    //             }** (Key: **${s.key}**)`
+    //         )
+    //         .join("\n")}\n\n` +
+    //       `**Next Steps**:\n` +
+    //       `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
+    //         isHypen ? "-" : " "
+    //       }list\n` +
+    //       `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+    //         isHypen ? "-" : " "
+    //       }plant\n` +
+    //       `${UNISpectra.arrowFromT} Uncage more: ${prefix}${commandName}${
+    //         isHypen ? "-" : " "
+    //       }uncage`;
 
-        return output.replyStyled(result, style);
-      },
-    },
+    //     return output.replyStyled(result, style);
+    //   },
+    // },
     {
       key: "steal",
       description: "Steal a crop from another player's garden",
@@ -2398,7 +2404,7 @@ export async function entry(ctx: CommandContext) {
           (a, b) => calculateCropValue(b).final - calculateCropValue(a).final
         );
         const stolenPlot = sortedPlots[0];
-        const stealSuccess = Math.random() > 0.3;
+        const stealSuccess = Math.random() < 0.3;
         if (!stealSuccess) {
           await money.setItem(input.senderID, { money: userMoney + 100 });
           return output.replyStyled(
@@ -3281,6 +3287,9 @@ export async function entry(ctx: CommandContext) {
         const allItems: ShopItem[] = [
           ...gardenShop.itemData,
           ...EVENT_CONFIG.EVENTS.map(
+            (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+          ).flat(),
+          ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
             (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
           ).flat(),
         ];

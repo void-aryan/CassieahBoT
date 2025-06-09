@@ -18,6 +18,8 @@ export namespace gardenShop {
       isEventItem: false,
       stockChance: 1.0,
       stockLimit: 20,
+      minStock: 5,
+      maxStock: 25,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsCarrot",
@@ -25,9 +27,9 @@ export namespace gardenShop {
           flavorText: "A basic crop for quick profits.",
           icon: "🥕",
           type: "gardenSeed",
-          sellPrice: 10,
+          sellPrice: 1,
           cropData: {
-            baseValue: 20,
+            baseValue: 18,
             growthTime: CROP_CONFIG.GROWTH_BASE,
             harvests: 1,
           },
@@ -43,7 +45,9 @@ export namespace gardenShop {
       rarity: "Common",
       isOfficialStock: false,
       inStock: true,
-      stockLimit: 20,
+      stockLimit: 4,
+      minStock: 1,
+      maxStock: 6,
       stockChance: 1.0,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -52,11 +56,11 @@ export namespace gardenShop {
           flavorText: "Sweet berries with multiple harvests.",
           icon: "🍓",
           type: "gardenSeed",
-          sellPrice: 50,
+          sellPrice: 1,
           cropData: {
-            baseValue: 30,
+            baseValue: 14,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-            harvests: 3,
+            harvests: 6,
           },
         });
       },
@@ -69,8 +73,10 @@ export namespace gardenShop {
       price: 400,
       rarity: "Uncommon",
       inStock: true,
-      stockLimit: 20,
+      stockLimit: 4,
       stockChance: 1,
+      minStock: 1,
+      maxStock: 5,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsBlueberry",
@@ -78,11 +84,11 @@ export namespace gardenShop {
           flavorText: "Tasty berries with multiple harvests.",
           icon: "🫐",
           type: "gardenSeed",
-          sellPrice: 400,
+          sellPrice: 1,
           cropData: {
-            baseValue: 200,
+            baseValue: 18,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
-            harvests: 3,
+            harvests: 30,
           },
         });
       },
@@ -96,6 +102,8 @@ export namespace gardenShop {
       rarity: "Uncommon",
       inStock: true,
       stockLimit: 12,
+      minStock: 5,
+      maxStock: 25,
       stockChance: 0.34,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -104,11 +112,11 @@ export namespace gardenShop {
           flavorText: "Bright and delicate flower crop.",
           icon: "🌷",
           type: "gardenSeed",
-          sellPrice: 600,
+          sellPrice: 1,
           cropData: {
-            baseValue: 700,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-            harvests: 2,
+            baseValue: 767,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+            harvests: 1,
           },
         });
       },
@@ -121,7 +129,9 @@ export namespace gardenShop {
       price: 800,
       rarity: "Rare",
       inStock: true,
-      stockLimit: 20,
+      stockLimit: 2,
+      minStock: 1,
+      maxStock: 3,
       stockChance: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -132,9 +142,9 @@ export namespace gardenShop {
           type: "gardenSeed",
           sellPrice: 800,
           cropData: {
-            baseValue: 600,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-            harvests: 3,
+            baseValue: 27,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+            harvests: 40,
           },
         });
       },
@@ -145,10 +155,12 @@ export namespace gardenShop {
       key: "gsCorn",
       flavorText: "Golden grain with steady yield.",
       price: 1300,
-      stockLimit: 6,
+      stockLimit: 3,
       rarity: "Rare",
       inStock: true,
       stockChance: 0.17,
+      minStock: 1,
+      maxStock: 4,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsCorn",
@@ -156,11 +168,11 @@ export namespace gardenShop {
           flavorText: "Golden grain with steady yield.",
           icon: "🌽",
           type: "gardenSeed",
-          sellPrice: 1300,
+          sellPrice: 1,
           cropData: {
-            baseValue: 2400,
+            baseValue: 36,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-            harvests: 2,
+            harvests: 50,
           },
         });
       },
@@ -171,10 +183,12 @@ export namespace gardenShop {
       key: "gsDaffodil",
       flavorText: "Cheerful flower with fair value.",
       price: 1000,
-      stockLimit: 15,
+      stockLimit: 4,
       rarity: "Rare",
       inStock: true,
       stockChance: 0.145,
+      minStock: 1,
+      maxStock: 6,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsDaffodil",
@@ -182,10 +196,10 @@ export namespace gardenShop {
           flavorText: "Cheerful flower with fair value.",
           icon: "🌼",
           type: "gardenSeed",
-          sellPrice: 1000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 2000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
+            baseValue: 903,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 1,
           },
         });
@@ -201,6 +215,8 @@ export namespace gardenShop {
       inStock: true,
       stockLimit: 5,
       stockChance: 0.14,
+      minStock: 1,
+      maxStock: 6,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsWatermelon",
@@ -208,10 +224,10 @@ export namespace gardenShop {
           flavorText: "Large fruit with high value.",
           icon: "🍉",
           type: "gardenSeed",
-          sellPrice: 2500,
+          sellPrice: 1,
           cropData: {
-            baseValue: 5000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+            baseValue: 2708,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
           },
         });
@@ -223,9 +239,11 @@ export namespace gardenShop {
       key: "gsPumpkin",
       flavorText: "A seasonal giant with huge value.",
       price: 3000,
+      minStock: 1,
+      maxStock: 4,
       rarity: "Legendary",
       inStock: true,
-      stockLimit: 17,
+      stockLimit: 3,
       stockChance: 0.1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -234,10 +252,10 @@ export namespace gardenShop {
           flavorText: "A seasonal giant with huge value.",
           icon: "🎃",
           type: "gardenSeed",
-          sellPrice: 3000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 6000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 4,
+            baseValue: 3700,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
           },
         });
@@ -249,7 +267,9 @@ export namespace gardenShop {
       key: "gsApple",
       flavorText: "A classic fruit for every season.",
       price: 3250,
-      stockLimit: 5,
+      stockLimit: 2,
+      minStock: 1,
+      maxStock: 3,
       rarity: "Legendary",
       inStock: true,
       stockChance: 0.07,
@@ -260,11 +280,11 @@ export namespace gardenShop {
           flavorText: "A classic fruit for every season.",
           icon: "🍎",
           type: "gardenSeed",
-          sellPrice: 3250,
+          sellPrice: 1,
           cropData: {
-            baseValue: 3500,
+            baseValue: 248,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-            harvests: 4,
+            harvests: 16,
           },
         });
       },
@@ -275,10 +295,12 @@ export namespace gardenShop {
       key: "gsBamboo",
       flavorText: "Fast-growing and sturdy.",
       price: 4000,
-      stockLimit: 20,
+      stockLimit: 15,
       rarity: "Legendary",
       inStock: true,
       stockChance: 0.3,
+      minStock: 10,
+      maxStock: 20,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsBamboo",
@@ -286,9 +308,9 @@ export namespace gardenShop {
           flavorText: "Fast-growing and sturdy.",
           icon: "🎍",
           type: "gardenSeed",
-          sellPrice: 4000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 8000,
+            baseValue: 3610,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
           },
@@ -301,10 +323,12 @@ export namespace gardenShop {
       key: "gsCoconut",
       flavorText: "Tropical and rich in value.",
       price: 6000,
-      stockLimit: 30,
+      stockLimit: 2,
       rarity: "Mythical",
       inStock: true,
       stockChance: 0.05,
+      minStock: 1,
+      maxStock: 2,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsCoconut",
@@ -312,11 +336,11 @@ export namespace gardenShop {
           flavorText: "Tropical and rich in value.",
           icon: "🥥",
           type: "gardenSeed",
-          sellPrice: 6000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 3000,
+            baseValue: 361,
             growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-            harvests: 4,
+            harvests: 20,
           },
         });
       },
@@ -327,9 +351,11 @@ export namespace gardenShop {
       key: "gsCactus",
       flavorText: "Tough crop for extreme climates.",
       price: 15_000,
-      stockLimit: 20,
+      stockLimit: 3,
       rarity: "Mythical",
       inStock: true,
+      minStock: 1,
+      maxStock: 5,
       stockChance: 0.03,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -338,11 +364,11 @@ export namespace gardenShop {
           flavorText: "Tough crop for extreme climates.",
           icon: "🌵",
           type: "gardenSeed",
-          sellPrice: 5000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 5000,
+            baseValue: 3068,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-            harvests: 5,
+            harvests: 7,
           },
         });
       },
@@ -355,8 +381,10 @@ export namespace gardenShop {
       flavorText: "Exotic and magical fruit.",
       price: 50_000,
       rarity: "Mythical",
-      stockLimit: 7,
+      stockLimit: 2,
       inStock: true,
+      minStock: 1,
+      maxStock: 4,
       stockChance: 0.022,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -365,11 +393,11 @@ export namespace gardenShop {
           flavorText: "Exotic and magical fruit.",
           icon: "🐉",
           type: "gardenSeed",
-          sellPrice: 8000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 8000,
+            baseValue: 4287,
             growthTime: CROP_CONFIG.GROWTH_BASE * 5,
-            harvests: 10,
+            harvests: 17,
           },
         });
       },
@@ -382,8 +410,9 @@ export namespace gardenShop {
       price: 100_000,
       rarity: "Mythical",
       inStock: true,
-      stockLimit: 5,
-
+      stockLimit: 2,
+      minStock: 1,
+      maxStock: 3,
       stockChance: 0.013,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -392,11 +421,11 @@ export namespace gardenShop {
           flavorText: "Sweet tropical fruit with great flavor.",
           icon: "🥭",
           type: "gardenSeed",
-          sellPrice: 10_000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 10_000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
-            harvests: 20,
+            baseValue: 5_866,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+            harvests: 25,
           },
         });
       },
@@ -406,12 +435,14 @@ export namespace gardenShop {
       icon: "🍇",
       name: "Grape Seed",
       key: "gsGrape",
-      stockLimit: 9,
+      stockLimit: 1,
       flavorText: "Sweet clusters perfect for wine.",
       price: 850_000,
       rarity: "Divine",
       inStock: true,
       stockChance: 0.01,
+      minStock: 1,
+      maxStock: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsGrape",
@@ -419,11 +450,11 @@ export namespace gardenShop {
           flavorText: "Sweet clusters perfect for wine.",
           icon: "🍇",
           type: "gardenSeed",
-          sellPrice: 50_000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 50_000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-            harvests: 20,
+            baseValue: 7_085,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
+            harvests: 140,
           },
         });
       },
@@ -437,6 +468,8 @@ export namespace gardenShop {
       stockLimit: 12,
       rarity: "Divine",
       inStock: true,
+      minStock: 1,
+      maxStock: 25,
       stockChance: 0.09,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -445,11 +478,11 @@ export namespace gardenShop {
           flavorText: "Fungi with earthy flavor and value.",
           icon: "🍄",
           type: "gardenSeed",
-          sellPrice: 80_000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 80_000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
-            harvests: 3,
+            baseValue: 136_278,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
+            harvests: 1,
           },
         });
       },
@@ -464,6 +497,8 @@ export namespace gardenShop {
       rarity: "Divine",
       inStock: true,
       stockChance: 0.06,
+      minStock: 1,
+      maxStock: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsPepper",
@@ -471,11 +506,11 @@ export namespace gardenShop {
           flavorText: "Spicy crop that adds heat to dishes.",
           icon: "🌶️",
           type: "gardenSeed",
-          sellPrice: 700_000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 700_000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-            harvests: 2,
+            baseValue: 7_220,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
+            harvests: 200,
           },
         });
       },
@@ -486,10 +521,12 @@ export namespace gardenShop {
       key: "gsCacao",
       flavorText: "Bean for rich chocolate production.",
       price: 2_500_000,
-      stockLimit: 5,
+      stockLimit: 1,
       rarity: "Divine",
       inStock: true,
       stockChance: 0.01,
+      minStock: 1,
+      maxStock: 1,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsCacao",
@@ -497,11 +534,67 @@ export namespace gardenShop {
           flavorText: "Bean for rich chocolate production.",
           icon: "🍫",
           type: "gardenSeed",
-          sellPrice: 150_000,
+          sellPrice: 1,
           cropData: {
-            baseValue: 150_000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-            harvests: 25,
+            baseValue: 10_830,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 0.5,
+            harvests: 280,
+          },
+        });
+      },
+    },
+
+    {
+      icon: "🌱",
+      name: "Beanstalk Seed",
+      key: "gsBeanstalk",
+      flavorText: "Magical vine that reaches the skies.",
+      price: 10_000_000,
+      rarity: "Prismatic",
+      inStock: true,
+      stockLimit: 5,
+      stockChance: 0.03,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsBeanstalk",
+          name: "Beanstalk Seed",
+          flavorText: "Magical vine that reaches the skies.",
+          icon: "🌱",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 25_270,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 0.3,
+            harvests: 450,
+          },
+        });
+      },
+    },
+
+    {
+      icon: "🌺",
+      name: "Ember Lily",
+      key: "gsEmberLily",
+      flavorText: "A blazing bloom that thrives in heat and glows at dusk.",
+      price: 15_000_000,
+      rarity: "Prismatic",
+      inStock: true,
+      stockLimit: 1,
+      minStock: 1,
+      maxStock: 1,
+      stockChance: 0.02,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsEmberLily",
+          name: "Ember Lily",
+          flavorText: "A blazing bloom that thrives in heat and glows at dusk.",
+          icon: "🌺",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 50_000,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 0.2,
+            harvests: 400,
           },
         });
       },
@@ -609,33 +702,6 @@ export namespace gardenShop {
     //   },
     // },
 
-    {
-      icon: "🌱",
-      name: "Beanstalk Seed",
-      key: "gsBeanstalk",
-      flavorText: "Magical vine that reaches the skies.",
-      price: 10_000_000,
-      rarity: "Prismatic",
-      inStock: true,
-      stockLimit: 5,
-      stockChance: 0.03,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gsBeanstalk",
-          name: "Beanstalk Seed",
-          flavorText: "Magical vine that reaches the skies.",
-          icon: "🌱",
-          type: "gardenSeed",
-          sellPrice: 1_000_000,
-          cropData: {
-            baseValue: 2_000_000,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 5,
-            harvests: 20,
-          },
-        });
-      },
-    },
-
     // {
     //   icon: "🌙",
     //   name: "Moonflower Seed",
@@ -713,82 +779,81 @@ export namespace gardenShop {
     // },
   ];
   export let gnpShop = [
-    {
-      icon: "🐶",
-      name: "Dog",
-      key: "gpDog",
-      flavorText: "Caged pet. Uncage to dig up seeds!",
-      price: 100000,
-      rarity: "Common",
-      inStock: true,
-      stockLimit: 1,
-      stockChance: 0.8,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gpDog",
-          name: "Dog",
-          flavorText: "Caged pet. Use uncage to release!",
-          icon: "🐶",
-          type: "gardenPetCage",
-          sellPrice: 100000,
-          petData: {
-            name: "Dog",
-            collectionRate: 0.05,
-            seedTypes: ["gsCarrot", "gsStrawberry", "gsBlueberry", "gsTomato"],
-          },
-        });
-      },
-    },
-    {
-      icon: "💦",
-      inStock: true,
-      stockLimit: 1,
-      name: "Sprinkler",
-      key: "gtSprinkler",
-      flavorText:
-        "Boosts growth speed and Wet mutations. You only need one of these in your inventory to work.",
-      price: 200_000,
-      rarity: "Common",
-      stockChance: 0.7,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gtSprinkler",
-          name: "Sprinkler",
-          flavorText: "Boosts growth speed and Wet mutations.",
-          icon: "💦",
-          type: "gardenTool",
-          sellPrice: 20_000,
-          toolData: { growthMultiplier: 1.2, mutationChance: { Wet: 0.2 } },
-        });
-      },
-    },
-    {
-      stockLimit: 1,
-      icon: "🌿",
-      name: "Fertilizer",
-      key: "gtFertilizer",
-      flavorText:
-        "Increases Gold and Disco mutations. You only need one of these in your inventory to work.",
-      price: 500_000,
-      inStock: true,
-
-      rarity: "Uncommon",
-      stockChance: 0.5,
-      onPurchase({ moneySet }) {
-        moneySet.inventory.push({
-          key: "gtFertilizer",
-          name: "Fertilizer",
-          flavorText: "Increases Gold and Disco mutations.",
-          icon: "🌿",
-          type: "gardenTool",
-          sellPrice: 25_000,
-          toolData: {
-            growthMultiplier: 1,
-            mutationChance: { Gold: 0.1, Disco: 0.05 },
-          },
-        });
-      },
-    },
+    // {
+    //   icon: "🐶",
+    //   name: "Dog",
+    //   key: "gpDog",
+    //   flavorText: "Caged pet. Uncage to dig up seeds!",
+    //   price: 100000,
+    //   rarity: "Common",
+    //   inStock: true,
+    //   stockLimit: 1,
+    //   stockChance: 0.8,
+    //   onPurchase({ moneySet }) {
+    //     moneySet.inventory.push({
+    //       key: "gpDog",
+    //       name: "Dog",
+    //       flavorText: "Caged pet. Use uncage to release!",
+    //       icon: "🐶",
+    //       type: "gardenPetCage",
+    //       sellPrice: 100000,
+    //       petData: {
+    //         name: "Dog",
+    //         collectionRate: 0.05,
+    //         seedTypes: ["gsCarrot", "gsStrawberry", "gsBlueberry", "gsTomato"],
+    //       },
+    //     });
+    //   },
+    // },
+    // {
+    //   icon: "💦",
+    //   inStock: true,
+    //   stockLimit: 1,
+    //   name: "Sprinkler",
+    //   key: "gtSprinkler",
+    //   flavorText:
+    //     "Boosts growth speed and Wet mutations. You only need one of these in your inventory to work.",
+    //   price: 200_000,
+    //   rarity: "Common",
+    //   stockChance: 0.7,
+    //   onPurchase({ moneySet }) {
+    //     moneySet.inventory.push({
+    //       key: "gtSprinkler",
+    //       name: "Sprinkler",
+    //       flavorText: "Boosts growth speed and Wet mutations.",
+    //       icon: "💦",
+    //       type: "gardenTool",
+    //       sellPrice: 20_000,
+    //       toolData: { growthMultiplier: 1.2, mutationChance: { Wet: 0.2 } },
+    //     });
+    //   },
+    // },
+    // {
+    //   stockLimit: 1,
+    //   icon: "🌿",
+    //   name: "Fertilizer",
+    //   key: "gtFertilizer",
+    //   flavorText:
+    //     "Increases Gold and Disco mutations. You only need one of these in your inventory to work.",
+    //   price: 500_000,
+    //   inStock: true,
+    //   rarity: "Uncommon",
+    //   stockChance: 0.5,
+    //   onPurchase({ moneySet }) {
+    //     moneySet.inventory.push({
+    //       key: "gtFertilizer",
+    //       name: "Fertilizer",
+    //       flavorText: "Increases Gold and Disco mutations.",
+    //       icon: "🌿",
+    //       type: "gardenTool",
+    //       sellPrice: 25_000,
+    //       toolData: {
+    //         growthMultiplier: 1,
+    //         mutationChance: { Gold: 0.1, Disco: 0.05 },
+    //       },
+    //     });
+    //   },
+    // },
     // {
     //   icon: "⭐",
     //   name: "Favorite Tool",

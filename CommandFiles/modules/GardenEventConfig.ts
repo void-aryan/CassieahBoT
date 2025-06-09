@@ -7,6 +7,22 @@ export const EVENT_CONFIG = {
   EVENT_CYCLE: 4 * 60 * 60 * 1000,
   EVENTS: [
     {
+      name: "In Construction",
+      icon: "🏗️",
+      shopName: undefined,
+      shopName2: undefined,
+      shopAlias: [],
+      isNoEvent: true,
+      effect: {
+        mutationChance: 0,
+        growthMultiplier: 1,
+        mutationType: undefined,
+      },
+      shopItems: [],
+    },
+  ],
+  EVENTS_CONSTRUCTION: [
+    {
       name: "No Event",
       icon: "🌱",
       isNoEvent: true,
