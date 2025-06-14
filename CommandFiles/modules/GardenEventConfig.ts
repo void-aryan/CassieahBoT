@@ -144,9 +144,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 3_000,
+                baseValue: 300,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
-                harvests: 5,
+                harvests: 50,
+                yields: 2,
               },
             });
           },
@@ -172,9 +173,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 6_500,
+                baseValue: 650,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
-                harvests: 5,
+                harvests: 50,
+                yields: 2,
               },
             });
           },
@@ -200,9 +202,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 20_000,
+                baseValue: 2_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-                harvests: 6,
+                harvests: 60,
+                yields: 1,
               },
             });
           },
@@ -228,9 +231,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 80_000,
+                baseValue: 8_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 5,
-                harvests: 8,
+                harvests: 80,
+                yields: 3,
               },
             });
           },
@@ -256,9 +260,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 500_000,
+                baseValue: 50_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 10,
-                harvests: 10,
+                harvests: 100,
+                yields: 7,
               },
             });
           },
@@ -284,9 +289,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 1_000_000,
+                baseValue: 100_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 15,
-                harvests: 10,
+                harvests: 100,
+                yields: 13,
               },
             });
           },
@@ -327,9 +333,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 2000,
+                baseValue: 200,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-                harvests: 3,
+                harvests: 30,
+                yields: 2,
               },
             });
           },
@@ -353,9 +360,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 2_000,
+                baseValue: 200,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-                harvests: 4,
+                harvests: 40,
+                yields: 7,
               },
             });
           },
@@ -380,9 +388,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 5_000,
+                baseValue: 500,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 5,
+                harvests: 50,
+                yields: 9,
               },
             });
           },
@@ -407,9 +416,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 10_000,
+                baseValue: 1_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 5,
-                harvests: 8,
+                harvests: 80,
+                yields: 9,
               },
             });
           },
@@ -434,9 +444,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 20_000,
+                baseValue: 2_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 6,
-                harvests: 8,
+                harvests: 80,
+                yields: 9,
               },
             });
           },
@@ -461,9 +472,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 50_000,
+                baseValue: 5_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 7,
-                harvests: 8,
+                harvests: 80,
+                yields: 12,
               },
             });
           },
@@ -488,9 +500,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 700_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 8,
+                baseValue: 500_100,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 12,
                 harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -515,9 +528,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 100_000,
+                baseValue: 10_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 9,
-                harvests: 18,
+                harvests: 180,
+                yields: 15,
               },
             });
           },
@@ -542,9 +556,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 500_000,
+                baseValue: 50_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 10,
-                harvests: 9,
+                harvests: 90,
+                yields: 9,
               },
             });
           },
@@ -569,9 +584,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 500_000,
+                baseValue: 50_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 11,
-                harvests: 25,
+                harvests: 250,
+                yields: 1,
               },
             });
           },
@@ -596,9 +612,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 1_000_000,
+                baseValue: 100_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 12,
-                harvests: 30,
+                harvests: 300,
+                yields: 20,
               },
             });
           },
@@ -623,9 +640,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 4_000_000,
+                baseValue: 400_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 15,
-                harvests: 40,
+                harvests: 400,
+                yields: 25,
               },
             });
           },
@@ -673,9 +691,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 4_000,
+                baseValue: 400,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
-                harvests: 2,
+                harvests: 20,
+                yields: 1,
               },
             });
           },
@@ -699,9 +718,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 12_000,
+                baseValue: 1_200,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
-                harvests: 2,
+                harvests: 20,
+                yields: 1,
               },
             });
           },
@@ -725,9 +745,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 40_000,
+                baseValue: 4_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
-                harvests: 2,
+                harvests: 20,
+                yields: 1,
               },
             });
           },
@@ -751,9 +772,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 150_000,
+                baseValue: 15_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8,
                 harvests: 2,
+                yields: 1,
               },
             });
           },
@@ -777,9 +799,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 800_000,
+                baseValue: 80_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 10,
-                harvests: 2,
+                harvests: 20,
+                yields: 1,
               },
             });
           },
@@ -803,9 +826,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 4_000_000,
+                baseValue: 400_000,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 12,
-                harvests: 2,
+                harvests: 20,
+                yields: 1,
               },
             });
           },
@@ -983,9 +1007,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 16_500,
+                baseValue: 9_928,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 0.5,
                 harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -1010,9 +1035,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 70_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+                baseValue: 45_125,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 0.4,
                 harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -1036,9 +1062,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 145_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
+                baseValue: 72_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 0.3,
                 harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -1063,9 +1090,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 60_000,
+                baseValue: 2_256,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-                harvests: 10,
+                harvests: 300,
+                yields: 5,
               },
             });
           },
@@ -1090,9 +1118,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 1_200_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 11,
-                harvests: 12,
+                baseValue: 60_250,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 0.15,
+                harvests: 400,
+                yields: 24,
               },
             });
           },
@@ -1180,9 +1209,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 7000,
+                baseValue: 1_805,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-                harvests: 2,
+                harvests: 3,
+                yields: 1,
               },
             });
           },
@@ -1192,7 +1222,7 @@ export const EVENT_CONFIG = {
           name: "Durian Seed",
           key: "gsDurian",
           flavorText: "A pungent fruit from the Angry Plant Event.",
-          price: 4000,
+          price: 3000,
           rarity: "Legendary",
           stockLimit: 20,
 
@@ -1207,9 +1237,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 8000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-                harvests: 2,
+                baseValue: 4_513,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 9.5,
+                harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -1234,9 +1265,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 10000,
+                baseValue: 6_769,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 2,
+                harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -1261,9 +1293,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 20_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-                harvests: 5,
+                baseValue: 15_343,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 22,
+                harvests: 10,
+                yields: 2,
               },
             });
           },
@@ -1288,9 +1321,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 17000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
+                baseValue: 17_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 20.5,
                 harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -1377,9 +1411,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 8500,
+                baseValue: 8_574,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 8.5,
                 harvests: 20,
+                yields: 1,
               },
             });
           },
@@ -1389,7 +1424,7 @@ export const EVENT_CONFIG = {
           name: "Mint Seed",
           key: "gsMint",
           flavorText: "Refreshing herb with culinary uses.",
-          price: 2200,
+          price: 4200,
           stockLimit: 20,
 
           rarity: "Rare",
@@ -1404,9 +1439,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 4400,
+                baseValue: 5415,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-                harvests: 2,
+                harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -1431,9 +1467,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 6000,
+                baseValue: 271,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-                harvests: 2,
+                harvests: 22,
+                yields: 1,
               },
             });
           },
@@ -1458,9 +1495,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 14000,
+                baseValue: 13_538,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-                harvests: 15,
+                harvests: 20,
+                yields: 2,
               },
             });
           },
@@ -1485,9 +1523,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 18_000,
+                baseValue: 18_050,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 9.5,
                 harvests: 20,
+                yields: 5,
               },
             });
           },
@@ -1512,9 +1551,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 45_125,
+                baseValue: 50_138,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 4,
                 harvests: 30,
+                yields: 5,
               },
             });
           },
@@ -1539,9 +1579,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 10_000_000,
+                baseValue: 9_025,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 7.7,
-                harvests: 2,
+                harvests: 3_062,
+                yields: 90,
               },
             });
           },
@@ -1566,9 +1607,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 100_000_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 30.5,
-                harvests: 12,
+                baseValue: 45_125,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 7.5,
+                harvests: 45_160,
+                yields: 600,
               },
             });
           },
@@ -1580,7 +1622,7 @@ export const EVENT_CONFIG = {
           stockLimit: 20,
 
           flavorText: "A mysterious crop from the Lunar Glow Event.",
-          price: 4500,
+          price: 3000,
           rarity: "Legendary",
           stockChance: 0.25,
           inStock: true,
@@ -1593,9 +1635,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 9000,
+                baseValue: 3159,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
-                harvests: 2,
+                harvests: 1,
+                yields: 1,
               },
             });
           },
@@ -2053,9 +2096,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 150_000,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 7,
-                harvests: 2,
+                baseValue: 5_415,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+                harvests: 60,
+                yields: 1,
               },
             });
           },
@@ -2080,9 +2124,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 10400,
-                growthTime: CROP_CONFIG.GROWTH_BASE * 7,
-                harvests: 30,
+                baseValue: 16_245,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3,
+                harvests: 60,
+                yields: 2,
               },
             });
           },
@@ -2133,9 +2178,10 @@ export const EVENT_CONFIG = {
               type: "gardenSeed",
               sellPrice: 1,
               cropData: {
-                baseValue: 125_000,
+                baseValue: 1_250,
                 growthTime: CROP_CONFIG.GROWTH_BASE * 9,
-                harvests: 3,
+                harvests: 300,
+                yields: 10,
               },
             });
           },
@@ -2152,7 +2198,7 @@ export const EVENT_CONFIG = {
       },
       shopItems: [],
     },
-  ] as any[],
+  ] as GardenEventItem[],
 };
 
 EVENT_CONFIG.WEATHERS = insertAfterEvenIndices(EVENT_CONFIG.WEATHERS, {
