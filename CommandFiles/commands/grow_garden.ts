@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.6",
+  version: "2.0.7",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1520,7 +1520,7 @@ export async function entry(ctx: CommandContext) {
           harvested.push({ plot: { ...plot }, value });
           plot.harvestsLeft -= value.yields;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
-          if (forgivingRandom() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
+          if (Math.random() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
             const shopItem = [
               ...gardenShop.itemData,
               ...gardenShop.eventItems,
@@ -1691,7 +1691,11 @@ export async function entry(ctx: CommandContext) {
               return b.plantedAt - a.plantedAt;
             }
           })
-          .slice(start, end);
+          .slice(start, end)
+          .map((i, j) => ({
+            plot: i,
+            num: start + j + 1,
+          }));
         let result = `🌱 **${name}'s Garden Plots (${
           plots.getAll().length
         }/${plotLimit}, Page ${page})**:\n\n`;
@@ -1711,7 +1715,7 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
-        for (let [index, plot] of sortedPlots.entries()) {
+        for (let [index, { num, plot }] of sortedPlots.entries()) {
           plot = await autoUpdateCropData(
             plot,
             new Inventory<GardenTool>(
@@ -1728,16 +1732,16 @@ export async function entry(ctx: CommandContext) {
           const cropValue = calc.final;
           const earns = Math.floor(cropValue - price);
           result +=
-            `${start + index + 1}. ${formatMutationStr(plot)} (x${
-              calc.yields
-            })${plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""}\n` +
+            `${num}. ${formatMutationStr(plot)} (x${calc.yields})${
+              plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""
+            }\n` +
             `${UNIRedux.charm} Harvests Left: ${plot.harvestsLeft}\n` +
             `${UNIRedux.charm} Time Left: ${
               formatTimeSentence(timeLeft) ||
               (!isCropReady(plot) ? "***BUGGED***!" : "***READY***!")
             }\n` +
             `${UNIRedux.charm} Value Each: ${formatCash(cropValue, true)}` +
-            `${UNIRedux.charm} Total: ${formatCash(calc.allYield, true)}${
+            `\n${UNIRedux.charm} Total: ${formatCash(calc.allYield, true)}${
               isCropOvergrown(plot)
                 ? `\n${UNIRedux.charm} Overgrown Since: ${formatTimeSentence(
                     getOvergrownElapsed(plot)
