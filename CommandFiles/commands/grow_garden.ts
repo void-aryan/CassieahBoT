@@ -15,16 +15,16 @@ import { gardenShop } from "@cass-modules/GardenShop";
 import { CROP_CONFIG, fetchSeedStock } from "@cass-modules/GardenConfig";
 import { EVENT_CONFIG } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
-import { pickRandomWithProb, randomBiased } from "@cass-modules/unitypes";
+import { randomBiased } from "@cass-modules/unitypes";
 import { Datum } from "@cass-modules/Datum";
 import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
-import { evaluateItemBalance, ShopItem } from "@cass-modules/GardenBalancer";
+import { evaluateItemBalance } from "@cass-modules/GardenBalancer";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.1",
+  version: "2.0.2",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -154,7 +154,7 @@ function calculateCropValue(crop: GardenPlot) {
 
   const noExtra = Math.floor(final - crop.baseValue * combinedMultiplier);
 
-  const allYield = final * yields;
+  const allYield = Math.floor(final * yields);
 
   return {
     final: Math.max(final, 0) || 0,
@@ -631,6 +631,7 @@ async function checkAchievements(
 }
 
 let officialUpdatedAt: number = null;
+const USE_TRUE_STOCK = false;
 
 async function refreshShopStock(force = false) {
   const currentTime = Date.now();
@@ -640,40 +641,35 @@ async function refreshShopStock(force = false) {
     return false;
   }
   console.log("Restocking...");
-  const stocks = await fetchSeedStock();
+  let stocks: Awaited<ReturnType<typeof fetchSeedStock>>;
+  if (USE_TRUE_STOCK) {
+    stocks = await fetchSeedStock();
 
-  if (typeof stocks.updatedAt === "number") {
-    if (officialUpdatedAt === stocks.updatedAt) {
-      return false;
-    }
-    officialUpdatedAt = stocks.updatedAt;
+    if (typeof stocks.updatedAt === "number") {
+      if (officialUpdatedAt === stocks.updatedAt) {
+        return false;
+      }
+      officialUpdatedAt = stocks.updatedAt;
 
-    const timePassed = currentTime - officialUpdatedAt;
-    const timeLeft =
-      (Math.abs(timePassed) % gardenShop.stockRefreshInterval) + 1000;
-    gardenShop.lastRestock = currentTime - Math.abs(timeLeft);
-    console.log({
-      timeLeft,
-      timePassed,
-      newRestock: currentTime - timeLeft,
-    });
-    if (getTimeUntilRestock() <= 0) {
+      const timePassed = currentTime - officialUpdatedAt;
+      const timeLeft =
+        (Math.abs(timePassed) % gardenShop.stockRefreshInterval) + 1000;
+      gardenShop.lastRestock = currentTime - Math.abs(timeLeft);
+      console.log({
+        timeLeft,
+        timePassed,
+        newRestock: currentTime - timeLeft,
+      });
+      if (getTimeUntilRestock() <= 0) {
+        gardenShop.lastRestock = currentTime;
+      }
+    } else {
       gardenShop.lastRestock = currentTime;
     }
   } else {
     gardenShop.lastRestock = currentTime;
   }
-
   const event = await getCurrentWeather();
-  // gardenShop.eventItems = gardenShop.eventItems.filter((item) => {
-  //   if (item.isEventItem) {
-  //     return (
-  //       event.shopItems &&
-  //       event.shopItems.some((shopItem) => shopItem.key === item.key)
-  //     );
-  //   }
-  //   return true;
-  // });
   gardenShop.eventItems = [];
 
   if (event.shopItems && event.shopItems.length > 0) {
@@ -684,9 +680,17 @@ async function refreshShopStock(force = false) {
     });
   }
 
+  const getStock = (item: gardenShop.GardenShopItem) => {
+    return typeof item.minStock === "number" &&
+      typeof item.maxStock === "number"
+      ? Math.ceil(
+          randomBiased(item.minStock, item.maxStock, CROP_CONFIG.STOCK_MIN_BIAS)
+        )
+      : Infinity;
+  };
   for (const item of gardenShop.itemData) {
     let fetched =
-      stocks && Array.isArray(stocks.seeds)
+      stocks && USE_TRUE_STOCK && Array.isArray(stocks.seeds)
         ? stocks.seeds.find(
             (i) =>
               item.name.includes(i) ||
@@ -694,7 +698,10 @@ async function refreshShopStock(force = false) {
               item.name.split(" ")[0] === String(i).split(" ")[0]
           )
         : null;
-    item.inStock = !!fetched || (forgivingRandom() < item.stockChance, false);
+    const localChance = USE_TRUE_STOCK
+      ? false
+      : forgivingRandom() < item.stockChance;
+    item.inStock = !!fetched || localChance;
     item.isOfficialStock = !!fetched;
     const reg = /\*\*x(\d+)\*\*/;
     const stockOf = Number(fetched?.match(reg)?.[1]);
@@ -703,16 +710,16 @@ async function refreshShopStock(force = false) {
     } else {
       delete item.stockLimitOfficial;
     }
+    item.stockLimit = getStock(item);
   }
 
-  // gardenShop.itemData.forEach((item) => {
-  //   item.inStock = forgivingRandom() < item.stockChance;
-  // });
   gardenShop.eventItems.forEach((item) => {
     item.inStock = forgivingRandom() < item.stockChance;
+    item.stockLimit = getStock(item);
   });
   gardenShop.gnpShop.forEach((item) => {
     item.inStock = forgivingRandom() < item.stockChance;
+    item.stockLimit = getStock(item);
   });
 
   return true;
@@ -759,10 +766,11 @@ function formatShopItems(
             }`;
           }
         }
+        const stockLimit = item.stockLimitOfficial ?? item.stockLimit;
         return {
           ...item,
           cannotBuy: noStock,
-          stockLimit: item.stockLimitOfficial ?? item.stockLimit,
+          stockLimit,
           flavorText: noStock ? `` : flavor,
         };
       })
@@ -1414,7 +1422,8 @@ export async function entry(ctx: CommandContext) {
         );
 
         const sortedPlots = [...plots].sort(
-          (a, b) => calculateCropValue(b).final - calculateCropValue(a).final
+          (a, b) =>
+            calculateCropValue(b).allYield - calculateCropValue(a).allYield
         );
 
         const type = spectralArgs[0];
@@ -1486,6 +1495,9 @@ export async function entry(ctx: CommandContext) {
               (gardenStats.mutationsFound || 0) + plot.mutation.length;
           }
           const value = calculateCropValue(plot);
+          if (value.yields <= 0) {
+            continue;
+          }
           moneyEarned += value.allYield || 0;
           gardenEarns += value.allYield - (plot.price || plot.baseValue || 0);
 
@@ -1566,9 +1578,9 @@ export async function entry(ctx: CommandContext) {
                     )} ] `
                   : ""
               }${plot.icon} ${plot.name} (${plot.kiloGrams}kg) - ${formatCash(
-                value.final,
+                value.allYield,
                 true
-              )} each.`
+              )} total.`
           );
         const addedEarns = gardenEarns - origEarns;
 
@@ -1643,8 +1655,8 @@ export async function entry(ctx: CommandContext) {
             if (type === "most-time") {
               return timeB - timeA;
             }
-            const priceA = calculateCropValue(a).final;
-            const priceB = calculateCropValue(b).final;
+            const priceA = calculateCropValue(a).allYield;
+            const priceB = calculateCropValue(b).allYield;
             if (type === "highest") {
               return priceB - priceA;
             }
@@ -1696,18 +1708,20 @@ export async function entry(ctx: CommandContext) {
           const timeLeft = cropTimeLeft(plot);
           const price =
             Math.min(plot.price || 0, plot.baseValue) || plot.baseValue || 0;
-          const cropValue = calculateCropValue(plot).final;
+          const calc = calculateCropValue(plot);
+          const cropValue = calc.final;
           const earns = Math.floor(cropValue - price);
           result +=
             `${start + index + 1}. ${formatMutationStr(plot)} (x${
-              plot.yields
+              calc.yields
             })${plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""}\n` +
             `${UNIRedux.charm} Harvests Left: ${plot.harvestsLeft}\n` +
             `${UNIRedux.charm} Time Left: ${
               formatTimeSentence(timeLeft) ||
               (!isCropReady(plot) ? "***BUGGED***!" : "***READY***!")
             }\n` +
-            `${UNIRedux.charm} Value Each: ${formatCash(cropValue, true)}${
+            `${UNIRedux.charm} Value Each: ${formatCash(cropValue, true)}` +
+            `${UNIRedux.charm} Total: ${formatCash(calc.allYield, true)}${
               isCropOvergrown(plot)
                 ? `\n${UNIRedux.charm} Overgrown Since: ${formatTimeSentence(
                     getOvergrownElapsed(plot)
@@ -2484,7 +2498,8 @@ export async function entry(ctx: CommandContext) {
         }
 
         const sortedPlots = stealablePlots.toSorted(
-          (a, b) => calculateCropValue(b).final - calculateCropValue(a).final
+          (a, b) =>
+            calculateCropValue(b).allYield - calculateCropValue(a).allYield
         );
         const stolenPlot = sortedPlots[0];
         const stealSuccess = Math.random() < 0.3;
@@ -2546,8 +2561,8 @@ export async function entry(ctx: CommandContext) {
             true
           )}! It was added to your plots!\n\n${
             UNISpectra.charm
-          } Value: ${formatCash(
-            calculateCropValue(stolenPlot).final,
+          } Total Value: ${formatCash(
+            calculateCropValue(stolenPlot).allYield,
             true
           )}\n\n` +
             `**Next Steps**:\n` +

@@ -650,7 +650,7 @@ export namespace gardenShop {
       },
     },
   ];
-  export let gnpShop = [
+  export let gnpShop: GardenShopItem[] = [
     // {
     //   icon: "🐶",
     //   name: "Dog",
@@ -767,5 +767,5 @@ export namespace gardenShop {
 }
 
 export namespace gardenShop {
-  export let eventItems: (typeof gardenShop.itemData)[number][] = [];
+  export let eventItems: GardenShopItem[] = [];
 }

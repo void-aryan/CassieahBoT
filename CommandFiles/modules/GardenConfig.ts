@@ -54,6 +54,7 @@ export const CROP_CONFIG = {
   },
   NOTIF_TIMEOUT: 10 as const,
   MAX_MUTATION_ATT: 4 as const,
+  STOCK_MIN_BIAS: 10 / 15,
 };
 
 export async function fetchSeedStock() {
