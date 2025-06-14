@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "1.7.3",
+  version: "2.0.1",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -68,7 +68,12 @@ export const ITEMS_PER_PAGE = 6;
 
 export type GardenSeed = InventoryItem & {
   type: "gardenSeed";
-  cropData: { baseValue: number; growthTime: number; harvests: number };
+  cropData: {
+    baseValue: number;
+    growthTime: number;
+    harvests: number;
+    yields: number;
+  };
   isFavorite?: boolean;
 };
 
@@ -93,6 +98,7 @@ export type GardenPlot = InventoryItem & {
   seedKey: string;
   name: string;
   icon: string;
+  yields: number;
   plantedAt: number;
   growthTime: number;
   harvestsLeft: number;
@@ -138,6 +144,8 @@ function calculateCropValue(crop: GardenPlot) {
     1
   );
 
+  const yields = getPossibleYields(crop);
+
   const combinedMultiplier = totalMutationBonus;
 
   const final = Math.floor(
@@ -146,7 +154,15 @@ function calculateCropValue(crop: GardenPlot) {
 
   const noExtra = Math.floor(final - crop.baseValue * combinedMultiplier);
 
-  return { final: Math.max(final, 0) || 0, noExtra: Math.max(0, noExtra) || 0 };
+  const allYield = final * yields;
+
+  return {
+    final: Math.max(final, 0) || 0,
+    noExtra: Math.max(0, noExtra) || 0,
+    yields,
+    allYield,
+    remainingHarvests: (crop.harvestsLeft || 0) - yields,
+  };
 }
 
 function isCropReady(crop: GardenPlot) {
@@ -171,6 +187,22 @@ function calculateCropKG(crop: GardenPlot): number {
     getCropFullnessPercent(crop) + getOvergrownBonusPercent(crop) / 2;
   const rawKG = crop.maxKiloGrams * percent;
   return Number(rawKG.toFixed(2));
+}
+
+function getPossibleYields(crop: GardenPlot): number {
+  const timeLeft = cropTimeLeft(crop, true);
+  const growthTimePerYield = crop.growthTime;
+
+  if (growthTimePerYield <= 0) return 0;
+
+  const timeRemaining = -timeLeft;
+  const yieldCountFromTime = Math.floor(timeRemaining / growthTimePerYield);
+
+  const maxPossibleYields = Math.min(crop.yields || 1, crop.harvestsLeft || 1);
+
+  const possibleYields = Math.min(yieldCountFromTime, maxPossibleYields);
+
+  return Math.max(0, possibleYields);
 }
 
 function getOvergrownBonusPercent(crop: GardenPlot): number {
@@ -202,6 +234,7 @@ async function autoUpdateCropData(
   pets: Inventory<GardenPetActive>
 ) {
   if (!crop) return null;
+  crop.yields ??= 1;
   crop.mutationAttempts ??= 0;
   crop.maxKiloGrams ??= randomBiased(
     CROP_CONFIG.MIN_KG,
@@ -241,7 +274,7 @@ async function autoUpdateCropData(
     }
   }
 
-  const event = await getCurrentEvent();
+  const event = await getCurrentWeather();
 
   const baseGrowthMultiplier = event.effect?.growthMultiplier || 1;
 
@@ -314,7 +347,7 @@ function getOvergrownElapsed(crop: GardenPlot): number {
   return Math.max(0, elapsed - overgrownThreshold);
 }
 
-async function getTimeForNextEvent() {
+async function getTimeForNextWeather() {
   const { globalDB } = Cassidy.databases;
 
   const { skipStamp = 0 } = await globalDB.getCache("skipStamp");
@@ -325,7 +358,7 @@ async function getTimeForNextEvent() {
   return timeUntilNextEvent;
 }
 
-async function getCurrentEvent() {
+async function getCurrentWeather() {
   const { globalDB } = Cassidy.databases;
   const { skipStamp = 0 } = await globalDB.getCache("skipStamp");
   const adjustedNow = Date.now() + skipStamp;
@@ -336,7 +369,7 @@ async function getCurrentEvent() {
 
   return event;
 }
-async function getNextEvent(skips: number = 1) {
+async function getNextWeather(skips: number = 1) {
   const { globalDB } = Cassidy.databases;
   const { skipStamp = 0 } = await globalDB.getCache("skipStamp");
 
@@ -356,7 +389,7 @@ function forgivingRandom(bias?: number) {
   return Math.random() ** (bias || 1.2);
 }
 
-async function skipEvent(
+async function skipWeather(
   skipped: number,
   targetTimeLeft = EVENT_CONFIG.EVENT_CYCLE
 ) {
@@ -393,7 +426,7 @@ async function applyMutation(
     crop.mutation = [];
   }
 
-  const event = await getCurrentEvent();
+  const event = await getCurrentWeather();
 
   const mutationBoosts = new Map<string, number>();
 
@@ -631,7 +664,7 @@ async function refreshShopStock(force = false) {
     gardenShop.lastRestock = currentTime;
   }
 
-  const event = await getCurrentEvent();
+  const event = await getCurrentWeather();
   // gardenShop.eventItems = gardenShop.eventItems.filter((item) => {
   //   if (item.isEventItem) {
   //     return (
@@ -695,7 +728,7 @@ function getTimeUntilRestock() {
 
 function formatShopItems(
   items = gardenShop,
-  currentEvent: Awaited<ReturnType<typeof getCurrentEvent>>,
+  currentEvent: Awaited<ReturnType<typeof getCurrentWeather>>,
   isEvent = false
 ): typeof gardenShop {
   const timeText = `🕒 **Next Restock**:\n${formatTimeSentence(
@@ -798,6 +831,9 @@ function correctPlot(plot: GardenPlot) {
             (foundSeed.cropData.harvests || 1)
         );
       }
+
+      plot.yields = foundSeed.cropData.yields;
+
       plot.originalGrowthTime = foundSeed.cropData.growthTime;
     }
   }
@@ -1005,8 +1041,8 @@ export async function entry(ctx: CommandContext) {
   gardenEarns = gardenEarns || 0;
   gardenEarns = Math.max(gardenEarns, 0);
 
-  const currEvent = await getCurrentEvent();
-  let hasEvent = !currEvent.isNoEvent;
+  const currWeather = await getCurrentWeather();
+  let hasEvent = !currWeather.isNoEvent;
   const plotSorts = [
     "latest",
     "lowest",
@@ -1020,15 +1056,15 @@ export async function entry(ctx: CommandContext) {
   const style: CommandStyle = {
     ...command.style,
     title: {
-      content: `${currEvent.icon} ${UNISpectra.charm} **G🍓rden**`,
+      content: `${currWeather.icon} ${UNISpectra.charm} **G🍓rden**`,
       text_font: "fancy",
       line_bottom: "default",
     },
     footer: {
       content: hasEvent
-        ? `‼️ Event: **${currEvent.name}** ${
-            (currEvent.shopItems ?? []).length > 0
-              ? `(+${(currEvent.shopItems ?? []).length} Shop Items!)`
+        ? `‼️ Event: **${currWeather.name}** ${
+            (currWeather.shopItems ?? []).length > 0
+              ? `(+${(currWeather.shopItems ?? []).length} Shop Items!)`
               : ""
           }`
         : "Rewards multiply with success.",
@@ -1054,7 +1090,7 @@ export async function entry(ctx: CommandContext) {
       icon: "🛒",
       async handler() {
         const shop = new UTShop({
-          ...formatShopItems(gardenShop, currEvent),
+          ...formatShopItems(gardenShop, currWeather),
           style,
         });
         if (isRef) {
@@ -1076,7 +1112,7 @@ export async function entry(ctx: CommandContext) {
         const shop = new UTShop({
           ...formatShopItems(
             { ...gardenShop, itemData: gardenShop.gnpShop },
-            currEvent
+            currWeather
           ),
           style,
         });
@@ -1090,13 +1126,13 @@ export async function entry(ctx: CommandContext) {
         await shop.onPlay({ ...ctx, args: [] });
       },
     },
-    ...(((currEvent.shopItems ?? []).length > 0
+    ...(((currWeather.shopItems ?? []).length > 0
       ? [
           {
-            key: currEvent?.shopName ?? "eventshop",
-            description: `Shop for ${currEvent.name}.`,
-            aliases: [...(currEvent.shopAlias ?? []), "-esh", "eshop"],
-            icon: `${currEvent.icon ?? "🛒"}`,
+            key: currWeather?.shopName ?? "eventshop",
+            description: `Shop for ${currWeather.name}.`,
+            aliases: [...(currWeather.shopAlias ?? []), "-esh", "eshop"],
+            icon: `${currWeather.icon ?? "🛒"}`,
             async handler() {
               const shop = new UTShop({
                 ...formatShopItems(
@@ -1104,7 +1140,7 @@ export async function entry(ctx: CommandContext) {
                     ...gardenShop,
                     itemData: gardenShop.eventItems,
                   },
-                  currEvent,
+                  currWeather,
                   true
                 ),
                 style,
@@ -1222,14 +1258,27 @@ export async function entry(ctx: CommandContext) {
           )
             break;
           inventory.deleteOne(seed.key);
+          const constructions = EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
+            (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
+          ).flat();
+          if (constructions.some((i) => i.key === seed.key)) {
+            return output.reply(
+              `🚧 This seed is currently in construction. You **cannot** use it right now.\n\n` +
+                `**Next Steps**:\n` +
+                `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
+                  isHypen ? "-" : " "
+                }list\n` +
+                `${UNISpectra.arrowFromT} Buy seeds: ${prefix}${commandName}${
+                  isHypen ? "-" : " "
+                }shop`
+            );
+          }
           const allItems = [
             ...gardenShop.itemData,
             ...EVENT_CONFIG.EVENTS.map(
               (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
             ).flat(),
-            ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
-              (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-            ).flat(),
+            ...constructions,
           ];
           const priceInt =
             allItems.find((i) => seed.key === i?.key)?.price ??
@@ -1250,6 +1299,7 @@ export async function entry(ctx: CommandContext) {
             baseValue: seed.cropData.baseValue,
             mutation: [],
             type: "activePlot",
+            yields: seed.cropData.yields,
             isFavorite: false,
             price,
             lastMutation: null,
@@ -1354,7 +1404,7 @@ export async function entry(ctx: CommandContext) {
         let moneyEarned = 0;
         const harvested: {
           plot: GardenPlot;
-          value: { final: number; noExtra: number };
+          value: ReturnType<typeof calculateCropValue>;
         }[] = [];
         const seedsGained: string[] = [];
         const tools = new Inventory<GardenTool>(
@@ -1436,11 +1486,11 @@ export async function entry(ctx: CommandContext) {
               (gardenStats.mutationsFound || 0) + plot.mutation.length;
           }
           const value = calculateCropValue(plot);
-          moneyEarned += value.final || 0;
-          gardenEarns += value.final - (plot.price || plot.baseValue || 0);
+          moneyEarned += value.allYield || 0;
+          gardenEarns += value.allYield - (plot.price || plot.baseValue || 0);
 
           harvested.push({ plot: { ...plot }, value });
-          plot.harvestsLeft -= 1;
+          plot.harvestsLeft -= value.yields;
           gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
           if (forgivingRandom() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
             const shopItem = [
@@ -1448,7 +1498,7 @@ export async function entry(ctx: CommandContext) {
               ...gardenShop.eventItems,
             ].find((item) => item.key === plot.seedKey);
             if (shopItem && inventory.size() < global.Cassidy.invLimit) {
-              const cache = inventory.getAll();
+              const cache = inventory.getAll() as GardenItem[];
               shopItem.onPurchase({ ...ctx, moneySet: { inventory: cache } });
               inventory = new Inventory(cache);
               seedsGained.push(`${plot.icon} ${plot.name} (Seed)`);
@@ -1502,7 +1552,7 @@ export async function entry(ctx: CommandContext) {
           .sort((a, b) => b.value.final - a.value.final)
           .map(
             ({ plot, value }) =>
-              `${
+              `(x${value.yields}) ${
                 (plot.mutation ?? []).length > 0
                   ? `[ ${plot.mutation
                       .map(
@@ -1518,7 +1568,7 @@ export async function entry(ctx: CommandContext) {
               }${plot.icon} ${plot.name} (${plot.kiloGrams}kg) - ${formatCash(
                 value.final,
                 true
-              )}`
+              )} each.`
           );
         const addedEarns = gardenEarns - origEarns;
 
@@ -1649,15 +1699,15 @@ export async function entry(ctx: CommandContext) {
           const cropValue = calculateCropValue(plot).final;
           const earns = Math.floor(cropValue - price);
           result +=
-            `${start + index + 1}. ${formatMutationStr(plot)}${
-              plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""
-            }\n` +
+            `${start + index + 1}. ${formatMutationStr(plot)} (x${
+              plot.yields
+            })${plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""}\n` +
             `${UNIRedux.charm} Harvests Left: ${plot.harvestsLeft}\n` +
             `${UNIRedux.charm} Time Left: ${
               formatTimeSentence(timeLeft) ||
               (!isCropReady(plot) ? "***BUGGED***!" : "***READY***!")
             }\n` +
-            `${UNIRedux.charm} Value: ${formatCash(cropValue, true)}${
+            `${UNIRedux.charm} Value Each: ${formatCash(cropValue, true)}${
               isCropOvergrown(plot)
                 ? `\n${UNIRedux.charm} Overgrown Since: ${formatTimeSentence(
                     getOvergrownElapsed(plot)
@@ -1665,7 +1715,7 @@ export async function entry(ctx: CommandContext) {
                 : ""
             }${
               isCropReady(plot)
-                ? `\n${UNIRedux.charm} Earns: ${formatCash(earns)} ${
+                ? `\n${UNIRedux.charm} Earns Each: ${formatCash(earns)} ${
                     earns <= price
                       ? "😭 ***LUGI***"
                       : earns > plot.baseValue * 10
@@ -3107,16 +3157,16 @@ export async function entry(ctx: CommandContext) {
       aliases: ["-e"],
       icon: "🎈",
       async handler() {
-        const event = await getCurrentEvent();
+        const event = await getCurrentWeather();
         const upcomingEventsCount = 3;
         const upcomingEvents = [];
 
         for (let i = 1; i <= upcomingEventsCount; i++) {
-          const nextEvent = await getNextEvent(i);
+          const nextEvent = await getNextWeather(i);
           upcomingEvents.push(`${nextEvent.icon} ${nextEvent.name}`);
         }
 
-        const timeLeft = await getTimeForNextEvent();
+        const timeLeft = await getTimeForNextWeather();
 
         const result = [
           `🌦️ **Current Event & Weather**: ${event.icon} ${event.name}`,
@@ -3163,17 +3213,17 @@ export async function entry(ctx: CommandContext) {
         if (!input.hasRole(InputRoles.MODERATORBOT)) {
           return output.reply(`🔒 Only moderators can skip events.`);
         }
-        const event = await getCurrentEvent();
+        const event = await getCurrentWeather();
         if (spectralArgs[0] === "reset") {
           await Cassidy.databases.globalDB.setItem("skipStamp", {
             skipStamp: 0,
           });
         } else {
           const skips = parseInt(spectralArgs[0]) || 1;
-          await skipEvent(skips);
+          await skipWeather(skips);
         }
 
-        const newEvent = await getCurrentEvent();
+        const newEvent = await getCurrentWeather();
         return output.reply(
           `✅ ${
             spectralArgs[0] === "reset"
@@ -3317,7 +3367,7 @@ export async function entry(ctx: CommandContext) {
         if (!input.hasRole(InputRoles.MODERATORBOT)) {
           return output.reply(`🔒 | Only admins and moderators can see this.`);
         }
-        const allItems: ShopItem[] = [
+        const allItems: gardenShop.GardenShopItem[] = [
           ...gardenShop.itemData,
           ...EVENT_CONFIG.EVENTS.map(
             (i) => (i.shopItems ?? []) as typeof gardenShop.itemData

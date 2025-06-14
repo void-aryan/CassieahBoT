@@ -1,4 +1,5 @@
 import { GardenItem, GardenSeed } from "@cass-commands/grow_garden";
+import { gardenShop } from "./GardenShop";
 
 export interface ShopItem {
   icon: string;
@@ -7,7 +8,7 @@ export interface ShopItem {
   flavorText: string;
   price: number;
   rarity: string;
-  stockLimit: number;
+  stockLimit?: number;
   stockChance: number;
   inStock: boolean;
   onPurchase: (args: { moneySet: { inventory: GardenItem[] } }) => void;
@@ -30,9 +31,8 @@ export interface ItemBalanceResult {
   item: GardenSeed;
   stockChance: number;
 }
-
 export function evaluateItemBalance(
-  shopItem: ShopItem
+  shopItem: gardenShop.GardenShopItem
 ): ItemBalanceResult | null {
   let inventoryItem: GardenItem | null = null;
   const mockMoneySet = {
@@ -40,7 +40,6 @@ export function evaluateItemBalance(
   };
 
   shopItem.onPurchase({ moneySet: mockMoneySet });
-
   inventoryItem = mockMoneySet.inventory[0] || null;
 
   if (
@@ -52,21 +51,28 @@ export function evaluateItemBalance(
   }
 
   const { cropData, name, key } = inventoryItem;
-  const { baseValue, growthTime, harvests } = cropData;
+  const { baseValue, growthTime, harvests, yields = 1 } = cropData;
   const { price, rarity } = shopItem;
 
-  const pricePerHarvest = price / harvests;
-  const profitPerHarvest = baseValue - pricePerHarvest;
-  const costEfficiency = profitPerHarvest / pricePerHarvest;
-  const timeEfficiency = (profitPerHarvest * harvests) / growthTime;
+  const totalYields = yields;
+  const harvestsPerYield = Math.floor(harvests / yields);
+  const totalHarvests = harvestsPerYield * totalYields;
 
-  const scaleFactor = 1e6;
-  const unitScaler = 1e6;
+  // const totalValue = baseValue * totalYields;
+  const pricePerYield = price / totalYields;
+  const profitPerYield = baseValue - pricePerYield;
+  const totalProfit = profitPerYield * totalYields;
+
+  const totalGrowthTime = growthTime * totalYields;
+  const timeEfficiency = totalProfit / totalGrowthTime;
+  const costEfficiency = totalProfit / price;
+
   const score =
-    ((profitPerHarvest + costEfficiency + timeEfficiency * scaleFactor) /
-      3 /
-      unitScaler) *
-    100;
+    (profitPerYield * 0.4 +
+      timeEfficiency * 0.3 +
+      costEfficiency * 0.2 +
+      baseValue * 0.1) /
+    10;
 
   return {
     name,
@@ -76,8 +82,8 @@ export function evaluateItemBalance(
     baseValue,
     harvests,
     growthTime,
-    pricePerHarvest: Number(pricePerHarvest.toFixed(2)),
-    profitPerHarvest: Number(profitPerHarvest.toFixed(2)),
+    pricePerHarvest: Number((price / totalHarvests).toFixed(2)),
+    profitPerHarvest: Number((totalProfit / totalHarvests).toFixed(2)),
     timeEfficiency: Number(timeEfficiency.toFixed(8)),
     costEfficiency: Number(costEfficiency.toFixed(2)),
     rarity,

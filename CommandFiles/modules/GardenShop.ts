@@ -1,11 +1,38 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
+import { GardenItem } from "@cass-commands/grow_garden";
+import { ShopItem } from "./GardenBalancer";
 
 export namespace gardenShop {
+  export interface GardenShopItem extends ShopItem {
+    icon: string;
+    name: string;
+    key: string;
+    flavorText: string;
+    price: number;
+    rarity: GardenRarity;
+    stockLimitOfficial?: number;
+    inStock: boolean;
+    isEventItem?: boolean;
+    stockChance: number;
+    stockLimit?: number;
+    minStock: number;
+    maxStock: number;
+    isOfficialStock?: boolean;
+    onPurchase({ moneySet }: { moneySet: { inventory: GardenItem[] } }): void;
+  }
+  export type GardenRarity =
+    | "Common"
+    | "Uncommon"
+    | "Rare"
+    | "Legendary"
+    | "Mythical"
+    | "Divine"
+    | "Prismatic";
   export let key = "gardenShop";
   export let lastRestock = 0;
   export const stockRefreshInterval = 5 * 60 * 1000;
   export const stockInterval = stockRefreshInterval;
-  export let itemData = [
+  export let itemData: GardenShopItem[] = [
     {
       icon: "🥕",
       name: "Carrot Seed",
@@ -32,6 +59,7 @@ export namespace gardenShop {
             baseValue: 18,
             growthTime: CROP_CONFIG.GROWTH_BASE,
             harvests: 1,
+            yields: 1,
           },
         });
       },
@@ -61,6 +89,7 @@ export namespace gardenShop {
             baseValue: 14,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 6,
+            yields: 4,
           },
         });
       },
@@ -89,6 +118,7 @@ export namespace gardenShop {
             baseValue: 18,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
             harvests: 30,
+            yields: 8,
           },
         });
       },
@@ -117,6 +147,7 @@ export namespace gardenShop {
             baseValue: 767,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3,
             harvests: 1,
+            yields: 1,
           },
         });
       },
@@ -145,6 +176,7 @@ export namespace gardenShop {
             baseValue: 27,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
             harvests: 40,
+            yields: 5,
           },
         });
       },
@@ -173,6 +205,7 @@ export namespace gardenShop {
             baseValue: 36,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3,
             harvests: 50,
+            yields: 1,
           },
         });
       },
@@ -201,6 +234,7 @@ export namespace gardenShop {
             baseValue: 903,
             growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 1,
+            yields: 1,
           },
         });
       },
@@ -229,6 +263,7 @@ export namespace gardenShop {
             baseValue: 2708,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
+            yields: 1,
           },
         });
       },
@@ -257,6 +292,7 @@ export namespace gardenShop {
             baseValue: 3700,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
+            yields: 1,
           },
         });
       },
@@ -285,6 +321,7 @@ export namespace gardenShop {
             baseValue: 248,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
             harvests: 16,
+            yields: 6,
           },
         });
       },
@@ -313,6 +350,7 @@ export namespace gardenShop {
             baseValue: 3610,
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
+            yields: 1,
           },
         });
       },
@@ -341,6 +379,7 @@ export namespace gardenShop {
             baseValue: 361,
             growthTime: CROP_CONFIG.GROWTH_BASE * 4,
             harvests: 20,
+            yields: 12,
           },
         });
       },
@@ -369,6 +408,7 @@ export namespace gardenShop {
             baseValue: 3068,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
             harvests: 7,
+            yields: 3,
           },
         });
       },
@@ -398,6 +438,7 @@ export namespace gardenShop {
             baseValue: 4287,
             growthTime: CROP_CONFIG.GROWTH_BASE * 5,
             harvests: 17,
+            yields: 6,
           },
         });
       },
@@ -426,6 +467,7 @@ export namespace gardenShop {
             baseValue: 5_866,
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
             harvests: 25,
+            yields: 4,
           },
         });
       },
@@ -455,6 +497,7 @@ export namespace gardenShop {
             baseValue: 7_085,
             growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 140,
+            yields: 12,
           },
         });
       },
@@ -483,6 +526,7 @@ export namespace gardenShop {
             baseValue: 136_278,
             growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 1,
+            yields: 1,
           },
         });
       },
@@ -511,6 +555,7 @@ export namespace gardenShop {
             baseValue: 7_220,
             growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 200,
+            yields: 12,
           },
         });
       },
@@ -539,6 +584,7 @@ export namespace gardenShop {
             baseValue: 10_830,
             growthTime: CROP_CONFIG.GROWTH_BASE * 0.5,
             harvests: 280,
+            yields: 12,
           },
         });
       },
@@ -552,7 +598,9 @@ export namespace gardenShop {
       price: 10_000_000,
       rarity: "Prismatic",
       inStock: true,
-      stockLimit: 5,
+      stockLimit: 1,
+      minStock: 1,
+      maxStock: 1,
       stockChance: 0.03,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
@@ -566,6 +614,7 @@ export namespace gardenShop {
             baseValue: 25_270,
             growthTime: CROP_CONFIG.GROWTH_BASE * 0.3,
             harvests: 450,
+            yields: 12,
           },
         });
       },
@@ -595,188 +644,11 @@ export namespace gardenShop {
             baseValue: 50_000,
             growthTime: CROP_CONFIG.GROWTH_BASE * 0.2,
             harvests: 400,
+            yields: 24,
           },
         });
       },
     },
-
-    // {
-    //   icon: "🍇",
-    //   name: "Raspberry Seed",
-    //   key: "gsRaspberry",
-    //   flavorText: "Tart berry that grows in clusters.",
-    //   price: 1400,
-    //   rarity: "Rare",
-    //   inStock: true,
-    //   stockChance: 0.3,
-    //   onPurchase({ moneySet }) {
-    //     moneySet.inventory.push({
-    //       key: "gsRaspberry",
-    //       name: "Raspberry Seed",
-    //       flavorText: "Tart berry that grows in clusters.",
-    //       icon: "🍇",
-    //       type: "gardenSeed",
-    //       sellPrice: 700,
-    //       cropData: {
-    //         baseValue: 2800,
-    //         growthTime: CROP_CONFIG.GROWTH_BASE * 2.5,
-    //         harvests: 3,
-    //       },
-    //     });
-    //   },
-    // },
-    // {
-    //   icon: "🍐",
-    //   name: "Pear Seed",
-    //   key: "gsPear",
-    //   flavorText: "Soft and sweet fruit for the patient.",
-    //   price: 1500,
-    //   rarity: "Rare",
-    //   inStock: true,
-    //   stockChance: 0.25,
-    //   onPurchase({ moneySet }) {
-    //     moneySet.inventory.push({
-    //       key: "gsPear",
-    //       name: "Pear Seed",
-    //       flavorText: "Soft and sweet fruit for the patient.",
-    //       icon: "🍐",
-    //       type: "gardenSeed",
-    //       sellPrice: 750,
-    //       cropData: {
-    //         baseValue: 3000,
-    //         growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-    //         harvests: 2,
-    //       },
-    //     });
-    //   },
-    // },
-
-    // {
-    //   icon: "🍑",
-    //   name: "Peach Seed",
-    //   key: "gsPeach",
-    //   flavorText: "Juicy fruit perfect for desserts.",
-    //   price: 5000,
-    //   rarity: "Mythical",
-    //   inStock: true,
-    //   stockChance: 0.07,
-    //   onPurchase({ moneySet }) {
-    //     moneySet.inventory.push({
-    //       key: "gsPeach",
-    //       name: "Peach Seed",
-    //       flavorText: "Juicy fruit perfect for desserts.",
-    //       icon: "🍑",
-    //       type: "gardenSeed",
-    //       sellPrice: 2500,
-    //       cropData: {
-    //         baseValue: 10000,
-    //         growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-    //         harvests: 2,
-    //       },
-    //     });
-    //   },
-    // },
-    // {
-    //   icon: "🍍",
-    //   name: "Pineapple Seed",
-    //   key: "gsPineapple",
-    //   flavorText: "Tropical fruit with a tough exterior.",
-    //   price: 5200,
-    //   rarity: "Mythical",
-    //   inStock: true,
-    //   stockChance: 0.06,
-    //   onPurchase({ moneySet }) {
-    //     moneySet.inventory.push({
-    //       key: "gsPineapple",
-    //       name: "Pineapple Seed",
-    //       flavorText: "Tropical fruit with a tough exterior.",
-    //       icon: "🍍",
-    //       type: "gardenSeed",
-    //       sellPrice: 2600,
-    //       cropData: {
-    //         baseValue: 10400,
-    //         growthTime: CROP_CONFIG.GROWTH_BASE * 4,
-    //         harvests: 1,
-    //       },
-    //     });
-    //   },
-    // },
-
-    // {
-    //   icon: "🌙",
-    //   name: "Moonflower Seed",
-    //   key: "gsMoonflower",
-    //   flavorText: "Rare flower blooming under moonlight.",
-    //   price: 8000,
-    //   rarity: "Legendary",
-    //   inStock: false,
-    //   stockChance: 0,
-    //   onPurchase({ moneySet }) {
-    //     moneySet.inventory.push({
-    //       key: "gsMoonflower",
-    //       name: "Moonflower Seed",
-    //       flavorText: "Rare flower blooming under moonlight.",
-    //       icon: "🌙",
-    //       type: "gardenSeed",
-    //       sellPrice: 4000,
-    //       cropData: {
-    //         baseValue: 16000,
-    //         growthTime: CROP_CONFIG.GROWTH_BASE * 4.5,
-    //         harvests: 1,
-    //       },
-    //     });
-    //   },
-    // },
-    // {
-    //   icon: "🍃",
-    //   name: "Mint Seed",
-    //   key: "gsMint",
-    //   flavorText: "Refreshing herb with culinary uses.",
-    //   price: 2200,
-    //   rarity: "Rare",
-    //   inStock: false,
-    //   stockChance: 0,
-    //   onPurchase({ moneySet }) {
-    //     moneySet.inventory.push({
-    //       key: "gsMint",
-    //       name: "Mint Seed",
-    //       flavorText: "Refreshing herb with culinary uses.",
-    //       icon: "🍃",
-    //       type: "gardenSeed",
-    //       sellPrice: 1100,
-    //       cropData: {
-    //         baseValue: 4400,
-    //         growthTime: CROP_CONFIG.GROWTH_BASE * 2,
-    //         harvests: 2,
-    //       },
-    //     });
-    //   },
-    // },
-    // {
-    //   icon: "🍄",
-    //   name: "Glowshroom Seed",
-    //   key: "gsGlowshroom",
-    //   flavorText: "Bioluminescent mushroom with unique glow.",
-    //   price: 3000,
-    //   rarity: "Rare",
-    //   inStock: false,
-    //   stockChance: 0,
-    //   onPurchase({ moneySet }) {
-    //     moneySet.inventory.push({
-    //       key: "gsGlowshroom",
-    //       name: "Glowshroom Seed",
-    //       flavorText: "Bioluminescent mushroom with unique glow.",
-    //       icon: "🍄",
-    //       type: "gardenSeed",
-    //       sellPrice: 1500,
-    //       cropData: {
-    //         baseValue: 6000,
-    //         growthTime: CROP_CONFIG.GROWTH_BASE * 3,
-    //         harvests: 2,
-    //       },
-    //     });
-    //   },
-    // },
   ];
   export let gnpShop = [
     // {
