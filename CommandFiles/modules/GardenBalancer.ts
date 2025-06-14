@@ -59,7 +59,7 @@ export function evaluateItemBalance(
   const totalHarvests = harvestsPerYield * totalYields;
 
   // const totalValue = baseValue * totalYields;
-  const pricePerYield = price / totalYields;
+  const pricePerYield = price / totalHarvests;
   const profitPerYield = baseValue - pricePerYield;
   const totalProfit = profitPerYield * totalYields;
 

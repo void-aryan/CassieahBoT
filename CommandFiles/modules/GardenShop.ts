@@ -750,9 +750,10 @@ export namespace gardenShop {
     // },
   ];
   export const welcomeTexts = [
-    "🌱 Welcome to Shop! Start growing today!",
-    "🌱 Hey there! Ready to plant some crops?",
-    "🌱 Browse our seeds, pets, and gears to boost your farm!",
+    // "🌱 Welcome to Shop! Start growing today!",
+    // "🌱 Hey there! Ready to plant some crops?",
+    // "🌱 Browse our seeds, pets, and gears to boost your farm!",
+    "🌱 Here are the seeds that are in stock.",
   ];
   export const buyTexts = [
     "🌱 What do you want to buy today?",
