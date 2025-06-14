@@ -11,7 +11,11 @@ import {
 } from "@cass-modules/ArielUtils";
 import OutputProps from "output-cassidy";
 import InputClass, { InputRoles } from "@cass-modules/InputClass";
-import { gardenShop } from "@cass-modules/GardenShop";
+import {
+  GardenChoice,
+  GardenChoiceConfig,
+  gardenShop,
+} from "@cass-modules/GardenShop";
 import { CROP_CONFIG, fetchSeedStock } from "@cass-modules/GardenConfig";
 import { EVENT_CONFIG, GardenEventItem } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
@@ -24,7 +28,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.9",
+  version: "2.0.10",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -114,6 +118,54 @@ export type GardenPlot = InventoryItem & {
   mutationAttempts: number;
 };
 
+export function toBarnItem(plot: GardenPlot): GardenBarn[] {
+  const {
+    key,
+    icon,
+    name,
+    flavorText,
+    mutation,
+    kiloGrams,
+    seedKey,
+    isFavorite,
+    price,
+  } = plot;
+
+  const { final: value, yields } = calculateCropValue(plot);
+
+  const item: GardenBarn = {
+    key,
+    uuid: Inventory.generateUUID(),
+    icon,
+    name,
+    flavorText,
+    value,
+    mutation,
+    kiloGrams,
+    seedKey,
+    type: "gardenBarn",
+    isFavorite,
+    price,
+  };
+
+  return Array.from({ length: yields }, () => ({
+    ...item,
+    uuid: Inventory.generateUUID(),
+  }));
+}
+
+export type GardenBarn = InventoryItem & {
+  key: string;
+  seedKey: string;
+  name: string;
+  icon: string;
+  mutation: string[];
+  isFavorite?: boolean;
+  kiloGrams: number;
+  value: number;
+  price: number;
+};
+
 export type GardenPetActive = InventoryItem & {
   key: string;
   name: string;
@@ -132,7 +184,7 @@ export interface GardenStats {
 
 export type GardenItem = GardenSeed | GardenPetCage | GardenTool;
 
-function calculateCropValue(crop: GardenPlot) {
+export function calculateCropValue(crop: GardenPlot) {
   const mutations = (crop.mutation || [])
     .map((mutationName) =>
       CROP_CONFIG.MUTATIONS.find((m) => m.name === mutationName)
@@ -502,7 +554,7 @@ function getMutation(name: string) {
   return CROP_CONFIG.MUTATIONS.find((m) => m.name === name);
 }
 
-function formatMutationStr(plot: GardenPlot) {
+function formatMutationStr(plot: GardenPlot | GardenBarn) {
   return `${
     (plot.mutation ?? []).length > 0
       ? `[ ${plot.mutation
@@ -1024,10 +1076,12 @@ export async function entry(ctx: CommandContext) {
   let {
     name = "",
     gardenPlots: rawPlots = [],
+    gardenBarns: rawBarns = [],
     gardenPets: rawPets = [],
+    gardenHeld = "",
     inventory: rawInventory = [],
     money: userMoney = 0,
-    gardenStats = {
+    gardenStats: _gs = {
       plotsHarvested: 0,
       mutationsFound: 0,
       expansions: 0,
@@ -1041,6 +1095,7 @@ export async function entry(ctx: CommandContext) {
     gardenEarns = 0,
     collectibles: rawCLL,
   } = await money.getCache(input.senderID);
+  const gardenStats = _gs as GardenStats;
   let isHypen = !!input.propertyArray[0];
   const collectibles = new Collectibles(rawCLL);
   correctItems(rawInventory as GardenItem[]);
@@ -1068,7 +1123,9 @@ export async function entry(ctx: CommandContext) {
   ] as const;
 
   const currEvent = await getCurrentEvent();
+  const xBarn = new Inventory<GardenBarn>(rawBarns, CROP_CONFIG.BARN_LIMIT);
 
+  const currentHeld = xBarn.getOneByID(gardenHeld);
   const style: CommandStyle = {
     ...command.style,
     title: {
@@ -1094,6 +1151,18 @@ export async function entry(ctx: CommandContext) {
         : "Rewards multiply with success.",
       text_font: "fancy",
     },
+    ...(xBarn.hasByID(gardenHeld)
+      ? {
+          held: {
+            content: `🫴 ${formatMutationStr(currentHeld)} - ${formatCash(
+              currentHeld.value,
+              true
+            )}`,
+            text_font: "fancy",
+            line_top: "default",
+          },
+        }
+      : {}),
   };
 
   if (!name || name === "Unregistered") {
@@ -1181,6 +1250,134 @@ export async function entry(ctx: CommandContext) {
           },
         ]
       : []) as Config[]),
+    {
+      key: "sell",
+      description: "sell stuffs in Steven's stand!",
+      aliases: ["-s"],
+      icon: "🌱",
+      async handler(_, { spectralArgs }) {
+        const str = `🧑‍🌾 Got anything to sell?`;
+        const choices: GardenChoiceConfig["choices"] = [
+          {
+            txt: `I want to sell my entire barn.`,
+            async callback(rep) {
+              const { gardenBarns = [], money: userMoney = 0 } =
+                await rep.usersDB.getCache(rep.uid);
+              const barns = new Inventory<GardenBarn>(
+                gardenBarns,
+                CROP_CONFIG.BARN_LIMIT
+              );
+              const canBuy = barns.getAll().filter((i) => !i.isFavorite);
+              if (canBuy.length === 0) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 💬 🧑‍🌾 Nothing to buy.`
+                );
+              }
+              let acc = 0;
+              for (const item of canBuy) {
+                acc += item.value || 0;
+                barns.deleteByID(item.uuid);
+              }
+              const newMoney = userMoney + (acc || 0);
+              await rep.usersDB.setItem(rep.uid, {
+                gardenBarns: Array.from(barns),
+                money: newMoney,
+              });
+              return rep.output.reply(
+                `${UNISpectra.charm} 💬 🧑‍🌾 Here's your ${formatCash(
+                  acc,
+                  true
+                )}\n\n💰 New Balance: ${formatCash(newMoney)}`
+              );
+            },
+          },
+          {
+            txt: `I want to sell this (held item).`,
+            async callback(rep) {
+              const {
+                gardenBarns = [],
+                money: userMoney = 0,
+                gardenHeld = "",
+              } = await rep.usersDB.getCache(rep.uid);
+              const barns = new Inventory<GardenBarn>(
+                gardenBarns,
+                CROP_CONFIG.BARN_LIMIT
+              );
+              const canBuy = [barns.getOneByID(gardenHeld)]
+                .filter(Boolean)
+                .filter((i) => !i.isFavorite);
+              if (canBuy.length === 0) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 💬 🧑‍🌾 I don't see anything.`
+                );
+              }
+              let acc = 0;
+              for (const item of canBuy) {
+                acc += item.value || 0;
+                barns.deleteByID(item.uuid);
+              }
+              const newMoney = userMoney + (acc || 0);
+              await rep.usersDB.setItem(rep.uid, {
+                gardenBarns: Array.from(barns),
+                money: newMoney,
+              });
+              return rep.output.reply(
+                `${UNISpectra.charm} 💬 🧑‍🌾 Here's your ${formatCash(
+                  acc,
+                  true
+                )}\n\n💰 New Balance: ${formatCash(newMoney)}`
+              );
+            },
+          },
+
+          {
+            txt: `How much is this (held item) worth?`,
+            async callback(rep) {
+              const {
+                gardenBarns = [],
+                gardenHeld = "",
+              } = await rep.usersDB.getCache(rep.uid);
+              const barns = new Inventory<GardenBarn>(
+                gardenBarns,
+                CROP_CONFIG.BARN_LIMIT
+              );
+              const canBuy = [barns.getOneByID(gardenHeld)]
+                .filter(Boolean)
+                .filter((i) => !i.isFavorite);
+              if (canBuy.length === 0) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 💬 🧑‍🌾 I don't see anything.`
+                );
+              }
+              let acc = 0;
+              for (const item of canBuy) {
+                acc += item.value || 0;
+              }
+
+              return rep.output.reply(
+                `${UNISpectra.charm} 💬 🧑‍🌾 I'd value it at ${formatCash(
+                  acc,
+                  true
+                )}`
+              );
+            },
+          },
+
+          {
+            txt: `Nevermind.`,
+            callback(rep) {
+              return rep.output.reply(`${UNISpectra.charm} 💬 🧑‍🌾 Goodbye!`);
+            },
+          },
+        ];
+        const x = GardenChoice({
+          title: str,
+          choices,
+          style,
+        });
+        return x(ctx);
+      },
+    },
     {
       key: "plant",
       description: "Plant one or more seeds in plots",
@@ -1424,6 +1621,10 @@ export async function entry(ctx: CommandContext) {
       async handler(_, { spectralArgs }) {
         let origEarns = gardenEarns;
         const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
+        const barn = new Inventory<GardenBarn>(
+          rawBarns,
+          CROP_CONFIG.BARN_LIMIT
+        );
         let inventory = new Inventory<GardenItem | InventoryItem>(rawInventory);
         let moneyEarned = 0;
         const harvested: {
@@ -1494,6 +1695,21 @@ export async function entry(ctx: CommandContext) {
             style
           );
         }
+        if (barn.isFull()) {
+          return output.replyStyled(
+            `🌱 Barn is full! Check barn items with ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }barn.\n\n` +
+              `**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} View plots: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }plots\n` +
+              `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }plant`,
+            style
+          );
+        }
 
         for (const plot of readyPlots) {
           await autoUpdateCropData(
@@ -1511,15 +1727,26 @@ export async function entry(ctx: CommandContext) {
               (gardenStats.mutationsFound || 0) + plot.mutation.length;
           }
           const value = calculateCropValue(plot);
-          if (value.yields <= 0) {
+          const collected = toBarnItem(plot);
+          let yields = Math.min(
+            value.yields,
+            CROP_CONFIG.BARN_LIMIT - barn.size()
+          );
+          barn.add(collected.slice(0, yields));
+          if (yields <= 0) {
             continue;
           }
-          moneyEarned += value.allYield || 0;
-          gardenEarns += value.allYield - (plot.price || plot.baseValue || 0);
+          gardenEarns +=
+            value.final * yields - (plot.price || plot.baseValue || 0);
 
-          harvested.push({ plot: { ...plot }, value });
-          plot.harvestsLeft -= value.yields;
-          gardenStats.plotsHarvested = (gardenStats.plotsHarvested || 0) + 1;
+          harvested.push({
+            plot: { ...plot },
+            value: { ...value, allYield: value.final * yields },
+          });
+          plot.harvestsLeft -= yields;
+
+          gardenStats.plotsHarvested =
+            (gardenStats.plotsHarvested || 0) + yields;
           if (Math.random() < CROP_CONFIG.LUCKY_HARVEST_CHANCE) {
             const shopItem = [
               ...gardenShop.itemData,
@@ -1538,6 +1765,12 @@ export async function entry(ctx: CommandContext) {
             plot.mutation = [];
             plot.plantedAt = Date.now();
             plot.growthTime = Math.floor(plot.growthTime * 1.2);
+            plot.maxKiloGrams = randomBiased(
+              CROP_CONFIG.MIN_KG,
+              CROP_CONFIG.MAX_KG,
+              CROP_CONFIG.KILO_BIAS
+            );
+            plot.kiloGrams = 0;
 
             if (Math.random() < 0.1) {
               await applyMutation(
@@ -1559,11 +1792,11 @@ export async function entry(ctx: CommandContext) {
         gardenEarns = Math.round(Math.max(0, gardenEarns));
 
         await money.setItem(input.senderID, {
-          money: userMoney + moneyEarned,
           gardenPlots: Array.from(plots),
           inventory: Array.from(inventory),
           gardenStats,
           gardenEarns,
+          gardenBarns: Array.from(barn),
         });
         await checkAchievements(
           {
@@ -1601,22 +1834,24 @@ export async function entry(ctx: CommandContext) {
         const addedEarns = gardenEarns - origEarns;
 
         return output.replyStyled(
-          `✅🧺 **Automatically Sold!**:\n${harvestedStr.join("\n")}\n\n` +
+          `✅🧺 **Collected and added to the Barn!**:\n${harvestedStr.join(
+            "\n"
+          )}\n\n` +
             (seedsGained.length > 0
               ? `🌱🧺 **Lucky Harvest Seeds**:\n${seedsGained.join("\n")}\n\n`
               : "") +
-            `💰 Earned: ${formatCash(moneyEarned, true)}\n` +
-            `💵 Balance: ${formatCash(userMoney + moneyEarned)}\n\n` +
+            // `💰 Earned: ${formatCash(moneyEarned, true)}\n` +
+            // `💵 Balance: ${formatCash(userMoney + moneyEarned)}\n\n` +
             `📈 Total Earns: **${formatCash(
               gardenEarns
             )}** (+${abbreviateNumber(addedEarns)})\n\n` +
             `**Next Steps**:\n` +
-            `${UNISpectra.arrowFromT} Plant more: ${prefix}${commandName}${
+            `${UNISpectra.arrowFromT} Sell crops: ${prefix}${commandName}${
               isHypen ? "-" : " "
-            }plant\n` +
-            `${UNISpectra.arrowFromT} Check plots: ${prefix}${commandName}${
+            }sell\n` +
+            `${UNISpectra.arrowFromT} Check the barn: ${prefix}${commandName}${
               isHypen ? "-" : " "
-            }plots`,
+            }barn`,
           style
         );
       },
@@ -1808,7 +2043,7 @@ export async function entry(ctx: CommandContext) {
             }
             let str = `✅ **Shoveled Successfully!**\n\n`;
             for (const target of targets) {
-              str += `${target.icon} **${target.name}**\n`;
+              str += `${formatMutationStr(target)}\n`;
               plots.deleteByID(target.uuid);
             }
             str +=
@@ -1823,6 +2058,130 @@ export async function entry(ctx: CommandContext) {
               }favorite`;
             await rep.usersDB.setItem(rep.uid, {
               gardenPlots: plots.raw(),
+            });
+            return rep.output.reply(str);
+          }
+        });
+      },
+    },
+    {
+      key: "barn",
+      description: "View your collected items.",
+      aliases: ["-b"],
+      args: ["[page]"],
+      icon: "🏡",
+      async handler(_, { spectralArgs }) {
+        const barn = new Inventory<GardenBarn>(
+          rawBarns,
+          CROP_CONFIG.BARN_LIMIT
+        );
+        const page = parseInt(spectralArgs[0]) || 1;
+
+        const start = (page - 1) * ITEMS_PER_PAGE;
+        const end = page * ITEMS_PER_PAGE;
+
+        const sortedBarns = [...barn.getAll()]
+          .sort((a, b) => {
+            return b.value - a.value;
+          })
+          .slice(start, end)
+          .map((i, j) => ({
+            item: i,
+            num: start + j + 1,
+          }));
+        let result = `🏡 **${name}'s Barn (${barn.getAll().length}/${
+          CROP_CONFIG.BARN_LIMIT
+        }, Page ${page})**:\n\n`;
+        if (sortedBarns.length === 0) {
+          return output.replyStyled(
+            `🏡 No barn items! Plant and collect crops with ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }collect.\n\n` +
+              `**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }plant\n` +
+              `${UNISpectra.arrowFromT} Collect crops: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }collect`,
+            style
+          );
+        }
+
+        for (let [, { num, item }] of sortedBarns.entries()) {
+          const cropValue = item.value;
+          result +=
+            `${num}. ${formatMutationStr(item)} ${
+              barn.get(item.key).some((i) => i.isFavorite) ? ` ⭐` : ""
+            }\n` +
+            `${UNIRedux.charm} Value: ${formatCash(cropValue, true)}` +
+            `\n\n`;
+        }
+        if (barn.getAll().length > end) {
+          result += `View more: ${prefix}${commandName}${
+            isHypen ? "-" : " "
+          }barn ${page + 1}\n`;
+        }
+
+        result += `To hold an item: ***Reply with***\nhold <number>`;
+
+        result += `\n📈 Total Earns: ${formatCash(gardenEarns, true)}\n\n`;
+
+        result +=
+          `**Next Steps**:\n` +
+          `${UNISpectra.arrowFromT} Collect crops: ${prefix}${commandName}${
+            isHypen ? "-" : " "
+          }collect\n` +
+          `${UNISpectra.arrowFromT} Sell barn items: ${prefix}${commandName}${
+            isHypen ? "-" : " "
+          }sell`;
+        const info = await output.replyStyled(result, style);
+        info.atReply(async (rep) => {
+          if (rep.uid !== input.sid) {
+            return;
+          }
+          let [type = "", ...nums_] = rep.input.words;
+          type = type.toLowerCase();
+          const nums = nums_.map(Number);
+
+          const { gardenBarns: rawBarns = [], gardenHeld = "" } =
+            await rep.usersDB.getCache(rep.uid);
+          const barn = new Inventory<GardenBarn>(rawBarns);
+          const targets = nums
+            .map((i) => sortedBarns.find((s) => s.num === i)?.item?.uuid)
+            .filter(Boolean)
+            .map((i) => barn.getOneByID(i))
+            .filter(Boolean);
+          rep.output.setStyle(style);
+          if (type === "hold") {
+            if (targets.length === 0) {
+              return rep.output.reply(`🫴 No targets provided as arguments.`);
+            }
+            const target = targets[0];
+
+            let isUnheld = gardenHeld === target.uuid;
+            let str = `✅🫴 **${
+              isUnheld ? "Unheld" : "Held"
+            } Successfully!**\n\n`;
+            str += `${formatMutationStr(target)} - ${formatCash(
+              target.value,
+              true
+            )}\n`;
+
+            str +=
+              `\n**Next Steps**:\n` +
+              `${
+                UNISpectra.arrowFromT
+              } Sell the held item: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }sell\n` +
+              `${
+                UNISpectra.arrowFromT
+              } Favorite crops: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }favorite`;
+            await rep.usersDB.setItem(rep.uid, {
+              gardenHeld: isUnheld ? "" : target.uuid,
             });
             return rep.output.reply(str);
           }

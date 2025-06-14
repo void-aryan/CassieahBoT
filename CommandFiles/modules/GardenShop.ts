@@ -1,6 +1,8 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { GardenItem } from "@cass-commands/grow_garden";
 import { ShopItem } from "./GardenBalancer";
+import { UNISpectra } from "./unisym";
+import { OutputResult } from "@cass-plugins/output";
 
 export namespace gardenShop {
   export interface GardenShopItem extends ShopItem {
@@ -769,4 +771,51 @@ export namespace gardenShop {
 
 export namespace gardenShop {
   export let eventItems: GardenShopItem[] = [];
+}
+
+export interface GardenChoiceConfig {
+  title: string;
+  choices: Array<{
+    txt: string;
+    callback(ctx: CommandContext): any;
+  }>;
+  style: CommandStyle;
+}
+export function GardenChoice(config: GardenChoiceConfig) {
+  const choiceString =
+    `${UNISpectra.charm} 💬 ${config.title}` +
+    `\n\n${config.choices
+      .map((i, j) => `#**${j + 1}.** ${i.txt}`)
+      .join("\n")}` +
+    `\n\n💌 ***Reply with the number of your desired option.***`;
+
+  return async (
+    ctx: CommandContext
+  ): Promise<{
+    info: OutputResult;
+    target: GardenChoiceConfig["choices"][number];
+  }> => {
+    return new Promise(async (res) => {
+      const info = await ctx.output.replyStyled(choiceString, config.style);
+      info.atReply(async (rep) => {
+        const num = Number(rep.input.words[0]);
+        if (rep.uid !== ctx.uid) {
+          return;
+        }
+        rep.output.setStyle(config.style)
+        const target = config.choices.find((_, j) => num === j + 1);
+        if (!target) {
+          return rep.output.replyStyled(
+            `💌 **Invalid Number**: Please go back and reply a valid number!`,
+            config.style
+          );
+        }
+        await target.callback(rep);
+        res({
+          info,
+          target,
+        });
+      });
+    });
+  };
 }

@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const CROP_CONFIG = {
+  BARN_LIMIT: 120 as const,
   MUTATIONS: [
     { name: "Wet", valueMultiplier: 2, chance: 0.01, icon: "💧" },
     { name: "Chilled", valueMultiplier: 2, chance: 0, icon: "❄️" },
@@ -48,7 +49,7 @@ export const CROP_CONFIG = {
   MUTATION_INTERVAL: 15 * 60 * 1000,
   MIN_KG: 0.18 as const,
   MAX_KG: 200.32 as const,
-  KILO_BIAS: 100 as const,
+  KILO_BIAS: 50 as const,
   get STOCK_SEED_URL() {
     return `https://growagardenstock.com/api/stock?type=gear-seeds&ts=${Date.now()}` as const;
   },
