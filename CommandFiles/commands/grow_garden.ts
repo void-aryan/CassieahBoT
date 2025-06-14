@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.7",
+  version: "2.0.8",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1715,7 +1715,7 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
-        for (let [index, { num, plot }] of sortedPlots.entries()) {
+        for (let [, { num, plot }] of sortedPlots.entries()) {
           plot = await autoUpdateCropData(
             plot,
             new Inventory<GardenTool>(
@@ -1807,7 +1807,7 @@ export async function entry(ctx: CommandContext) {
 
         for (const user of Object.values(allUsers)) {
           if (
-            ((user.gardenPlots as GardenPlot[]) ?? []).length === 0 &&
+            ((user.gardenPlots as GardenPlot[]) ?? []).length === 0 ||
             ((user.gardenEarns as number) ?? 0) < 1
           ) {
             continue;
