@@ -28,7 +28,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.10",
+  version: "2.0.11",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1255,7 +1255,7 @@ export async function entry(ctx: CommandContext) {
       description: "sell stuffs in Steven's stand!",
       aliases: ["-s"],
       icon: "🌱",
-      async handler(_, { spectralArgs }) {
+      async handler(_, {}) {
         const str = `🧑‍🌾 Got anything to sell?`;
         const choices: GardenChoiceConfig["choices"] = [
           {
@@ -1333,10 +1333,8 @@ export async function entry(ctx: CommandContext) {
           {
             txt: `How much is this (held item) worth?`,
             async callback(rep) {
-              const {
-                gardenBarns = [],
-                gardenHeld = "",
-              } = await rep.usersDB.getCache(rep.uid);
+              const { gardenBarns = [], gardenHeld = "" } =
+                await rep.usersDB.getCache(rep.uid);
               const barns = new Inventory<GardenBarn>(
                 gardenBarns,
                 CROP_CONFIG.BARN_LIMIT
@@ -1370,10 +1368,13 @@ export async function entry(ctx: CommandContext) {
             },
           },
         ];
+        const st = { ...style };
+        delete st.held;
+        delete st.footer;
         const x = GardenChoice({
           title: str,
           choices,
-          style,
+          style: st,
         });
         return x(ctx);
       },
@@ -1592,15 +1593,7 @@ export async function entry(ctx: CommandContext) {
             `⏳ First ready in: ${
               formatTimeSentence(cropTimeLeft(firstPlot)) ||
               "***ALREADY READY!***"
-            }\n` +
-            `💰 Base Value: ${formatCash(
-              calculateCropValue({
-                ...firstPlot,
-                mutation: [],
-                maxKiloGrams: 1,
-                kiloGrams: 1,
-              }).final
-            )}\n\n` +
+            }\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Check plots: ${prefix}${commandName}${
               isHypen ? "-" : " "
@@ -1826,10 +1819,7 @@ export async function entry(ctx: CommandContext) {
                       value.noExtra - plot.baseValue
                     )} ] `
                   : ""
-              }${plot.icon} ${plot.name} (${plot.kiloGrams}kg) - ${formatCash(
-                value.allYield,
-                true
-              )} total.`
+              }${plot.icon} ${plot.name} (${plot.kiloGrams}kg)`
           );
         const addedEarns = gardenEarns - origEarns;
 
@@ -1961,11 +1951,11 @@ export async function entry(ctx: CommandContext) {
             exiPets
           );
           const timeLeft = cropTimeLeft(plot);
-          const price =
-            Math.min(plot.price || 0, plot.baseValue) || plot.baseValue || 0;
+          // const price =
+          //   Math.min(plot.price || 0, plot.baseValue) || plot.baseValue || 0;
           const calc = calculateCropValue(plot);
-          const cropValue = calc.final;
-          const earns = Math.floor(cropValue - price);
+          // const cropValue = calc.final;
+          // const earns = Math.floor(cropValue - price);
           result +=
             `${num}. ${formatMutationStr(plot)} (x${calc.yields})${
               plots.get(plot.key).some((i) => i.isFavorite) ? ` ⭐` : ""
@@ -1974,28 +1964,6 @@ export async function entry(ctx: CommandContext) {
             `${UNIRedux.charm} Time Left: ${
               formatTimeSentence(timeLeft) ||
               (!isCropReady(plot) ? "***BUGGED***!" : "***READY***!")
-            }\n` +
-            `${UNIRedux.charm} Value Each: ${formatCash(cropValue, true)}` +
-            `\n${UNIRedux.charm} Total: ${formatCash(calc.allYield, true)}${
-              isCropOvergrown(plot)
-                ? `\n${UNIRedux.charm} Overgrown Since: ${formatTimeSentence(
-                    getOvergrownElapsed(plot)
-                  )}`
-                : ""
-            }${
-              isCropReady(plot)
-                ? `\n${UNIRedux.charm} Earns Each: ${formatCash(earns)} ${
-                    earns <= price
-                      ? "😭 ***LUGI***"
-                      : earns > plot.baseValue * 10
-                      ? "💰🍾 ***PALDO***"
-                      : "✅ ***KUMITA***"
-                  }`
-                : ""
-            }${
-              plot.mutationAttempts >= CROP_CONFIG.MAX_MUTATION_ATT
-                ? `\n${UNIRedux.charm} ❌ Can no longer mutate!`
-                : ""
             }\n\n`;
         }
         if (plots.getAll().length > end) {
@@ -2109,13 +2077,9 @@ export async function entry(ctx: CommandContext) {
         }
 
         for (let [, { num, item }] of sortedBarns.entries()) {
-          const cropValue = item.value;
-          result +=
-            `${num}. ${formatMutationStr(item)} ${
-              barn.get(item.key).some((i) => i.isFavorite) ? ` ⭐` : ""
-            }\n` +
-            `${UNIRedux.charm} Value: ${formatCash(cropValue, true)}` +
-            `\n\n`;
+          result += `${num}. ${formatMutationStr(item)} ${
+            barn.get(item.key).some((i) => i.isFavorite) ? ` ⭐` : ""
+          }\n\n`;
         }
         if (barn.getAll().length > end) {
           result += `View more: ${prefix}${commandName}${
@@ -2163,10 +2127,7 @@ export async function entry(ctx: CommandContext) {
             let str = `✅🫴 **${
               isUnheld ? "Unheld" : "Held"
             } Successfully!**\n\n`;
-            str += `${formatMutationStr(target)} - ${formatCash(
-              target.value,
-              true
-            )}\n`;
+            str += `${formatMutationStr(target)}\n`;
 
             str +=
               `\n**Next Steps**:\n` +
