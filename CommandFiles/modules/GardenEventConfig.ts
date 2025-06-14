@@ -1,26 +1,105 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
+import { gardenShop } from "./GardenShop";
+function insertAfterEvenIndices<T>(arr: T[], valueToInsert: T): T[] {
+  const result: T[] = [];
 
+  for (let i = 0; i < arr.length; i++) {
+    result.push(arr[i]);
+
+    if (arr.length === 1 || i % 2 === 0) {
+      result.push(valueToInsert);
+    }
+  }
+
+  return result;
+}
+
+export interface GardenEventItem {
+  name: string;
+  icon: string;
+  shopName?: string;
+  shopName2?: string;
+  shopAlias?: string[];
+  isNoEvent?: boolean;
+  effect?: {
+    mutationChance?: number;
+    mutationType?: string;
+    growthMultiplier: number;
+  };
+  shopItems: gardenShop.GardenShopItem[];
+  weathers: GardenWeatherItem[];
+}
+export interface GardenWeatherItem {
+  name: string;
+  icon: string;
+  isNoEvent?: boolean;
+  growthMultiplier: number;
+  effects?: {
+    mutationChance?: number;
+    mutationType?: string;
+  }[];
+}
 export const EVENT_CONFIG = {
   WEEKLY_CYCLE: 7 * 24 * 60 * 60 * 1000,
-  WEATHER_CYCLE: 1 * 60 * 60 * 1000,
+  WEATHER_CYCLE: 20 * 60 * 1000,
   // LONG ASF
-  EVENT_CYCLE: 4 * 60 * 60 * 1000,
-  EVENTS: [
+  WEATHER_CYCLE_NEW: 20 * 60 * 1000,
+  WEATHERS: [
     {
-      name: "In Construction",
-      icon: "🏗️",
-      shopName: undefined,
-      shopName2: undefined,
-      shopAlias: [],
-      isNoEvent: true,
-      effect: {
-        mutationChance: 0,
-        growthMultiplier: 1,
-        mutationType: undefined,
-      },
-      shopItems: [],
+      name: "Rain",
+      icon: "🌧️",
+      growthMultiplier: 1.5,
+      effects: [
+        {
+          mutationChance: 0.5,
+          mutationType: "Wet",
+        },
+      ],
     },
-  ],
+    {
+      name: "Thunderstorm",
+      icon: "⛈️",
+      growthMultiplier: 1.5,
+      effects: [
+        {
+          mutationChance: 0.1,
+          mutationType: "Shocked",
+        },
+        {
+          mutationChance: 0.5,
+          mutationType: "Wet",
+        },
+      ],
+    },
+    {
+      name: "Frost",
+      icon: "❄️",
+      growthMultiplier: 1.5,
+      effects: [
+        {
+          mutationChance: 0.3,
+          mutationType: "Chilled",
+        },
+      ],
+    },
+    {
+      name: "Night",
+      icon: "🌙",
+      growthMultiplier: 1,
+      effects: [
+        {
+          mutationChance: 0.3,
+          mutationType: "Moonlit",
+        },
+      ],
+    },
+  ] satisfies GardenWeatherItem[] as GardenWeatherItem[],
+  CURRENT_EVENT: {
+    icon: "🍯🐝",
+    name: "Bizzy Bee Event",
+    weathers: [],
+    shopItems: [],
+  } satisfies GardenEventItem as GardenEventItem,
   EVENTS_CONSTRUCTION: [
     {
       name: "No Event",
@@ -2073,5 +2152,13 @@ export const EVENT_CONFIG = {
       },
       shopItems: [],
     },
-  ],
+  ] as any[],
 };
+
+EVENT_CONFIG.WEATHERS = insertAfterEvenIndices(EVENT_CONFIG.WEATHERS, {
+  name: "Normal",
+  icon: "🌱",
+  isNoEvent: true,
+  growthMultiplier: 1,
+  effects: [],
+});

@@ -13,7 +13,7 @@ import OutputProps from "output-cassidy";
 import InputClass, { InputRoles } from "@cass-modules/InputClass";
 import { gardenShop } from "@cass-modules/GardenShop";
 import { CROP_CONFIG, fetchSeedStock } from "@cass-modules/GardenConfig";
-import { EVENT_CONFIG } from "@cass-modules/GardenEventConfig";
+import { EVENT_CONFIG, GardenEventItem } from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
 import { randomBiased } from "@cass-modules/unitypes";
 import { Datum } from "@cass-modules/Datum";
@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.3",
+  version: "2.0.5",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -274,9 +274,9 @@ async function autoUpdateCropData(
     }
   }
 
-  const event = await getCurrentWeather();
+  const weather = await getCurrentWeather();
 
-  const baseGrowthMultiplier = event.effect?.growthMultiplier || 1;
+  const baseGrowthMultiplier = weather.growthMultiplier || 1;
 
   let growthBoost = Math.min(0.99, safeEX(baseGrowthMultiplier, 0.9));
 
@@ -351,7 +351,7 @@ async function getTimeForNextWeather() {
   const { globalDB } = Cassidy.databases;
 
   const { skipStamp = 0 } = await globalDB.getCache("skipStamp");
-  const cycle = EVENT_CONFIG.EVENT_CYCLE;
+  const cycle = EVENT_CONFIG.WEATHER_CYCLE_NEW;
   const now = Date.now() + skipStamp;
   const timeIntoCycle = now % cycle;
   const timeUntilNextEvent = cycle - timeIntoCycle;
@@ -363,9 +363,14 @@ async function getCurrentWeather() {
   const { skipStamp = 0 } = await globalDB.getCache("skipStamp");
   const adjustedNow = Date.now() + skipStamp;
   const weekNumber =
-    Math.floor(adjustedNow / EVENT_CONFIG.EVENT_CYCLE) %
-    EVENT_CONFIG.EVENTS.length;
-  const event = EVENT_CONFIG.EVENTS[weekNumber];
+    Math.floor(adjustedNow / EVENT_CONFIG.WEATHER_CYCLE_NEW) %
+    EVENT_CONFIG.WEATHERS.length;
+  const event = EVENT_CONFIG.WEATHERS[weekNumber];
+
+  return event;
+}
+async function getCurrentEvent() {
+  const event = EVENT_CONFIG.CURRENT_EVENT;
 
   return event;
 }
@@ -374,13 +379,13 @@ async function getNextWeather(skips: number = 1) {
   const { skipStamp = 0 } = await globalDB.getCache("skipStamp");
 
   const adjustedNow = Date.now() + skipStamp;
-  const cycle = EVENT_CONFIG.EVENT_CYCLE;
+  const cycle = EVENT_CONFIG.WEATHER_CYCLE_NEW;
 
   const totalCyclesPassed = Math.floor(adjustedNow / cycle) + skips;
-  const len = EVENT_CONFIG.EVENTS.length;
+  const len = EVENT_CONFIG.WEATHERS.length;
   const weekNumber = ((totalCyclesPassed % len) + len) % len;
 
-  const event = EVENT_CONFIG.EVENTS[weekNumber];
+  const event = EVENT_CONFIG.WEATHERS[weekNumber];
 
   return event;
 }
@@ -391,10 +396,10 @@ function forgivingRandom(bias?: number) {
 
 async function skipWeather(
   skipped: number,
-  targetTimeLeft = EVENT_CONFIG.EVENT_CYCLE
+  targetTimeLeft = EVENT_CONFIG.WEATHER_CYCLE_NEW
 ) {
   const { globalDB } = Cassidy.databases;
-  const cycle = EVENT_CONFIG.EVENT_CYCLE;
+  const cycle = EVENT_CONFIG.WEATHER_CYCLE_NEW;
   const now = Date.now();
 
   const { skipStamp: currentSkipStamp = 0 } = await globalDB.getCache(
@@ -444,25 +449,26 @@ async function applyMutation(
     }
   });
 
-  const mutations = event.effect?.mutationType
-    ? [
-        ...Array.from({ length: CROP_CONFIG.MBIAS }, () =>
-          CROP_CONFIG.MUTATIONS.find(
-            (m) => m.name === event.effect.mutationType
-          )
-        ).filter(Boolean),
-        ...CROP_CONFIG.MUTATIONS.filter(
-          (m) => m.name !== event.effect.mutationType
-        ),
-      ]
-    : CROP_CONFIG.MUTATIONS;
+  const mutationEffects = event.effects ?? [];
+  const mutationTypeSet = new Set(
+    mutationEffects.map((e) => e.mutationType).filter(Boolean)
+  );
+
+  const mutations = [
+    ...Array.from({ length: CROP_CONFIG.MBIAS }, () =>
+      CROP_CONFIG.MUTATIONS.filter((m) => mutationTypeSet.has(m.name))
+    ).flat(),
+    ...CROP_CONFIG.MUTATIONS.filter((m) => !mutationTypeSet.has(m.name)),
+  ];
 
   for (const mutation of mutations) {
     if (!mutation) continue;
-    let mchance =
-      mutation.name === event.effect?.mutationType
-        ? event.effect.mutationChance ?? mutation.chance
-        : mutation.chance;
+
+    const matchingEffect = mutationEffects.find(
+      (e) => e.mutationType === mutation.name
+    );
+    let mchance = matchingEffect?.mutationChance ?? mutation.chance;
+
     if (Array.isArray(mutation.pet)) {
       if (
         mutation.pet.some((i) => pets.has(i)) &&
@@ -669,7 +675,7 @@ async function refreshShopStock(force = false) {
   } else {
     gardenShop.lastRestock = currentTime;
   }
-  const event = await getCurrentWeather();
+  const event = await getCurrentEvent();
   gardenShop.eventItems = [];
 
   if (event.shopItems && event.shopItems.length > 0) {
@@ -735,7 +741,7 @@ function getTimeUntilRestock() {
 
 function formatShopItems(
   items = gardenShop,
-  currentEvent: Awaited<ReturnType<typeof getCurrentWeather>>,
+  currentEvent: GardenEventItem,
   isEvent = false
 ): typeof gardenShop {
   const timeText = `🕒 **Next Restock**:\n${formatTimeSentence(
@@ -793,9 +799,9 @@ function formatShopItems(
 function correctItems(rawInv: GardenItem[]) {
   const allItems = [
     ...gardenShop.itemData,
-    ...EVENT_CONFIG.EVENTS.map(
-      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-    ).flat(),
+    ...[EVENT_CONFIG.CURRENT_EVENT]
+      .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
+      .flat(),
     ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
       (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
     ).flat(),
@@ -816,9 +822,9 @@ function correctItems(rawInv: GardenItem[]) {
 function correctPlot(plot: GardenPlot) {
   const allItems = [
     ...gardenShop.itemData,
-    ...EVENT_CONFIG.EVENTS.map(
-      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-    ).flat(),
+    ...[EVENT_CONFIG.CURRENT_EVENT]
+      .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
+      .flat(),
     ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
       (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
     ).flat(),
@@ -1050,7 +1056,7 @@ export async function entry(ctx: CommandContext) {
   gardenEarns = Math.max(gardenEarns, 0);
 
   const currWeather = await getCurrentWeather();
-  let hasEvent = !currWeather.isNoEvent;
+  let hasWeather = !currWeather.isNoEvent;
   const plotSorts = [
     "latest",
     "lowest",
@@ -1061,18 +1067,28 @@ export async function entry(ctx: CommandContext) {
     "most-time",
   ] as const;
 
+  const currEvent = await getCurrentEvent();
+
   const style: CommandStyle = {
     ...command.style,
     title: {
-      content: `${currWeather.icon} ${UNISpectra.charm} **G🍓rden**`,
+      content: `${currEvent.icon} ${UNISpectra.charm} **G🍓rden**`,
       text_font: "fancy",
       line_bottom: "default",
     },
     footer: {
-      content: hasEvent
-        ? `‼️ Event: **${currWeather.name}** ${
-            (currWeather.shopItems ?? []).length > 0
-              ? `(+${(currWeather.shopItems ?? []).length} Shop Items!)`
+      content: hasWeather
+        ? `${currWeather.icon} Weather: **${currWeather.name}**${
+            currWeather.effects?.length
+              ? " - " +
+                currWeather.effects
+                  .map(
+                    (e) =>
+                      `${Math.round((e.mutationChance ?? 0) * 100)}% ${
+                        e.mutationType
+                      } mutations`
+                  )
+                  .join(", ")
               : ""
           }`
         : "Rewards multiply with success.",
@@ -1098,7 +1114,7 @@ export async function entry(ctx: CommandContext) {
       icon: "🛒",
       async handler() {
         const shop = new UTShop({
-          ...formatShopItems(gardenShop, currWeather),
+          ...formatShopItems(gardenShop, currEvent),
           style,
         });
         if (isRef) {
@@ -1120,7 +1136,7 @@ export async function entry(ctx: CommandContext) {
         const shop = new UTShop({
           ...formatShopItems(
             { ...gardenShop, itemData: gardenShop.gnpShop },
-            currWeather
+            currEvent
           ),
           style,
         });
@@ -1134,12 +1150,12 @@ export async function entry(ctx: CommandContext) {
         await shop.onPlay({ ...ctx, args: [] });
       },
     },
-    ...(((currWeather.shopItems ?? []).length > 0
+    ...(((currEvent.shopItems ?? []).length > 0
       ? [
           {
-            key: currWeather?.shopName ?? "eventshop",
+            key: currEvent?.shopName ?? "eventshop",
             description: `Shop for ${currWeather.name}.`,
-            aliases: [...(currWeather.shopAlias ?? []), "-esh", "eshop"],
+            aliases: [...(currEvent.shopAlias ?? []), "-esh", "eshop"],
             icon: `${currWeather.icon ?? "🛒"}`,
             async handler() {
               const shop = new UTShop({
@@ -1148,7 +1164,7 @@ export async function entry(ctx: CommandContext) {
                     ...gardenShop,
                     itemData: gardenShop.eventItems,
                   },
-                  currWeather,
+                  currEvent,
                   true
                 ),
                 style,
@@ -1283,9 +1299,9 @@ export async function entry(ctx: CommandContext) {
           }
           const allItems = [
             ...gardenShop.itemData,
-            ...EVENT_CONFIG.EVENTS.map(
-              (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-            ).flat(),
+            ...[EVENT_CONFIG.CURRENT_EVENT]
+              .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
+              .flat(),
             ...constructions,
           ];
           const priceInt =
@@ -3167,12 +3183,12 @@ export async function entry(ctx: CommandContext) {
       },
     },*/
     {
-      key: "event",
-      description: "Check current garden event or weather",
-      aliases: ["-e"],
+      key: "weather",
+      description: "Check current garden  weather",
+      aliases: ["-w"],
       icon: "🎈",
       async handler() {
-        const event = await getCurrentWeather();
+        const weather = await getCurrentWeather();
         const upcomingEventsCount = 3;
         const upcomingEvents = [];
 
@@ -3184,26 +3200,31 @@ export async function entry(ctx: CommandContext) {
         const timeLeft = await getTimeForNextWeather();
 
         const result = [
-          `🌦️ **Current Event & Weather**: ${event.icon} ${event.name}`,
-          `${UNIRedux.charm} Mutation Chance: +${(
-            event.effect.mutationChance * 100
-          ).toFixed(0)}%`,
-          `${UNIRedux.charm} Growth Speed: ${event.effect.growthMultiplier}x`,
+          `🌦️ **Current Weather**: ${weather.icon} ${weather.name}`,
+          `${UNIRedux.charm} Growth Speed: ${weather.growthMultiplier}x`,
         ];
 
-        if (event.effect.mutationType) {
-          result.push(
-            `${UNIRedux.charm} Mutation Type: ${
-              event.effect.mutationType ?? "None"
-            }`
-          );
+        for (const effect of weather.effects ?? []) {
+          if (effect.mutationChance != null) {
+            result.push(
+              `${UNIRedux.charm} Mutation Chance: +${(
+                effect.mutationChance * 100
+              ).toFixed(0)}%`
+            );
+          }
+
+          if (effect.mutationType) {
+            result.push(
+              `${UNIRedux.charm} Mutation Type: ${effect.mutationType}`
+            );
+          }
         }
 
         result.push(
-          `🕒 Next Event in: ${formatTimeSentence(timeLeft) || "Ready!"}`
+          `🕒 Next Weather in: ${formatTimeSentence(timeLeft) || "Ready!"}`
         );
 
-        result.push(`\n🌟 **Upcoming Events:**\n${upcomingEvents.join("\n")}`);
+        result.push(`\n🌟 **Upcoming Weather:**\n${upcomingEvents.join("\n")}`);
 
         result.push(
           `\n**Next Steps**:\n` +
@@ -3221,14 +3242,14 @@ export async function entry(ctx: CommandContext) {
     {
       key: "skip",
       icon: "⏩",
-      description: "Skip garden events, positive or negative.",
+      description: "Skip garden weathers, positive or negative.",
       aliases: ["-sk"],
       args: ["[number/'reset']"],
       async handler(_, { spectralArgs }) {
         if (!input.hasRole(InputRoles.MODERATORBOT)) {
           return output.reply(`🔒 Only moderators can skip events.`);
         }
-        const event = await getCurrentWeather();
+        const weather = await getCurrentWeather();
         if (spectralArgs[0] === "reset") {
           await Cassidy.databases.globalDB.setItem("skipStamp", {
             skipStamp: 0,
@@ -3244,8 +3265,8 @@ export async function entry(ctx: CommandContext) {
             spectralArgs[0] === "reset"
               ? `Revoked skips to **original**.`
               : `Skipped **${parseInt(spectralArgs[0]) || 1}** events.`
-          }\n\n🌦️ **Skipped**: ${event.icon} ${
-            event.name
+          }\n\n🌦️ **Skipped**: ${weather.icon} ${
+            weather.name
           }\n\n 🌦️ **Current Event&Weather**: ${newEvent.icon} ${newEvent.name}`
         );
       },
@@ -3326,7 +3347,7 @@ export async function entry(ctx: CommandContext) {
               isHypen ? "-" : " "
             }uncage to collect seeds (up to ${PET_EQUIP_LIMIT} equipped). New pet synergy boosts specific mutations.\n` +
             `${UNIRedux.charm} **Tools**: Sprinkler and Fertilizer boost growth and mutations. Favorite Tool protects items.\n` +
-            `${UNIRedux.charm} **Events**: Weekly weather/events (e.g., ${EVENT_CONFIG.EVENTS[0].name}) offer exclusive seeds, bonuses, and new event-specific mutations.\n` +
+            `${UNIRedux.charm} **Events**: Weekly weather/events (e.g., ${EVENT_CONFIG.WEATHERS[0].name}) offer exclusive seeds, bonuses, and new event-specific mutations.\n` +
             `${
               UNIRedux.charm
             } **Stealing**: Steal crops from others for ${formatValue(
@@ -3384,9 +3405,9 @@ export async function entry(ctx: CommandContext) {
         }
         const allItems: gardenShop.GardenShopItem[] = [
           ...gardenShop.itemData,
-          ...EVENT_CONFIG.EVENTS.map(
-            (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-          ).flat(),
+          ...[EVENT_CONFIG.CURRENT_EVENT]
+            .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
+            .flat(),
           ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
             (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
           ).flat(),

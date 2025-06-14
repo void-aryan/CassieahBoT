@@ -3,7 +3,7 @@ import axios from "axios";
 export const CROP_CONFIG = {
   MUTATIONS: [
     { name: "Wet", valueMultiplier: 2, chance: 0.01, icon: "💧" },
-    { name: "Chilled", valueMultiplier: 2, chance: 0.01, icon: "❄️" },
+    { name: "Chilled", valueMultiplier: 2, chance: 0, icon: "❄️" },
     { name: "Chocolate", valueMultiplier: 2, chance: 0, icon: "🍫" },
     { name: "Moonlit", valueMultiplier: 2, chance: 0, icon: "🌙" },
     { name: "Pollinated", valueMultiplier: 3, chance: 0, icon: "🐝" },
