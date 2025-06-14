@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.8",
+  version: "2.0.9",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1768,6 +1768,7 @@ export async function entry(ctx: CommandContext) {
             isHypen ? "-" : " "
           }plots ${type} ${page + 1}\n`;
         }
+        result += `🏗️ To Shovel: ***Reply with***:\nshovel <number> <number> <number>\n`;
 
         result += `\n📈 Total Earns: ${formatCash(gardenEarns, true)}\n\n`;
 
@@ -1782,7 +1783,50 @@ export async function entry(ctx: CommandContext) {
         await money.setItem(input.senderID, {
           gardenPlots: plots.raw(),
         });
-        return output.replyStyled(result, style);
+        const info = await output.replyStyled(result, style);
+        info.atReply(async (rep) => {
+          if (rep.uid !== input.sid) {
+            return;
+          }
+          let [type = "", ...nums_] = rep.input.words;
+          type = type.toLowerCase();
+          const nums = nums_.map(Number);
+
+          const { gardenPlots: rawPlots = [] } = await rep.usersDB.getCache(
+            rep.uid
+          );
+          const plots = new Inventory<GardenPlot>(rawPlots);
+          const targets = nums
+            .map((i) => sortedPlots.find((s) => s.num === i)?.plot?.uuid)
+            .filter(Boolean)
+            .map((i) => plots.getOneByID(i))
+            .filter(Boolean);
+          rep.output.setStyle(style);
+          if (type === "shovel") {
+            if (targets.length === 0) {
+              return rep.output.reply(`🏗️ No targets provided as arguments.`);
+            }
+            let str = `✅ **Shoveled Successfully!**\n\n`;
+            for (const target of targets) {
+              str += `${target.icon} **${target.name}**\n`;
+              plots.deleteByID(target.uuid);
+            }
+            str +=
+              `\n**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} Harvest crops: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }harvest\n` +
+              `${
+                UNISpectra.arrowFromT
+              } Favorite crops: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }favorite`;
+            await rep.usersDB.setItem(rep.uid, {
+              gardenPlots: plots.raw(),
+            });
+            return rep.output.reply(str);
+          }
+        });
       },
     },
     {
@@ -1814,7 +1858,7 @@ export async function entry(ctx: CommandContext) {
           }
 
           userStats.push({
-            userId: user.senderID,
+            userId: user.userID,
             name: user.name || "Farmer",
             totalEarns: user.gardenEarns || 0,
             user,
