@@ -1154,10 +1154,7 @@ export async function entry(ctx: CommandContext) {
     ...(xBarn.hasByID(gardenHeld)
       ? {
           held: {
-            content: `🫴 ${formatMutationStr(currentHeld)} - ${formatCash(
-              currentHeld.value,
-              true
-            )}`,
+            content: `🫴 ${formatMutationStr(currentHeld)}`,
             text_font: "fancy",
             line_top: "default",
           },
