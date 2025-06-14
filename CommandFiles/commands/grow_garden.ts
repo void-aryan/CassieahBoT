@@ -28,7 +28,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.11",
+  version: "2.0.12",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -1076,6 +1076,7 @@ export async function entry(ctx: CommandContext) {
   let {
     name = "",
     gardenPlots: rawPlots = [],
+    gardenPlotsBefore: rawPlotsBefore = [],
     gardenBarns: rawBarns = [],
     gardenPets: rawPets = [],
     gardenHeld = "",
@@ -1604,7 +1605,7 @@ export async function entry(ctx: CommandContext) {
     },
     {
       key: "collect",
-      description: "Collect & automatically sell ready crops",
+      description: "Collect ready crops",
       aliases: ["-c", "-h", "harvest"],
       icon: "🧺",
       args: ["'all'|seed_key"],
@@ -1832,6 +1833,158 @@ export async function entry(ctx: CommandContext) {
             `📈 Total Earns: **${formatCash(
               gardenEarns
             )}** (+${abbreviateNumber(addedEarns)})\n\n` +
+            `**Next Steps**:\n` +
+            `${UNISpectra.arrowFromT} Sell crops: ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }sell\n` +
+            `${UNISpectra.arrowFromT} Check the barn: ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }barn`,
+          style
+        );
+      },
+    },
+    {
+      key: "reset_claim",
+      description: "Collect reset plants (for players from old versions).",
+      icon: "🧺",
+      async handler(_, {}) {
+        const plotsBefore = new Inventory<GardenPlot>(
+          rawPlotsBefore,
+          plotLimit
+        );
+        const barn = new Inventory<GardenBarn>(
+          rawBarns,
+          CROP_CONFIG.BARN_LIMIT
+        );
+        const harvested: {
+          plot: GardenPlot;
+          value: ReturnType<typeof calculateCropValue>;
+        }[] = [];
+        const tools = new Inventory<GardenTool>(
+          rawInventory.filter(
+            (item) => item.type === "gardenTool"
+          ) as GardenTool[]
+        );
+
+        const sortedPlots = [...plotsBefore].sort(
+          (a, b) =>
+            calculateCropValue(b).allYield - calculateCropValue(a).allYield
+        );
+
+        const type = "all";
+
+        const isAll = type === "all";
+
+        const readyPlots: GardenPlot[] = [];
+        for (const plot of sortedPlots) {
+          const item = await autoUpdateCropData(plot, tools, exiPets);
+          if (isCropReady(item) && readyPlots.length < 20) {
+            if (isAll || item.seedKey === type) {
+              readyPlots.push(item);
+            }
+          }
+        }
+        if (readyPlots.length === 0) {
+          return output.replyStyled(`🌱 No crops available!`, style);
+        }
+        if (barn.isFull()) {
+          return output.replyStyled(
+            `🌱 Barn is full! Check barn items with ${prefix}${commandName}${
+              isHypen ? "-" : " "
+            }barn.\n\n` +
+              `**Next Steps**:\n` +
+              `${UNISpectra.arrowFromT} View plots: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }plots\n` +
+              `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
+                isHypen ? "-" : " "
+              }plant`,
+            style
+          );
+        }
+
+        for (const plot of readyPlots) {
+          await autoUpdateCropData(
+            plot,
+            new Inventory<GardenTool>(
+              rawInventory.filter(
+                (item) => item.type === "gardenTool"
+              ) as GardenTool[]
+            ),
+            exiPets
+          );
+
+          if (plot.mutation.length > 0) {
+            gardenStats.mutationsFound =
+              (gardenStats.mutationsFound || 0) + plot.mutation.length;
+          }
+          const value = calculateCropValue(plot);
+          const collected = toBarnItem(plot);
+          let yields = Math.min(
+            value.yields,
+            CROP_CONFIG.BARN_LIMIT - barn.size()
+          );
+          barn.add(collected.slice(0, yields));
+          if (yields <= 0) {
+            continue;
+          }
+
+          harvested.push({
+            plot: { ...plot },
+            value: { ...value, allYield: value.final * yields },
+          });
+          plot.harvestsLeft -= yields;
+
+          gardenStats.plotsHarvested =
+            (gardenStats.plotsHarvested || 0) + yields;
+
+          plotsBefore.deleteByID(plot.uuid);
+        }
+
+        gardenEarns = Math.round(Math.max(0, gardenEarns));
+
+        await money.setItem(input.senderID, {
+          gardenPlotsBefore: Array.from(plotsBefore),
+          gardenStats,
+          gardenEarns,
+          gardenBarns: Array.from(barn),
+        });
+        await checkAchievements(
+          {
+            ...ctx.user,
+            gardenStats,
+            senderID: input.senderID,
+            money: userMoney,
+          },
+          money,
+          output,
+          input
+        );
+        const harvestedStr = [...harvested]
+          .sort((a, b) => b.value.final - a.value.final)
+          .map(
+            ({ plot, value }) =>
+              `(x${value.yields}) ${
+                (plot.mutation ?? []).length > 0
+                  ? `[ ${plot.mutation
+                      .map(
+                        (i) =>
+                          `${
+                            getMutation(i)?.icon ?? "❓"
+                          } ${fonts.double_struck(i)}`
+                      )
+                      .join(" + ")} +${abbreviateNumber(
+                      value.noExtra - plot.baseValue
+                    )} ] `
+                  : ""
+              }${plot.icon} ${plot.name} (${plot.kiloGrams}kg)`
+          );
+
+        return output.replyStyled(
+          `✅🧺 **Collected old crops and added to the Barn!**:\n${harvestedStr.join(
+            "\n"
+          )}\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Sell crops: ${prefix}${commandName}${
               isHypen ? "-" : " "
