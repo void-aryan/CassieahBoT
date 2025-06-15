@@ -32,7 +32,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.14",
+  version: "2.0.15",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -575,6 +575,9 @@ function getMutation(name: string) {
 }
 
 function formatMutationStr(plot: GardenPlot | GardenBarn) {
+  if (!plot) {
+    return ` ❔ **Nothing**`;
+  }
   return `${
     (plot.mutation ?? []).length > 0
       ? `[ ${plot.mutation
@@ -1310,7 +1313,9 @@ export async function entry(ctx: CommandContext) {
             },
           },
           {
-            txt: `I want to sell this 🫴 ${formatMutationStr(currentHeld)}`,
+            txt: `I want to sell this 🫴 ${
+              currentHeld ? formatMutationStr(currentHeld) : "[no held item]"
+            }`,
             async callback(rep) {
               const {
                 gardenBarns = [],
@@ -1351,7 +1356,9 @@ export async function entry(ctx: CommandContext) {
           },
 
           {
-            txt: `How much is this ${formatMutationStr(currentHeld)} worth?`,
+            txt: `How much is this ${
+              currentHeld ? formatMutationStr(currentHeld) : "[no held item]"
+            } worth?`,
             async callback(rep) {
               const { gardenBarns = [], gardenHeld = "" } =
                 await rep.usersDB.getCache(rep.uid);
