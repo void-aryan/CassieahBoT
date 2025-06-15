@@ -1,17 +1,31 @@
 import { GardenItem, GardenSeed } from "@cass-commands/grow_garden";
 import { gardenShop } from "./GardenShop";
+import { InventoryItem } from "./cassidyUser";
 
+export type ShopPrice = "money" | "battlePoints" | `cll:${string}`;
 export interface ShopItem {
   icon: string;
   name: string;
   key: string;
   flavorText: string;
   price: number;
-  rarity: string;
+  priceType?: ShopPrice;
+  rarity?: string;
+  /**
+   * @deprecated
+   */
   stockLimit?: number;
-  stockChance: number;
-  inStock: boolean;
-  onPurchase: (args: { moneySet: { inventory: GardenItem[] } }) => void;
+  stockChance?: number;
+  inStock?: boolean;
+  /**
+   * @deprecated
+   */
+  expReward?: number;
+  onPurchase: (
+    args:
+      | (CommandContext & { moneySet: { inventory: InventoryItem[] } })
+      | { moneySet: { inventory: InventoryItem[] } }
+  ) => void;
   [key: string]: unknown;
 }
 

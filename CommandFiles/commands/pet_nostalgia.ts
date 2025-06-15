@@ -9,6 +9,7 @@ import {
 } from "@cass-modules/cassidyUser";
 import { formatCash } from "@cass-modules/ArielUtils";
 import { SmartPet } from "@cass-modules/SmartSpectra";
+import { ShopItem } from "@cass-modules/GardenBalancer";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
@@ -271,7 +272,7 @@ export const style: CassidySpectra.CommandStyle = {
   lineDeco: "altar",
 };
 
-const petFoodsII = [
+const petFoodsII: ShopItem[] = [
   {
     icon: "🌈",
     name: "Rainbow Delight",
@@ -441,7 +442,7 @@ const petFoodsII = [
     },
   },
 ];
-const petFoods = [
+const petFoods: ShopItem[] = [
   {
     icon: "🍖",
     name: "Dog Treats",
@@ -847,6 +848,541 @@ const petFoods = [
     },
   },
 ];
+
+const exFoods: ShopItem[] = [
+  {
+    name: "Beefy Bones 𝔼𝕏 ✦",
+    key: "beefyBonesEX",
+    flavorText:
+      "Hearty bones infused with legendary marrow for your loyal hound.",
+    icon: "🦴",
+    type: "dog_food",
+    price: 10,
+    priceType: "cll:gems",
+    stockLimit: 20,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Beefy Bones 𝔼𝕏 ✦",
+        key: "beefyBonesEX",
+        flavorText:
+          "Hearty bones infused with legendary marrow for your loyal hound.",
+        icon: "🦴",
+        type: "dog_food",
+        sellPrice: 500,
+        saturation: 120 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "doghelp"],
+      });
+    },
+  },
+  {
+    name: "Whisker Delights 𝔼𝕏 ✦",
+    key: "whiskerDelightsEX",
+    flavorText:
+      "Aromatic catnip treats that awaken your feline's hidden royalty.",
+    icon: "🐭",
+    type: "cat_food",
+    price: 10,
+    priceType: "cll:gems",
+    stockLimit: 20,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Whisker Delights 𝔼𝕏 ✦",
+        key: "whiskerDelightsEX",
+        flavorText:
+          "Aromatic catnip treats that awaken your feline's hidden royalty.",
+        icon: "🐭",
+        type: "cat_food",
+        sellPrice: 500,
+        saturation: 120 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "cathelp"],
+      });
+    },
+  },
+  {
+    name: "Graceful Greens 𝔼𝕏 ✦",
+    key: "gracefulGreensEX",
+    flavorText: "Ancient herbal munchies said to be blessed by forest spirits.",
+    icon: "🌱",
+    type: "deer_food",
+    price: 10,
+    priceType: "cll:gems",
+    stockLimit: 20,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Graceful Greens 𝔼𝕏 ✦",
+        key: "gracefulGreensEX",
+        flavorText:
+          "Ancient herbal munchies said to be blessed by forest spirits.",
+        icon: "🌱",
+        type: "deer_food",
+        sellPrice: 500,
+        saturation: 120 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "deerhelp"],
+      });
+    },
+  },
+  {
+    name: "Creepy Crawly Cuisine 𝔼𝕏 ✦",
+    key: "creepyCrawlyCuisineEX",
+    flavorText:
+      "A rare blend of enchanted insects—ideal for any discerning serpent.",
+    icon: "🐜",
+    type: "snake_food",
+    price: 10,
+    priceType: "cll:gems",
+    stockLimit: 20,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Creepy Crawly Cuisine 𝔼𝕏 ✦",
+        key: "creepyCrawlyCuisineEX",
+        flavorText:
+          "A rare blend of enchanted insects—ideal for any discerning serpent.",
+        icon: "🐜",
+        type: "snake_food",
+        sellPrice: 500,
+        saturation: 120 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "snakehelp"],
+      });
+    },
+  },
+  {
+    name: "Majestic Meals 𝔼𝕏 ✦",
+    key: "majesticMealsEX",
+    flavorText: "A medley of wild game for your tiger.",
+    icon: "🦌",
+    type: "tiger_food",
+    price: 10,
+    priceType: "cll:gems",
+    stockLimit: 20,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Majestic Meals 𝔼𝕏 ✦",
+        key: "majesticMealsEX",
+        flavorText: "A medley of wild game for your tiger.",
+        icon: "🦌",
+        type: "tiger_food",
+        sellPrice: 500,
+        saturation: 120 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "tigerhelp"],
+      });
+    },
+  },
+  {
+    name: "Cosmic Crunch 𝔼𝕏 ✦",
+    key: "cosmicCrunchEX",
+    flavorText:
+      "Tasty cosmic treats for your cosmic dragon.. or normal dragon.",
+    icon: "☄️",
+    type: "dragon_food",
+    price: 15,
+    priceType: "cll:gems",
+    stockLimit: 20,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Cosmic Crunch 𝔼𝕏 ✦",
+        key: "cosmicCrunchEX",
+        flavorText:
+          "Tasty cosmic treats for your cosmic dragon.. or normal dragon.",
+        icon: "☄️",
+        type: "dragon_food",
+        sellPrice: 500,
+        saturation: 250 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "dragonhelp"],
+      });
+    },
+  },
+  {
+    name: "Cosmic Punch 𝔼𝕏 ✦",
+    key: "cosmicPunchEX",
+    flavorText:
+      "Punchy cosmic treats for your cosmic dragon, normal dragon.. or almost everyone",
+    icon: "🥊",
+    type: "food",
+    price: 30,
+    priceType: "cll:gems",
+    stockLimit: 5,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Cosmic Punch 𝔼𝕏 ✦",
+        key: "cosmicPunchEX",
+        flavorText:
+          "Punchy cosmic treats for your cosmic dragon, normal dragon.. or almost everyone",
+        icon: "🥊",
+        type: "food",
+        sellPrice: 500,
+        heal: 250,
+        prob: 0.35,
+        picky: true,
+        group: ["generic", "petfoods", "dragonhelp", "punch"],
+      });
+    },
+  },
+  {
+    name: "Phoenix Ember 𝔼𝕏 ✦",
+    key: "phoenixEmberEX",
+    flavorText:
+      "A mystical ember known for its transformative properties. When consumed, it imbues the Phoenix with renewed vitality, enhancing its fiery aura and majestic presence.",
+    icon: "🔥",
+    type: "phoenix_food",
+    price: 20,
+    priceType: "cll:gems",
+    stockLimit: 20,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Phoenix Ember 𝔼𝕏 ✦",
+        key: "phoenixEmberEX",
+        flavorText:
+          "A mystical ember known for its transformative properties. When consumed, it imbues the Phoenix with renewed vitality, enhancing its fiery aura and majestic presence.",
+        icon: "🔥",
+        type: "phoenix_food",
+        sellPrice: 500,
+        saturation: 400 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "phoenixhelp"],
+      });
+    },
+  },
+];
+
+const exFoodsII: ShopItem[] = [
+  {
+    icon: "🌈✨",
+    name: "Rainbow Delight 𝔼𝕏 ✦",
+    key: "rainbowDelightEX",
+    flavorText: "Now sparkles with true chromatic magic. EX unicorns only.",
+    price: 18,
+    priceType: "cll:gems",
+    stockLimit: 8,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Rainbow Delight 𝔼𝕏 ✦",
+        key: "rainbowDelightEX",
+        flavorText: "Now sparkles with true chromatic magic.",
+        icon: "🌈✨",
+        type: "unicorn_food",
+        sellPrice: 900,
+        saturation: 240 * 60 * 1000,
+        prob: 0.35,
+        picky: true,
+        group: ["petfoods", "unicornhelp"],
+      });
+    },
+  },
+  {
+    icon: "❄️🧊",
+    name: "Snowflake Surprise 𝔼𝕏 ✦",
+    key: "snowflakeSurpriseEX",
+    flavorText: "Frozen by glacial breath. Only a true Yeti can digest it.",
+    price: 15,
+    priceType: "cll:gems",
+    stockLimit: 10,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Snowflake Surprise 𝔼𝕏 ✦",
+        key: "snowflakeSurpriseEX",
+        flavorText: "Frozen by glacial breath.",
+        icon: "❄️🧊",
+        type: "yeti_food",
+        sellPrice: 750,
+        saturation: 200 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["petfoods", "yetihelp"],
+      });
+    },
+  },
+  {
+    icon: "🐋💎",
+    name: "Ocean Bounty 𝔼𝕏 ✦",
+    key: "oceanBountyEX",
+    flavorText: "Infused with pearls and deep-sea essence for Leviathans.",
+    price: 16,
+    priceType: "cll:gems",
+    stockLimit: 9,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Ocean Bounty 𝔼𝕏 ✦",
+        key: "oceanBountyEX",
+        flavorText: "Infused with pearls and deep-sea essence.",
+        icon: "🐋💎",
+        type: "leviathan_food",
+        sellPrice: 800,
+        saturation: 220 * 60 * 1000,
+        prob: 0.32,
+        picky: true,
+        group: ["petfoods", "leviathanhelp"],
+      });
+    },
+  },
+  {
+    icon: "🔥🔥🔥✨",
+    name: "Infernal Feast 𝔼𝕏 ✦",
+    key: "infernalFeastEX",
+    flavorText: "Scorched thrice in underworld flame, for Cerberus only.",
+    price: 17,
+    priceType: "cll:gems",
+    stockLimit: 7,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Infernal Feast 𝔼𝕏 ✦",
+        key: "infernalFeastEX",
+        flavorText: "Scorched thrice in underworld flame.",
+        icon: "🔥🔥🔥✨",
+        type: "cerberus_food",
+        sellPrice: 850,
+        saturation: 230 * 60 * 1000,
+        prob: 0.34,
+        picky: true,
+        group: ["petfoods", "cerberushelp"],
+      });
+    },
+  },
+  {
+    icon: "🦁🗿✨",
+    name: "Mystical Medley 𝔼𝕏 ✦",
+    key: "mysticalMedleyEX",
+    flavorText: "Ancient riddles infused into every bite. Sphinx exclusive.",
+    price: 19,
+    priceType: "cll:gems",
+    stockLimit: 6,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Mystical Medley 𝔼𝕏 ✦",
+        key: "mysticalMedleyEX",
+        flavorText: "Ancient riddles infused into every bite.",
+        icon: "🦁🗿✨",
+        type: "sphinx_food",
+        sellPrice: 950,
+        saturation: 250 * 60 * 1000,
+        prob: 0.36,
+        picky: true,
+        group: ["petfoods", "sphinxhelp"],
+      });
+    },
+  },
+  {
+    icon: "🦁🦅🌌",
+    name: "Celestial Feast 𝔼𝕏 ✦",
+    key: "celestialFeastEX",
+    flavorText: "Baked in a supernova. Only for proud Griffins.",
+    price: 18,
+    priceType: "cll:gems",
+    stockLimit: 8,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Celestial Feast 𝔼𝕏 ✦",
+        key: "celestialFeastEX",
+        flavorText: "Baked in a supernova.",
+        icon: "🦁🦅🌌",
+        type: "griffin_food",
+        sellPrice: 900,
+        saturation: 240 * 60 * 1000,
+        prob: 0.35,
+        picky: true,
+        group: ["petfoods", "griffinhelp"],
+      });
+    },
+  },
+  {
+    icon: "🐎✨🌠",
+    name: "Starlight Snacks 𝔼𝕏 ✦",
+    key: "starlightSnacksEX",
+    flavorText: "Pegasus delight, harvested from meteor trails.",
+    price: 18,
+    priceType: "cll:gems",
+    stockLimit: 8,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Starlight Snacks 𝔼𝕏 ✦",
+        key: "starlightSnacksEX",
+        flavorText: "Pegasus delight, harvested from meteor trails.",
+        icon: "🐎✨🌠",
+        type: "pegasus_food",
+        sellPrice: 900,
+        saturation: 240 * 60 * 1000,
+        prob: 0.35,
+        picky: true,
+        group: ["petfoods", "pegasushelp"],
+      });
+    },
+  },
+  {
+    icon: "🐙👑",
+    name: "Deep Sea Delicacy 𝔼𝕏 ✦",
+    key: "deepSeaDelicacyEX",
+    flavorText: "Crowned kraken meal, soaked in abyssal currents.",
+    price: 20,
+    priceType: "cll:gems",
+    stockLimit: 5,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Deep Sea Delicacy 𝔼𝕏 ✦",
+        key: "deepSeaDelicacyEX",
+        flavorText: "Crowned kraken meal, soaked in abyssal currents.",
+        icon: "🐙👑",
+        type: "kraken_food",
+        sellPrice: 1000,
+        saturation: 260 * 60 * 1000,
+        prob: 0.37,
+        picky: true,
+        group: ["petfoods", "krakenhelp"],
+      });
+    },
+  },
+];
+
+const mythicExFoods: ShopItem[] = [
+  {
+    name: "Moonblessed Hay 𝔼𝕏 ✦",
+    key: "moonblessedHayEX",
+    flavorText:
+      "Imbued with celestial essence, this hay nourishes unicorns beyond the veil of dreams.",
+    icon: "🦄",
+    type: "unicorn_food",
+    price: 25,
+    priceType: "cll:gems",
+    stockLimit: 10,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Moonblessed Hay 𝔼𝕏 ✦",
+        key: "moonblessedHayEX",
+        flavorText:
+          "Imbued with celestial essence, this hay nourishes unicorns beyond the veil of dreams.",
+        icon: "🦄",
+        type: "unicorn_food",
+        sellPrice: 700,
+        saturation: 300 * 60 * 1000,
+        prob: 0.4,
+        picky: true,
+        group: ["generic", "petfoods", "unicornhelp"],
+      });
+    },
+  },
+  {
+    name: "Leviathan Lure 𝔼𝕏 ✦",
+    key: "leviathanLureEX",
+    flavorText:
+      "A titanic seafood platter that whispers to deep-sea beasts. Kraken-approved.",
+    icon: "🐙",
+    type: "kraken_food",
+    price: 30,
+    priceType: "cll:gems",
+    stockLimit: 8,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Leviathan Lure 𝔼𝕏 ✦",
+        key: "leviathanLureEX",
+        flavorText:
+          "A titanic seafood platter that whispers to deep-sea beasts. Kraken-approved.",
+        icon: "🐙",
+        type: "kraken_food",
+        sellPrice: 800,
+        saturation: 350 * 60 * 1000,
+        prob: 0.35,
+        picky: true,
+        group: ["generic", "petfoods", "krakenhelp"],
+      });
+    },
+  },
+  {
+    name: "Yeti Yogurt 𝔼𝕏 ✦",
+    key: "yetiYogurtEX",
+    flavorText:
+      "Frozen from glacial milk and enchanted with alpine spores. Only for the fluffiest.",
+    icon: "🥶",
+    type: "yeti_food",
+    price: 18,
+    priceType: "cll:gems",
+    stockLimit: 12,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Yeti Yogurt 𝔼𝕏 ✦",
+        key: "yetiYogurtEX",
+        flavorText:
+          "Frozen from glacial milk and enchanted with alpine spores. Only for the fluffiest.",
+        icon: "🥶",
+        type: "yeti_food",
+        sellPrice: 600,
+        saturation: 250 * 60 * 1000,
+        prob: 0.3,
+        picky: true,
+        group: ["generic", "petfoods", "yetihelp"],
+      });
+    },
+  },
+  {
+    name: "Starfeather Jerky 𝔼𝕏 ✦",
+    key: "starfeatherJerkyEX",
+    flavorText:
+      "Sun-dried meats of meteoric birds, fit for a Griffin's celestial appetite.",
+    icon: "🪶",
+    type: "griffin_food",
+    price: 22,
+    priceType: "cll:gems",
+    stockLimit: 10,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Starfeather Jerky 𝔼𝕏 ✦",
+        key: "starfeatherJerkyEX",
+        flavorText:
+          "Sun-dried meats of meteoric birds, fit for a Griffin's celestial appetite.",
+        icon: "🪶",
+        type: "griffin_food",
+        sellPrice: 650,
+        saturation: 280 * 60 * 1000,
+        prob: 0.35,
+        picky: true,
+        group: ["generic", "petfoods", "griffinhelp"],
+      });
+    },
+  },
+  {
+    name: "Mystic Nectar 𝔼𝕏 ✦",
+    key: "mysticNectarEX",
+    flavorText:
+      "Harvested from sky-blooms during lunar eclipses. Griffins and dragons adore it.",
+    icon: "🧃",
+    type: "mythical_food",
+    price: 35,
+    priceType: "cll:gems",
+    stockLimit: 5,
+    onPurchase({ moneySet }) {
+      moneySet.inventory.push({
+        name: "Mystic Nectar 𝔼𝕏 ✦",
+        key: "mysticNectarEX",
+        flavorText:
+          "Harvested from sky-blooms during lunar eclipses. Griffins and dragons adore it.",
+        icon: "🧃",
+        type: "mythical_food",
+        sellPrice: 1000,
+        saturation: 400 * 60 * 1000,
+        prob: 0.5,
+        picky: true,
+        group: [
+          "generic",
+          "petfoods",
+          "unicornhelp",
+          "griffinhelp",
+          "dragonhelp",
+        ],
+      });
+    },
+  },
+];
+
 export function calculateWorth(pet) {
   pet = autoUpdatePetData(pet);
   const { sellPrice, level, lastExp = 0 } = pet;
@@ -899,6 +1435,7 @@ function calculateNextExp(petData) {
 
   return nextExp;
 }
+
 const petShop = {
   key: "petShop",
   /*itemData: [
@@ -1858,6 +2395,45 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
           const shop = new UTShop({
             ...petShop,
             itemData: [bundle, bundle2, ...petFoodsII],
+          });
+          await shop.onPlay(ctx);
+        },
+      },
+      {
+        key: "exshop",
+        description: "Visit the 𝔼𝕏 pet shop",
+        aliases: ["-ex"],
+        async handler(_, __) {
+          const shop = new UTShop({
+            ...petShop,
+            itemData: exFoods,
+            welcomeTexts: ["Welcome to the 𝔼𝕏 pet shop"],
+          });
+          await shop.onPlay(ctx);
+        },
+      },
+      {
+        key: "exshop2",
+        description: "Visit the 𝔼𝕏 pet shop II",
+        aliases: ["-ex2"],
+        async handler(_, __) {
+          const shop = new UTShop({
+            ...petShop,
+            itemData: exFoodsII,
+            welcomeTexts: ["Welcome to the 𝔼𝕏 pet shop II"],
+          });
+          await shop.onPlay(ctx);
+        },
+      },
+      {
+        key: "mexshop",
+        description: "Visit the Mythical 𝔼𝕏 pet shop",
+        aliases: ["-mex"],
+        async handler(_, __) {
+          const shop = new UTShop({
+            ...petShop,
+            itemData: mythicExFoods,
+            welcomeTexts: ["Welcome to the Mythical 𝔼𝕏 pet shop"],
           });
           await shop.onPlay(ctx);
         },

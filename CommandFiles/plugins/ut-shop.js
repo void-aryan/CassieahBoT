@@ -3,12 +3,12 @@ import { CassEXP } from "../modules/cassEXP.js";
 import { clamp, UNISpectra } from "@cassidy/unispectra";
 import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 import { PetPlayer } from "./pet-fight";
-import { formatCash } from "@cass-modules/ArielUtils";
+import { formatCash, formatValue, parseBet } from "@cass-modules/ArielUtils";
 
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.1.4",
+  version: "2.1.5",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -685,6 +685,10 @@ export const treasureInv = new Inventory(treasures, Infinity);
  */
 export class UTShop {
   /**
+   * @type {import("@cass-modules/GardenBalancer").ShopItem[]}
+   */
+  itemData;
+  /**
    * @type {Map<string, StockData>}
    */
   static stocksData = new Map();
@@ -919,12 +923,39 @@ export class UTShop {
     return result;
   }
   /**
+   * @param {string} t
+   */
+  isCll(t) {
+    t ??= "money";
+    const state = !["money"].includes(t) && `${t}`.startsWith("cll:");
+    return {
+      state,
+      cllKey: state ? `${t}`.replaceAll("cll:", "") : t,
+    };
+  }
+  /**
+   * @param {string} t
+   * @param {UserData} userData
+   */
+  getUserHas(userData, t) {
+    t ??= "money";
+    if (t === "money") return userData.money ?? 0;
+
+    if (this.isCll(t)) {
+      const cll = new Collectibles(userData.collectibles ?? []);
+      const k = `${t}`.replace("cll:", "");
+      return cll.has(k) ? cll.getAmount(k) : 0;
+    }
+    return null;
+  }
+
+  /**
    *
    * @param {{ inventory: Inventory; boxInventory: Inventory; userMoney: number; playersMap: Map<string, PetPlayer>; userData: UserData }} param0
    * @returns
    */
   stringItemData(
-    { inventory, boxInventory, userMoney = 0, playersMap, userData } = {
+    { inventory, boxInventory, userMoney: _money = 0, playersMap, userData } = {
       inventory: undefined,
       boxInventory: undefined,
       playersMap: undefined,
@@ -936,9 +967,8 @@ export class UTShop {
     if (inventory instanceof Inventory && boxInventory instanceof Inventory) {
       isLegacy = false;
     }
-    /**
-     * @type {import("@cass-modules/cassidyUser").InventoryItem[]}
-     */
+    const collectibles = new Collectibles(userData.collectibles ?? []);
+
     const data = this.itemData;
     let result;
     if (!isLegacy) {
@@ -947,6 +977,21 @@ export class UTShop {
       } else {
         result = data
           .map((item) => {
+            const priceInfo = this.isCll(item.priceType);
+            const currentAmount = this.getUserHas(userData, item.priceType);
+            /**
+             * @type {import("@cass-modules/cassidyUser").CollectibleItem["metadata"]}
+             */
+            const cllItem =
+              priceInfo.state && collectibles.has(priceInfo.cllKey)
+                ? collectibles.getMeta(priceInfo.cllKey)
+                : {
+                    icon: "❓",
+                    name: "Unknown Item",
+                    key: priceInfo.cllKey,
+                    type: "unknown",
+                  };
+
             const stocks = this.getStock(userData.userID, item.key);
             const invAmount = inventory.getAmount(item.key);
             const boxAmount = boxInventory.getAmount(item.key);
@@ -960,7 +1005,7 @@ export class UTShop {
             );
             const ndriveAmount = ndrive.getAmount(item.key);
             const bankAmount = bank.getAmount(item.key);
-            let isAffordable = userMoney >= Number(item.price ?? 0);
+            let isAffordable = currentAmount >= Number(item.price ?? 0);
             let isSellable = true;
             if (item.cannotBuy === true) {
               isSellable = false;
@@ -978,9 +1023,15 @@ export class UTShop {
             result +=
               `- ${
                 isSellable
-                  ? `**${formatCash(
-                      Number(this.isGenoR() ? 0 : item.price ?? 0)
-                    )}** ${
+                  ? `${
+                      priceInfo.state
+                        ? `**${formatValue(item.price ?? 0, cllItem.icon)}** ${
+                            cllItem.name
+                          } [${cllItem.key}]\n`
+                        : `**${formatCash(
+                            Number(this.isGenoR() ? 0 : item.price ?? 0)
+                          )}**`
+                    } ${
                       isSellable
                         ? isAffordable
                           ? hasInv
@@ -1312,6 +1363,7 @@ ${this.optionText()}
           cassEXP: cxp,
         } = userInfo;
 
+        const collectibles = new Collectibles(userInfo.collectibles ?? []);
         const cassEXP = new CassEXP(cxp);
 
         let { playersMap } = petPlayerMaps(userInfo);
@@ -1324,10 +1376,7 @@ ${this.optionText()}
           userData: userInfo,
         });
         const num = parseInt(input.words[0]);
-        let amount = parseInt(String(input.words[1] || 1));
-        if (isNaN(amount) || amount <= 0) {
-          amount = 1;
-        }
+
         if (String(input.words[0]).toLowerCase() === "back") {
           return handleGoBack();
         }
@@ -1342,7 +1391,31 @@ ${this.optionText()}
         }
 
         let { price = 0, onPurchase } = targetItem;
+        targetItem.priceType ??= "money";
+        const priceInfo = self.isCll(targetItem.priceType);
+        const currentAmount = self.getUserHas(userInfo, targetItem.priceType);
         const stocks = self.getStock(input.senderID, targetItem.key);
+        /**
+         * @type {import("@cass-modules/cassidyUser").CollectibleItem["metadata"]}
+         */
+        const cllItem =
+          priceInfo.state && collectibles.has(priceInfo.cllKey)
+            ? collectibles.getMeta(priceInfo.cllKey)
+            : {
+                icon: "❓",
+                name: "Unknown Item",
+                key: priceInfo.cllKey,
+                type: "unknown",
+              };
+
+        let amount =
+          parseBet(
+            input.words[1],
+            isFinite(stocks) ? stocks : invLimit - inventory.length
+          ) || 1;
+        if (isNaN(amount) || amount <= 0) {
+          amount = 1;
+        }
         if (amount > inventoryLimit - inventory.length) {
           amount = inventoryLimit - inventory.length;
         }
@@ -1368,15 +1441,17 @@ ${this.optionText()}
         }
 
         price = amount * price;
-        if (cash < price) {
+        if (currentAmount < price) {
           return output.reply(
-            `💸 **Insufficient funds:** You have ${formatCash(
-              cash,
-              true
-            )}, but need ${formatCash(
-              price,
-              true
-            )}.\nPlease choose a valid option or type **back**.`
+            `💸 **Insufficient funds:** You have ${
+              priceInfo.state
+                ? `${formatValue(currentAmount, cllItem.icon)} ${cllItem.name}`
+                : formatCash(currentAmount, true)
+            }, but need ${
+              priceInfo.state
+                ? `${formatValue(price, cllItem.icon)} ${cllItem.name}`
+                : formatCash(price, true)
+            }.\nPlease choose a valid option or type **back**.`
           );
         }
 
@@ -1384,17 +1459,33 @@ ${this.optionText()}
           targetItem.expReward ??
             clamp(0, targetItem.price / 500000, 10) * amount
         );
+        /**
+         * @type {Partial<UserData>}
+         */
         const argu = {
-          money: cash - price,
           inventory,
           cassEXP: cassEXP.raw(),
           boxInventory,
         };
-        context.moneySet = argu;
+        const newCtx = {
+          ...context,
+          moneySet: argu,
+        };
+        if (!priceInfo.state && targetItem.priceType === "money") {
+          argu.money = cash - price;
+          userInfo.money = argu.money;
+        }
+        if (priceInfo.state && cllItem) {
+          collectibles.raise(priceInfo.cllKey, -price);
+          argu.collectibles = Array.from(collectibles);
+          userInfo.collectibles = argu.collectibles;
+        }
+
         const invCache = [...inventory];
         for (let i = 0; i < amount; i++) {
           try {
-            await onPurchase(context);
+            // @ts-ignore
+            await onPurchase(newCtx);
             self.decreaseStock(input.senderID, targetItem.key);
           } catch (error) {
             console.error(error);
@@ -1403,9 +1494,15 @@ ${this.optionText()}
         }
         const added = argu.inventory.filter((i) => !invCache.includes(i));
         const firstAdded = added[0];
-        await money.setItem(input.senderID, argu);
+        await money.setItem(input.senderID, {
+          ...argu,
+          inventory: new Inventory(argu.inventory).raw(),
+        });
         items = self.stringItemData({
-          userMoney: cash - price,
+          userMoney:
+            !priceInfo.state && targetItem.priceType === "money"
+              ? cash - price
+              : cash,
           inventory: new Inventory(inventory),
           boxInventory: new Inventory(boxInventory, 100),
           playersMap,
@@ -1415,13 +1512,19 @@ ${this.optionText()}
         const dialogue = self.rand(self.thankTexts);
         const header = `✅ Added **x${amount} ${firstAdded.icon} ${
           firstAdded.name
-        }** (${firstAdded.key}) for ${formatCash(price)}`;
+        }** (${firstAdded.key}) for ${
+          priceInfo.state
+            ? `${formatValue(price, cllItem.icon)} ${cllItem.name}`
+            : formatCash(price, true)
+        }`;
 
         const i = await output.reply(
           `${header}\n\n${
             UNISpectra.charm
           } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(
-            cash - price
+            !priceInfo.state && targetItem.priceType === "money"
+              ? cash - price
+              : cash
           )}** 🧰 **${inventory.length}/${inventoryLimit}**`
         );
         handleEnd(i.messageID, {

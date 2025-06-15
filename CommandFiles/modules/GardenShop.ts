@@ -5,7 +5,7 @@ import { UNISpectra } from "./unisym";
 import { OutputResult } from "@cass-plugins/output";
 
 export namespace gardenShop {
-  export interface GardenShopItem extends ShopItem {
+  export type GardenShopItem = ShopItem & {
     icon: string;
     name: string;
     key: string;
@@ -21,7 +21,7 @@ export namespace gardenShop {
     maxStock: number;
     isOfficialStock?: boolean;
     onPurchase({ moneySet }: { moneySet: { inventory: GardenItem[] } }): void;
-  }
+  };
   export type GardenRarity =
     | "Common"
     | "Uncommon"
@@ -802,7 +802,7 @@ export function GardenChoice(config: GardenChoiceConfig) {
         if (rep.uid !== ctx.uid) {
           return;
         }
-        rep.output.setStyle(config.style)
+        rep.output.setStyle(config.style);
         const target = config.choices.find((_, j) => num === j + 1);
         if (!target) {
           return rep.output.replyStyled(
