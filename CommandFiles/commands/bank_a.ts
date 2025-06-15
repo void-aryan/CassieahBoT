@@ -87,6 +87,7 @@ export const styleC: CassidySpectra.CommandStyle = {
   footer: {
     content: "",
   },
+  lineDeco: "altar",
 };
 
 const NOTIF_AC = `🏦 ${fonts.bold("ARIEL-CASS NOTIF")} 👩🏻‍💼`;
@@ -99,10 +100,11 @@ export const notifStyleC: CassidySpectra.CommandStyle = {
     line_bottom: "default",
   },
   titleFont: "none",
-  contentFont: "none",
+  contentFont: "fancy",
   footer: {
     content: "",
   },
+  lineDeco: "altar",
 };
 export const notifStyle0: CassidySpectra.CommandStyle = {
   title: {

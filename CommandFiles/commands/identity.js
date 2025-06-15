@@ -31,6 +31,7 @@ export const style2 = {
   title: "🍃 Change User",
   titleFont: "fancy",
   contentFont: "fancy",
+  lineDeco: "altar"
 };
 
 const { parseCurrency: pCy } = global.utils;

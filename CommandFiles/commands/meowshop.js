@@ -344,4 +344,5 @@ export const style = {
   title: "😺 Meow Shop",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };

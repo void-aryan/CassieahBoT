@@ -24,6 +24,7 @@ export const style: CassidySpectra.CommandStyle = {
   title: `🎰 OneShot Duel`,
   titleFont: "double_struck",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 interface OneShotGameState {

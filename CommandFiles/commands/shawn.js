@@ -272,4 +272,5 @@ export const style = {
   title: "🐺 Seam's Shop",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };

@@ -69,6 +69,7 @@ export const style: CassidySpectra.CommandStyle = {
   footer: {
     content: "",
   },
+  lineDeco: "altar",
 };
 
 export const notifStyle: CassidySpectra.CommandStyle = {
@@ -82,6 +83,7 @@ export const notifStyle: CassidySpectra.CommandStyle = {
   footer: {
     content: "",
   },
+  lineDeco: "altar",
 };
 
 export async function entry({

@@ -33,7 +33,7 @@ export const style: CassidySpectra.CommandStyle = {
   },
   content: {
     text_font: "fancy",
-    line_bottom_inside_x: "default",
+    line_bottom_inside_altar: "default",
     content: null,
   },
   footer: {

@@ -16,6 +16,7 @@ export const style: CassidySpectra.CommandStyle = {
   title: "48 Laws of Power 📜",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 export async function entry({ output, args }: CommandContext) {

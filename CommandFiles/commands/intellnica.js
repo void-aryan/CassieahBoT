@@ -41,11 +41,11 @@ function formatDuration(ms) {
     : parts[0] || "0 seconds";
 }
 
-
 export const style = {
   title: "IntellNica™ ✨",
   titleFont: "bold_italic",
   contentFont: "none",
+  lineDeco: "altar",
 };
 
 const keys = [
@@ -119,8 +119,8 @@ const dangerousContext = (ctx) => {
   };
   class GameSimulator2 extends ctx.GameSimulator {
     /**
-     * 
-     * @param  {...any} args 
+     *
+     * @param  {...any} args
      */
     constructor(...args) {
       // @ts-ignore

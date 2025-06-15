@@ -268,6 +268,7 @@ export const style: CassidySpectra.CommandStyle = {
   footer: {
     content: "",
   },
+  lineDeco: "altar",
 };
 
 const petFoodsII = [

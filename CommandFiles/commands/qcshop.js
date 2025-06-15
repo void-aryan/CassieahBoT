@@ -181,4 +181,5 @@ export const style = {
   title: "👒 QC Shop",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };

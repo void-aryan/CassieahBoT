@@ -47,6 +47,7 @@ export const style = {
     text_font: "fancy",
     // text_prefix: "➤ ",
   },
+  lineDeco: "altar",
 };
 
 /**

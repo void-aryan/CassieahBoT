@@ -24,6 +24,7 @@ export const style: CassidySpectra.CommandStyle = {
   title: "Gear Upgrader ⚒️",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 export async function entry({
@@ -46,202 +47,202 @@ export async function entry({
   }
 
   const ranks = [
-  {
-    name: FontSystem.applyFonts("NOVICE", "double_struck"),
-    keySuffix: "NOVICE",
-    statMultiplier: 1.1,
-    copiesRequired: 2,
-    cost: {
-      battlePoints: 5000,
-      stellarGems: 20,
-      intertwinedFate: 10,
-      dailyGems: 10,
-      money: 50000,
+    {
+      name: FontSystem.applyFonts("NOVICE", "double_struck"),
+      keySuffix: "NOVICE",
+      statMultiplier: 1.1,
+      copiesRequired: 2,
+      cost: {
+        battlePoints: 5000,
+        stellarGems: 20,
+        intertwinedFate: 10,
+        dailyGems: 10,
+        money: 50000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("STARLIT", "double_struck"),
-    keySuffix: "STARLIT",
-    statMultiplier: 1.15,
-    copiesRequired: 2,
-    cost: {
-      battlePoints: 7500,
-      stellarGems: 30,
-      intertwinedFate: 15,
-      dailyGems: 15,
-      money: 75000,
+    {
+      name: FontSystem.applyFonts("STARLIT", "double_struck"),
+      keySuffix: "STARLIT",
+      statMultiplier: 1.15,
+      copiesRequired: 2,
+      cost: {
+        battlePoints: 7500,
+        stellarGems: 30,
+        intertwinedFate: 15,
+        dailyGems: 15,
+        money: 75000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("LUNAR", "double_struck"),
-    keySuffix: "LUNAR",
-    statMultiplier: 1.2,
-    copiesRequired: 3,
-    cost: {
-      battlePoints: 10000,
-      stellarGems: 40,
-      intertwinedFate: 20,
-      dailyGems: 20,
-      money: 100000,
+    {
+      name: FontSystem.applyFonts("LUNAR", "double_struck"),
+      keySuffix: "LUNAR",
+      statMultiplier: 1.2,
+      copiesRequired: 3,
+      cost: {
+        battlePoints: 10000,
+        stellarGems: 40,
+        intertwinedFate: 20,
+        dailyGems: 20,
+        money: 100000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("SOLAR", "double_struck"),
-    keySuffix: "SOLAR",
-    statMultiplier: 1.25,
-    copiesRequired: 3,
-    cost: {
-      battlePoints: 12500,
-      stellarGems: 50,
-      intertwinedFate: 25,
-      dailyGems: 25,
-      money: 125000,
+    {
+      name: FontSystem.applyFonts("SOLAR", "double_struck"),
+      keySuffix: "SOLAR",
+      statMultiplier: 1.25,
+      copiesRequired: 3,
+      cost: {
+        battlePoints: 12500,
+        stellarGems: 50,
+        intertwinedFate: 25,
+        dailyGems: 25,
+        money: 125000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("ASTRAL", "double_struck"),
-    keySuffix: "ASTRAL",
-    statMultiplier: 1.2, // Matches original
-    copiesRequired: 4,
-    cost: {
-      battlePoints: 15000,
-      stellarGems: 60,
-      intertwinedFate: 40,
-      dailyGems: 32,
-      money: 150000,
+    {
+      name: FontSystem.applyFonts("ASTRAL", "double_struck"),
+      keySuffix: "ASTRAL",
+      statMultiplier: 1.2, // Matches original
+      copiesRequired: 4,
+      cost: {
+        battlePoints: 15000,
+        stellarGems: 60,
+        intertwinedFate: 40,
+        dailyGems: 32,
+        money: 150000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("CRYSTAL", "double_struck"),
-    keySuffix: "CRYSTAL",
-    statMultiplier: 1.5, // Matches original
-    copiesRequired: 5,
-    cost: {
-      battlePoints: 25000,
-      stellarGems: 100,
-      intertwinedFate: 60,
-      dailyGems: 50,
-      money: 250000,
+    {
+      name: FontSystem.applyFonts("CRYSTAL", "double_struck"),
+      keySuffix: "CRYSTAL",
+      statMultiplier: 1.5, // Matches original
+      copiesRequired: 5,
+      cost: {
+        battlePoints: 25000,
+        stellarGems: 100,
+        intertwinedFate: 60,
+        dailyGems: 50,
+        money: 250000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("NEBULA", "double_struck"),
-    keySuffix: "NEBULA",
-    statMultiplier: 2.0, // Matches original
-    copiesRequired: 6,
-    cost: {
-      battlePoints: 40000,
-      stellarGems: 160,
-      intertwinedFate: 100,
-      dailyGems: 80,
-      money: 400000,
+    {
+      name: FontSystem.applyFonts("NEBULA", "double_struck"),
+      keySuffix: "NEBULA",
+      statMultiplier: 2.0, // Matches original
+      copiesRequired: 6,
+      cost: {
+        battlePoints: 40000,
+        stellarGems: 160,
+        intertwinedFate: 100,
+        dailyGems: 80,
+        money: 400000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("GALAXY", "double_struck"),
-    keySuffix: "GALAXY",
-    statMultiplier: 2.5, // Matches original
-    copiesRequired: 7,
-    cost: {
-      battlePoints: 60000,
-      stellarGems: 240,
-      intertwinedFate: 150,
-      dailyGems: 120,
-      money: 600000,
+    {
+      name: FontSystem.applyFonts("GALAXY", "double_struck"),
+      keySuffix: "GALAXY",
+      statMultiplier: 2.5, // Matches original
+      copiesRequired: 7,
+      cost: {
+        battlePoints: 60000,
+        stellarGems: 240,
+        intertwinedFate: 150,
+        dailyGems: 120,
+        money: 600000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("STARDUST", "double_struck"),
-    keySuffix: "STARDUST",
-    statMultiplier: 3.0, // Matches original
-    copiesRequired: 8,
-    cost: {
-      battlePoints: 100000,
-      stellarGems: 400,
-      intertwinedFate: 250,
-      dailyGems: 200,
-      money: 1000000,
+    {
+      name: FontSystem.applyFonts("STARDUST", "double_struck"),
+      keySuffix: "STARDUST",
+      statMultiplier: 3.0, // Matches original
+      copiesRequired: 8,
+      cost: {
+        battlePoints: 100000,
+        stellarGems: 400,
+        intertwinedFate: 250,
+        dailyGems: 200,
+        money: 1000000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("ETERNAL", "double_struck"),
-    keySuffix: "ETERNAL",
-    statMultiplier: 4.0, // Matches original
-    copiesRequired: 9,
-    cost: {
-      battlePoints: 150000,
-      stellarGems: 600,
-      intertwinedFate: 400,
-      dailyGems: 300,
-      money: 1500000,
+    {
+      name: FontSystem.applyFonts("ETERNAL", "double_struck"),
+      keySuffix: "ETERNAL",
+      statMultiplier: 4.0, // Matches original
+      copiesRequired: 9,
+      cost: {
+        battlePoints: 150000,
+        stellarGems: 600,
+        intertwinedFate: 400,
+        dailyGems: 300,
+        money: 1500000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("VOID", "double_struck"),
-    keySuffix: "VOID",
-    statMultiplier: 4.2,
-    copiesRequired: 10,
-    cost: {
-      battlePoints: 200000,
-      stellarGems: 800,
-      intertwinedFate: 450,
-      dailyGems: 350,
-      money: 2000000,
+    {
+      name: FontSystem.applyFonts("VOID", "double_struck"),
+      keySuffix: "VOID",
+      statMultiplier: 4.2,
+      copiesRequired: 10,
+      cost: {
+        battlePoints: 200000,
+        stellarGems: 800,
+        intertwinedFate: 450,
+        dailyGems: 350,
+        money: 2000000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("COSMIC", "double_struck"),
-    keySuffix: "COSMIC",
-    statMultiplier: 4.5,
-    copiesRequired: 11,
-    cost: {
-      battlePoints: 250000,
-      stellarGems: 1000,
-      intertwinedFate: 500,
-      dailyGems: 400,
-      money: 2500000,
+    {
+      name: FontSystem.applyFonts("COSMIC", "double_struck"),
+      keySuffix: "COSMIC",
+      statMultiplier: 4.5,
+      copiesRequired: 11,
+      cost: {
+        battlePoints: 250000,
+        stellarGems: 1000,
+        intertwinedFate: 500,
+        dailyGems: 400,
+        money: 2500000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("INFINITE", "double_struck"),
-    keySuffix: "INFINITE",
-    statMultiplier: 4.8,
-    copiesRequired: 12,
-    cost: {
-      battlePoints: 300000,
-      stellarGems: 1200,
-      intertwinedFate: 550,
-      dailyGems: 450,
-      money: 3000000,
+    {
+      name: FontSystem.applyFonts("INFINITE", "double_struck"),
+      keySuffix: "INFINITE",
+      statMultiplier: 4.8,
+      copiesRequired: 12,
+      cost: {
+        battlePoints: 300000,
+        stellarGems: 1200,
+        intertwinedFate: 550,
+        dailyGems: 450,
+        money: 3000000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("DIVINE", "double_struck"),
-    keySuffix: "DIVINE",
-    statMultiplier: 5.0,
-    copiesRequired: 13,
-    cost: {
-      battlePoints: 350000,
-      stellarGems: 1400,
-      intertwinedFate: 600,
-      dailyGems: 500,
-      money: 3500000,
+    {
+      name: FontSystem.applyFonts("DIVINE", "double_struck"),
+      keySuffix: "DIVINE",
+      statMultiplier: 5.0,
+      copiesRequired: 13,
+      cost: {
+        battlePoints: 350000,
+        stellarGems: 1400,
+        intertwinedFate: 600,
+        dailyGems: 500,
+        money: 3500000,
+      },
     },
-  },
-  {
-    name: FontSystem.applyFonts("AWAKENED", "double_struck"),
-    keySuffix: "AWAKENED",
-    statMultiplier: 5.5,
-    copiesRequired: 15,
-    cost: {
-      battlePoints: 400000,
-      stellarGems: 1600,
-      intertwinedFate: 700,
-      dailyGems: 600,
-      money: 4000000,
+    {
+      name: FontSystem.applyFonts("AWAKENED", "double_struck"),
+      keySuffix: "AWAKENED",
+      statMultiplier: 5.5,
+      copiesRequired: 15,
+      cost: {
+        battlePoints: 400000,
+        stellarGems: 1600,
+        intertwinedFate: 700,
+        dailyGems: 600,
+        money: 4000000,
+      },
     },
-  },
-];
+  ];
 
   const isUpgraderEnabled =
     (await globalDB.getCache("global_settings"))?.upgraderEnabled ?? false;
@@ -551,4 +552,4 @@ export async function entry({
   );
 
   return home.runInContext(ctx);
-        }
+}

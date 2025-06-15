@@ -30,6 +30,7 @@ export const style: CommandStyle = {
   title: "Trading Hall 🛒",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 export const entry = defineEntry({

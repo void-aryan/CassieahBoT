@@ -29,6 +29,7 @@ export const style = {
   title: "Pet Duel ⚔️",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 const activeChallenges = new Map();

@@ -40,6 +40,11 @@ whiteline - its just \n
 
 */
 
+/**
+ *
+ * @param {CommandStyle} style
+ * @returns {CommandStyle}
+ */
 export function convertLegacyStyling(style) {
   const { CUSTOM_STYLE = { enabled: false, TITLE_PATTERN: "" } } =
     global.Cassidy.config;
@@ -48,6 +53,7 @@ export function convertLegacyStyling(style) {
     ...style,
     titleStyle: undefined,
     contentStyle: undefined,
+    lineDeco: undefined,
     ...(style.title
       ? {
           title: {
@@ -74,7 +80,7 @@ export function convertLegacyStyling(style) {
     content: {
       text_font: style.contentFont ?? "none",
       content: null,
-      line_bottom_inside_x: "default",
+      [`line_bottom_inside_${style.lineDeco || "x"}`]: "default",
       ...(typeof style.content === "object" && style.content
         ? style.content
         : {}),
@@ -522,13 +528,23 @@ export function applyLine(text, styling) {
     if (etc[0] === "inside") {
       switch (etc[1]) {
         case "x":
-          const newLength = Math.max(0, Math.floor(length / 2));
-          line = `${"━".repeat(newLength)} ✕ ${"━".repeat(newLength - 1)}`;
+          {
+            const newLength = Math.max(0, Math.floor(length / 2));
+            line = `${"━".repeat(newLength)} ✕ ${"━".repeat(newLength - 1)}`;
+          }
+          break;
+        case "altar":
+          {
+            const newLength = Math.max(0, Math.floor(length / 2.5));
+            line = `${"━".repeat(newLength)}◈✙◈${"━".repeat(newLength)}`;
+          }
           break;
         case "text":
-          line = `━━━ ${field} ━━━`;
-          if (etc[2] === "elegant") {
-            line = `━━━【${fonts.bold(field)}】━━━`;
+          {
+            line = `━━━ ${field} ━━━`;
+            if (etc[2] === "elegant") {
+              line = `━━━【${fonts.bold(field)}】━━━`;
+            }
           }
           break;
       }

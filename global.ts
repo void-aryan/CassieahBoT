@@ -998,6 +998,7 @@ declare global {
       preset?: string | string[];
       titleStyle?: Partial<StylerItem>;
       contentStyle?: Partial<StylerItem>;
+      lineDeco?: "x" | "altar" | "none";
     }
 
     export type CommandStyle = CommandStyleBase & {
@@ -1018,6 +1019,9 @@ declare global {
       line_top?: LineStyle;
       line_bottom?: LineStyle;
       line_bottom_inside_x?: LineStyle;
+      line_bottom_inside_altar?: LineStyle;
+      line_bottom_inside_text?: string;
+      line_bottom_inside_text_elegant?: string;
       line_replacer?: string;
       line_replace?: string;
     }

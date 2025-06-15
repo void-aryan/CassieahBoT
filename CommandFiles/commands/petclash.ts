@@ -24,6 +24,7 @@ export const style: CassidySpectra.CommandStyle = {
   title: `⚔️ PetClash ${FontSystem.applyFonts("EX", "double_struck")}`,
   titleFont: "bold_italic",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 const petSchema: PetSchema = {

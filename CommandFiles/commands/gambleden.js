@@ -6,6 +6,7 @@ export const style = {
   title: "GambleDen 🎰",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 /**

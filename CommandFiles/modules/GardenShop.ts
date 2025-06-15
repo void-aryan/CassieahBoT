@@ -417,7 +417,7 @@ export namespace gardenShop {
     },
 
     {
-      icon: "🐉",
+      icon: "🐉🍉",
       name: "Dragon Fruit Seed",
       key: "gsDragonFruit",
       flavorText: "Exotic and magical fruit.",
@@ -433,7 +433,7 @@ export namespace gardenShop {
           key: "gsDragonFruit",
           name: "Dragon Fruit Seed",
           flavorText: "Exotic and magical fruit.",
-          icon: "🐉",
+          icon: "🐉🍉",
           type: "gardenSeed",
           sellPrice: 1,
           cropData: {
@@ -623,7 +623,7 @@ export namespace gardenShop {
     },
 
     {
-      icon: "🌺",
+      icon: "🏵️",
       name: "Ember Lily",
       key: "gsEmberLily",
       flavorText: "A blazing bloom that thrives in heat and glows at dusk.",
@@ -639,7 +639,7 @@ export namespace gardenShop {
           key: "gsEmberLily",
           name: "Ember Lily",
           flavorText: "A blazing bloom that thrives in heat and glows at dusk.",
-          icon: "🌺",
+          icon: "🏵️",
           type: "gardenSeed",
           sellPrice: 1,
           cropData: {

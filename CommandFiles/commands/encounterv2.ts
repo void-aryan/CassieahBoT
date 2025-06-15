@@ -40,6 +40,7 @@ export const style: CassidySpectra.CommandStyle = {
   title: `🔱 Encounter ${FontSystem.applyFonts("EX", "double_struck")}`,
   titleFont: "bold_italic",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 const encounters: Record<string, Encounter> = fs.readJSONSync(

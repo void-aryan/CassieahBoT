@@ -30,6 +30,7 @@ export const style = {
   title: "CassExpress | ✦",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
 
 // LMAO u cannot convert it without actually writing the missing logic

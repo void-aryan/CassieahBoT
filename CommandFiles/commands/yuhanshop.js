@@ -279,4 +279,5 @@ export const style = {
   title: "🐶 Yuhan's Shop",
   titleFont: "bold",
   contentFont: "fancy",
+  lineDeco: "altar",
 };
