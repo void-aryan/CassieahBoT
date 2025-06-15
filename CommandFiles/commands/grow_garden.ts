@@ -17,7 +17,11 @@ import {
   gardenShop,
 } from "@cass-modules/GardenShop";
 import { CROP_CONFIG, fetchSeedStock } from "@cass-modules/GardenConfig";
-import { EVENT_CONFIG, GardenEventItem } from "@cass-modules/GardenEventConfig";
+import {
+  EVENT_CONFIG,
+  GardenEventItem,
+  GardenWeatherItem,
+} from "@cass-modules/GardenEventConfig";
 import { FontSystem } from "cassidy-styler";
 import { randomBiased } from "@cass-modules/unitypes";
 import { Datum } from "@cass-modules/Datum";
@@ -28,7 +32,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.12",
+  version: "2.0.14",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -243,12 +247,14 @@ function calculateCropKG(crop: GardenPlot): number {
 
 function getPossibleYields(crop: GardenPlot): number {
   const timeLeft = cropTimeLeft(crop, true);
+  if (cropTimeLeft(crop, true) > 0) return 0;
+
   const growthTimePerYield = crop.growthTime;
 
   if (growthTimePerYield <= 0) return 0;
 
   const timeRemaining = -timeLeft;
-  const yieldCountFromTime = Math.floor(timeRemaining / growthTimePerYield);
+  const yieldCountFromTime = Math.ceil(timeRemaining / growthTimePerYield);
 
   const maxPossibleYields = Math.min(crop.yields || 1, crop.harvestsLeft || 1);
 
@@ -321,8 +327,23 @@ async function autoUpdateCropData(
     const repeats = crop.lastMutation
       ? Math.floor((now - crop.lastMutation) / CROP_CONFIG.MUTATION_INTERVAL)
       : 1;
+
+    const skipStamp =
+      (await Cassidy.databases.globalDB.getCache("skipStamp"))?.skipStamp || 0;
+    const cycle = EVENT_CONFIG.WEATHER_CYCLE_NEW;
+    const adjustedNow = now + skipStamp;
+    const currentCycle = Math.floor(adjustedNow / cycle);
+
     for (let i = 0; i < repeats; i++) {
-      await applyMutation(crop, tools, pets, true);
+      const simulatedTime =
+        crop.lastMutation + i * CROP_CONFIG.MUTATION_INTERVAL;
+      const adjustedSimTime = simulatedTime + skipStamp;
+      const simCycle = Math.floor(adjustedSimTime / cycle);
+
+      const skips = simCycle - currentCycle;
+      const nextWeather = await getNextWeather(skips);
+
+      await applyMutation(crop, tools, pets, true, nextWeather);
     }
   }
 
@@ -477,13 +498,12 @@ async function applyMutation(
   crop: GardenPlot,
   tools: Inventory<GardenTool>,
   pets: Inventory<GardenPetActive>,
-  accum = false
+  accum = false,
+  weather: GardenWeatherItem
 ) {
   if (!accum) {
     crop.mutation = [];
   }
-
-  const event = await getCurrentWeather();
 
   const mutationBoosts = new Map<string, number>();
 
@@ -501,7 +521,7 @@ async function applyMutation(
     }
   });
 
-  const mutationEffects = event.effects ?? [];
+  const mutationEffects = weather.effects ?? [];
   const mutationTypeSet = new Set(
     mutationEffects.map((e) => e.mutationType).filter(Boolean)
   );
@@ -1152,15 +1172,15 @@ export async function entry(ctx: CommandContext) {
         : "Rewards multiply with success.",
       text_font: "fancy",
     },
-    ...(xBarn.hasByID(gardenHeld)
-      ? {
-          held: {
-            content: `🫴 ${formatMutationStr(currentHeld)}`,
-            text_font: "fancy",
-            line_top: "default",
-          },
-        }
-      : {}),
+    // ...(xBarn.hasByID(gardenHeld)
+    //   ? {
+    //       held: {
+    //         content: `🫴 ${formatMutationStr(currentHeld)}`,
+    //         text_font: "fancy",
+    //         line_top: "default",
+    //       },
+    //     }
+    //   : {}),
   };
 
   if (!name || name === "Unregistered") {
@@ -1290,7 +1310,7 @@ export async function entry(ctx: CommandContext) {
             },
           },
           {
-            txt: `I want to sell this (held item).`,
+            txt: `I want to sell this 🫴 ${formatMutationStr(currentHeld)}`,
             async callback(rep) {
               const {
                 gardenBarns = [],
@@ -1306,7 +1326,7 @@ export async function entry(ctx: CommandContext) {
                 .filter((i) => !i.isFavorite);
               if (canBuy.length === 0) {
                 return rep.output.reply(
-                  `${UNISpectra.charm} 💬 🧑‍🌾 I don't see anything.`
+                  `${UNISpectra.charm} 💬 🧑‍🌾 I don't see anything.\n\n💡 Hint: try opening your garden barn and hold an item!`
                 );
               }
               let acc = 0;
@@ -1323,13 +1343,15 @@ export async function entry(ctx: CommandContext) {
                 `${UNISpectra.charm} 💬 🧑‍🌾 Here's your ${formatCash(
                   acc,
                   true
-                )}\n\n💰 New Balance: ${formatCash(newMoney)}`
+                )}\n\nSold: ${formatMutationStr(
+                  canBuy[0]
+                )}\n💰 New Balance: ${formatCash(newMoney)}`
               );
             },
           },
 
           {
-            txt: `How much is this (held item) worth?`,
+            txt: `How much is this ${formatMutationStr(currentHeld)} worth?`,
             async callback(rep) {
               const { gardenBarns = [], gardenHeld = "" } =
                 await rep.usersDB.getCache(rep.uid);
@@ -1342,7 +1364,7 @@ export async function entry(ctx: CommandContext) {
                 .filter((i) => !i.isFavorite);
               if (canBuy.length === 0) {
                 return rep.output.reply(
-                  `${UNISpectra.charm} 💬 🧑‍🌾 I don't see anything.`
+                  `${UNISpectra.charm} 💬 🧑‍🌾 I don't see anything.\n\n💡 Hint: try opening your garden barn and hold an item!`
                 );
               }
               let acc = 0;
@@ -1351,10 +1373,9 @@ export async function entry(ctx: CommandContext) {
               }
 
               return rep.output.reply(
-                `${UNISpectra.charm} 💬 🧑‍🌾 I'd value it at ${formatCash(
-                  acc,
-                  true
-                )}`
+                `${UNISpectra.charm} 💬 🧑‍🌾 I'd value the ${formatMutationStr(
+                  canBuy[0]
+                )} at ${formatCash(acc, true)}`
               );
             },
           },
@@ -1366,8 +1387,17 @@ export async function entry(ctx: CommandContext) {
             },
           },
         ];
-        const st = { ...style };
-        delete st.held;
+        const st: CommandStyle = {
+          ...style,
+          ...(xBarn.hasByID(gardenHeld)
+            ? {
+                held: {
+                  content: `🫴 ${formatMutationStr(currentHeld)}`,
+                  text_font: "fancy",
+                },
+              }
+            : {}),
+        };
         delete st.footer;
         const x = GardenChoice({
           title: str,
@@ -1539,7 +1569,9 @@ export async function entry(ctx: CommandContext) {
                   (item) => item.type === "gardenTool"
                 ) as GardenTool[]
               ),
-              exiPets
+              exiPets,
+              false,
+              currWeather
             );
           }
           plot.mutationAttempts = 0;
@@ -1732,7 +1764,7 @@ export async function entry(ctx: CommandContext) {
 
           harvested.push({
             plot: { ...plot },
-            value: { ...value, allYield: value.final * yields },
+            value: { ...value, allYield: value.final * yields, yields },
           });
           plot.harvestsLeft -= yields;
 
@@ -1771,7 +1803,9 @@ export async function entry(ctx: CommandContext) {
                     (item) => item.type === "gardenTool"
                   ) as GardenTool[]
                 ),
-                exiPets
+                exiPets,
+                false,
+                currWeather
               );
             }
             plot.mutationAttempts = 0;
@@ -1822,9 +1856,11 @@ export async function entry(ctx: CommandContext) {
         const addedEarns = gardenEarns - origEarns;
 
         return output.replyStyled(
-          `✅🧺 **Collected and added to the Barn!**:\n${harvestedStr.join(
-            "\n"
-          )}\n\n` +
+          `✅🧺 **Collected and added to the Barn! (${barn.size()}/${
+            barn.limit
+          })**:\n${harvestedStr.join("\n")}${
+            barn.isFull() ? `\n🏡 Barn is full!` : ""
+          }\n\n` +
             (seedsGained.length > 0
               ? `🌱🧺 **Lucky Harvest Seeds**:\n${seedsGained.join("\n")}\n\n`
               : "") +
@@ -2121,7 +2157,7 @@ export async function entry(ctx: CommandContext) {
             isHypen ? "-" : " "
           }plots ${type} ${page + 1}\n`;
         }
-        result += `🏗️ To Shovel: ***Reply with***:\nshovel <number> <number> <number>\n`;
+        result += `💡🏗️ To Shovel: ***Reply with***:\nshovel <number> <number> <number>\n`;
 
         result += `\n📈 Total Earns: ${formatCash(gardenEarns, true)}\n\n`;
 
@@ -2237,7 +2273,7 @@ export async function entry(ctx: CommandContext) {
           }barn ${page + 1}\n`;
         }
 
-        result += `To hold an item: ***Reply with***\nhold <number>`;
+        result += `💡🫴 To hold an item: ***Reply with***\nhold <number>`;
 
         result += `\n📈 Total Earns: ${formatCash(gardenEarns, true)}\n\n`;
 

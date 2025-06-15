@@ -46,15 +46,15 @@ export const CROP_CONFIG = {
     { key: "mutation_10", name: "Mutation Maniac", mutations: 10, reward: 500 },
     { key: "expand_1", name: "Land Baron", expansions: 1, reward: 2000 },
   ],
-  MUTATION_INTERVAL: 15 * 60 * 1000,
+  MUTATION_INTERVAL: 20 * 1000,
   MIN_KG: 0.18 as const,
   MAX_KG: 200.32 as const,
-  KILO_BIAS: 50 as const,
+  KILO_BIAS: 35 as const,
   get STOCK_SEED_URL() {
     return `https://growagardenstock.com/api/stock?type=gear-seeds&ts=${Date.now()}` as const;
   },
   NOTIF_TIMEOUT: 10 as const,
-  MAX_MUTATION_ATT: 4 as const,
+  MAX_MUTATION_ATT: 360 as const,
   STOCK_MIN_BIAS: 10 / 15,
 };
 
