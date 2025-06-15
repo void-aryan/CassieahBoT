@@ -3,6 +3,7 @@ import { GardenItem, GardenSeed } from "@cass-commands/grow_garden";
 import { ShopItem } from "./GardenBalancer";
 import { UNISpectra } from "./unisym";
 import { OutputResult } from "@cass-plugins/output";
+import { InventoryItem } from "./cassidyUser";
 
 export namespace gardenShop {
   export type GardenShopItem = ShopItem & {
@@ -19,6 +20,7 @@ export namespace gardenShop {
     stockLimit?: number;
     minStock: number;
     maxStock: number;
+    pack?: string;
     isOfficialStock?: boolean;
     onPurchase: ({
       moneySet,
@@ -26,6 +28,34 @@ export namespace gardenShop {
       moneySet: { inventory: GardenItem[] };
     }) => void;
   };
+  export let honeyShop: GardenShopItem[] = [
+    {
+      icon: "🎴🪻",
+      name: "Flower Seed Pack",
+      key: "pFlowerSeed",
+      flavorText: "A seed pack contaning many types of flower seeds.",
+      price: 10,
+      rarity: "Uncommon",
+      inStock: true,
+      priceType: "cll:honey",
+      stockLimit: 2,
+      minStock: 1,
+      maxStock: 5,
+      stockChance: 1,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "pFlowerSeed",
+          name: "Flower Seed Pack",
+          flavorText: "A seed pack contaning many types of flower seeds.",
+          icon: "🎴🪻",
+          type: "roulette_pack",
+          sellPrice: 1,
+          treasureKey: "randomGrouped_pFlowers",
+        } satisfies InventoryItem);
+      },
+    },
+  ];
   export type GardenRarity =
     | "Common"
     | "Uncommon"

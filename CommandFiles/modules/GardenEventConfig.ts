@@ -96,9 +96,11 @@ export const EVENT_CONFIG = {
   ] satisfies GardenWeatherItem[] as GardenWeatherItem[],
   CURRENT_EVENT: {
     icon: "🍯🐝",
+    shopName2: "Honey Trading",
+    shopName: "beetrade",
     name: "Bizzy Bee Event",
     weathers: [],
-    shopItems: [],
+    shopItems: [...gardenShop.honeyShop],
   } satisfies GardenEventItem as GardenEventItem,
   EVENTS_CONSTRUCTION: [
     {
