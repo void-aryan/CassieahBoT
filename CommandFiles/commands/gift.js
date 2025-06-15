@@ -5,7 +5,7 @@
 export const meta = {
   name: "gift",
   description: "Claim your gift every 20 minutes.",
-  version: "2.0.0",
+  version: "2.0.5",
   author: "Liane Cagara",
   category: "Rewards",
   permissions: [0],
@@ -45,9 +45,8 @@ async function handlePaid({
   langParser,
 }) {
   const getLang = langParser.createGetLang(langs);
-  let { inventory: rawInv = [], collectibles: rawCll = [] } = await money.getItem(
-    input.senderID
-  );
+  let { inventory: rawInv = [], collectibles: rawCll = [] } =
+    await money.getItem(input.senderID);
   if (String(input.words[0]).toLowerCase() !== "buy") {
     return;
   }
@@ -116,7 +115,7 @@ export const langs = {
     alreadyClaimed:
       "⏳ You've already claimed your free gift. Please wait for %1 hours, %2 minutes, and %3 seconds before claiming again.\nReply **buy** and <amount> to purchase a fortune **envelope** for %4💎\n\n**💎 %5**",
     claimedGift:
-      "🎁 You've claimed your free gift! Check your inventory and come back later for more.\n\nTo open, use **%1bc use gift** without fonts.",
+      "🎁 You've claimed your free gift %2! Check your inventory and come back later for more.\n\nTo open, use **%1bc use %3** without fonts.",
   },
   tl: {
     tooManyItems: "❌ OMG, your items are like, sobrang dami na, girl!",
@@ -126,7 +125,7 @@ export const langs = {
     alreadyClaimed:
       "⏳ Na-claim mo na your free gift, besh! Wait ka lang ng %1 hours, %2 minutes, and %3 seconds before you can claim ulit.\nJust reply **buy** at <amount> if you wanna get a fortune **envelope** for %4💎\n\n**💎 %5**",
     claimedGift:
-      "🎁 Yes, na-claim mo na your free gift! So cute, check your inventory and come back later ha, so fun!\n\nPara maopen, gamitin mo yung **%1bc use gift** na command pero walang font.",
+      "🎁 Yes, na-claim mo na your free gift %2! So cute, check your inventory and come back later ha, so fun!\n\nPara maopen, gamitin mo yung **%1bc use %3** na command pero walang font.",
   },
 };
 
@@ -194,7 +193,8 @@ export async function entry({
   }
 
   if (canClaim) {
-    const giftItem = generateGift();
+    const giftItem =
+      Math.random() < 0.5 ? generateGift() : generateGift("pack");
     giftItem.cannotSend = true;
     inventory.addOne(giftItem);
 
@@ -204,10 +204,22 @@ export async function entry({
     });
 
     if (input.isWeb) {
-      return output.reply(getLang("claimedGift", prefix));
+      return output.reply(
+        getLang(
+          "claimedGift",
+          prefix,
+          giftItem.type === "treasure" ? "treasure" : "pack",
+          giftItem.type === "treasure" ? "gift" : "giftPack"
+        )
+      );
     }
     return output.attach(
-      getLang("claimedGift", prefix),
+      getLang(
+        "claimedGift",
+        prefix,
+        giftItem.type === "treasure" ? "treasure" : "pack",
+        giftItem.type === "treasure" ? "gift" : "giftPack"
+      ),
       "http://localhost:8000/gift.png"
     );
   }

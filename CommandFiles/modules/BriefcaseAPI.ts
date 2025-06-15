@@ -1287,6 +1287,67 @@ export class BriefcaseAPI {
               style
             );
           }
+          if (item.type === "roulette_pack") {
+            const packPreviewCount = 5;
+            const middleIndex = Math.floor(packPreviewCount / 2);
+
+            if (!customInventory.has(item.key)) {
+              return output.replyStyled(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `❌ The pack’s gone! Did it slip out of your ${inventoryIcon}?`,
+                style
+              );
+            }
+
+            if (customInventory.getAll().length + 1 > invLimit) {
+              return output.reply(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `❌ Your ${inventoryIcon} is full! Toss something with "${prefix}${commandName} toss".`
+              );
+            }
+
+            const previewItems: InventoryItem[] = [];
+            for (let i = 0; i < packPreviewCount; i++) {
+              const generated = generateTreasure(String(item.treasureKey));
+              previewItems.push(generated);
+            }
+
+            const wonItem = previewItems[middleIndex];
+            if (!wonItem) {
+              return output.wentWrong();
+            }
+            customInventory.addOne(wonItem);
+            customInventory.deleteOne(item.key);
+
+            await money.setItem(input.senderID, {
+              [ikey]: Array.from(customInventory),
+            });
+
+            const rouletteDisplay = previewItems
+              .map((t, i) => {
+                return i !== middleIndex
+                  ? `   ${t.icon} ${t.name}`
+                  : `${UNISpectra.arrow} ${t.icon} **${t.name}**`;
+              })
+              .join("\n");
+
+            return output.replyStyled(
+              `👤 **${
+                userData.name || "Unregistered"
+              }** (${inventoryName})\n\n` +
+                `${UNIRedux.arrow} ***Pack Opened!***\n\n` +
+                `${item.icon} Spun **${item.name}**!\n\n` +
+                `${rouletteDisplay}\n\n` +
+                `${UNIRedux.charm} 🥳 ***You Won***\n${listItem(wonItem)}\n\n` +
+                `Check it out with "${prefix}${commandName} check ${wonItem.key}"!`,
+              style
+            );
+          }
+
           const targetUsages = usagePlugins.get(item.type);
           let errs: Error[] = [];
           let responses: string[] = [];

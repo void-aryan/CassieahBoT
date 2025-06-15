@@ -8,7 +8,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.1.3",
+  version: "2.1.4",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -29,7 +29,15 @@ export const meta = {
 };
 const { parseCurrency: pCy } = global.utils;
 
-export function generateGift() {
+/**
+ *
+ * @param {"gift" | "pack"} type
+ * @returns
+ */
+export function generateGift(type = "gift") {
+  if (type === "pack") {
+    return generateGiftPack();
+  }
   return {
     name: "Gift",
     icon: "🎁",
@@ -39,6 +47,18 @@ export function generateGift() {
     type: "treasure",
     treasureKey: "generic",
     key: "gift",
+  };
+}
+export function generateGiftPack() {
+  return {
+    name: "Gift Pack",
+    icon: "🎁🎴",
+    flavorText:
+      "This is a gift item, this item might grant you something. It's not guaranteed enough, you can use this using inventory command, if you know..",
+    sellPrice: 100,
+    type: "roulette_pack",
+    treasureKey: "generic",
+    key: "giftPack",
   };
 }
 export function generateTrash() {

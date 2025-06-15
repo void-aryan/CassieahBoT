@@ -32,7 +32,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.15",
+  version: "2.0.16",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -44,6 +44,30 @@ export const meta: CassidySpectra.CommandMeta = {
   icon: "🌱",
   cmdType: "cplx_g",
 };
+
+export const treasuresTable: InventoryItem[] = [
+  ...gardenShop.itemData
+    .map((shopItem) => {
+      let inventoryItem: GardenItem | null = null;
+      const mockMoneySet = {
+        inventory: [] as GardenItem[],
+      };
+
+      shopItem.onPurchase({ moneySet: mockMoneySet });
+      inventoryItem = mockMoneySet.inventory[0] || null;
+
+      if (!inventoryItem) {
+        return null;
+      }
+
+      return {
+        ...inventoryItem,
+        group: ["generic", "gardenShop"],
+        prob: shopItem.stockChance ?? 0.5,
+      };
+    })
+    .filter(Boolean),
+];
 
 export const briefcaseUsage: Record<string, BreifcaseUsagePlugin> = {
   gardenSeed(arg, ctx, _bctx) {
