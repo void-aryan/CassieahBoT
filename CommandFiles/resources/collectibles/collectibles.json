@@ -12,5 +12,12 @@
     "flavorText": "Wtf is this.",
     "key": "feudTickets",
     "type": "hardWork"
+  },
+  "honey": {
+    "name": "Honey",
+    "icon": "🍯",
+    "flavorText": "A special currency from Bizzy Bees event of Grow a Garden!",
+    "key": "honey",
+    "type": "garden"
   }
 }

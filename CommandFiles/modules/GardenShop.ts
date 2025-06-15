@@ -1,5 +1,5 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
-import { GardenItem } from "@cass-commands/grow_garden";
+import { GardenItem, GardenSeed } from "@cass-commands/grow_garden";
 import { ShopItem } from "./GardenBalancer";
 import { UNISpectra } from "./unisym";
 import { OutputResult } from "@cass-plugins/output";
@@ -20,7 +20,11 @@ export namespace gardenShop {
     minStock: number;
     maxStock: number;
     isOfficialStock?: boolean;
-    onPurchase({ moneySet }: { moneySet: { inventory: GardenItem[] } }): void;
+    onPurchase: ({
+      moneySet,
+    }: {
+      moneySet: { inventory: GardenItem[] };
+    }) => void;
   };
   export type GardenRarity =
     | "Common"
@@ -29,12 +33,46 @@ export namespace gardenShop {
     | "Legendary"
     | "Mythical"
     | "Divine"
-    | "Prismatic";
+    | "Prismatic"
+    | "Premium";
   export let key = "gardenShop";
   export let lastRestock = 0;
   export const stockRefreshInterval = 5 * 60 * 1000;
   export const stockInterval = stockRefreshInterval;
   export let itemData: GardenShopItem[] = [
+    {
+      icon: "🍇💎",
+      name: "Cassidy Gemfruity Seed",
+      key: "gsGemfruity",
+      flavorText:
+        "A fruit studded with shimmering gems, ripe with crystalline wealth.",
+      price: 20,
+      rarity: "Premium",
+      inStock: true,
+      priceType: "cll:gems",
+      stockLimit: 2,
+      minStock: 3,
+      maxStock: 8,
+      stockChance: 1,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsGemfruity",
+          name: "Cassidy Gemfruity Seed",
+          flavorText:
+            "A fruit studded with shimmering gems, ripe with crystalline wealth.",
+          icon: "🍇💎",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 5_500,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 8.8,
+            harvests: 80,
+            yields: 10,
+          },
+        } satisfies GardenSeed);
+      },
+    },
     {
       icon: "🥕",
       name: "Carrot Seed",
