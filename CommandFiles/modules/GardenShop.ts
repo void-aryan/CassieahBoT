@@ -82,7 +82,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 22_563,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 6.2,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.2,
             harvests: 1,
             yields: 1,
           },
@@ -115,7 +115,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 43_125,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 9.4,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.4,
             harvests: 1,
             yields: 1,
           },
@@ -148,7 +148,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 36_100,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2.2,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.2,
             harvests: 90,
             yields: 10,
           },
@@ -181,7 +181,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 55_950,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2.4,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.4,
             harvests: 100,
             yields: 9,
           },
@@ -216,7 +216,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 4_513,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 1.2,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.2,
             harvests: 60,
             yields: 3,
           },
@@ -251,7 +251,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 18_050,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 1.1,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.1,
             harvests: 70,
             yields: 4,
           },
@@ -286,7 +286,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 31_588,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 1.25,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.25,
             harvests: 80,
             yields: 6,
           },
@@ -321,7 +321,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 58_663,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 1.3,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.3,
             harvests: 85,
             yields: 7,
           },
@@ -330,8 +330,8 @@ export namespace gardenShop {
     },
     {
       icon: "💠🌺",
-      name: "Pink Dahlia Seed",
-      key: "gsPinkDahlia",
+      name: "Purple Dahlia Seed",
+      key: "gsPurpleDahlia",
       flavorText:
         "A dazzling layered bloom with a mythical shimmer, standing tall with petals deep as amethyst light.",
       price: 0,
@@ -347,8 +347,8 @@ export namespace gardenShop {
       isEventItem: false,
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
-          key: "gsPinkDahlia",
-          name: "Pink Dahlia Seed",
+          key: "gsPurpleDahlia",
+          name: "Purple Dahlia Seed",
           flavorText:
             "A dazzling layered bloom with a mythical shimmer, standing tall with petals deep as amethyst light.",
           icon: "💠🌺",
@@ -356,7 +356,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 67_469,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 1.35,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.35,
             harvests: 90,
             yields: 8,
           },
@@ -391,9 +391,9 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 144_400,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 5.8,
-            harvests: 120,
-            yields: 1,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 3.8,
+            harvests: 240,
+            yields: 10,
           },
         } satisfies GardenSeed);
       },

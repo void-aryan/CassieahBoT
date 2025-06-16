@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.20",
+  version: "2.0.21",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -915,7 +915,7 @@ function formatShopItems(
         const purchased = moneySet.inventory[0];
         if (purchased) {
           if (purchased.type === "gardenSeed") {
-            flavor += `\n${`***${item.rarity}*** - ${Math.round(
+            flavor = `${`***${item.rarity}*** - ${Math.round(
               (item.stockChance ?? 1) * 100
             )}%`.toUpperCase()}\n🪙 ${abbreviateNumber(
               purchased.cropData.baseValue || 0

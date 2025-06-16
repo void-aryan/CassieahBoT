@@ -76,13 +76,13 @@ export function evaluateItemBalance(
   const totalHarvests = harvestsPerYield * totalYields;
 
   // const totalValue = baseValue * totalYields;
-  const pricePerYield = price / totalHarvests;
-  const profitPerYield = baseValue - pricePerYield;
+  const pricePerYield = (price || 1) / totalHarvests;
+  const profitPerYield = baseValue - (pricePerYield || 0);
   const totalProfit = profitPerYield * totalYields;
 
   const totalGrowthTime = growthTime * totalYields;
   const timeEfficiency = totalProfit / totalGrowthTime;
-  const costEfficiency = totalProfit / price;
+  const costEfficiency = totalProfit / (price || 1);
 
   const score =
     (profitPerYield * 0.4 +

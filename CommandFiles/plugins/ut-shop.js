@@ -8,7 +8,7 @@ import { formatCash, formatValue, parseBet } from "@cass-modules/ArielUtils";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.1.5",
+  version: "2.1.6",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -975,6 +975,10 @@ export class UTShop {
       if (data.length === 0) {
         result = `🧹 No items available!`;
       } else {
+        /**
+         * @type {Array<import("@cass-modules/cassidyUser").CollectibleItem>}
+         */
+        let allCll = [];
         result = data
           .map((item) => {
             const priceInfo = this.isCll(item.priceType);
@@ -991,6 +995,16 @@ export class UTShop {
                     key: priceInfo.cllKey,
                     type: "unknown",
                   };
+
+            if (
+              !allCll.some((i) => i?.metadata?.key === cllItem.key) &&
+              cllItem.key !== "money"
+            ) {
+              allCll.push({
+                amount: currentAmount,
+                metadata: cllItem,
+              });
+            }
 
             const stocks = this.getStock(userData.userID, item.key);
             const invAmount = inventory.getAmount(item.key);
@@ -1138,6 +1152,16 @@ export class UTShop {
             return result;
           })
           .join("\n\n");
+        if (allCll.length > 0) {
+          result += `\n\n${UNISpectra.charm} 🏆 **Your Collectibles**:\n${allCll
+            .map(
+              (i) =>
+                `${formatValue(i.amount, i.metadata?.icon, true)} ${
+                  i.metadata?.name
+                } [${i.metadata.key}]`
+            )
+            .join("\n")}`;
+        }
       }
     } else {
       result = data
