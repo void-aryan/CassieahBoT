@@ -1,16 +1,14 @@
-// @ts-check
+import { parseBet } from "@cass-modules/ArielUtils";
 import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
+import { Datum } from "@cass-modules/Datum";
 import { UNIRedux } from "@cassidy/unispectra";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
+export const meta: CassidySpectra.CommandMeta = {
   name: "vault",
   description:
     "Organize and manage your external inventory with an additional 100 slots.",
   author: "Liane Cagara | JenicaDev",
-  version: "1.1.4",
+  version: "1.1.5",
   usage: "{prefix}vault <action> [arguments]",
   category: "Inventory",
   permissions: [0],
@@ -31,11 +29,7 @@ export const style = {
   contentFont: "fancy",
 };
 
-/**
- *
- * @param {CommandContext} ctx
- */
-export async function entry(ctx) {
+export async function entry(ctx: CommandContext) {
   const { input, output, money, args, Inventory } = ctx;
   const userData = await money.getCache(input.senderID);
   let userInventory = new Inventory(userData.inventory);
@@ -44,11 +38,9 @@ export async function entry(ctx) {
   let newActionArgs = [];
   for (let i = 0; i < actionArgs.length; i++) {
     const value = actionArgs[i];
-    /**
-     * @type {Array<string | number>}
-     */
-    let [key, amount = "1"] = value.split("*");
-    amount = parseInt(amount);
+
+    let [key, amount = "1"] = value.split("*") as Array<string | number>;
+    amount = parseBet(amount, Infinity);
     if (isNaN(amount)) {
       amount = 1;
     }
@@ -162,30 +154,38 @@ export async function entry(ctx) {
               `❌ Please specify an item key to store.\n\n${await createList()}`
             );
           }
-          let str = ``;
+          const results: string[] = [];
           for (const keyToStore of keysToStore) {
             const itemToStore = userInventory.getOne(keyToStore);
             if (!itemToStore) {
-              str += `❌ Item with key "${keyToStore}" not found in your inventory.\n`;
+              results.push(
+                `❌ Item with key "${keyToStore}" not found in your inventory.`
+              );
               continue;
             }
             if (vaultInventory.getAll().length >= 100) {
-              str += `❌ The vault is full.\n`;
+              results.push(`❌ The vault is full.`);
               continue;
             }
             if (itemToStore.cannotvault === true) {
-              str += `❌ "${keyToStore}" can’t be stored in the vault.\n`;
+              results.push(`❌ "${keyToStore}" can't be stored in the vault.`);
               continue;
             }
             userInventory.deleteOne(keyToStore);
             vaultInventory.addOne(itemToStore);
-            str += `✅ Stored ${itemToStore.icon} **${itemToStore.name}** in the vault.\n`;
+            results.push(
+              `✅ Stored ${itemToStore.icon} **${itemToStore.name}** in the vault.`
+            );
           }
-          await money.set(input.senderID, {
+          await money.setItem(input.senderID, {
             inventory: Array.from(userInventory),
             boxItems: Array.from(vaultInventory),
           });
-          return output.reply(`${str.trim()}\n\n${await createList()}`);
+          return output.reply(
+            `${Datum.toUniqueArray(results)
+              .map((i) => `**x${results.filter((j) => j === i).length}** ${i}`)
+              .join("\n")}\n\n${await createList()}`
+          );
         },
       },
       {
@@ -200,26 +200,34 @@ export async function entry(ctx) {
               `❌ Please specify an item key to retrieve.\n\n${await createList()}`
             );
           }
-          let str = ``;
+          const results: string[] = [];
           for (const keyToRetrieve of keysToRetrieve) {
             const itemToRetrieve = vaultInventory.getOne(keyToRetrieve);
             if (!itemToRetrieve) {
-              str += `❌ Item with key "${keyToRetrieve}" not found in the vault.\n`;
+              results.push(
+                `❌ Item with key "${keyToRetrieve}" not found in the vault.`
+              );
               continue;
             }
             if (userInventory.getAll().length >= invLimit) {
-              str += `❌ Your inventory is full.\n`;
+              results.push(`❌ Your inventory is full.`);
               continue;
             }
             vaultInventory.deleteOne(keyToRetrieve);
             userInventory.addOne(itemToRetrieve);
-            str += `✅ Retrieved ${itemToRetrieve.icon} **${itemToRetrieve.name}** from the vault.\n`;
+            results.push(
+              `✅ Retrieved ${itemToRetrieve.icon} **${itemToRetrieve.name}** from the vault.`
+            );
           }
-          await money.set(input.senderID, {
+          await money.setItem(input.senderID, {
             inventory: Array.from(userInventory),
             boxItems: Array.from(vaultInventory),
           });
-          return output.reply(`${str.trim()}\n\n${await createList()}`);
+          return output.reply(
+            `${Datum.toUniqueArray(results)
+              .map((i) => `**x${results.filter((j) => j === i).length}** ${i}`)
+              .join("\n")}\n\n${await createList()}`
+          );
         },
       },
     ]
