@@ -65,7 +65,7 @@ export const meta: CassidySpectra.CommandMeta = {
   version: "2.0.21",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
-  author: "Liane Cagara 🎀",
+  author: "Solo Programmed By: Liane Cagara 🎀",
   role: 0,
   // self, please do not use "both" or true, i hate noprefix
   noPrefix: false,
@@ -1007,6 +1007,7 @@ function correctPlot(plot: GardenPlot) {
       plot.yields = foundSeed.cropData.yields;
 
       plot.originalGrowthTime = foundSeed.cropData.growthTime;
+      plot.icon = foundSeed.icon;
     }
   }
   return plot;
@@ -1488,6 +1489,182 @@ export async function entry(ctx: CommandContext) {
                 },
               }
             : {}),
+        };
+        delete st.footer;
+        const x = GardenChoice({
+          title: str,
+          choices,
+          style: st,
+        });
+        return x(ctx);
+      },
+    },
+    {
+      key: "combpressor",
+      description: "interact with the honey combpressor.",
+      aliases: ["comb", "cb"],
+      icon: "🍯🏠",
+      async handler(_, {}) {
+        const linesNeedKG: string[] = [
+          "I'll put that in the **Compressor**. But we've still got more to go!",
+          "Whoa! Did you get this one from a 🌱 **Supreme Sprout**?",
+          "This'll work great. But the grind **never stops**!",
+          "We'll convert this into 🍯 **honey**.",
+          "Nice!! We'll turn this into 🍯 **honey**, somehow.",
+          "This looks like it'll give a lot of **bond**...",
+          "Once it's **full**, we'll **combpress** it down.",
+          "Just stuff that right into the **Combpressor**.",
+          "Plant 🌱 **seeds**! Collect 🥥 **fruits**! Make 🍯 **honey**!",
+          "Oh! This one is 🐝💖 **Basic Bee's favorite**.",
+          "I bet **Tabby Bee** would like this one!",
+        ];
+        const lineCompleteKG: string[] = [
+          "Here comes the 🍯 **honey**!",
+          "Let's convert this stuff into 🍯 **honey**!",
+          "Ok! Now you just wait while I **Combpress** this down.",
+          "That's all we need! Now, it's my turn to **work..**",
+          "Perfect! You wait while I get 🐼 **Panda Bear** to press this down.",
+          "Time to **press**! Just uh, give, me a minute.",
+          "Filled up faster than a 🐝 **Photon Bee**! Now we wait.",
+        ];
+        const lineReward: string[] = [
+          "Good work, **Beekeeper**! Keep up the grind.",
+          "✅ **Quest complete**! Here's your sweet **reward**.",
+          "The honey turned out great! 🐻 **Black Bear** would be proud.",
+          "Could buy alot of 🪼 **Royal Jelly** with this stuff.",
+          "I like 🍯 **honey**, but I don't like it **THAT** much.",
+          "More 🍯 **honey** than a 🌧️ **honey storm**.",
+        ];
+
+        const timeNeed = 30 * 1000;
+        const rewardHoney = 10;
+        const neededKg = 10;
+        const neededMutation = "Pollinated";
+
+        const str = `🍯🏠 Hi I am Onett, I guess.`;
+        const choices: GardenChoiceConfig["choices"] = [
+          {
+            txt: `How much is in the honey combpressor?`,
+            async callback(rep) {
+              let { honeyStamp, honeyKG = 0 } = await rep.usersDB.getCache(
+                rep.uid
+              );
+              if (typeof honeyStamp === "number") {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 🍯🏠 The combpressor is currently running! Try to collect it.`
+                );
+              }
+
+              return rep.output.reply(
+                `${UNISpectra.charm} 🍯🏠 **${honeyKG}kg**/${neededKg}kg`
+              );
+            },
+          },
+          {
+            txt: `I want to put ${
+              currentHeld ? formatMutationStr(currentHeld) : "[no held item]"
+            } to the honey combpressor.`,
+            async callback(rep) {
+              let {
+                gardenBarns = [],
+                honeyStamp,
+                gardenHeld = "",
+                honeyKG = 0,
+              } = await rep.usersDB.getCache(rep.uid);
+              if (typeof honeyStamp === "number") {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 🍯🏠 The combpressor is currently running! Try to collect it.`
+                );
+              }
+              const barns = new Inventory<GardenBarn>(
+                gardenBarns,
+                CROP_CONFIG.BARN_LIMIT
+              );
+              const item = barns.getOneByID(gardenHeld);
+              if (!item || !item.mutation.includes(neededMutation)) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!`
+                );
+              }
+
+              const kg = item.kiloGrams;
+              honeyKG += kg;
+
+              barns.deleteByID(item.uuid);
+
+              if (honeyKG >= neededKg) {
+                await rep.usersDB.setItem(rep.uid, {
+                  honeyStamp: Date.now(),
+                  gardenBarns: barns.raw(),
+                  honeyKG: 0,
+                });
+                return rep.output.reply(
+                  `${
+                    UNISpectra.charm
+                  } 🍯🏠 ${lineCompleteKG.randomValue()}\n\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${Math.min(
+                    neededKg,
+                    honeyKG
+                  )}kg**/${neededKg}kg\n\nThe combpressor will start making honey, collect it after **${
+                    timeNeed / 1000
+                  } seconds.**`
+                );
+              } else {
+                await rep.usersDB.setItem(rep.uid, {
+                  gardenBarns: barns.raw(),
+                  honeyKG,
+                  honeyStamp: null,
+                });
+                return rep.output.reply(
+                  `${
+                    UNISpectra.charm
+                  } 🍯🏠 ${linesNeedKG.randomValue()}\n\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${honeyKG}kg**/${neededKg}kg`
+                );
+              }
+            },
+          },
+          {
+            txt: `I want to collect the honey 🍯`,
+            async callback(rep) {
+              const { collectibles: putCll = [], honeyStamp } =
+                await rep.usersDB.getCache(rep.uid);
+              if (typeof honeyStamp !== "number") {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 🍯🏠 Looks like there is nothing in here.`
+                );
+              }
+              const now = Date.now();
+              const elapsed = now - honeyStamp;
+              if (elapsed < timeNeed) {
+                const sLeft = Math.ceil((timeNeed - elapsed) / 1000);
+                return rep.output.reply(
+                  `${UNISpectra.charm} 🍯🏠 **${String(sLeft).padStart(
+                    2,
+                    "0"
+                  )}** Seconds left!`
+                );
+              }
+              const cll = new Collectibles(putCll);
+              cll.raise("honey", rewardHoney);
+              await rep.usersDB.setItem(rep.uid, {
+                honeyStamp: null,
+                collectibles: [...cll],
+                honeyKG: 0,
+              });
+
+              return rep.output.reply(
+                `${
+                  UNISpectra.charm
+                } 🍯🏠 ${lineReward.randomValue()}\n\nYou got 🍯**${rewardHoney}**!\n🍯 Your Honey: ${formatValue(
+                  cll.getAmount("honey"),
+                  "🍯",
+                  true
+                )}`
+              );
+            },
+          },
+        ];
+        const st: CommandStyle = {
+          ...style,
         };
         delete st.footer;
         const x = GardenChoice({
@@ -2605,6 +2782,9 @@ export async function entry(ctx: CommandContext) {
             isHypen ? "-" : " "
           }list ${page + 1}\n`;
         }
+
+        result += `\nUse **${prefix}bc list** to see ALL ITEMS.`;
+        result += `\nUse **${prefix}bc use <key>** to use an item.\n\n`;
 
         result +=
           `**Next Steps**:\n` +

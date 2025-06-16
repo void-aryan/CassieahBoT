@@ -5,6 +5,7 @@ import __f from "./handlers/styler.js/fonts.js";
 const { fonts } = __f;
 import { createCallable } from "@cass-modules/callable-obj";
 import formatFunc from "@cass-modules/format-with";
+import { Datum } from "@cass-modules/Datum";
 const { ExtendClass, randArrValue, randArrIndex } = global.utils;
 
 function extend() {
@@ -268,7 +269,7 @@ function extend() {
   ExtendClass(
     "randomValue",
     function () {
-      return randArrValue(this);
+      return Datum.shuffle([...this])[0];
     },
     Array
   );

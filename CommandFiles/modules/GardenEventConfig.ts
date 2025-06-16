@@ -2216,8 +2216,12 @@ export const EVENT_CONFIG = {
 };
 
 if (Array.isArray(EVENT_CONFIG.CURRENT_EVENT.weathers)) {
-  EVENT_CONFIG.WEATHERS.unshift(...EVENT_CONFIG.WEATHERS);
-  EVENT_CONFIG.WEATHERS.push(...EVENT_CONFIG.WEATHERS);
+  const ww = EVENT_CONFIG.CURRENT_EVENT.weathers;
+  EVENT_CONFIG.WEATHERS.unshift(...ww);
+  EVENT_CONFIG.WEATHERS.push(...ww);
+  for (const w of ww) {
+    EVENT_CONFIG.WEATHERS = insertAfterEvenIndices(EVENT_CONFIG.WEATHERS, w);
+  }
 }
 
 EVENT_CONFIG.WEATHERS = insertAfterEvenIndices(EVENT_CONFIG.WEATHERS, {
