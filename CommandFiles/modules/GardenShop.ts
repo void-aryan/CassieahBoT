@@ -55,6 +55,138 @@ export namespace gardenShop {
         } satisfies InventoryItem);
       },
     },
+    {
+      icon: "💜🌿",
+      name: "Lavender Seed",
+      key: "gsLavender",
+      flavorText:
+        "A calming herb with a rich scent, known for its vibrant purple hue.",
+      price: 3,
+      rarity: "Uncommon",
+      inStock: true,
+      priceType: "cll:honey",
+      stockLimit: 3,
+      minStock: 3,
+      maxStock: 4,
+      stockChance: 1,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsLavender",
+          name: "Lavender Seed",
+          flavorText:
+            "A calming herb with a rich scent, known for its vibrant purple hue.",
+          icon: "💜🌿",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 22_563,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 6.2,
+            harvests: 1,
+            yields: 1,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "🍯🍄",
+      name: "Nectarshade Seed",
+      key: "gsNectarshade",
+      flavorText:
+        "A rare mushroom with a dripping honeycap and an eerie golden glow.",
+      price: 5,
+      rarity: "Rare",
+      inStock: true,
+      priceType: "cll:honey",
+      stockLimit: 2,
+      minStock: 1,
+      maxStock: 3,
+      stockChance: 1,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsNectarshade",
+          name: "Nectarshade Seed",
+          flavorText:
+            "A rare mushroom with a dripping honeycap and an eerie golden glow.",
+          icon: "🍯🍄",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 43_125,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 9.4,
+            harvests: 1,
+            yields: 1,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "🌴🍑",
+      name: "Nectarine Seed",
+      key: "gsNectarine",
+      flavorText:
+        "A small yet bountiful tree with lush fronds and nectar-rich fruit.",
+      price: 25,
+      rarity: "Mythical",
+      inStock: true,
+      priceType: "cll:honey",
+      stockLimit: 1,
+      minStock: 1,
+      maxStock: 1,
+      stockChance: 1,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsNectarine",
+          name: "Nectarine Seed",
+          flavorText:
+            "A small yet bountiful tree with lush fronds and nectar-rich fruit.",
+          icon: "🌴🍑",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 36_100,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 2.2,
+            harvests: 90,
+            yields: 10,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "🍑🐝",
+      name: "Hive Fruit Seed",
+      key: "gsHiveFruit",
+      flavorText:
+        "A divine seed that grows into a wide, branchy tree bearing golden hive fruit.",
+      price: 40,
+      rarity: "Divine",
+      inStock: true,
+      priceType: "cll:honey",
+      stockLimit: 1,
+      minStock: 1,
+      maxStock: 1,
+      stockChance: 1,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsHiveFruit",
+          name: "Hive Fruit Seed",
+          flavorText:
+            "A divine seed that grows into a wide, branchy tree bearing golden hive fruit.",
+          icon: "🍑🐝",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 55_950,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 2.4,
+            harvests: 100,
+            yields: 9,
+          },
+        } satisfies GardenSeed);
+      },
+    },
   ];
   export type GardenRarity =
     | "Common"

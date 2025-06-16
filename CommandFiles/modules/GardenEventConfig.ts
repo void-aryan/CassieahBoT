@@ -99,7 +99,19 @@ export const EVENT_CONFIG = {
     shopName2: "Honey Trading",
     shopName: "beetrade",
     name: "Bizzy Bee Event",
-    weathers: [],
+    weathers: [
+      {
+        name: "Bee Swarm",
+        icon: "🐝",
+        growthMultiplier: 1,
+        effects: [
+          {
+            mutationChance: 0.25,
+            mutationType: "Pollinated",
+          },
+        ],
+      },
+    ],
     shopItems: [...gardenShop.honeyShop],
   } satisfies GardenEventItem as GardenEventItem,
   EVENTS_CONSTRUCTION: [
@@ -2202,6 +2214,11 @@ export const EVENT_CONFIG = {
     },
   ] as GardenEventItem[],
 };
+
+if (Array.isArray(EVENT_CONFIG.CURRENT_EVENT.weathers)) {
+  EVENT_CONFIG.WEATHERS.unshift(...EVENT_CONFIG.WEATHERS);
+  EVENT_CONFIG.WEATHERS.push(...EVENT_CONFIG.WEATHERS);
+}
 
 EVENT_CONFIG.WEATHERS = insertAfterEvenIndices(EVENT_CONFIG.WEATHERS, {
   name: "Normal",

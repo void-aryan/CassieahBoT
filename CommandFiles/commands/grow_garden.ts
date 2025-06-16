@@ -1,7 +1,19 @@
+// Too many imports? Just rely on auto-imports of Typescript Language Server. 🧑‍🌾👍
+// NOTE: Do not modify without the help of Typescript Checking
+
+// ---- For Inventory and Collectibles class to handle arrays (of items) in a simpler way ----
 import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
+
+// ---- For Unicode symbols, UNIRedux is outdated, but hey? just use it ----
 import { UNIRedux, UNISpectra } from "@cass-modules/unisym.js";
+
+// ---- The main component used to list subcommands (in commands) and handle them automatically ----
 import { Config, SpectralCMDHome } from "@cassidy/spectral-home";
+
+// ---- Only used as type : ) ----
 import { InventoryItem, UserStatsManager } from "@cass-modules/cassidyUser";
+
+// ---- For the sake of consistency in formatting and parsing NUMERICAL input. ----
 import {
   abbreviateNumber,
   formatCash,
@@ -9,30 +21,48 @@ import {
   formatValue,
   parseBet,
 } from "@cass-modules/ArielUtils";
+
+// ---- Just used as type too for CommandContext.output ----
 import OutputProps from "output-cassidy";
+
+// ---- Just also used as type for CommandContext.input and for the roles ----
 import InputClass, { InputRoles } from "@cass-modules/InputClass";
+
+// ---- Shop items and other components! ----
 import {
   GardenChoice,
   GardenChoiceConfig,
   gardenShop,
 } from "@cass-modules/GardenShop";
+
+// ---- Garden Configuration I wanna move somewhere else ----
 import { CROP_CONFIG, fetchSeedStock } from "@cass-modules/GardenConfig";
 import {
   EVENT_CONFIG,
   GardenEventItem,
   GardenWeatherItem,
 } from "@cass-modules/GardenEventConfig";
+
+// ---- For unicode fonts (barely used) ----
 import { FontSystem } from "cassidy-styler";
+
+// ---- For biased random numbers, because I love to make their life worst, maybe? ----
 import { randomBiased } from "@cass-modules/unitypes";
+
+// ---- Do not ask wth this was ----
 import { Datum } from "@cass-modules/Datum";
+
+// ---- Just used as types ----
 import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
+
+// ---- Hacky stuff ----
 import { evaluateItemBalance } from "@cass-modules/GardenBalancer";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.18",
+  version: "2.0.19",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -45,6 +75,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "cplx_g",
 };
 
+// ---- For the sake of gift/giftPack to give seeds as rewards too ----
 export const treasuresTable: InventoryItem[] = [
   ...gardenShop.itemData
     .map((shopItem) => {
@@ -69,6 +100,7 @@ export const treasuresTable: InventoryItem[] = [
     .filter(Boolean),
 ];
 
+// ---- For bc use ----
 export const briefcaseUsage: Record<string, BreifcaseUsagePlugin> = {
   gardenSeed(arg, ctx, _bctx) {
     const item = arg.item as GardenSeed;
@@ -220,7 +252,7 @@ export function calculateCropValue(crop: GardenPlot) {
     .filter(Boolean);
 
   const totalMutationBonus = mutations.reduce(
-    (acc, curr) => acc + (curr.valueMultiplier ?? 0),
+    (acc, curr) => acc * (curr.valueMultiplier || 1),
     1
   );
 
@@ -435,14 +467,14 @@ function isCropOvergrown(crop: GardenPlot) {
 //   return Math.max(0, growthProgress - 2);
 // }
 
-function getOvergrownElapsed(crop: GardenPlot): number {
-  const timeLeft = cropTimeLeft(crop, true);
-  const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
-  const elapsed = originalGrowth - timeLeft;
-  const overgrownThreshold = 2 * originalGrowth;
+// function getOvergrownElapsed(crop: GardenPlot): number {
+//   const timeLeft = cropTimeLeft(crop, true);
+//   const originalGrowth = crop.originalGrowthTime ?? crop.growthTime;
+//   const elapsed = originalGrowth - timeLeft;
+//   const overgrownThreshold = 2 * originalGrowth;
 
-  return Math.max(0, elapsed - overgrownThreshold);
-}
+//   return Math.max(0, elapsed - overgrownThreshold);
+// }
 
 async function getTimeForNextWeather() {
   const { globalDB } = Cassidy.databases;
@@ -940,11 +972,14 @@ function correctPlot(plot: GardenPlot) {
       if (plot.baseValue !== foundSeed.cropData.baseValue) {
         plot.baseValue = foundSeed.cropData.baseValue;
         plot.harvestsLeft = foundSeed.cropData.harvests;
-        plot.price = Math.min(
-          foundSeed.cropData.baseValue || 0,
-          (found.price ?? foundSeed.cropData.baseValue) /
-            (foundSeed.cropData.harvests || 1)
-        );
+        plot.price =
+          found.priceType !== "money" && found.priceType
+            ? 0
+            : Math.min(
+                foundSeed.cropData.baseValue || 0,
+                (found.price ?? foundSeed.cropData.baseValue) /
+                  (foundSeed.cropData.harvests || 1)
+              );
       }
 
       plot.yields = foundSeed.cropData.yields;
@@ -1096,6 +1131,7 @@ function correctPlot(plot: GardenPlot) {
 //   },
 // };
 
+// ---- The main shi ----
 export async function entry(ctx: CommandContext) {
   // await registerNotif(ctx);
   const {
@@ -1270,9 +1306,9 @@ export async function entry(ctx: CommandContext) {
       ? [
           {
             key: currEvent?.shopName ?? "eventshop",
-            description: `Shop for ${currWeather.name}.`,
+            description: `Shop for ${currEvent.name}.`,
             aliases: [...(currEvent.shopAlias ?? []), "-esh", "eshop"],
-            icon: `${currWeather.icon ?? "🛒"}`,
+            icon: `${currEvent.icon ?? "🛒"}`,
             async handler() {
               const shop = new UTShop({
                 ...formatShopItems(
@@ -1562,11 +1598,12 @@ export async function entry(ctx: CommandContext) {
               .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
               .flat(),
             ...constructions,
-          ];
+          ]
+          const shopItem = allItems.find((i) => seed.key === i?.key);
           const priceInt =
-            allItems.find((i) => seed.key === i?.key)?.price ??
+            shopItem?.price ??
             seed.cropData.baseValue;
-          const price = Math.min(
+          const price = shopItem.priceType !== "money" && shopItem.priceType ? 0 : Math.min(
             seed.cropData.baseValue || 0,
             priceInt / (seed.cropData.harvests || 1)
           );
