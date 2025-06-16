@@ -66,7 +66,10 @@ export function evaluateItemBalance(
 
   const { cropData, name, key } = inventoryItem;
   const { baseValue, growthTime, harvests, yields = 1 } = cropData;
-  const { price, rarity } = shopItem;
+  let { price, rarity } = shopItem;
+  if (shopItem.priceType !== "money" && shopItem.priceType) {
+    price = 0;
+  }
 
   const totalYields = yields;
   const harvestsPerYield = Math.floor(harvests / yields);

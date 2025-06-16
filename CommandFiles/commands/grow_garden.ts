@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.19",
+  version: "2.0.20",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Liane Cagara 🎀",
@@ -77,6 +77,28 @@ export const meta: CassidySpectra.CommandMeta = {
 
 // ---- For the sake of gift/giftPack to give seeds as rewards too ----
 export const treasuresTable: InventoryItem[] = [
+  ...gardenShop.honeyShop
+    .filter((i) => i.pack === "pFlowerSeed")
+    .map((shopItem) => {
+      let inventoryItem: GardenItem | null = null;
+      const mockMoneySet = {
+        inventory: [] as GardenItem[],
+      };
+
+      shopItem.onPurchase({ moneySet: mockMoneySet });
+      inventoryItem = mockMoneySet.inventory[0] || null;
+
+      if (!inventoryItem) {
+        return null;
+      }
+
+      return {
+        ...inventoryItem,
+        group: ["pFlowers"],
+        prob: shopItem.packChance ?? 0,
+      };
+    })
+    .filter(Boolean),
   ...gardenShop.itemData
     .map((shopItem) => {
       let inventoryItem: GardenItem | null = null;
@@ -1598,15 +1620,16 @@ export async function entry(ctx: CommandContext) {
               .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
               .flat(),
             ...constructions,
-          ]
+          ];
           const shopItem = allItems.find((i) => seed.key === i?.key);
-          const priceInt =
-            shopItem?.price ??
-            seed.cropData.baseValue;
-          const price = shopItem.priceType !== "money" && shopItem.priceType ? 0 : Math.min(
-            seed.cropData.baseValue || 0,
-            priceInt / (seed.cropData.harvests || 1)
-          );
+          const priceInt = shopItem?.price ?? seed.cropData.baseValue;
+          const price =
+            shopItem.priceType !== "money" && shopItem.priceType
+              ? 0
+              : Math.min(
+                  seed.cropData.baseValue || 0,
+                  priceInt / (seed.cropData.harvests || 1)
+                );
           let plot: GardenPlot = {
             key: `plot_${Date.now()}_${i}`,
             seedKey: seed.key,

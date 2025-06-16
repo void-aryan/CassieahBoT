@@ -21,6 +21,7 @@ export namespace gardenShop {
     minStock: number;
     maxStock: number;
     pack?: string;
+    packChance?: number;
     isOfficialStock?: boolean;
     onPurchase: ({
       moneySet,
@@ -183,6 +184,216 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 2.4,
             harvests: 100,
             yields: 9,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "🌹",
+      name: "Rose Seed",
+      key: "gsRose",
+      flavorText:
+        "A thorny yet elegant flower, blooming in deep maroon from angular petals.",
+      price: 0,
+      rarity: "Uncommon",
+      inStock: false,
+      priceType: "cll:honey",
+      stockLimit: 0,
+      minStock: 0,
+      pack: "pFlowerSeed",
+      packChance: 0.4,
+      maxStock: 0,
+      stockChance: 0,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsRose",
+          name: "Rose Seed",
+          flavorText:
+            "A thorny yet elegant flower, blooming in deep maroon from angular petals.",
+          icon: "🌹",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 4_513,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.2,
+            harvests: 60,
+            yields: 3,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "🧪🌸",
+      name: "Foxglove Seed",
+      key: "gsFoxglove",
+      flavorText:
+        "A spire of tubular blooms, each flower a purple-pink bell tipped with a witch's hat.",
+      price: 0,
+      rarity: "Rare",
+      inStock: false,
+      priceType: "cll:honey",
+      stockLimit: 0,
+      minStock: 0,
+      pack: "pFlowerSeed",
+      packChance: 0.25,
+      maxStock: 0,
+      stockChance: 0,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsFoxglove",
+          name: "Foxglove Seed",
+          flavorText:
+            "A spire of tubular blooms, each flower a purple-pink bell tipped with a witch's hat.",
+          icon: "🧪🌸",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 18_050,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.1,
+            harvests: 70,
+            yields: 4,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "💮🌿",
+      name: "Lilac Seed",
+      key: "gsLilac",
+      flavorText:
+        "Elegant pink blossoms spiral up a long green stem, flourishing with legendary charm.",
+      price: 0,
+      rarity: "Legendary",
+      inStock: false,
+      priceType: "cll:honey",
+      stockLimit: 0,
+      minStock: 0,
+      pack: "pFlowerSeed",
+      packChance: 0.2,
+      maxStock: 0,
+      stockChance: 0,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsLilac",
+          name: "Lilac Seed",
+          flavorText:
+            "Elegant pink blossoms spiral up a long green stem, flourishing with legendary charm.",
+          icon: "💮🌿",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 31_588,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.25,
+            harvests: 80,
+            yields: 6,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "🌸🌿",
+      name: "Pink Lily Seed",
+      key: "gsPinkLily",
+      flavorText:
+        "A tall flower with delicate pink petals, crowned atop a dark green stem resembling robust corn stalks.",
+      price: 0,
+      rarity: "Mythical",
+      inStock: false,
+      priceType: "cll:honey",
+      stockLimit: 0,
+      minStock: 0,
+      pack: "pFlowerSeed",
+      packChance: 0.1,
+      maxStock: 0,
+      stockChance: 0,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsPinkLily",
+          name: "Pink Lily Seed",
+          flavorText:
+            "A tall flower with delicate pink petals, crowned atop a dark green stem resembling robust corn stalks.",
+          icon: "🌸🌿",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 58_663,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.3,
+            harvests: 85,
+            yields: 7,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "💠🌺",
+      name: "Pink Dahlia Seed",
+      key: "gsPinkDahlia",
+      flavorText:
+        "A dazzling layered bloom with a mythical shimmer, standing tall with petals deep as amethyst light.",
+      price: 0,
+      rarity: "Mythical",
+      inStock: false,
+      priceType: "cll:honey",
+      stockLimit: 0,
+      minStock: 0,
+      pack: "pFlowerSeed",
+      packChance: 0.45,
+      maxStock: 0,
+      stockChance: 0,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsPinkDahlia",
+          name: "Pink Dahlia Seed",
+          flavorText:
+            "A dazzling layered bloom with a mythical shimmer, standing tall with petals deep as amethyst light.",
+          icon: "💠🌺",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 67_469,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 1.35,
+            harvests: 90,
+            yields: 8,
+          },
+        } satisfies GardenSeed);
+      },
+    },
+    {
+      icon: "🌻🌞",
+      name: "Sunflower Seed",
+      key: "gsSunflower",
+      flavorText:
+        "A divine bloom that follows the sun's gaze, radiating unmatched brilliance with every harvest.",
+      price: 0,
+      rarity: "Divine",
+      inStock: false,
+      priceType: "cll:honey",
+      stockLimit: 0,
+      minStock: 0,
+      pack: "pFlowerSeed",
+      packChance: 0.05,
+      maxStock: 0,
+      stockChance: 0,
+      isEventItem: false,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsSunflower",
+          name: "Sunflower Seed",
+          flavorText:
+            "A divine bloom that follows the sun's gaze, radiating unmatched brilliance with every harvest.",
+          icon: "🌻🌞",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 144_400,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 5.8,
+            harvests: 120,
+            yields: 1,
           },
         } satisfies GardenSeed);
       },
