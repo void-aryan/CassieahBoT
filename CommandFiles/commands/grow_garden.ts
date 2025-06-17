@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.25",
+  version: "2.0.26",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -641,7 +641,11 @@ async function applyMutation(
       mchance === 0
         ? 0
         : Math.min(0.99, mutationBoosts.get(mutation.name) ?? 0);
-    const chance = Math.min(0.5, mchance * (1 + boost));
+    let ratio = crop.kiloGrams / CROP_CONFIG.MAX_KG;
+    let normalized = 1 - Math.min(1, ratio);
+
+    const extraFactor = normalized;
+    const chance = Math.min(0.5, mchance * (1 + boost) * extraFactor);
 
     if (roll <= chance && Math.random() < 0.3) {
       if (!crop.mutation.includes(mutation.name)) {
