@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.24",
+  version: "2.0.25",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -1599,7 +1599,8 @@ export async function entry(ctx: CommandContext) {
               );
               let kg = 0;
               const item = barns.getOneByID(gardenHeld);
-              if (honeyKG < neededKg) {
+              let isAlreadyFull = honeyKG >= neededKg;
+              if (!isAlreadyFull) {
                 if (!item || !item.mutation.includes(neededMutation)) {
                   return rep.output.reply(
                     `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!\n\n💡 Hint: try opening your garden barn and hold an item!`
@@ -1627,11 +1628,11 @@ export async function entry(ctx: CommandContext) {
                   `${
                     UNISpectra.charm
                   } 🍯🏠 ${lineCompleteKG.randomValue()}\n\n${
-                    honeyKG < neededKg
+                    !isAlreadyFull
                       ? `🫴 ${formatMutationStr(
                           item
                         )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n`
-                      : ""
+                      : "✅ Already full, no need for a plant!\n\n"
                   }🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\nThe combpressor will start making honey, collect it after **${
                     timeNeed / 1000
                   } seconds.**`
@@ -1644,7 +1645,7 @@ export async function entry(ctx: CommandContext) {
                 });
                 return rep.output.reply(
                   `${UNISpectra.charm} 🍯🏠 ${linesNeedKG.randomValue()}\n\n${
-                    honeyKG < neededKg
+                    !isAlreadyFull
                       ? `🫴 ${formatMutationStr(
                           item
                         )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n`
