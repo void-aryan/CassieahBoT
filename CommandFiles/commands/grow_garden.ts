@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.23",
+  version: "2.0.24",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -1597,35 +1597,42 @@ export async function entry(ctx: CommandContext) {
                 gardenBarns,
                 CROP_CONFIG.BARN_LIMIT
               );
+              let kg = 0;
               const item = barns.getOneByID(gardenHeld);
-              if (!item || !item.mutation.includes(neededMutation)) {
-                return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!\n\n💡 Hint: try opening your garden barn and hold an item!`
-                );
-              }
-              if (item.isFavorite) {
-                return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 Cannot give favorited plant!\n\n💡 Hint: try opening your garden barn and unfavorite an item!`
-                );
-              }
+              if (honeyKG < neededKg) {
+                if (!item || !item.mutation.includes(neededMutation)) {
+                  return rep.output.reply(
+                    `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!\n\n💡 Hint: try opening your garden barn and hold an item!`
+                  );
+                }
+                if (item.isFavorite) {
+                  return rep.output.reply(
+                    `${UNISpectra.charm} 🍯🏠 Cannot give favorited plant!\n\n💡 Hint: try opening your garden barn and unfavorite an item!`
+                  );
+                }
 
-              const kg = item.kiloGrams;
-              honeyKG += kg;
+                kg = item.kiloGrams;
+                honeyKG += kg;
 
-              barns.deleteByID(item.uuid);
+                barns.deleteByID(item.uuid);
+              }
 
               if (honeyKG >= neededKg) {
                 await rep.usersDB.setItem(rep.uid, {
                   honeyStamp: Date.now(),
                   gardenBarns: barns.raw(),
-                  honeyKG: Math.max(0, honeyKG - 10),
+                  honeyKG: Math.max(0, honeyKG - neededKg),
                 });
                 return rep.output.reply(
                   `${
                     UNISpectra.charm
-                  } 🍯🏠 ${lineCompleteKG.randomValue()}\n\n🫴 ${formatMutationStr(
-                    item
-                  )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\nThe combpressor will start making honey, collect it after **${
+                  } 🍯🏠 ${lineCompleteKG.randomValue()}\n\n${
+                    honeyKG < neededKg
+                      ? `🫴 ${formatMutationStr(
+                          item
+                        )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n`
+                      : ""
+                  }🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\nThe combpressor will start making honey, collect it after **${
                     timeNeed / 1000
                   } seconds.**`
                 );
@@ -1636,11 +1643,13 @@ export async function entry(ctx: CommandContext) {
                   honeyStamp: null,
                 });
                 return rep.output.reply(
-                  `${
-                    UNISpectra.charm
-                  } 🍯🏠 ${linesNeedKG.randomValue()}\n\n🫴 ${formatMutationStr(
-                    item
-                  )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\n💡 ${
+                  `${UNISpectra.charm} 🍯🏠 ${linesNeedKG.randomValue()}\n\n${
+                    honeyKG < neededKg
+                      ? `🫴 ${formatMutationStr(
+                          item
+                        )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n`
+                      : ""
+                  }🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\n💡 ${
                     honeyKG - neededKg
                   }kg left!`
                 );
