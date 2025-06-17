@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.22",
+  version: "2.0.23",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -159,8 +159,13 @@ export type GardenSeed = InventoryItem & {
     growthTime: number;
     harvests: number;
     yields: number;
+    baseKG?: number;
   };
   isFavorite?: boolean;
+};
+export type GardenPack = InventoryItem & {
+  type: "roulette_pack";
+  treasureKey: `randomGrouped_${string}`;
 };
 
 export type GardenPetCage = InventoryItem & {
@@ -198,6 +203,7 @@ export type GardenPlot = InventoryItem & {
   kiloGrams: number;
   maxKiloGrams: number;
   mutationAttempts: number;
+  baseKiloGrams: number;
 };
 
 export function toBarnItem(plot: GardenPlot): GardenBarn[] {
@@ -264,7 +270,7 @@ export interface GardenStats {
   achievements: string[];
 }
 
-export type GardenItem = GardenSeed | GardenPetCage | GardenTool;
+export type GardenItem = GardenSeed | GardenPetCage | GardenTool | GardenPack;
 
 export function calculateCropValue(crop: GardenPlot) {
   const mutations = (crop.mutation || [])
@@ -1010,6 +1016,17 @@ function correctPlot(plot: GardenPlot) {
 
       plot.originalGrowthTime = foundSeed.cropData.growthTime;
       plot.icon = foundSeed.icon;
+      plot.baseKiloGrams = foundSeed.cropData.baseKG ?? 0;
+      if (
+        plot.maxKiloGrams <
+        (foundSeed.cropData.baseKG ?? 0) + CROP_CONFIG.MIN_KG
+      ) {
+        plot.maxKiloGrams = randomBiased(
+          CROP_CONFIG.MIN_KG + (foundSeed.cropData.baseKG ?? 0),
+          CROP_CONFIG.MAX_KG,
+          CROP_CONFIG.KILO_BIAS
+        );
+      }
     }
   }
   return plot;
@@ -1453,9 +1470,7 @@ export async function entry(ctx: CommandContext) {
                 gardenBarns,
                 CROP_CONFIG.BARN_LIMIT
               );
-              const canBuy = [barns.getOneByID(gardenHeld)]
-                .filter(Boolean)
-                .filter((i) => !i.isFavorite);
+              const canBuy = [barns.getOneByID(gardenHeld)].filter(Boolean);
               if (canBuy.length === 0) {
                 return rep.output.reply(
                   `${UNISpectra.charm} 💬 🧑‍🌾 I don't see anything.\n\n💡 Hint: try opening your garden barn and hold an item!`
@@ -1585,12 +1600,12 @@ export async function entry(ctx: CommandContext) {
               const item = barns.getOneByID(gardenHeld);
               if (!item || !item.mutation.includes(neededMutation)) {
                 return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!`
+                  `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!\n\n💡 Hint: try opening your garden barn and hold an item!`
                 );
               }
               if (item.isFavorite) {
                 return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 Cannot give favorited plant!`
+                  `${UNISpectra.charm} 🍯🏠 Cannot give favorited plant!\n\n💡 Hint: try opening your garden barn and unfavorite an item!`
                 );
               }
 
@@ -1603,15 +1618,14 @@ export async function entry(ctx: CommandContext) {
                 await rep.usersDB.setItem(rep.uid, {
                   honeyStamp: Date.now(),
                   gardenBarns: barns.raw(),
-                  honeyKG: 0,
+                  honeyKG: Math.max(0, honeyKG - 10),
                 });
                 return rep.output.reply(
                   `${
                     UNISpectra.charm
-                  } 🍯🏠 ${lineCompleteKG.randomValue()}\n\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${Math.min(
-                    neededKg,
-                    honeyKG
-                  )}kg**/${neededKg}kg\n\nThe combpressor will start making honey, collect it after **${
+                  } 🍯🏠 ${lineCompleteKG.randomValue()}\n\n🫴 ${formatMutationStr(
+                    item
+                  )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\nThe combpressor will start making honey, collect it after **${
                     timeNeed / 1000
                   } seconds.**`
                 );
@@ -1624,7 +1638,11 @@ export async function entry(ctx: CommandContext) {
                 return rep.output.reply(
                   `${
                     UNISpectra.charm
-                  } 🍯🏠 ${linesNeedKG.randomValue()}\n\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${honeyKG}kg**/${neededKg}kg`
+                  } 🍯🏠 ${linesNeedKG.randomValue()}\n\n🫴 ${formatMutationStr(
+                    item
+                  )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\n💡 ${
+                    honeyKG - neededKg
+                  }kg left!`
                 );
               }
             },
@@ -1655,7 +1673,6 @@ export async function entry(ctx: CommandContext) {
               await rep.usersDB.setItem(rep.uid, {
                 honeyStamp: null,
                 collectibles: [...cll],
-                honeyKG: 0,
               });
 
               return rep.output.reply(
@@ -1832,11 +1849,12 @@ export async function entry(ctx: CommandContext) {
             lastMutation: null,
             kiloGrams: 0,
             maxKiloGrams: randomBiased(
-              CROP_CONFIG.MIN_KG,
+              CROP_CONFIG.MIN_KG + (seed.cropData.baseKG ?? 0),
               CROP_CONFIG.MAX_KG,
               CROP_CONFIG.KILO_BIAS
             ),
             mutationAttempts: 0,
+            baseKiloGrams: seed.cropData.baseKG ?? 0,
           };
           if (Math.random() < 0.1) {
             plot = await applyMutation(
@@ -3476,137 +3494,6 @@ export async function entry(ctx: CommandContext) {
         }
       },
     },
-    /*{
-      key: "sell",
-      description: "Sell items or crops at Steven's Stand",
-      aliases: ["-s"],
-      args: ["[item_key/inventory]"],
-      async handler(_, { spectralArgs }) {
-        const inventory = new Inventory<GardenItem | InventoryItem>(
-          rawInventory
-        );
-        const plots = new Inventory<GardenPlot>(rawPlots, plotLimit);
-        let moneyEarned = 0;
-        const sold: string[] = [];
-
-        if (spectralArgs[0] === "inventory") {
-          const sellableItems = inventory
-            .getAll()
-            .filter((item) => !item.isFavorite);
-          if (sellableItems.length === 0) {
-            return output.replyStyled(
-              `❌ No sellable items in inventory! Favorite items are protected.\n\n` +
-                `**Next Steps**:\n` +
-                `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }list\n` +
-                `${
-                  UNISpectra.arrowFromT
-                } Favorite items: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }favorite`,
-              style
-            );
-          }
-          sellableItems.forEach((item) => {
-            moneyEarned += item.sellPrice;
-            sold.push(
-              `${item.icon} ${item.name} - ${formatCash(item.sellPrice)}`
-            );
-            inventory.deleteOne(item.key);
-          });
-        } else if (spectralArgs[0]) {
-          const item =
-            inventory.getOne(spectralArgs[0]) || plots.getOne(spectralArgs[0]);
-          if (!item) {
-            return output.replyStyled(
-              `❌ Invalid item key "${
-                spectralArgs[0]
-              }"! Check items with ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }list.\n\n` +
-                `**Next Steps**:\n` +
-                `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }list\n` +
-                `${UNISpectra.arrowFromT} Check plots: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }plots`,
-              style
-            );
-          }
-          if (item.isFavorite) {
-            return output.replyStyled(
-              `❌ Cannot sell favorited item ${item.icon} **${item.name}**!\n\n` +
-                `**Next Steps**:\n` +
-                `${
-                  UNISpectra.arrowFromT
-                } Unfavorite item: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }favorite\n` +
-                `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-                  isHypen ? "-" : " "
-                }list`,
-              style
-            );
-          }
-          moneyEarned +=
-            item.sellPrice ||
-            calculateCropValue(
-              item as GardenPlot,
-              plots,
-              gardenStats.expansions
-            );
-          sold.push(
-            `${item.icon} ${item.name} - ${formatCash(
-              item.sellPrice ||
-                calculateCropValue(
-                  item as GardenPlot,
-                  plots,
-                  gardenStats.expansions
-                )
-            )}`
-          );
-          if (item.type === "activePlot") {
-            plots.deleteOne(item.key);
-          } else {
-            inventory.deleteOne(item.key);
-          }
-        } else {
-          return output.replyStyled(
-            `❌ Please specify an item key or "inventory"!\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} List items: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }list\n` +
-              `${UNISpectra.arrowFromT} Check plots: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }plots`,
-            style
-          );
-        }
-
-        await money.setItem(input.senderID, {
-          money: userMoney + moneyEarned,
-          inventory: Array.from(inventory),
-          gardenPlots: Array.from(plots),
-        });
-
-        return output.replyStyled(
-          `💰 **Sold at Steven's Stand**:\n${sold.join("\n")}\n\n` +
-            `💰 Earned: ${formatCash(moneyEarned)}\n` +
-            `💵 Balance: ${formatCash(userMoney + moneyEarned)}\n\n` +
-            `**Next Steps**:\n` +
-            `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }list\n` +
-            `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }plant`,
-          style
-        );
-      },
-    },*/
     {
       key: "weather",
       description: "Check current garden  weather",
@@ -3693,128 +3580,6 @@ export async function entry(ctx: CommandContext) {
           }\n\n🌦️ **Skipped**: ${weather.icon} ${
             weather.name
           }\n\n 🌦️ **Current Event&Weather**: ${newEvent.icon} ${newEvent.name}`
-        );
-      },
-    },
-    // {
-    //   key: "settings",
-    //   description: "Manage garden settings",
-    //   aliases: ["-set"],
-    //   args: ["gifting [on/off]"],
-    //   async handler(_, { spectralArgs }) {
-    //     if (
-    //       !spectralArgs[0] ||
-    //       spectralArgs[0] !== "gifting" ||
-    //       !["on", "off"].includes(spectralArgs[1])
-    //     ) {
-    //       return output.replyStyled(
-    //         `❌ Specify setting: ${prefix}${commandName} settings gifting [on/off]\n\n` +
-    //           `**Current Settings**:\n` +
-    //           `${UNIRedux.charm} Gifting: ${
-    //             allowGifting ? "Enabled" : "Disabled"
-    //           }\n\n` +
-    //           `**Next Steps**:\n` +
-    //           `${
-    //             UNISpectra.arrowFromT
-    //           } Toggle gifting: ${prefix}${commandName}${
-    //             isHypen ? "-" : " "
-    //           }settings gifting [on/off]`,
-    //         style
-    //       );
-    //     }
-
-    //     const newGiftingSetting = spectralArgs[1] === "on";
-    //     await money.setItem(input.senderID, {
-    //       allowGifting: newGiftingSetting,
-    //     });
-
-    //     return output.replyStyled(
-    //       `✅ Gifting ${newGiftingSetting ? "enabled" : "disabled"}!\n\n` +
-    //         `**Next Steps**:\n` +
-    //         `${UNISpectra.arrowFromT} Gift items: ${prefix}${commandName}${
-    //           isHypen ? "-" : " "
-    //         }gift\n` +
-    //         `${UNISpectra.arrowFromT} Check items: ${prefix}${commandName}${
-    //           isHypen ? "-" : " "
-    //         }list`,
-    //       style
-    //     );
-    //   },
-    // },
-    {
-      key: "guide",
-      description: "Learn how to play Grow a Garden",
-      aliases: ["-g"],
-      async handler() {
-        return output.replyStyled(
-          `🌱 **Grow a Garden Guide** 🌱\n\n` +
-            `Welcome, ${name}! Grow crops, manage pets, and earn Money in your garden!\n\n` +
-            `**How to Play**:\n` +
-            `${
-              UNIRedux.charm
-            } **Shop**: Buy seeds, pets, and tools at Sam's Garden Shop with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }shop.\n` +
-            `${
-              UNIRedux.charm
-            } **Plant**: Plant seeds in up to ${plotLimit} plots with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }plant. Multi-harvest crops yield multiple times.\n` +
-            `${
-              UNIRedux.charm
-            } **Harvest**: Collect crops for Money with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }harvest. 10% chance to get a seed (Lucky Harvest).\n` +
-            `${UNIRedux.charm} **Mutations**: Crops may mutate (e.g., Wet, Shocked), boosting value. Affected by weather, tools, pets, and new seasonal blessings.\n` +
-            `${
-              UNIRedux.charm
-            } **Pets**: Uncage pets with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }uncage to collect seeds (up to ${PET_EQUIP_LIMIT} equipped). New pet synergy boosts specific mutations.\n` +
-            `${UNIRedux.charm} **Tools**: Sprinkler and Fertilizer boost growth and mutations. Favorite Tool protects items.\n` +
-            `${UNIRedux.charm} **Events**: Weekly weather/events (e.g., ${EVENT_CONFIG.WEATHERS[0].name}) offer exclusive seeds, bonuses, and new event-specific mutations.\n` +
-            `${
-              UNIRedux.charm
-            } **Stealing**: Steal crops from others for ${formatValue(
-              5,
-              "💎",
-              true
-            )} with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }steal (70% success, new 10% chance to steal mutations).\n` +
-            `${
-              UNIRedux.charm
-            } **Grow All**: Instantly grow all crops for ${formatValue(
-              100,
-              "💎",
-              true
-            )} with ${prefix}${commandName}${isHypen ? "-" : " "}growall.\n` +
-            `${
-              UNIRedux.charm
-            } **Expand**: Add plots with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }expand (costs ${formatCash(250000000)}-${formatCash(
-              1000000000
-            )}). New plot synergy bonuses for full plots.\n` +
-            `${UNIRedux.charm} **Hidden Mechanic - Overgrowth Boost**: Overgrown crops (2x growth time) have a 20% higher mutation chance.\n` +
-            `${UNIRedux.charm} **Hidden Mechanic - Pet Harmony**: Equipped pets with matching seed types increase collection rate by 15%.\n` +
-            `${UNIRedux.charm} **Hidden Mechanic - Event Surge**: During events, harvesting 10+ crops at once grants a 5% value bonus.\n` +
-            `\n**Tips**:\n` +
-            `- Check events with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }event for bonuses and new mutations.\n` +
-            `- Use tools and pets strategically to target specific mutations.\n` +
-            `- Expand early to maximize plot synergy bonuses.\n` +
-            `- Time harvests during events for surge bonuses.\n` +
-            `- Monitor overgrowth for mutation boosts but avoid excessive delays.\n\n` +
-            `**Next Steps**:\n` +
-            `${UNISpectra.arrowFromT} Start shopping: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }shop\n` +
-            `${UNISpectra.arrowFromT} View plots: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }plots`,
-          style
         );
       },
     },

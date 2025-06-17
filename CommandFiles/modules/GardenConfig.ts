@@ -49,7 +49,7 @@ export const CROP_CONFIG = {
   MUTATION_INTERVAL: 2 * 60 * 1000,
   MIN_KG: 0.18 as const,
   MAX_KG: 200.32 as const,
-  KILO_BIAS: 25 as const,
+  KILO_BIAS: 20 as const,
   get STOCK_SEED_URL() {
     return `https://growagardenstock.com/api/stock?type=gear-seeds&ts=${Date.now()}` as const;
   },

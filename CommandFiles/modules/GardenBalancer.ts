@@ -65,10 +65,13 @@ export function evaluateItemBalance(
   }
 
   const { cropData, name, key } = inventoryItem;
-  const { baseValue, growthTime, harvests, yields = 1 } = cropData;
+  let { baseValue, growthTime, harvests, yields = 1 } = cropData;
   let { price, rarity } = shopItem;
   if (shopItem.priceType !== "money" && shopItem.priceType) {
     price = 0;
+  }
+  if (inventoryItem.cropData.baseKG) {
+    baseValue * (inventoryItem.cropData.baseKG + 1);
   }
 
   const totalYields = yields;

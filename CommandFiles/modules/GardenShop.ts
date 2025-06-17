@@ -6,7 +6,7 @@ import { OutputResult } from "@cass-plugins/output";
 import { InventoryItem } from "./cassidyUser";
 
 export namespace gardenShop {
-  export type GardenShopItem = ShopItem & {
+  export type GardenShopItem = Omit<ShopItem, "onPurchase"> & {
     icon: string;
     name: string;
     key: string;
@@ -53,7 +53,7 @@ export namespace gardenShop {
           type: "roulette_pack",
           sellPrice: 1,
           treasureKey: "randomGrouped_pFlowers",
-        } satisfies InventoryItem);
+        });
       },
     },
     {
@@ -85,8 +85,9 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 5.2,
             harvests: 1,
             yields: 1,
+            baseKG: 0,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -118,8 +119,9 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 5.4,
             harvests: 1,
             yields: 1,
+            baseKG: 0,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -151,8 +153,9 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 5.2,
             harvests: 90,
             yields: 10,
+            baseKG: 10,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -185,7 +188,7 @@ export namespace gardenShop {
             harvests: 100,
             yields: 9,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -220,7 +223,7 @@ export namespace gardenShop {
             harvests: 60,
             yields: 3,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -255,7 +258,7 @@ export namespace gardenShop {
             harvests: 70,
             yields: 4,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -290,7 +293,7 @@ export namespace gardenShop {
             harvests: 80,
             yields: 6,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -325,7 +328,7 @@ export namespace gardenShop {
             harvests: 85,
             yields: 7,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -359,8 +362,9 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 5.35,
             harvests: 90,
             yields: 8,
+            baseKG: 5,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
     {
@@ -394,8 +398,9 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.8,
             harvests: 240,
             yields: 10,
+            baseKG: 25,
           },
-        } satisfies GardenSeed);
+        });
       },
     },
   ];
@@ -677,6 +682,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
             yields: 1,
+            baseKG: 5,
           },
         });
       },
@@ -706,6 +712,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
             yields: 1,
+            baseKG: 5,
           },
         });
       },
@@ -764,6 +771,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 2,
             harvests: 1,
             yields: 1,
+            baseKG: 5,
           },
         });
       },
@@ -793,6 +801,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 4,
             harvests: 20,
             yields: 12,
+            baseKG: 8,
           },
         });
       },
@@ -852,6 +861,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 5,
             harvests: 17,
             yields: 6,
+            baseKG: 3,
           },
         });
       },
@@ -881,6 +891,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
             harvests: 25,
             yields: 4,
+            baseKG: 2,
           },
         });
       },
@@ -911,6 +922,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 140,
             yields: 12,
+            baseKG: 3,
           },
         });
       },
@@ -940,6 +952,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 1,
             yields: 1,
+            baseKG: 5,
           },
         });
       },
@@ -969,6 +982,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
             harvests: 200,
             yields: 12,
+            baseKG: 3,
           },
         });
       },
@@ -998,6 +1012,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 0.5,
             harvests: 280,
             yields: 12,
+            baseKG: 5,
           },
         });
       },
@@ -1028,6 +1043,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 0.3,
             harvests: 450,
             yields: 12,
+            baseKG: 8,
           },
         });
       },
@@ -1058,6 +1074,7 @@ export namespace gardenShop {
             growthTime: CROP_CONFIG.GROWTH_BASE * 0.2,
             harvests: 400,
             yields: 24,
+            baseKG: 12,
           },
         });
       },

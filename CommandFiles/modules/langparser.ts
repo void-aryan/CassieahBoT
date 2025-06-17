@@ -97,41 +97,67 @@ export class LangParser {
     langs ??= {};
     k1 ||= global.Cassidy.config.defaultLang ?? "en";
 
-    return (key_: string, ...replacers: FormatArgs[]) => {
-      let key = String(key_);
+    const getLang: LangParser.GetLang = (
+      key_: string | Record<string, string>,
+      ...replacers: FormatArgs[]
+    ) => {
+      if (typeof key_ !== "string") {
+        const customLangs = key_;
+        let item =
+          customLangs?.[k1] ||
+          customLangs?.[global.Cassidy.config.defaultLang] ||
+          customLangs?.["en_US"] ||
+          customLangs?.["en"];
 
-      let item =
-        langs?.[k1]?.[key] ||
-        langs?.[global.Cassidy.config.defaultLang]?.[key] ||
-        langs?.[k1]?.["en_US"];
+        if (!item) {
+          return `❌ Cannot find language type: "${k1}" on na custom langs.`;
+        }
 
-      if (!item) {
-        for (const [langKey, langData] of Object.entries(langs || {})) {
-          if (langKey.startsWith("en_") && langData?.[key]) {
-            item = langData[key];
-            break;
+        return formatWith(item, ...replacers);
+      } else {
+        let key = String(key_);
+
+        let item =
+          langs?.[k1]?.[key] ||
+          langs?.[global.Cassidy.config.defaultLang]?.[key] ||
+          langs?.[k1]?.["en_US"];
+
+        if (!item) {
+          for (const [langKey, langData] of Object.entries(langs || {})) {
+            if (langKey.startsWith("en_") && langData?.[key]) {
+              item = langData[key];
+              break;
+            }
           }
         }
-      }
 
-      if (!item) {
-        for (const langData of Object.values(langs || {})) {
-          if (langData?.[key]) {
-            item = langData[key];
-            break;
+        if (!item) {
+          for (const langData of Object.values(langs || {})) {
+            if (langData?.[key]) {
+              item = langData[key];
+              break;
+            }
           }
         }
-      }
 
-      if (!item) {
-        item = this.get?.(key);
-      }
+        if (!item) {
+          item = this.get?.(key);
+        }
 
-      if (!item) {
-        return `❌ Cannot find language properties: "${key}"`;
-      }
+        if (!item) {
+          return `❌ Cannot find language properties: "${key}"`;
+        }
 
-      return formatWith(item, ...replacers);
+        return formatWith(item, ...replacers);
+      }
     };
+    return getLang;
+  }
+}
+
+export namespace LangParser {
+  export interface GetLang {
+    (id: string, ...replacers: FormatArgs[]);
+    (langs: Record<string, string>, ...replacers: FormatArgs[]);
   }
 }

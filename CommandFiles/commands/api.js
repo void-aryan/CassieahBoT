@@ -343,7 +343,10 @@ const handlers = {
         continue;
       }
       const item = itemReq.itemData;
-      const userData = allData[itemReq.author];
+      /**
+       * @type {UserData}
+       */
+      const userData = allData[itemReq.author] ?? money.defaults;
       if (args.includes("--json")) {
         result += `${item.icon} **${item.name}** (${item.key}) #${
           itemReq.requestNum ?? "??"
