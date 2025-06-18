@@ -1,5 +1,6 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { gardenShop } from "./GardenShop";
+import { isInTimeRange } from "./unitypes";
 function insertAfterEvenIndices<T>(arr: T[], valueToInsert: T): T[] {
   const result: T[] = [];
 
@@ -18,6 +19,7 @@ export interface GardenEventItem {
   name: string;
   icon: string;
   shopName?: string;
+  key: string;
   shopName2?: string;
   shopAlias?: string[];
   isNoEvent?: boolean;
@@ -40,11 +42,39 @@ export interface GardenWeatherItem {
   }[];
 }
 export const EVENT_CONFIG = {
+  get allItems(): gardenShop.GardenShopItem[] {
+    const allItems = [
+      ...gardenShop.itemData,
+      ...EVENT_CONFIG.ALL_EVENTS.map((i) => i.shopItems ?? []).flat(),
+      ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map((i) => i.shopItems ?? []).flat(),
+    ];
+    return allItems;
+  },
   WEEKLY_CYCLE: 7 * 24 * 60 * 60 * 1000,
   WEATHER_CYCLE: 20 * 60 * 1000,
   // LONG ASF
   WEATHER_CYCLE_NEW: 20 * 60 * 1000,
-  WEATHERS: [
+  get WEATHERS() {
+    let weathers = [...EVENT_CONFIG.WEATHERS_RAW];
+    if (Array.isArray(EVENT_CONFIG.CURRENT_EVENT.weathers)) {
+      const ww = EVENT_CONFIG.CURRENT_EVENT.weathers;
+      weathers.unshift(...ww);
+      weathers.push(...ww);
+      for (const w of ww) {
+        weathers = insertAfterEvenIndices(weathers, w);
+      }
+    }
+
+    weathers = insertAfterEvenIndices(weathers, {
+      name: "Normal",
+      icon: "🌱",
+      isNoEvent: true,
+      growthMultiplier: 1,
+      effects: [],
+    });
+    return weathers;
+  },
+  WEATHERS_RAW: [
     {
       name: "Rain",
       icon: "🌧️",
@@ -94,26 +124,54 @@ export const EVENT_CONFIG = {
       ],
     },
   ] satisfies GardenWeatherItem[] as GardenWeatherItem[],
-  CURRENT_EVENT: {
-    icon: "🍯🐝",
-    shopName2: "Honey Trading",
-    shopName: "beetrade",
-    name: "Bizzy Bee Event",
-    weathers: [
-      {
-        name: "Bee Swarm",
-        icon: "🐝",
+  ALL_EVENTS: [
+    {
+      icon: "🍯🐝",
+      shopName2: "Honey Trading",
+      shopName: "beetrade",
+      key: "bizzyBees",
+      name: "Bizzy Bee Event",
+      weathers: [
+        {
+          name: "Bee Swarm",
+          icon: "🐝",
+          growthMultiplier: 1,
+          effects: [
+            {
+              mutationChance: 0.1,
+              mutationType: "Pollinated",
+            },
+          ],
+        },
+      ],
+      shopItems: [...gardenShop.honeyShop],
+    },
+  ] satisfies GardenEventItem[] as GardenEventItem[],
+  get CURRENT_EVENT(): GardenEventItem {
+    const relapsed = EVENT_CONFIG.ALL_EVENTS.find((i) => i.key === "relapsed");
+
+    if (relapsed && isInTimeRange("10pm", "3am")) {
+      return relapsed;
+    }
+
+    const bees = EVENT_CONFIG.ALL_EVENTS.find((i) => i.key === "bizzyBees");
+    if (bees) {
+      return bees;
+    }
+
+    return {
+      name: "No Event",
+      icon: "🌱",
+      isNoEvent: true,
+      effect: {
+        mutationChance: 0.1,
         growthMultiplier: 1,
-        effects: [
-          {
-            mutationChance: 0.25,
-            mutationType: "Pollinated",
-          },
-        ],
       },
-    ],
-    shopItems: [...gardenShop.honeyShop],
-  } satisfies GardenEventItem as GardenEventItem,
+      key: "noEvent",
+      weathers: [],
+      shopItems: [],
+    };
+  },
   EVENTS_CONSTRUCTION: [
     {
       name: "No Event",
@@ -2214,20 +2272,3 @@ export const EVENT_CONFIG = {
     },
   ] as GardenEventItem[],
 };
-
-if (Array.isArray(EVENT_CONFIG.CURRENT_EVENT.weathers)) {
-  const ww = EVENT_CONFIG.CURRENT_EVENT.weathers;
-  EVENT_CONFIG.WEATHERS.unshift(...ww);
-  EVENT_CONFIG.WEATHERS.push(...ww);
-  for (const w of ww) {
-    EVENT_CONFIG.WEATHERS = insertAfterEvenIndices(EVENT_CONFIG.WEATHERS, w);
-  }
-}
-
-EVENT_CONFIG.WEATHERS = insertAfterEvenIndices(EVENT_CONFIG.WEATHERS, {
-  name: "Normal",
-  icon: "🌱",
-  isNoEvent: true,
-  growthMultiplier: 1,
-  effects: [],
-});

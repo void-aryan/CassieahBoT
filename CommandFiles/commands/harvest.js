@@ -11,7 +11,6 @@ export const meta = {
   category: "Idle Accumulation Games",
   permissions: [0],
   noPrefix: false,
-  otherNames: ["plant"],
   shopPrice: 100,
   requirement: "3.0.0",
   icon: "🌾",

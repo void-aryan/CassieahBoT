@@ -230,3 +230,23 @@ export function randomBiased(
   const biased = Math.pow(r, exponent);
   return min + (max - min) * biased;
 }
+
+import { DateTime } from "luxon";
+
+export function isInTimeRange(
+  from: string,
+  to: string,
+  timezone: string = "Asia/Manila"
+): boolean {
+  const parse = (timeStr: string, zone: string): DateTime => {
+    const t = DateTime.fromFormat(timeStr.toLowerCase(), "ha", { zone });
+    if (!t.isValid) throw new Error(`Invalid time: ${timeStr}`);
+    return t;
+  };
+
+  const now = DateTime.now().setZone(timezone);
+  const start = parse(from, timezone);
+  const end = parse(to, timezone);
+
+  return start > end ? now >= start || now <= end : now >= start && now <= end;
+}

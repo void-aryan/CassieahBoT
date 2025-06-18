@@ -61,8 +61,8 @@ import { evaluateItemBalance } from "@cass-modules/GardenBalancer";
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
-  otherNames: ["grow", "growgarden", "gr", "g", "gag"],
-  version: "2.0.26",
+  otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
+  version: "2.0.27",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -644,7 +644,7 @@ async function applyMutation(
     let ratio = crop.kiloGrams / CROP_CONFIG.MAX_KG;
     let normalized = 1 - Math.min(1, ratio);
 
-    const extraFactor = normalized;
+    const extraFactor = Math.max(normalized ** 2, 0.05);
     const chance = Math.min(0.5, mchance * (1 + boost) * extraFactor);
 
     if (roll <= chance && Math.random() < 0.3) {
@@ -964,15 +964,7 @@ function formatShopItems(
 }
 
 function correctItems(rawInv: GardenItem[]) {
-  const allItems = [
-    ...gardenShop.itemData,
-    ...[EVENT_CONFIG.CURRENT_EVENT]
-      .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
-      .flat(),
-    ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
-      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-    ).flat(),
-  ];
+  const allItems = EVENT_CONFIG.allItems;
   for (const item of rawInv ?? []) {
     const found = allItems.find((i) => i?.key === item?.key);
     if (found) {
@@ -987,15 +979,7 @@ function correctItems(rawInv: GardenItem[]) {
   return rawInv;
 }
 function correctPlot(plot: GardenPlot) {
-  const allItems = [
-    ...gardenShop.itemData,
-    ...[EVENT_CONFIG.CURRENT_EVENT]
-      .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
-      .flat(),
-    ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
-      (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-    ).flat(),
-  ];
+  const allItems = EVENT_CONFIG.allItems;
 
   const found = allItems.find((i) => i?.key === plot?.seedKey);
   if (found) {
@@ -1304,6 +1288,215 @@ export async function entry(ctx: CommandContext) {
 
   const isRef = await refreshShopStock();
 
+  const beeCombpressor: Config = {
+    key: "combpressor",
+    description: "interact with the honey combpressor.",
+    aliases: ["comb", "cb"],
+    icon: "🍯🏠",
+    async handler(_, {}) {
+      const linesNeedKG: string[] = [
+        "I'll put that in the **Compressor**. But we've still got more to go!",
+        "Whoa! Did you get this one from a 🌱 **Supreme Sprout**?",
+        "This'll work great. But the grind **never stops**!",
+        "We'll convert this into 🍯 **honey**.",
+        "Nice!! We'll turn this into 🍯 **honey**, somehow.",
+        "This looks like it'll give a lot of **bond**...",
+        "Once it's **full**, we'll **combpress** it down.",
+        "Just stuff that right into the **Combpressor**.",
+        "Plant 🌱 **seeds**! Collect 🥥 **fruits**! Make 🍯 **honey**!",
+        "Oh! This one is 🐝💖 **Basic Bee's favorite**.",
+        "I bet **Tabby Bee** would like this one!",
+      ];
+      const lineCompleteKG: string[] = [
+        "Here comes the 🍯 **honey**!",
+        "Let's convert this stuff into 🍯 **honey**!",
+        "Ok! Now you just wait while I **Combpress** this down.",
+        "That's all we need! Now, it's my turn to **work..**",
+        "Perfect! You wait while I get 🐼 **Panda Bear** to press this down.",
+        "Time to **press**! Just uh, give, me a minute.",
+        "Filled up faster than a 🐝 **Photon Bee**! Now we wait.",
+      ];
+      const lineReward: string[] = [
+        "Good work, **Beekeeper**! Keep up the grind.",
+        "✅ **Quest complete**! Here's your sweet **reward**.",
+        "The honey turned out great! 🐻 **Black Bear** would be proud.",
+        "Could buy alot of 🪼 **Royal Jelly** with this stuff.",
+        "I like 🍯 **honey**, but I don't like it **THAT** much.",
+        "More 🍯 **honey** than a 🌧️ **honey storm**.",
+      ];
+
+      const timeNeed = 2 * 60 * 1000;
+      const rewardHoney = 10;
+      const neededKg = Number((10).toFixed(2));
+      const neededMutation = "Pollinated";
+
+      const str = `🍯🏠 Hi I am Onett, I guess.`;
+      const choices: GardenChoiceConfig["choices"] = [
+        {
+          txt: `How much is in the honey combpressor?`,
+          async callback(rep) {
+            let { honeyStamp, honeyKG: honeyKG_ = 0 } =
+              await rep.usersDB.getCache(rep.uid);
+            let honeyKG = honeyKG_ as number;
+            if (typeof honeyStamp === "number") {
+              return rep.output.reply(
+                `${UNISpectra.charm} 🍯🏠 The combpressor is currently running! Try to collect it.`
+              );
+            }
+
+            return rep.output.reply(
+              `${UNISpectra.charm} 🍯🏠 **${Number(
+                honeyKG.toFixed(2)
+              )}**/${neededKg} KG`
+            );
+          },
+        },
+        {
+          txt: `I want to put 🫴 this to the honey combpressor.`,
+          async callback(rep) {
+            let {
+              gardenBarns = [],
+              honeyStamp,
+              gardenHeld = "",
+              honeyKG: honeyKG_ = 0,
+              name = "User",
+            } = await rep.usersDB.getCache(rep.uid);
+            let honeyKG = honeyKG_ as number;
+            if (typeof honeyStamp === "number") {
+              return rep.output.reply(
+                `${UNISpectra.charm} 🍯🏠 The combpressor is currently running! Try to collect it.`
+              );
+            }
+            const barns = new Inventory<GardenBarn>(
+              gardenBarns,
+              CROP_CONFIG.BARN_LIMIT
+            );
+            let kg = 0;
+            const item = barns.getOneByID(gardenHeld);
+            let isAlreadyFull = honeyKG >= neededKg;
+            if (!isAlreadyFull) {
+              if (!item || !item.mutation.includes(neededMutation)) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!\n\n💡 Hint: try opening your garden barn and hold an item!`
+                );
+              }
+              if (item.isFavorite) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} 🍯🏠 Cannot give favorited plant!\n\n💡 Hint: try opening your garden barn and unfavorite an item!`
+                );
+              }
+
+              kg = item.kiloGrams;
+              honeyKG += kg;
+
+              barns.deleteByID(item.uuid);
+            }
+
+            if (honeyKG >= neededKg) {
+              await rep.usersDB.setItem(rep.uid, {
+                honeyStamp: Date.now(),
+                gardenBarns: barns.raw(),
+                honeyKG: Math.max(0, honeyKG - honeyKG), //TF?
+              });
+              setTimeout(() => {
+                if (!rep.input.isWeb) {
+                  const stx: CommandStyle = {
+                    ...style,
+                  };
+                  delete st.footer;
+                  const y = GardenChoice({
+                    title: `Hello **${name}**! Your 🍯 **honey** is ready! Please collect it.`,
+                    choices,
+                    style: stx,
+                  });
+                  return y(rep);
+                }
+              }, timeNeed);
+              return rep.output.reply(
+                `${UNISpectra.charm} 🍯🏠 ${lineCompleteKG.randomValue()}\n\n${
+                  !isAlreadyFull
+                    ? `🫴 ${formatMutationStr(
+                        item
+                      )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n`
+                    : "✅ Already full, no need for a plant!\n\n"
+                }🍯🏠 **${Number(
+                  honeyKG.toFixed(2)
+                )}**/${neededKg} KG\n\nThe combpressor will start making honey, collect it after **${
+                  timeNeed / 1000
+                } seconds.**`
+              );
+            } else {
+              await rep.usersDB.setItem(rep.uid, {
+                gardenBarns: barns.raw(),
+                honeyKG,
+                honeyStamp: null,
+              });
+              return rep.output.reply(
+                `${UNISpectra.charm} 🍯🏠 ${linesNeedKG.randomValue()}\n\n${
+                  !isAlreadyFull
+                    ? `🫴 ${formatMutationStr(
+                        item
+                      )}\n✅ Added **${kg} KG** to the combpressor.\n\n`
+                    : ""
+                }🍯🏠 **${Number(honeyKG.toFixed(2))}**/${neededKg} KG\n\n💡 ${
+                  honeyKG - neededKg
+                } KG left!`
+              );
+            }
+          },
+        },
+        {
+          txt: `I want to collect the honey 🍯`,
+          async callback(rep) {
+            const { collectibles: putCll = [], honeyStamp } =
+              await rep.usersDB.getCache(rep.uid);
+            if (typeof honeyStamp !== "number") {
+              return rep.output.reply(
+                `${UNISpectra.charm} 🍯🏠 Looks like there is nothing in here.`
+              );
+            }
+            const now = Date.now();
+            const elapsed = now - honeyStamp;
+            if (elapsed < timeNeed) {
+              const sLeft = Math.ceil((timeNeed - elapsed) / 1000);
+              return rep.output.reply(
+                `${UNISpectra.charm} 🍯🏠 **${String(sLeft).padStart(
+                  3,
+                  "0"
+                )}** Seconds left!`
+              );
+            }
+            const cll = new Collectibles(putCll);
+            cll.raise("honey", rewardHoney);
+            await rep.usersDB.setItem(rep.uid, {
+              honeyStamp: null,
+              collectibles: [...cll],
+            });
+
+            return rep.output.reply(
+              `${
+                UNISpectra.charm
+              } 🍯🏠 ${lineReward.randomValue()}\n\nYou got 🍯**${rewardHoney}**!\n🍯 Your Honey: ${formatValue(
+                cll.getAmount("honey"),
+                "🍯",
+                true
+              )}`
+            );
+          },
+        },
+      ];
+      const st: CommandStyle = {
+        ...style,
+      };
+      delete st.footer;
+      const x = GardenChoice({
+        title: str,
+        choices,
+        style: st,
+      });
+      return x(ctx);
+    },
+  };
   const home = new SpectralCMDHome({ isHypen }, [
     {
       key: "shop",
@@ -1388,7 +1581,7 @@ export async function entry(ctx: CommandContext) {
         const str = `🧑‍🌾 Got anything to sell?`;
         const choices: GardenChoiceConfig["choices"] = [
           {
-            txt: `I want to sell my entire barn.`,
+            txt: `I want to sell my inventory (entire barn).`,
             async callback(rep) {
               const { gardenBarns = [], money: userMoney = 0 } =
                 await rep.usersDB.getCache(rep.uid);
@@ -1421,9 +1614,7 @@ export async function entry(ctx: CommandContext) {
             },
           },
           {
-            txt: `I want to sell this 🫴 ${
-              currentHeld ? formatMutationStr(currentHeld) : "[no held item]"
-            }`,
+            txt: `I want to sell 🫴 this.`,
             async callback(rep) {
               const {
                 gardenBarns = [],
@@ -1464,9 +1655,7 @@ export async function entry(ctx: CommandContext) {
           },
 
           {
-            txt: `How much is this ${
-              currentHeld ? formatMutationStr(currentHeld) : "[no held item]"
-            } worth?`,
+            txt: `How much is 🫴 this worth?`,
             async callback(rep) {
               const { gardenBarns = [], gardenHeld = "" } =
                 await rep.usersDB.getCache(rep.uid);
@@ -1520,199 +1709,7 @@ export async function entry(ctx: CommandContext) {
         return x(ctx);
       },
     },
-    {
-      key: "combpressor",
-      description: "interact with the honey combpressor.",
-      aliases: ["comb", "cb"],
-      icon: "🍯🏠",
-      async handler(_, {}) {
-        const linesNeedKG: string[] = [
-          "I'll put that in the **Compressor**. But we've still got more to go!",
-          "Whoa! Did you get this one from a 🌱 **Supreme Sprout**?",
-          "This'll work great. But the grind **never stops**!",
-          "We'll convert this into 🍯 **honey**.",
-          "Nice!! We'll turn this into 🍯 **honey**, somehow.",
-          "This looks like it'll give a lot of **bond**...",
-          "Once it's **full**, we'll **combpress** it down.",
-          "Just stuff that right into the **Combpressor**.",
-          "Plant 🌱 **seeds**! Collect 🥥 **fruits**! Make 🍯 **honey**!",
-          "Oh! This one is 🐝💖 **Basic Bee's favorite**.",
-          "I bet **Tabby Bee** would like this one!",
-        ];
-        const lineCompleteKG: string[] = [
-          "Here comes the 🍯 **honey**!",
-          "Let's convert this stuff into 🍯 **honey**!",
-          "Ok! Now you just wait while I **Combpress** this down.",
-          "That's all we need! Now, it's my turn to **work..**",
-          "Perfect! You wait while I get 🐼 **Panda Bear** to press this down.",
-          "Time to **press**! Just uh, give, me a minute.",
-          "Filled up faster than a 🐝 **Photon Bee**! Now we wait.",
-        ];
-        const lineReward: string[] = [
-          "Good work, **Beekeeper**! Keep up the grind.",
-          "✅ **Quest complete**! Here's your sweet **reward**.",
-          "The honey turned out great! 🐻 **Black Bear** would be proud.",
-          "Could buy alot of 🪼 **Royal Jelly** with this stuff.",
-          "I like 🍯 **honey**, but I don't like it **THAT** much.",
-          "More 🍯 **honey** than a 🌧️ **honey storm**.",
-        ];
-
-        const timeNeed = 30 * 1000;
-        const rewardHoney = 10;
-        const neededKg = 10;
-        const neededMutation = "Pollinated";
-
-        const str = `🍯🏠 Hi I am Onett, I guess.`;
-        const choices: GardenChoiceConfig["choices"] = [
-          {
-            txt: `How much is in the honey combpressor?`,
-            async callback(rep) {
-              let { honeyStamp, honeyKG = 0 } = await rep.usersDB.getCache(
-                rep.uid
-              );
-              if (typeof honeyStamp === "number") {
-                return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 The combpressor is currently running! Try to collect it.`
-                );
-              }
-
-              return rep.output.reply(
-                `${UNISpectra.charm} 🍯🏠 **${honeyKG}kg**/${neededKg}kg`
-              );
-            },
-          },
-          {
-            txt: `I want to put ${
-              currentHeld ? formatMutationStr(currentHeld) : "[no held item]"
-            } to the honey combpressor.`,
-            async callback(rep) {
-              let {
-                gardenBarns = [],
-                honeyStamp,
-                gardenHeld = "",
-                honeyKG = 0,
-              } = await rep.usersDB.getCache(rep.uid);
-              if (typeof honeyStamp === "number") {
-                return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 The combpressor is currently running! Try to collect it.`
-                );
-              }
-              const barns = new Inventory<GardenBarn>(
-                gardenBarns,
-                CROP_CONFIG.BARN_LIMIT
-              );
-              let kg = 0;
-              const item = barns.getOneByID(gardenHeld);
-              let isAlreadyFull = honeyKG >= neededKg;
-              if (!isAlreadyFull) {
-                if (!item || !item.mutation.includes(neededMutation)) {
-                  return rep.output.reply(
-                    `${UNISpectra.charm} 🍯🏠 No held **POLLINATED** plant!\n\n💡 Hint: try opening your garden barn and hold an item!`
-                  );
-                }
-                if (item.isFavorite) {
-                  return rep.output.reply(
-                    `${UNISpectra.charm} 🍯🏠 Cannot give favorited plant!\n\n💡 Hint: try opening your garden barn and unfavorite an item!`
-                  );
-                }
-
-                kg = item.kiloGrams;
-                honeyKG += kg;
-
-                barns.deleteByID(item.uuid);
-              }
-
-              if (honeyKG >= neededKg) {
-                await rep.usersDB.setItem(rep.uid, {
-                  honeyStamp: Date.now(),
-                  gardenBarns: barns.raw(),
-                  honeyKG: Math.max(0, honeyKG - neededKg),
-                });
-                return rep.output.reply(
-                  `${
-                    UNISpectra.charm
-                  } 🍯🏠 ${lineCompleteKG.randomValue()}\n\n${
-                    !isAlreadyFull
-                      ? `🫴 ${formatMutationStr(
-                          item
-                        )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n`
-                      : "✅ Already full, no need for a plant!\n\n"
-                  }🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\nThe combpressor will start making honey, collect it after **${
-                    timeNeed / 1000
-                  } seconds.**`
-                );
-              } else {
-                await rep.usersDB.setItem(rep.uid, {
-                  gardenBarns: barns.raw(),
-                  honeyKG,
-                  honeyStamp: null,
-                });
-                return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 ${linesNeedKG.randomValue()}\n\n${
-                    !isAlreadyFull
-                      ? `🫴 ${formatMutationStr(
-                          item
-                        )}\n✅ Added **${kg} kilograms** to the combpressor.\n\n`
-                      : ""
-                  }🍯🏠 **${honeyKG}kg**/${neededKg}kg\n\n💡 ${
-                    honeyKG - neededKg
-                  }kg left!`
-                );
-              }
-            },
-          },
-          {
-            txt: `I want to collect the honey 🍯`,
-            async callback(rep) {
-              const { collectibles: putCll = [], honeyStamp } =
-                await rep.usersDB.getCache(rep.uid);
-              if (typeof honeyStamp !== "number") {
-                return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 Looks like there is nothing in here.`
-                );
-              }
-              const now = Date.now();
-              const elapsed = now - honeyStamp;
-              if (elapsed < timeNeed) {
-                const sLeft = Math.ceil((timeNeed - elapsed) / 1000);
-                return rep.output.reply(
-                  `${UNISpectra.charm} 🍯🏠 **${String(sLeft).padStart(
-                    2,
-                    "0"
-                  )}** Seconds left!`
-                );
-              }
-              const cll = new Collectibles(putCll);
-              cll.raise("honey", rewardHoney);
-              await rep.usersDB.setItem(rep.uid, {
-                honeyStamp: null,
-                collectibles: [...cll],
-              });
-
-              return rep.output.reply(
-                `${
-                  UNISpectra.charm
-                } 🍯🏠 ${lineReward.randomValue()}\n\nYou got 🍯**${rewardHoney}**!\n🍯 Your Honey: ${formatValue(
-                  cll.getAmount("honey"),
-                  "🍯",
-                  true
-                )}`
-              );
-            },
-          },
-        ];
-        const st: CommandStyle = {
-          ...style,
-        };
-        delete st.footer;
-        const x = GardenChoice({
-          title: str,
-          choices,
-          style: st,
-        });
-        return x(ctx);
-      },
-    },
+    ...(currEvent.key === "bizzyBees" ? [beeCombpressor] : []),
     {
       key: "plant",
       description: "Plant one or more seeds in plots",
@@ -1829,13 +1826,7 @@ export async function entry(ctx: CommandContext) {
                 }shop`
             );
           }
-          const allItems = [
-            ...gardenShop.itemData,
-            ...[EVENT_CONFIG.CURRENT_EVENT]
-              .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
-              .flat(),
-            ...constructions,
-          ];
+          const allItems = EVENT_CONFIG.allItems;
           const shopItem = allItems.find((i) => seed.key === i?.key);
           const priceInt = shopItem?.price ?? seed.cropData.baseValue;
           const price =
@@ -2541,13 +2532,39 @@ export async function entry(ctx: CommandContext) {
         const start = (page - 1) * ITEMS_PER_PAGE;
         const end = page * ITEMS_PER_PAGE;
 
-        const sortedBarns = [...barn.getAll()]
+        const uniqueBarns = barn
+          .toUnique(
+            (i) => `${gardenHeld === i.uuid ? `🫴 ` : ""}${formatMutationStr(i)}`
+          )
+          .map((i) => ({
+            item: i,
+            amount: barn
+              .getAll()
+              .filter(
+                (j) =>
+                  `${gardenHeld === j.uuid ? `🫴 ` : ""}${formatMutationStr(
+                    j
+                  )}` ===
+                  `${gardenHeld === i.uuid ? `🫴 ` : ""}${formatMutationStr(i)}`
+              ).length,
+          }));
+
+        const sortedBarns = [...uniqueBarns]
           .sort((a, b) => {
-            return b.value - a.value;
+            if (a.item.uuid === gardenHeld) return -1;
+            if (b.item.uuid === gardenHeld) return 1;
+
+            const aScore =
+              a.item.value + (a.item.isFavorite ? 1_000_000_000_000 : 0);
+            const bScore =
+              b.item.value + (b.item.isFavorite ? 1_000_000_000_000 : 0);
+
+            return bScore - aScore;
           })
           .slice(start, end)
           .map((i, j) => ({
-            item: i,
+            item: i.item,
+            amount: i.amount,
             num: start + j + 1,
           }));
         let result = `🏡 **${name}'s Barn (${barn.getAll().length}/${
@@ -2569,8 +2586,10 @@ export async function entry(ctx: CommandContext) {
           );
         }
 
-        for (let [, { num, item }] of sortedBarns.entries()) {
-          result += `${num}. ${formatMutationStr(item)}\n\n`;
+        for (let [, { num, item, amount }] of sortedBarns.entries()) {
+          result += `${num}. ${amount > 1 ? `[**x${amount}**] ` : ""}${
+            gardenHeld === item.uuid ? `🫴 ` : ""
+          }${formatMutationStr(item)}\n\n`;
         }
         if (barn.getAll().length > end) {
           result += `View more: ${prefix}${commandName}${
@@ -3607,15 +3626,7 @@ export async function entry(ctx: CommandContext) {
         if (!input.hasRole(InputRoles.MODERATORBOT)) {
           return output.reply(`🔒 | Only admins and moderators can see this.`);
         }
-        const allItems: gardenShop.GardenShopItem[] = [
-          ...gardenShop.itemData,
-          ...[EVENT_CONFIG.CURRENT_EVENT]
-            .map((i) => (i.shopItems ?? []) as typeof gardenShop.itemData)
-            .flat(),
-          ...EVENT_CONFIG.EVENTS_CONSTRUCTION.map(
-            (i) => (i.shopItems ?? []) as typeof gardenShop.itemData
-          ).flat(),
-        ];
+        const allItems = EVENT_CONFIG.allItems;
 
         const page = parseInt(spectralArgs[0]) || 1;
 
