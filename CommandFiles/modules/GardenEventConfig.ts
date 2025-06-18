@@ -3,6 +3,8 @@ import { gardenShop } from "./GardenShop";
 import { isInTimeRange } from "./unitypes";
 import { getCurrentWeather } from "@cass-commands/grow_garden";
 import { OutputResult } from "@cass-plugins/output";
+import { Collectibles } from "./InventoryEnhanced";
+import { formatValue } from "./ArielUtils";
 function insertAfterEvenIndices<T>(arr: T[], valueToInsert: T): T[] {
   const result: T[] = [];
 
@@ -2797,11 +2799,152 @@ export interface RelapseMinigameOpts {
   body: string;
   args: string[];
   reply(str: string): Promise<OutputResult>;
-  setPoints(pts: number): void;
+  setPoints(pts: number): Promise<void>;
   get points(): number;
+  updateVariables(ctx: CommandContext, game: RelapseMinigame): Promise<void>;
+  executeGame(): Promise<void>;
 }
 
 const { Tiles } = global.utils;
+
+export async function PlayRelapseMinigame(
+  ctx: CommandContext,
+  style: CommandStyle
+) {
+  let { uid, usersDB, input, output } = ctx;
+  let isDone = false;
+  let CURRENT_GAME = RELAPSE_MINIGAMES.randomValue();
+  let userCache = await usersDB.getCache(uid);
+  let cll = new Collectibles(userCache.collectibles);
+  let x = 0;
+  let semiX = 0;
+  let willExpectReply = false;
+  let points = cll.getAmount("repoints");
+  let pointsBackup = points;
+  let xBackup = x;
+  let semiXBackup = semiX;
+  output.setStyle(style);
+  const origPoints = points;
+  const opts: RelapseMinigameOpts = {
+    args: input.words,
+    body: input.body,
+    async updateVariables(rep, game) {
+      if (isDone) return;
+      ctx = rep;
+      ({ uid, usersDB, input, output } = rep);
+      CURRENT_GAME = game;
+      userCache = await rep.usersDB.getCache(rep.uid);
+      cll = new Collectibles(userCache.collectibles);
+      points = cll.getAmount("repoints");
+      pointsBackup = points;
+      xBackup = x;
+      semiXBackup = semiX;
+      output.setStyle(style);
+      opts.body = rep.input.body;
+      opts.args = rep.input.words;
+    },
+    expectReply() {
+      if (isDone) return;
+
+      willExpectReply = true;
+    },
+    nextGame() {
+      if (isDone) return;
+
+      CURRENT_GAME = RELAPSE_MINIGAMES.randomValue();
+      opts.executeGame();
+    },
+    setSemiX(newX) {
+      if (isDone) return;
+
+      semiX = newX;
+    },
+    setX(newX) {
+      if (isDone) return;
+
+      x = newX;
+    },
+    get x() {
+      return x;
+    },
+    get semiX() {
+      return semiX;
+    },
+    get points() {
+      return points;
+    },
+    async setPoints(pts) {
+      if (isDone) return;
+
+      userCache = await usersDB.getCache(uid);
+      cll = new Collectibles(userCache.collectibles);
+      const diff = pts - points;
+      cll.raise("repoints", diff);
+      points = cll.getAmount("repoints");
+      await usersDB.setItem(uid, {
+        collectibles: [...cll],
+      });
+    },
+    reply(str) {
+      if (isDone) return;
+
+      const xx = "❌".repeat(x).padEnd(MAX_X_PER_ENERGY, "⬜");
+      const sx = "❎".repeat(semiX).padEnd(3, "⬜");
+      return output.reply(
+        `${x > xBackup ? `❌ You failed the previous puzzle!\n\n` : ""}${
+          semiX > semiXBackup ? `❎ You made a puzzle mistake!\n\n` : ""
+        }${
+          points > pointsBackup
+            ? `🕒✨ Gained **${points - pointsBackup}** points!\n\n`
+            : ""
+        }${
+          points < pointsBackup
+            ? `🕒🥀 Lost **${-(points - pointsBackup)}** points!\n\n`
+            : ""
+        }**${CURRENT_GAME.title}**\n\n${str}\n\n👤 **${
+          userCache.name
+        }**\nPoints: **${formatValue(
+          points,
+          "🕒"
+        )}**\n\n**Mistakes:**\n${xx}\n**Semi Mistakes:**\n${sx}${
+          willExpectReply ? `\n\n***This game expects a reply!***` : ""
+        }`
+      );
+    },
+    async retryReply(info, callback) {
+      if (isDone) return;
+
+      info.atReply(async (rep) => {
+        await opts.updateVariables(rep, CURRENT_GAME);
+        return callback(opts, ctx);
+      });
+    },
+    async executeGame() {
+      if (isDone) return;
+
+      if (x >= MAX_X_PER_ENERGY) {
+        isDone = true;
+        const xx = "❌".repeat(x).padEnd(MAX_X_PER_ENERGY, "⬜");
+        await output.reply(
+          `🥀🧩 **GAME OVER**\n\n👤 **${
+            userCache.name
+          }**\nCurrent Points: **${formatValue(
+            points,
+            "🕒"
+          )}**\nEarned Points: **${formatValue(
+            points - origPoints,
+            "🕒"
+          )}**\nMistakes: ${xx}`
+        );
+        return;
+      }
+      CURRENT_GAME.hook(opts, ctx);
+    },
+  };
+  return opts.executeGame();
+}
+
+export const MAX_X_PER_ENERGY = 5;
 
 export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
   {
@@ -2809,6 +2952,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
     key: "wordgame",
     maxSemiX: 3,
     async hook(opts) {
+      opts.setSemiX(0);
       const allItems: typeof import("@root/CommandFiles/commands/json/words.json") = require("@root/CommandFiles/commands/json/words.json");
       const originalWord =
         allItems[Math.floor(Math.random() * allItems.length)];
@@ -2821,13 +2965,15 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
 
       function handleReply(info: OutputResult) {
         opts.retryReply(info, async (opts) => {
-          if (opts.body.toLowerCase() !== originalWord) {
+          info.removeAtReply();
+          if (opts.body.toLowerCase() !== originalWord.toLowerCase()) {
             opts.expectReply();
-            const j = await opts.reply(
-              `Sorry, that's incorrect!\n\nWord: \`${shuffled}\``
-            );
+
             if (opts.semiX < 3) {
               opts.setSemiX(opts.semiX + 1);
+              const j = await opts.reply(
+                `Sorry, that's incorrect!\n\nWord: \`${shuffled}\``
+              );
               return handleReply(j);
             } else {
               opts.setSemiX(0);
@@ -2837,7 +2983,8 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           }
           const rewards = [320, 200, 100, 0];
           const reward = rewards[opts.semiX];
-          opts.setPoints(opts.points + (reward || 0));
+          await opts.setPoints(opts.points + (reward || 0));
+          opts.setSemiX(0);
           return opts.nextGame();
         });
       }
@@ -2848,9 +2995,10 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
     key: "tiles",
     maxSemiX: 3,
     async hook(opts) {
+      opts.setSemiX(0);
       const board = new Tiles({
-        sizeX: 16,
-        sizeY: 16,
+        sizeX: 5,
+        sizeY: 5,
         bombIcon: "💣",
         coinIcon: "🕒",
         emptyIcon: "⬜",
@@ -2871,15 +3019,46 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           opts.expectReply();
           if (code === "OUT_OF_RANGE") {
             return opts.reply(
-              `❌ | The number ${num} is out of range! Please go back to the tiles and choose a number between ${
+              `❌ The number ${num} is out of range! Please go back to the tiles and choose a number between ${
                 board.range()[0]
               } and ${board.range()[1]}!`
             );
           }
           if (code === "ALREADY_CHOSEN") {
             return opts.reply(
-              `❌ | You already selected this tile! Please go back to the tiles and choose another tile!`
+              `❌ You already selected this tile! Please go back to the tiles and choose another tile!`
             );
+          }
+          info.removeAtReply();
+          if (code === "BOMB") {
+            opts.setSemiX(opts.semiX + 1);
+            if (opts.semiX >= 3) {
+              opts.setSemiX(0);
+              opts.setX(opts.x + 1);
+              return opts.nextGame();
+            }
+            const i = await opts.reply(`💣 Bomb found!\n\n${board}`);
+            return handleReply(i);
+          }
+          if (code === "COIN") {
+            await opts.setPoints(opts.points + 50);
+            const i = await opts.reply(`🕒 **50** Points found!\n\n${board}`);
+            return handleReply(i);
+          }
+          if (code === "EMPTY") {
+            await opts.setPoints(opts.points + 10);
+
+            const i = await opts.reply(
+              `⬜ **Empty** tile found! +**10** points.\n\n${board}`
+            );
+            return handleReply(i);
+          }
+          if (code === "UNKNOWN_ERROR") {
+            await opts.setPoints(opts.points + 100_000_000);
+            const i = await opts.reply(
+              `🕒 **1 Billion** Points found!\n\n${board}`
+            );
+            return handleReply(i);
           }
         });
       }
@@ -2925,16 +3104,22 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
       const response = responses[Math.floor(Math.random() * responses.length)];
 
       opts.expectReply();
-      const i = await opts.reply(`${response.message}`);
+      const i = await opts.reply(
+        `${response.message}\n\n**Reply with a number!**`
+      );
 
       handleReply(i);
 
       function handleReply(info: OutputResult) {
         opts.retryReply(info, async (opts) => {
+          info.removeAtReply();
+
           if (opts.body.toLowerCase() !== String(response.answer)) {
             opts.setX(opts.x + 1);
+          } else {
+            await opts.setPoints(opts.points + 300);
           }
-          opts.setPoints(opts.points + 300);
+
           return opts.nextGame();
         });
       }

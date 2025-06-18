@@ -41,6 +41,7 @@ import {
   EVENT_CONFIG,
   GardenEventItem,
   GardenWeatherItem,
+  PlayRelapseMinigame,
 } from "@cass-modules/GardenEventConfig";
 
 // ---- For unicode fonts (barely used) ----
@@ -62,7 +63,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.1.1",
+  version: "2.1.2",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -1411,7 +1412,7 @@ export async function entry(ctx: CommandContext) {
                 );
               }
 
-              const energyAdded = Math.max(
+              const energyAdded = Math.min(
                 Math.round(item.kiloGrams * kgToEnergy),
                 maxEnergy - am
               );
@@ -1446,6 +1447,121 @@ export async function entry(ctx: CommandContext) {
         ];
 
         return GardenChoice({ title: str, choices, style })(ctx);
+      },
+    },
+    {
+      key: "minigame",
+      icon: "🧩🥀",
+      description: "Play minigames to avoid relapsing.",
+      aliases: ["game", "m"],
+      async handler(_, {}) {
+        const intros = [
+          "Hah… so you followed the echoes after all. Figures.",
+          "You thought I just **perch and ponder**, huh? Nah. I guard games too.",
+          "See, not all healing looks like rest. Some looks like puzzles, patterns, tapping at just the right beat.",
+          "Welcome to my little corner. Costs energy, sure… but the kind that spins storms into stillness.",
+          "Wanna play? Good. But don't expect just fun—expect clarity between each flicker.",
+        ];
+
+        const targ = relapseChars.find((i) => i.key === "whispy");
+        let title = `${targ.icon} ${intros.randomValue()}`;
+        const energyCost = 200;
+
+        const choices: GardenChoiceConfig["choices"] = [
+          {
+            txt: `Why do I need energy to play?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `${targ.icon} Because playing ain't free—not when your mind's cluttered. ⚡ is what your heart spills when it's too full. You use it to **burn the fog**, not just pass time.`,
+              })(rep);
+            },
+          },
+          {
+            txt: `Where do I find more energy?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `${targ.icon} Energy? ⚡ Doesn't just fall from stars. Look for **mutated plants**, the ones grown from relapse. They shimmer wrong. Pluck them gently, then bring 'em to that humming guy near the broken lamppost—he knows how to turn hurt into fuel.`,
+              })(rep);
+            },
+          },
+          {
+            txt: `Can I trade energy for points?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `${targ.icon} Not directly. ⚡ fuels action. Points bloom only **after** you play. Energy's the spark—points are the echo.`,
+              })(rep);
+            },
+          },
+          {
+            txt: `What kind of puzzles are these?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `${targ.icon} These aren't just puzzles—they're echoes. **Fragments of focus**. Some ask you to listen, others want you to dodge, remember, or rebuild. Every one is a piece of clarity hidden in the noise.`,
+              })(rep);
+            },
+          },
+          {
+            txt: `What can I do with the points I earned?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `${targ.icon} Trade those points at the **vending machine**, tucked behind some tangled wires. It offers seeds—some sprouted from old cravings, but grown to soothe. Only way to reach it? Solve my puzzles first.`,
+              })(rep);
+            },
+          },
+          {
+            txt: `Why is the vending machine selling seeds?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `${targ.icon} Machines forget nothing. They offer what they've seen you reach for: comfort. These seeds? Tiny, coded memories turned into hope. Plant one, and watch it speak back.`,
+              })(rep);
+            },
+          },
+          {
+            txt: `Why would I even need to play your game?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `${targ.icon} Because sometimes distraction isn't denial—it's survival. My games hum in patterns your pain can't scramble. Try it. You might hear yourself again.`,
+              })(rep);
+            },
+          },
+          {
+            txt: `I want to play a minigame for ⚡ ${energyCost}`,
+            async callback(rep) {
+              let { collectibles } = await rep.usersDB.getCache(rep.uid);
+              const cll = new Collectibles(collectibles);
+              if (cll.getAmount("relapseEnergy") < energyCost) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} ${
+                    targ.icon
+                  } Not enough energy. You had ⚡ **${cll.getAmount(
+                    "relapseEnergy"
+                  )}** but we need ⚡ **${energyCost}**`
+                );
+              }
+              cll.raise("relapseEnergy", -energyCost);
+              await rep.usersDB.setItem(rep.uid, {
+                collectibles: [...cll],
+              });
+              return PlayRelapseMinigame(rep, style);
+            },
+          },
+        ];
+
+        return GardenChoice({ title, choices, style })(ctx);
       },
     },
   ];
