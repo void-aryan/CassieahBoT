@@ -32,7 +32,7 @@ export const CROP_CONFIG = {
     { name: "Celestial", valueMultiplier: 120, chance: 0, icon: "✨" },
     { name: "Disco", valueMultiplier: 125, chance: 0, icon: "🪩" },
     { name: "VoidTouched", valueMultiplier: 135, chance: 0, icon: "🌌" },
-    { name: "Relapsed", valueMultiplier: 70, chance: 0, icon: "💔" },
+    { name: "Relapsed", valueMultiplier: 7, chance: 0, icon: "💔🎫" },
     { name: "Astral", valueMultiplier: 6, chance: 0, icon: "🌌" },
     { name: "Bloom", valueMultiplier: 3, chance: 0, icon: "🌸" },
     { name: "Skipped", valueMultiplier: 5, chance: 0, icon: "⏭️💔" },

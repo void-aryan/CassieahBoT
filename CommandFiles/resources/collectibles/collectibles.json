@@ -26,5 +26,12 @@
     "flavorText": "Earned during late-night relapses—each one a moment you stayed in control.",
     "key": "repoints",
     "type": "garden"
+  },
+  "relapseEnergy": {
+    "name": "Relapse Energy",
+    "icon": "⚡",
+    "flavorText": "Surging from emotional overloads—raw, charged, and restless. You didn't break… you just sparked.",
+    "key": "relapseEnergy",
+    "type": "garden"
   }
 }

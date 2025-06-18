@@ -171,6 +171,10 @@ export const EVENT_CONFIG = {
               mutationChance: 0.1,
               mutationType: "Looped",
             },
+            {
+              mutationChance: 0.5,
+              mutationType: "Relapsed",
+            },
           ],
         },
         {

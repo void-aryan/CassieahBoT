@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.1.0",
+  version: "2.1.1",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -1351,7 +1351,104 @@ export async function entry(ctx: CommandContext) {
     },
   ];
 
-  const relapsedConfig: Config[] = [];
+  const relapsedConfig: Config[] = [
+    {
+      key: "energize",
+      icon: "⚡🎫",
+      description: "Turn your relapsed tickets into minigame energies.",
+      aliases: ["e"],
+      async handler(_, {}) {
+        const str = `⚡ Time to recharge! Let's play, unwind, and detch away from the sadness.`;
+        const maxEnergy = 1000;
+        const kgToEnergy = 5;
+        const choices: GardenChoiceConfig["choices"] = [
+          {
+            txt: `How many energy do I have?`,
+            async callback(rep) {
+              let { collectibles } = await rep.usersDB.getCache(rep.uid);
+              const cll = new Collectibles(collectibles);
+              return rep.output.reply(
+                `${
+                  UNISpectra.charm
+                } ⚡ Here's your energy!\n\n**${cll.getAmount(
+                  "relapseEnergy"
+                )}**/${maxEnergy}`
+              );
+            },
+          },
+          {
+            txt: `I want to convert 🫳 this to an energy.`,
+            async callback(rep) {
+              let {
+                gardenBarns = [],
+                gardenHeld = "",
+                collectibles,
+              } = await rep.usersDB.getCache(rep.uid);
+              const cll = new Collectibles(collectibles);
+
+              const barns = new Inventory<GardenBarn>(
+                gardenBarns,
+                CROP_CONFIG.BARN_LIMIT
+              );
+              const item = barns.getOneByID(gardenHeld);
+
+              if (!item || !item.mutation.includes("Relapsed")) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} ⚡ No held **RELAPSED** plant!\n\n💡 Hint: try opening your garden barn and hold an item!`
+                );
+              }
+
+              if (item.isFavorite) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} ⚡ Cannot give favorited plant!\n\n💡 Hint: try opening your garden barn and unfavorite an item!`
+                );
+              }
+
+              const am = cll.getAmount("relapseEnergy");
+              if (am >= maxEnergy) {
+                return rep.output.reply(
+                  `${UNISpectra.charm} ⚡ Energy is already **${am}**/${maxEnergy}! Try playing some minigames, I guess.`
+                );
+              }
+
+              const energyAdded = Math.max(
+                Math.round(item.kiloGrams * kgToEnergy),
+                maxEnergy - am
+              );
+
+              cll.raise("relapseEnergy", energyAdded);
+              barns.deleteByID(item.uuid);
+
+              await rep.money.setItem(rep.uid, {
+                gardenBarns: barns.raw(),
+                collectibles: [...cll],
+              });
+
+              return rep.output.reply(
+                `${
+                  UNISpectra.charm
+                } ⚡ Added **${energyAdded}** energy!\n\n**${cll.getAmount(
+                  "relapseEnergy"
+                )}**/${maxEnergy}`
+              );
+            },
+          },
+          {
+            txt: `How do I use my energy?`,
+            async callback(rep) {
+              return GardenChoice({
+                style,
+                choices,
+                title: `⚡ I don't know, play minigames maybe?`,
+              })(rep);
+            },
+          },
+        ];
+
+        return GardenChoice({ title: str, choices, style })(ctx);
+      },
+    },
+  ];
 
   const beeCombpressor: Config = {
     key: "combpressor",
