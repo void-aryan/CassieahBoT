@@ -2,6 +2,7 @@ import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { gardenShop } from "./GardenShop";
 import { isInTimeRange } from "./unitypes";
 import { getCurrentWeather } from "@cass-commands/grow_garden";
+import { OutputResult } from "@cass-plugins/output";
 function insertAfterEvenIndices<T>(arr: T[], valueToInsert: T): T[] {
   const result: T[] = [];
 
@@ -2774,3 +2775,178 @@ export const EVENT_CONFIG = {
     },
   ] as GardenEventItem[],
 };
+
+export interface RelapseMinigame {
+  title: string;
+  key: string;
+  maxSemiX?: number;
+  hook(opts: RelapseMinigameOpts, ctx: CommandContext): Promise<any>;
+}
+
+export interface RelapseMinigameOpts {
+  setX(newX: number): void;
+  get x(): number;
+  setSemiX(newX: number): void;
+  get semiX(): number;
+  nextGame(): void;
+  retryReply(
+    info: OutputResult,
+    callback: (opts: RelapseMinigameOpts, ctx: CommandContext) => Promise<any>
+  ): Promise<any>;
+  expectReply(): void;
+  body: string;
+  args: string[];
+  reply(str: string): Promise<OutputResult>;
+  setPoints(pts: number): void;
+  get points(): number;
+}
+
+const { Tiles } = global.utils;
+
+export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
+  {
+    title: "🧩 UNSCRAMBLE THE WORD!",
+    key: "wordgame",
+    maxSemiX: 3,
+    async hook(opts) {
+      const allItems: typeof import("@root/CommandFiles/commands/json/words.json") = require("@root/CommandFiles/commands/json/words.json");
+      const originalWord =
+        allItems[Math.floor(Math.random() * allItems.length)];
+
+      const shuffled = shuffleWord(originalWord);
+      opts.expectReply();
+      const i = await opts.reply(`Word: \`${shuffled}\``);
+
+      handleReply(i);
+
+      function handleReply(info: OutputResult) {
+        opts.retryReply(info, async (opts) => {
+          if (opts.body.toLowerCase() !== originalWord) {
+            opts.expectReply();
+            const j = await opts.reply(
+              `Sorry, that's incorrect!\n\nWord: \`${shuffled}\``
+            );
+            if (opts.semiX < 3) {
+              opts.setSemiX(opts.semiX + 1);
+              return handleReply(j);
+            } else {
+              opts.setSemiX(0);
+              opts.setX(opts.x + 1);
+              return opts.nextGame();
+            }
+          }
+          const rewards = [320, 200, 100, 0];
+          const reward = rewards[opts.semiX];
+          opts.setPoints(opts.points + (reward || 0));
+          return opts.nextGame();
+        });
+      }
+    },
+  },
+  {
+    title: "💣 AVOID THE BOMBS!",
+    key: "tiles",
+    maxSemiX: 3,
+    async hook(opts) {
+      const board = new Tiles({
+        sizeX: 16,
+        sizeY: 16,
+        bombIcon: "💣",
+        coinIcon: "🕒",
+        emptyIcon: "⬜",
+        tileIcon: "🟪",
+      });
+      const i = await opts.reply(
+        `select a number between between ${board.range()[0]} and ${
+          board.range()[1]
+        }!\n\n${board}`
+      );
+
+      handleReply(i);
+
+      function handleReply(info: OutputResult) {
+        opts.retryReply(info, async (opts) => {
+          const num = Number(opts.body);
+          const code = board.choose(num);
+          opts.expectReply();
+          if (code === "OUT_OF_RANGE") {
+            return opts.reply(
+              `❌ | The number ${num} is out of range! Please go back to the tiles and choose a number between ${
+                board.range()[0]
+              } and ${board.range()[1]}!`
+            );
+          }
+          if (code === "ALREADY_CHOSEN") {
+            return opts.reply(
+              `❌ | You already selected this tile! Please go back to the tiles and choose another tile!`
+            );
+          }
+        });
+      }
+    },
+  },
+  {
+    title: "🏫 CHOOSE THE CORRECT ANSWER!",
+    key: "quiz",
+    async hook(opts) {
+      const total: typeof import("@root/CommandFiles/commands/json/quiz.json") = require("@root/CommandFiles/commands/json/quiz.json");
+      function shuffleOptionsPreserveAnswer(q: (typeof total)[number]) {
+        const pairedOptions = q.options.map((opt, idx) => ({
+          option: opt,
+          originalIndex: idx,
+        }));
+        for (let i = pairedOptions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pairedOptions[i], pairedOptions[j]] = [
+            pairedOptions[j],
+            pairedOptions[i],
+          ];
+        }
+        const newAnswerIndex = pairedOptions.findIndex(
+          (pair) => pair.originalIndex === q.answer
+        );
+        const shuffledOptions = pairedOptions.map((pair) => pair.option);
+        return {
+          ...q,
+          options: shuffledOptions,
+          answer: newAnswerIndex,
+        };
+      }
+
+      const responses = total
+        .map((i) => shuffleOptionsPreserveAnswer(i))
+        .map((i) => ({
+          ...i,
+          message: `${i.question}\n\n${i.options
+            .map((opt, ind) => `**${ind + 1}**. ${opt}`)
+            .join("\n")}`,
+          correct: i.answer + 1,
+        }));
+      const response = responses[Math.floor(Math.random() * responses.length)];
+
+      opts.expectReply();
+      const i = await opts.reply(`${response.message}`);
+
+      handleReply(i);
+
+      function handleReply(info: OutputResult) {
+        opts.retryReply(info, async (opts) => {
+          if (opts.body.toLowerCase() !== String(response.answer)) {
+            opts.setX(opts.x + 1);
+          }
+          opts.setPoints(opts.points + 300);
+          return opts.nextGame();
+        });
+      }
+    },
+  },
+];
+
+export function shuffleWord(word: string) {
+  const letters = word.split("");
+  for (let i = letters.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [letters[i], letters[j]] = [letters[j], letters[i]];
+  }
+  return letters.join("");
+}
