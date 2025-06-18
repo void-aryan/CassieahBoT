@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.0.29",
+  version: "2.1.0",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -1312,6 +1312,45 @@ export async function entry(ctx: CommandContext) {
 
   const isRelapsed = currEvent.key === "relapsed";
 
+  const relapseChars: Array<{ key: string; icon: string; texts: string[] }> = [
+    {
+      key: "oldGardener",
+      icon: "🧙‍♂️",
+      texts: [
+        "The soil feels heavier tonight. No need to blossom",
+        "Even the strongest roots bend in the storm. They don't break.",
+        "This garden remembers every tear that watered it.",
+        "If your heart feels loud tonight, let the wind answer back.",
+      ],
+    },
+    {
+      key: "whispy",
+      icon: "🐦",
+      texts: [
+        "You again? Couldn't sleep either? The stars are loud tonight.",
+        "Funny thing about the night… it plays the thoughts you tried to bury all day.",
+        "Thinking of them again? It's alright. Some echoes just don't fade easy.",
+        "If you sit long enough, I'll sing you a song that starts with sorrow... but ends in light.",
+        "Not everything grows in daylight. Some seeds only stir when it's quiet enough to listen.",
+        "Shops close, paths twist... but sometimes a machine hums softly behind forgotten vines.",
+        "They say there's a **hidden vending machine** out here. But it won't hum unless you hum first.",
+        "I guard nothing. I just wait for tunes the world forgot. Maybe you're one of them.",
+        "You ask about seeds, but have you asked the wind? Or followed the cold wires underground?",
+        "This garden remembers. Even when the doors lock, it leaves whispers for those who still wander.",
+      ],
+    },
+    {
+      key: "lumen",
+      icon: "🌸",
+      texts: [
+        "You are wilting... But not dying.",
+        "The moon listens when the heart breaks.",
+        "Give pain to the petals. They know how to change it.",
+        "Stay. The night isn't there to hurt... it's here to remember.",
+      ],
+    },
+  ];
+
   const relapsedConfig: Config[] = [];
 
   const beeCombpressor: Config = {
@@ -1530,6 +1569,69 @@ export async function entry(ctx: CommandContext) {
       aliases: ["-sh"],
       icon: "🛒",
       async handler() {
+        if (isRelapsed) {
+          const targ = relapseChars.find((i) => i.key === "whispy");
+          let title = `${targ.icon} ${targ.texts.randomValue()}`;
+          const choices: GardenChoiceConfig["choices"] = [
+            {
+              txt: `How can I access the seed shop?`,
+              async callback(rep) {
+                return GardenChoice({
+                  title: `${targ.icon} Chirp... **not time yet**. The wind hasn't carried the right tune. But... I did see something **blink near the vending tree**. Might not be a shop, but if you **solve its little hum**, it might trade.`,
+                  choices,
+                  style,
+                })(rep);
+              },
+            },
+            {
+              txt: `Who tf are you?`,
+              async callback(rep) {
+                return GardenChoice({
+                  title: `${targ.icon} Me? Just a **bird with too many stories** stuck in my feathers. Name's **Whispy**. I perch where memories echo the loudest.`,
+                  choices,
+                  style,
+                })(rep);
+              },
+            },
+            {
+              txt: `Why are you blocking the seed shop?`,
+              async callback(rep) {
+                return GardenChoice({
+                  title: `${targ.icon} Blocking? No, no... I'm just **nesting** where the soil remembers. The shop **sleeps for now**. But maybe... try the **vending roots** nearby. Heard they stir when **riddles are whispered**.`,
+                  choices: [
+                    ...choices,
+                    {
+                      txt: `Just let me in.`,
+                      async callback(rep2) {
+                        const shop = new UTShop({
+                          ...formatShopItems(gardenShop, currEvent),
+                          style,
+                        });
+                        if (isRef) {
+                          shop.resetStocks(
+                            ...gardenShop.itemData
+                              .filter((i) => i.inStock !== false)
+                              .map((i) => i.key)
+                          );
+                        }
+                        await shop.onPlay({ ...rep2, args: [] });
+                      },
+                    },
+                  ],
+                  style,
+                })(rep);
+              },
+            },
+          ];
+
+          const x = GardenChoice({
+            title,
+            choices,
+            style,
+          });
+          await x(ctx);
+          return;
+        }
         const shop = new UTShop({
           ...formatShopItems(gardenShop, currEvent),
           style,
@@ -1544,29 +1646,29 @@ export async function entry(ctx: CommandContext) {
         await shop.onPlay({ ...ctx, args: [] });
       },
     },
-    {
-      key: "gnpshop",
-      description: "Visit the Gears & Pets Shop",
-      aliases: ["-gnpsh", "-gnp"],
-      icon: "🛒",
-      async handler() {
-        const shop = new UTShop({
-          ...formatShopItems(
-            { ...gardenShop, itemData: gardenShop.gnpShop },
-            currEvent
-          ),
-          style,
-        });
-        if (isRef) {
-          shop.resetStocks(
-            ...gardenShop.gnpShop
-              .filter((i) => i.inStock !== false)
-              .map((i) => i.key)
-          );
-        }
-        await shop.onPlay({ ...ctx, args: [] });
-      },
-    },
+    // {
+    //   key: "gnpshop",
+    //   description: "Visit the Gears & Pets Shop",
+    //   aliases: ["-gnpsh", "-gnp"],
+    //   icon: "🛒",
+    //   async handler() {
+    //     const shop = new UTShop({
+    //       ...formatShopItems(
+    //         { ...gardenShop, itemData: gardenShop.gnpShop },
+    //         currEvent
+    //       ),
+    //       style,
+    //     });
+    //     if (isRef) {
+    //       shop.resetStocks(
+    //         ...gardenShop.gnpShop
+    //           .filter((i) => i.inStock !== false)
+    //           .map((i) => i.key)
+    //       );
+    //     }
+    //     await shop.onPlay({ ...ctx, args: [] });
+    //   },
+    // },
     ...(((currEvent.shopItems ?? []).length > 0
       ? [
           {
