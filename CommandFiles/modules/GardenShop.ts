@@ -436,7 +436,7 @@ export namespace gardenShop {
       onPurchase({ moneySet }) {
         moneySet.inventory.push({
           key: "gsGemfruity",
-          name: "Cassidy Gemfruity Seed",
+          name: "Gemfruity Seed",
           flavorText:
             "A fruit studded with shimmering gems, ripe with crystalline wealth.",
           icon: "🍇💎",
@@ -1019,7 +1019,7 @@ export namespace gardenShop {
     },
 
     {
-      icon: "🌱",
+      icon: "🫛",
       name: "Beanstalk Seed",
       key: "gsBeanstalk",
       flavorText: "Magical vine that reaches the skies.",
@@ -1035,7 +1035,7 @@ export namespace gardenShop {
           key: "gsBeanstalk",
           name: "Beanstalk Seed",
           flavorText: "Magical vine that reaches the skies.",
-          icon: "🌱",
+          icon: "🫛",
           type: "gardenSeed",
           sellPrice: 1,
           cropData: {

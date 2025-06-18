@@ -10,9 +10,10 @@ export default easyCMD({
     fbOnly: true,
     author: "Liane Cagara",
   },
-  async run({ output, args, userName, input }) {
+  async run({ output, args, userName, input, cancelCooldown }) {
     const message = args.join(" ");
     if (!message) {
+      cancelCooldown();
       return output.send("⚠️ Please provide a message to report.");
     }
     const time = new Date().toLocaleString("en-US", {
