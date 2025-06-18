@@ -1,11 +1,11 @@
 import { SpectralCMDHome, Config } from "../modules/spectralCMDHome";
-import { UNIRedux } from "@cassidy/unispectra";
+import { limitString, UNIRedux } from "@cassidy/unispectra";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "ratings",
   description: "Manage and view ratings and reviews",
   otherNames: ["rate", "review"],
-  version: "1.0.0",
+  version: "1.0.1",
   usage: "{prefix}{name} <submit|update|list|view|home|delete> [args]",
   category: "Utility",
   author: "Liane Cagara",
@@ -64,7 +64,10 @@ const configs: Config[] = [
           style
         );
       }
-      const review = input.censor(spectralArgs.slice(1).join(" "));
+      const review = limitString(
+        input.censor(spectralArgs.slice(1).join(" ")),
+        500
+      );
       if (!review) {
         return output.replyStyled(
           {
@@ -135,7 +138,10 @@ const configs: Config[] = [
           style
         );
       }
-      const review = input.censor(spectralArgs.slice(1).join(" "));
+      const review = limitString(
+        input.censor(spectralArgs.slice(1).join(" ")),
+        500
+      );
       if (!review) {
         return output.replyStyled(
           {
@@ -203,7 +209,16 @@ const configs: Config[] = [
 
       const perPage = 5;
       const { ratings: ratings_ = [] } = await globalDB.getItem(ratingsKey);
-      const ratings = ratings_ as Rating[];
+      const ratingsBefore = ratings_ as Rating[];
+      const ratings = [...ratingsBefore].sort(
+        (a, b) =>
+          (b.stars * 1_000_000_000 + `${b.review}`.length || 0) +
+          Date.now() -
+          b.timestamp -
+          ((a.stars * 1_000_000_000 + `${a.review}`.length || 0) +
+            Date.now() -
+            b.timestamp)
+      );
 
       if (!ratings.length) {
         return output.replyStyled(
@@ -229,6 +244,7 @@ const configs: Config[] = [
 
       const ratingsText = await Promise.all(
         paginated.map(async (r) => {
+          await usersDB.ensureUserInfo(r.uid);
           const user = await usersDB.getCache(r.uid);
           const name = user?.userMeta?.name ?? user?.name ?? "Unknown";
           const trimmedReview =

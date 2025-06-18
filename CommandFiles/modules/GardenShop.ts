@@ -1070,11 +1070,41 @@ export namespace gardenShop {
           type: "gardenSeed",
           sellPrice: 1,
           cropData: {
-            baseValue: 50_000,
+            baseValue: 50_138,
             growthTime: CROP_CONFIG.GROWTH_BASE * 0.2,
             harvests: 400,
             yields: 24,
             baseKG: 12,
+          },
+        });
+      },
+    },
+    {
+      icon: "🍏",
+      name: "Sugar Apple",
+      key: "gsSugarApple",
+      flavorText: "Do we still need flavor texts?",
+      price: 25_000_000,
+      rarity: "Prismatic",
+      inStock: true,
+      stockLimit: 1,
+      minStock: 1,
+      maxStock: 1,
+      stockChance: 0.02,
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          key: "gsSugarApple",
+          name: "Sugar Apple",
+          flavorText: "Do we still need flavor texts?",
+          icon: "🍏",
+          type: "gardenSeed",
+          sellPrice: 1,
+          cropData: {
+            baseValue: 43_320,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 0.3,
+            harvests: 800,
+            yields: 26,
+            baseKG: 6,
           },
         });
       },
