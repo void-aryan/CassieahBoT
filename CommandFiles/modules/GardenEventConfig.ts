@@ -2812,6 +2812,7 @@ export async function PlayRelapseMinigame(
   style: CommandStyle
 ) {
   let { uid, usersDB, input, output } = ctx;
+  const author = uid;
   let isDone = false;
   let CURRENT_GAME = RELAPSE_MINIGAMES.randomValue();
   let userCache = await usersDB.getCache(uid);
@@ -2920,6 +2921,7 @@ export async function PlayRelapseMinigame(
       });
     },
     async executeGame() {
+      if (uid !== author) return;
       if (isDone) return;
 
       if (x >= MAX_X_PER_ENERGY) {
