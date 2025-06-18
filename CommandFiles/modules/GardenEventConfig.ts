@@ -1,6 +1,7 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { gardenShop } from "./GardenShop";
 import { isInTimeRange } from "./unitypes";
+import { getCurrentWeather } from "@cass-commands/grow_garden";
 function insertAfterEvenIndices<T>(arr: T[], valueToInsert: T): T[] {
   const result: T[] = [];
 
@@ -146,8 +147,505 @@ export const EVENT_CONFIG = {
       ],
       shopItems: [...gardenShop.honeyShop],
     },
+    {
+      icon: "💔🧩",
+      shopName2: "Repoints Vending Machine",
+      shopName: "vending",
+      key: "relapsed",
+      name: "Relapsed & Resillence",
+      weathers: [
+        {
+          name: "Quiet Shuffle",
+          icon: "📻🎧",
+          growthMultiplier: 0.5,
+          effects: [
+            {
+              mutationChance: 0.1,
+              mutationType: "Skipped",
+            },
+            {
+              mutationChance: 0.1,
+              mutationType: "Muted",
+            },
+            {
+              mutationChance: 0.1,
+              mutationType: "Looped",
+            },
+          ],
+        },
+        {
+          name: "Echo Dusk",
+          icon: "🌒🥀",
+          growthMultiplier: 0.6,
+          effects: [
+            {
+              mutationChance: 0.12,
+              mutationType: "Ghosted",
+            },
+            {
+              mutationChance: 0.08,
+              mutationType: "Desynced",
+            },
+            {
+              mutationChance: 0.01,
+              mutationType: "Wilted",
+            },
+          ],
+        },
+      ],
+      shopItems: [
+        {
+          icon: "🎴💭",
+          name: "Reverie Bloom Pack",
+          key: "pReverieBloom",
+          flavorText: "For those who plant with memories, not plans.",
+          price: 1450,
+          rarity: "Uncommon",
+          maxStock: 5,
+          minStock: 1,
+          priceType: "cll:repoints",
+          stockLimit: 1,
+          inStock: true,
+          stockChance: 1,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "pReverieBloom",
+              name: "Reverie Bloom Pack",
+              flavorText: "For those who plant with memories, not plans.",
+              icon: "🎴💭",
+              type: "roulette_pack",
+              sellPrice: 3,
+              treasureKey: "randomGrouped_pReverieBloom",
+            });
+          },
+        },
+
+        {
+          icon: "👻🌺",
+          name: "Multong Orchid Seed",
+          key: "gsMultongOrchid",
+          flavorText:
+            "A spectral orchid with misty petals. Haunts the garden with fading memories.",
+          price: 0,
+          pack: "pReverieBloom",
+          rarity: "Rare",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          maxStock: 0,
+          stockChance: 0,
+          packChance: 0.03,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMultongOrchid",
+              name: "Multong Orchid Seed",
+              flavorText:
+                "A spectral orchid with misty petals. Haunts the garden with fading memories.",
+              icon: "👻🌺",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 99_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 5.1,
+                harvests: 60,
+                yields: 12,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍀✨",
+          name: "3bok Seed",
+          key: "gs3bok",
+          flavorText:
+            "Sprouts to the rhythm of a distant heartbeat. Fragile, but steady.",
+          price: 0,
+          rarity: "Rare",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          maxStock: 0,
+          stockChance: 0,
+          pack: "pReverieBloom",
+          packChance: 0.4,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gs3bok",
+              name: "3bok Seed",
+              flavorText:
+                "Sprouts to the rhythm of a distant heartbeat. Fragile, but steady.",
+              icon: "🍀✨",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 10_720,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 5.0,
+                harvests: 60,
+                yields: 1,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+        {
+          icon: "🪻🪷",
+          name: "Isa Langvender Seed",
+          key: "gsIsaLangvender",
+          flavorText:
+            "A unique lavender with a singular bloom. A tribute to fleeting affection.",
+          price: 0,
+          rarity: "Mythical",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          maxStock: 0,
+          stockChance: 0,
+          packChance: 0.1,
+          pack: "pReverieBloom",
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsIsaLangvender",
+              name: "Isa Langvender Seed",
+              flavorText:
+                "A unique lavender with a singular bloom. A tribute to fleeting affection.",
+              icon: "🪻🪷",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 136_000,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 10.3,
+                harvests: 1,
+                yields: 1,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+        {
+          icon: "🏵️🥀",
+          name: "December Avenlily Seed",
+          key: "gsDecemberAvenlily",
+          flavorText:
+            "A winter lily that grows best in silence. Blooms with a chill stillness.",
+          price: 0,
+          rarity: "Legendary",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          maxStock: 0,
+          pack: "pReverieBloom",
+          packChance: 0.3,
+          stockChance: 0,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsDecemberAvenlily",
+              name: "December Avenlily Seed",
+              flavorText:
+                "A winter lily that grows best in silence. Blooms with a chill stillness.",
+              icon: "🏵️🥀",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 78_800,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.2,
+                harvests: 60,
+                yields: 1,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+        {
+          icon: "🎴👑🥫",
+          name: "A-queen Can-alang Seed Pack",
+          key: "pAqueenCan",
+          flavorText: "Ang dinarasal sa araw-araw.",
+          price: 0,
+          rarity: "Mythical",
+          maxStock: 0,
+          minStock: 0,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          inStock: false,
+          pack: "pReverieBloom",
+          packChance: 0.2,
+          stockChance: 0,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "pAqueenCan",
+              name: "A-queen Can-alang Seed Pack",
+              flavorText: "Ang dinarasal sa araw-araw.",
+              icon: "🎴👑🥫",
+              type: "roulette_pack",
+              sellPrice: 3,
+              treasureKey: "randomGrouped_pAqueenCan",
+            });
+          },
+        },
+        {
+          icon: "🍂",
+          name: "Drymoss Seed",
+          key: "gsDrymoss",
+          flavorText:
+            "A plain, fibrous plant with minimal value. Often used as compost.",
+          price: 0,
+          rarity: "Common",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          maxStock: 0,
+          stockChance: 0,
+          pack: "pAqueenCan",
+          packChance: 0.7,
+          isEventItem: false,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsDrymoss",
+              name: "Drymoss Seed",
+              flavorText:
+                "A plain, fibrous plant with minimal value. Often used as compost.",
+              icon: "🍂",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 2_300,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.5,
+                harvests: 100,
+                yields: 5,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+        {
+          icon: "🫐🎶",
+          name: "Di na Muliberry Seed",
+          key: "gsDinaMuliberry",
+          flavorText:
+            "A fruit that ripens only once in its lifetime, known to stain deeply with memories of the past.",
+          price: 0,
+          rarity: "Legendary",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          pack: "pAqueenCan",
+          packChance: 0.4,
+          maxStock: 0,
+          stockChance: 0,
+          isEventItem: false,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsDinaMuliberry",
+              name: "Di na Muliberry Seed",
+              flavorText:
+                "A fruit that ripens only once in its lifetime, known to stain deeply with memories of the past.",
+              icon: "🫐🎶",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 66_400,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 5.4,
+                harvests: 1,
+                yields: 6,
+                baseKG: 6,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌿🎤",
+          name: "Ben&Petal Seed",
+          key: "gsBenNPetal",
+          flavorText:
+            "Two flowers always growing side-by-side, their petals harmonizing in color and rhythm.",
+          price: 0,
+          rarity: "Mythical",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          pack: "pAqueenCan",
+          packChance: 0.3,
+          maxStock: 0,
+          stockChance: 0,
+          isEventItem: false,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsBenNPetal",
+              name: "Ben&Petal Seed",
+              flavorText:
+                "Two flowers always growing side-by-side, their petals harmonizing in color and rhythm.",
+              icon: "🌿🎤",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 59_900,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 5.3,
+                harvests: 70,
+                yields: 7,
+                baseKG: 4,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌱💔",
+          name: "Miss-stalk Seed",
+          key: "gsMissStalk",
+          flavorText:
+            "A rare plant whose growth stutters but blooms unexpectedly, making each harvest precious.",
+          price: 0,
+          rarity: "Rare",
+          inStock: false,
+          priceType: "cll:repoints",
+          stockLimit: 0,
+          minStock: 0,
+          pack: "pAqueenCan",
+          packChance: 0.1,
+          maxStock: 0,
+          stockChance: 0,
+          isEventItem: false,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsMissStalk",
+              name: "Miss-stalk Seed",
+              flavorText:
+                "A rare plant whose growth stutters but blooms unexpectedly, making each harvest precious.",
+              icon: "🌱💔",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 149_200,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 5.4,
+                harvests: 50,
+                yields: 5,
+                baseKG: 3,
+              },
+            });
+          },
+        },
+        {
+          icon: "🪴💔",
+          name: "Halaman na Walang Sagot",
+          key: "gsWalangSagot",
+          flavorText:
+            "No matter how many times you speak, it never replies. Yet it grows as if it remembers.",
+          price: 200,
+          rarity: "Uncommon",
+          inStock: true,
+          priceType: "cll:repoints",
+          stockLimit: 5,
+          minStock: 1,
+          maxStock: 5,
+          stockChance: 1,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsWalangSagot",
+              name: "Halaman na Walang Sagot",
+              flavorText:
+                "No matter how many times you speak, it never replies. Yet it grows as if it remembers.",
+              icon: "🪴💔",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 3_900,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.2,
+                harvests: 80,
+                yields: 1,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+        {
+          icon: "🍃📼",
+          name: "Relapsflower Seed",
+          key: "gsRelapsflower",
+          flavorText:
+            "It blossoms in cycles, each bloom forgetting the last. A loop in petal form.",
+          price: 170,
+          rarity: "Common",
+          inStock: true,
+          priceType: "cll:repoints",
+          stockLimit: 6,
+          minStock: 1,
+          maxStock: 6,
+          stockChance: 1,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsRelapsflower",
+              name: "Relapsflower Seed",
+              flavorText:
+                "It blossoms in cycles, each bloom forgetting the last. A loop in petal form.",
+              icon: "🍃📼",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 3_100,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.4,
+                harvests: 60,
+                yields: 2,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+        {
+          icon: "🌾🪞",
+          name: "Tanglad Lamang Seed",
+          key: "gsTangladLamang",
+          flavorText:
+            "Sways gently, waiting for a gaze that never returns. Scents the wind with longing.",
+          price: 160,
+          rarity: "Common",
+          inStock: true,
+          priceType: "cll:repoints",
+          stockLimit: 5,
+          minStock: 1,
+          maxStock: 5,
+          stockChance: 1,
+          isEventItem: true,
+          onPurchase({ moneySet }) {
+            moneySet.inventory.push({
+              key: "gsTangladLamang",
+              name: "Tanglad Lamang Seed",
+              flavorText:
+                "Sways gently, waiting for a gaze that never returns. Scents the wind with longing.",
+              icon: "🌾🪞",
+              type: "gardenSeed",
+              sellPrice: 1,
+              cropData: {
+                baseValue: 3_400,
+                growthTime: CROP_CONFIG.GROWTH_BASE * 3.0,
+                harvests: 70,
+                yields: 2,
+                baseKG: 0,
+              },
+            });
+          },
+        },
+      ],
+    },
   ] satisfies GardenEventItem[] as GardenEventItem[],
   get CURRENT_EVENT(): GardenEventItem {
+    if (process.env.G_EVENT) {
+      return EVENT_CONFIG.ALL_EVENTS.find((i) => i.key === process.env.G_EVENT);
+    }
     const relapsed = EVENT_CONFIG.ALL_EVENTS.find((i) => i.key === "relapsed");
 
     if (relapsed && isInTimeRange("10pm", "3am")) {

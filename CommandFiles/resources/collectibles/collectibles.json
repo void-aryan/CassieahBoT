@@ -19,5 +19,12 @@
     "flavorText": "A special currency from Bizzy Bees event of Grow a Garden!",
     "key": "honey",
     "type": "garden"
+  },
+  "repoints": {
+    "name": "Repoints",
+    "icon": "🕓",
+    "flavorText": "Earned during late-night relapses—each one a moment you stayed in control.",
+    "key": "repoints",
+    "type": "garden"
   }
 }

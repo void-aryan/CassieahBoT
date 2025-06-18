@@ -1,7 +1,6 @@
 import axios from "axios";
 
 export const CROP_CONFIG = {
- 
   BARN_LIMIT: 120 as const,
   MUTATIONS: [
     { name: "Wet", valueMultiplier: 2, chance: 0.01, icon: "💧" },
@@ -36,6 +35,12 @@ export const CROP_CONFIG = {
     { name: "Relapsed", valueMultiplier: 70, chance: 0, icon: "💔" },
     { name: "Astral", valueMultiplier: 6, chance: 0, icon: "🌌" },
     { name: "Bloom", valueMultiplier: 3, chance: 0, icon: "🌸" },
+    { name: "Skipped", valueMultiplier: 5, chance: 0, icon: "⏭️💔" },
+    { name: "Looped", valueMultiplier: 10, chance: 0, icon: "♻️" },
+    { name: "Muted", valueMultiplier: 13, chance: 0, icon: "🔇" },
+    { name: "Ghosted", valueMultiplier: 20, chance: 0, icon: "👻" },
+    { name: "Desynced", valueMultiplier: 40, chance: 0, icon: "⬅️↪️" },
+    { name: "Wilted", valueMultiplier: 0.9, chance: 0, icon: "🥀💔" },
   ],
   MBIAS: 1 as const,
   GROWTH_BASE_OLD: 5 * 60 * 1000,

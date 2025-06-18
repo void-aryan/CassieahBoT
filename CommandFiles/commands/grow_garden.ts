@@ -62,7 +62,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.0.28",
+  version: "2.0.29",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -77,6 +77,28 @@ export const meta: CassidySpectra.CommandMeta = {
 
 // ---- For the sake of gift/giftPack to give seeds as rewards too ----
 export const treasuresTable: InventoryItem[] = [
+  ...EVENT_CONFIG.ALL_EVENTS.filter((i) => i.key !== "bizzyBees")
+    .map((i) => i.shopItems)
+    .flat()
+    .map((shopItem) => {
+      let inventoryItem: GardenItem | null = null;
+      const mockMoneySet = {
+        inventory: [] as GardenItem[],
+      };
+
+      shopItem.onPurchase({ moneySet: mockMoneySet });
+      inventoryItem = mockMoneySet.inventory[0] || null;
+
+      if (!inventoryItem) {
+        return null;
+      }
+
+      return {
+        ...inventoryItem,
+        group: [shopItem.pack],
+        prob: shopItem.packChance ?? 0,
+      };
+    }),
   ...gardenShop.honeyShop
     .filter((i) => i.pack === "pFlowerSeed")
     .map((shopItem) => {
@@ -515,7 +537,7 @@ async function getTimeForNextWeather() {
   return timeUntilNextEvent;
 }
 
-async function getCurrentWeather() {
+export async function getCurrentWeather() {
   const { globalDB } = Cassidy.databases;
   const { skipStamp = 0 } = await globalDB.getCache("skipStamp");
   const adjustedNow = Date.now() + skipStamp;
@@ -915,35 +937,39 @@ function formatShopItems(
   return {
     ...items,
     // itemData: items.itemData.filter((item) => item.inStock !== false),
-    itemData: items.itemData.map((item) => {
-      let noStock = item.inStock === false;
-      let flavor = item.flavorText || "";
-      if (item.isOfficialStock) {
-        // flavor = `🌱 **STOCKED IN ROBLOX!**\n${flavor}`;
-      }
-      const moneySet: { inventory: GardenItem[] } = { inventory: [] };
-      item.onPurchase({ moneySet });
-      const purchased = moneySet.inventory[0];
-      if (purchased) {
-        if (purchased.type === "gardenSeed") {
-          flavor = `${`***${item.rarity}*** - ${Math.round(
-            (item.stockChance ?? 1) * 100
-          )}%`.toUpperCase()}\n🪙 ${abbreviateNumber(
-            purchased.cropData.baseValue || 0
-          )} | 🧺 ${abbreviateNumber(purchased.cropData.harvests || 0)} | ⏳ ${
-            formatTimeSentence(purchased.cropData.growthTime || 0) || "Instant"
-          }`;
+    itemData: items.itemData
+      .map((item) => {
+        let noStock = item.inStock === false;
+        let flavor = item.flavorText || "";
+        if (item.isOfficialStock) {
+          // flavor = `🌱 **STOCKED IN ROBLOX!**\n${flavor}`;
         }
-      }
-      const stockLimit = item.stockLimitOfficial ?? item.stockLimit;
-      return {
-        ...item,
-        cannotBuy: noStock,
-        stockLimit: noStock ? 0 : stockLimit,
-        flavorText: noStock ? `` : flavor,
-      };
-    }),
-    // .filter((i) => i.inStock !== false),
+        const moneySet: { inventory: GardenItem[] } = { inventory: [] };
+        item.onPurchase({ moneySet });
+        const purchased = moneySet.inventory[0];
+        if (purchased) {
+          if (purchased.type === "gardenSeed") {
+            flavor = `${`***${item.rarity}*** - ${Math.round(
+              (item.stockChance ?? 1) * 100
+            )}%`.toUpperCase()}\n🪙 ${abbreviateNumber(
+              purchased.cropData.baseValue || 0
+            )} | 🧺 ${abbreviateNumber(
+              purchased.cropData.harvests || 0
+            )} | ⏳ ${
+              formatTimeSentence(purchased.cropData.growthTime || 0) ||
+              "Instant"
+            }`;
+          }
+        }
+        const stockLimit = item.stockLimitOfficial ?? item.stockLimit;
+        return {
+          ...item,
+          cannotBuy: noStock,
+          stockLimit: noStock ? 0 : stockLimit,
+          flavorText: noStock ? `` : flavor,
+        };
+      })
+      .filter((i) => i.inStock !== false),
     buyTexts: [timeText],
     thankTexts: [timeText],
     ...(currentEvent?.isNoEvent !== true && isEvent && currentEvent
@@ -1283,6 +1309,10 @@ export async function entry(ctx: CommandContext) {
   output.setStyle(style);
 
   const isRef = await refreshShopStock();
+
+  const isRelapsed = currEvent.key === "relapsed";
+
+  const relapsedConfig: Config[] = [];
 
   const beeCombpressor: Config = {
     key: "combpressor",
@@ -1706,6 +1736,7 @@ export async function entry(ctx: CommandContext) {
       },
     },
     ...(currEvent.key === "bizzyBees" ? [beeCombpressor] : []),
+    ...(isRelapsed ? relapsedConfig : []),
     {
       key: "plant",
       description: "Plant one or more seeds in plots",
