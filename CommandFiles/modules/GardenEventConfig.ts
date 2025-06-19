@@ -3129,6 +3129,204 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
       }
     },
   },
+  {
+    title: "🌱 PLANT THE RIGHT SEED!",
+    key: "plantseed",
+    async hook(opts) {
+      const correct = Datum.randomInt(1, 7);
+      const display = Array.from(
+        { length: 7 },
+        (_, i) => `**${i + 1}**: 🌱`
+      ).join("  ");
+      opts.expectReply();
+      const i = await opts.reply(
+        `Which seed will bloom into a flower?\n\n${display}`
+      );
+
+      handleReply(i);
+
+      function handleReply(info: OutputResult) {
+        opts.retryReply(info, async (opts) => {
+          info.removeAtReply();
+          const choice = Number(opts.body);
+          if (isNaN(choice) || choice < 1 || choice > 7) {
+            opts.expectReply();
+            const j = await opts.reply(
+              "❌ Invalid input! Choose a seed from **1 to 7**."
+            );
+            return handleReply(j);
+          }
+
+          if (choice === correct) {
+            await opts.setPoints(opts.points + 120);
+            return opts.nextGame();
+          } else {
+            opts.setX(opts.x + 1);
+            return opts.nextGame();
+          }
+        });
+      }
+    },
+  },
+  {
+    title: "🎼 WHICH NOTE RESTORES THE MIND?",
+    key: "musicpick",
+    async hook(opts) {
+      const notes = ["🎵", "🎶", "🎼"];
+      const correct = Datum.randomInt(0, 2);
+      const display = notes.map((n, i) => `**${i + 1}**: ${n}`).join(" | ");
+      opts.expectReply();
+      const i = await opts.reply(
+        `Choose the note that brings harmony:\n\n${display}`
+      );
+
+      handleReply(i);
+
+      function handleReply(info: OutputResult) {
+        opts.retryReply(info, async (opts) => {
+          info.removeAtReply();
+          const num = Number(opts.body);
+          if (isNaN(num) || num < 1 || num > 3) {
+            opts.expectReply();
+            const j = await opts.reply(
+              "❌ Choose a note: **1**, **2**, or **3**."
+            );
+            return handleReply(j);
+          }
+
+          if (num - 1 === correct) {
+            await opts.setPoints(opts.points + 50);
+          } else {
+            opts.setX(opts.x + 1);
+          }
+          return opts.nextGame();
+        });
+      }
+    },
+  },
+  {
+    title: "🧠 PICK A MEMORY TO REPLANT",
+    key: "memorybox",
+    async hook(opts) {
+      const total = 4;
+      const correct = Datum.randomInt(1, total);
+      const display = Array.from(
+        { length: total },
+        (_, i) => `**${i + 1}** 📦`
+      ).join("  ");
+      opts.expectReply();
+      const i = await opts.reply(
+        `One memory helps you bloom again. The others are wilted thoughts.\n\n${display}`
+      );
+
+      handleReply(i);
+
+      function handleReply(info: OutputResult) {
+        opts.retryReply(info, async (opts) => {
+          info.removeAtReply();
+          const choice = Number(opts.body);
+          if (isNaN(choice) || choice < 1 || choice > total) {
+            opts.expectReply();
+            const j = await opts.reply(
+              `❌ Pick a number between **1 and ${total}**.`
+            );
+            return handleReply(j);
+          }
+
+          if (choice === correct) {
+            await opts.setPoints(opts.points + 150);
+          } else {
+            opts.setX(opts.x + 1);
+          }
+
+          return opts.nextGame();
+        });
+      }
+    },
+  },
+  {
+    title: "🧠 REARRANGE THE SENTENCE!",
+    key: "arrange_sentence",
+    async hook(opts) {
+      opts.setSemiX(0);
+
+      const raw: typeof import("@root/CommandFiles/commands/json/relapse_sentences.json") = require("@root/CommandFiles/commands/json/relapse_sentences.json");
+
+      const original = Datum.shuffle(raw)[0];
+      const correct = original.split(" ");
+      let current = Datum.shuffle([...correct]);
+      let moveCount = 0;
+
+      const wordCount = correct.length;
+      const maxMoves = wordCount * 5;
+
+      opts.expectReply();
+      const showSentence = () =>
+        current.map((word, i) => `**${i + 1}**. ${word}`).join("\n");
+
+      const i = await opts.reply(
+        `🧠 Arrange the sentence by swapping positions.\n\n` +
+          `${showSentence()}\n\n` +
+          `Type two numbers (e.g. \`2 4\`) to swap their positions.\n` +
+          `You have **${maxMoves - moveCount}** moves.`
+      );
+
+      return handleReply(i);
+
+      function handleReply(info: OutputResult) {
+        opts.retryReply(info, async (opts) => {
+          info.removeAtReply();
+          const nums = opts.body.split(" ").map((s) => parseInt(s.trim()));
+          if (nums.length !== 2 || nums.some((n) => isNaN(n))) {
+            opts.expectReply();
+            const j = await opts.reply(
+              `❌ Invalid input. Type two numbers (e.g., \`1 3\`) to swap.`
+            );
+            return handleReply(j);
+          }
+
+          const [a, b] = nums.map((n) => n - 1);
+          if (a < 0 || b < 0 || a >= current.length || b >= current.length) {
+            opts.expectReply();
+            const j = await opts.reply(`❌ Indices out of range. Try again.`);
+            return handleReply(j);
+          }
+
+          [current[a], current[b]] = [current[b], current[a]];
+          moveCount++;
+
+          if (current.join(" ") === correct.join(" ")) {
+            const reward = Math.max(100 - moveCount * 5, 20);
+            await opts.setPoints(opts.points + reward);
+
+            opts.expectReply();
+            const j = await opts.reply(
+              `✅ Success! You solved it in **${moveCount}** moves.\n\n` +
+                `> **${current.join(" ")}**\n\n` +
+                `Reply anything to continue.`
+            );
+
+            return opts.retryReply(j, async (opts) => opts.nextGame());
+          }
+
+          if (moveCount >= maxMoves) {
+            opts.setX(opts.x + 1);
+            await opts.reply(
+              `❌ You used all **${maxMoves}** moves!\n\nCorrect Sentence:\n> ${original}`
+            );
+            return opts.nextGame();
+          }
+
+          opts.expectReply();
+          const j = await opts.reply(
+            `🔁 Swap successful.\n\n${showSentence()}\n\n` +
+              `You have **${maxMoves - moveCount}** moves left.`
+          );
+          return handleReply(j);
+        });
+      }
+    },
+  },
 ];
 
 export function shuffleWord(word: string) {

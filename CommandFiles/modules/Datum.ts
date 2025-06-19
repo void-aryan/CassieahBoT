@@ -550,6 +550,26 @@ export namespace Datum {
   }
 
   /**
+   * Returns a random integer between the given min and max values (inclusive).
+   *
+   * - Both `min` and `max` are inclusive.
+   * - If `min` is greater than `max`, the values are swapped internally.
+   *
+   * @param min - The lower bound (inclusive).
+   * @param max - The upper bound (inclusive).
+   * @returns A random integer within the specified range.
+   *
+   * @example
+   * randomInt(1, 5); // e.g., 3
+   * randomInt(5, 5); // 5
+   * randomInt(10, 1); // e.g., 7 (handles swapped bounds)
+   */
+  export function randomInt(min: number, max: number): number {
+    if (min > max) [min, max] = [max, min];
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  /**
    * Shuffles an array in-place using the Fisher-Yates algorithm.
    *
    * - Produces a uniformly random permutation.
