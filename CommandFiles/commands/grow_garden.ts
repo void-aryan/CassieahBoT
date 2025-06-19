@@ -63,7 +63,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.1.2",
+  version: "2.1.3",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -1361,7 +1361,7 @@ export async function entry(ctx: CommandContext) {
       async handler(_, {}) {
         const str = `⚡ Time to recharge! Let's play, unwind, and detch away from the sadness.`;
         const maxEnergy = 1000;
-        const kgToEnergy = 5;
+        const kgToEnergy = 12;
         const choices: GardenChoiceConfig["choices"] = [
           {
             txt: `How many energy do I have?`,
@@ -1465,7 +1465,7 @@ export async function entry(ctx: CommandContext) {
 
         const targ = relapseChars.find((i) => i.key === "whispy");
         let title = `${targ.icon} ${intros.randomValue()}`;
-        const energyCost = 200;
+        const energyCost = 60;
 
         const choices: GardenChoiceConfig["choices"] = [
           {

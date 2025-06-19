@@ -5,6 +5,7 @@ import { getCurrentWeather } from "@cass-commands/grow_garden";
 import { OutputResult } from "@cass-plugins/output";
 import { Collectibles } from "./InventoryEnhanced";
 import { formatValue } from "./ArielUtils";
+import { Datum } from "./Datum";
 function insertAfterEvenIndices<T>(arr: T[], valueToInsert: T): T[] {
   const result: T[] = [];
 
@@ -2828,7 +2829,7 @@ export async function PlayRelapseMinigame(
   const origPoints = points;
   const opts: RelapseMinigameOpts = {
     args: input.words,
-    body: input.body,
+    body: input.words.join(" "),
     async updateVariables(rep, game) {
       if (isDone) return;
       ctx = rep;
@@ -2841,7 +2842,7 @@ export async function PlayRelapseMinigame(
       xBackup = x;
       semiXBackup = semiX;
       output.setStyle(style);
-      opts.body = rep.input.body;
+      opts.body = rep.input.words.join(" ");
       opts.args = rep.input.words;
     },
     expectReply() {
@@ -2955,13 +2956,12 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
     maxSemiX: 3,
     async hook(opts) {
       opts.setSemiX(0);
-      const allItems: typeof import("@root/CommandFiles/commands/json/words.json") = require("@root/CommandFiles/commands/json/words.json");
-      const originalWord =
-        allItems[Math.floor(Math.random() * allItems.length)];
+      const allItems: typeof import("@root/CommandFiles/commands/json/relapse_words.json") = require("@root/CommandFiles/commands/json/relapse_words.json");
+      const originalWord = Datum.shuffle(allItems)[0];
 
-      const shuffled = shuffleWord(originalWord);
+      let shuffled = shuffleWord(originalWord);
       opts.expectReply();
-      const i = await opts.reply(`Word: \`${shuffled}\``);
+      const i = await opts.reply(`Tagalog Word:\n\`${shuffled}\``);
 
       handleReply(i);
 
@@ -2970,9 +2970,9 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           info.removeAtReply();
           if (opts.body.toLowerCase() !== originalWord.toLowerCase()) {
             opts.expectReply();
-
+            opts.setSemiX(opts.semiX + 1);
             if (opts.semiX < 3) {
-              opts.setSemiX(opts.semiX + 1);
+              shuffled = shuffleWord(originalWord);
               const j = await opts.reply(
                 `Sorry, that's incorrect!\n\nWord: \`${shuffled}\``
               );
@@ -2983,7 +2983,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
               return opts.nextGame();
             }
           }
-          const rewards = [320, 200, 100, 0];
+          const rewards = [100, 80, 50, 0];
           const reward = rewards[opts.semiX];
           await opts.setPoints(opts.points + (reward || 0));
           opts.setSemiX(0);
@@ -2993,21 +2993,21 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
     },
   },
   {
-    title: "💣 AVOID THE BOMBS!",
+    title: "🥀 AVOID THE WILTED FLOWERS!",
     key: "tiles",
     maxSemiX: 3,
     async hook(opts) {
       opts.setSemiX(0);
       const board = new Tiles({
-        sizeX: 5,
-        sizeY: 5,
-        bombIcon: "💣",
-        coinIcon: "🕒",
-        emptyIcon: "⬜",
-        tileIcon: "🟪",
+        sizeX: 4,
+        sizeY: 4,
+        bombIcon: "🥀",
+        coinIcon: "🪻",
+        emptyIcon: "🥀",
+        tileIcon: "🕳️",
       });
       const i = await opts.reply(
-        `select a number between between ${board.range()[0]} and ${
+        `Select a number between between ${board.range()[0]} and ${
           board.range()[1]
         }!\n\n${board}`
       );
@@ -3018,6 +3018,14 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
         opts.retryReply(info, async (opts) => {
           const num = Number(opts.body);
           const code = board.choose(num);
+          if (
+            board.state.filter((i) => i === board.coinIcon).length ===
+            board.board.filter((i) => i === board.coinIcon).length
+          ) {
+            opts.setSemiX(0);
+            await opts.setPoints(opts.points + 100);
+            return opts.nextGame();
+          }
           opts.expectReply();
           if (code === "OUT_OF_RANGE") {
             return opts.reply(
@@ -3032,26 +3040,22 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
             );
           }
           info.removeAtReply();
-          if (code === "BOMB") {
+          if (code === "BOMB" || code === "EMPTY") {
             opts.setSemiX(opts.semiX + 1);
             if (opts.semiX >= 3) {
               opts.setSemiX(0);
               opts.setX(opts.x + 1);
               return opts.nextGame();
             }
-            const i = await opts.reply(`💣 Bomb found!\n\n${board}`);
+            const i = await opts.reply(
+              `❎🥀 **Wilted** flower found!\n\n${board}`
+            );
             return handleReply(i);
           }
           if (code === "COIN") {
-            await opts.setPoints(opts.points + 50);
-            const i = await opts.reply(`🕒 **50** Points found!\n\n${board}`);
-            return handleReply(i);
-          }
-          if (code === "EMPTY") {
-            await opts.setPoints(opts.points + 10);
-
+            await opts.setPoints(opts.points + 20);
             const i = await opts.reply(
-              `⬜ **Empty** tile found! +**10** points.\n\n${board}`
+              `🪻🕒 Good flower! **20** Points found!\n\n${board}`
             );
             return handleReply(i);
           }
@@ -3070,26 +3074,24 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
     title: "🏫 CHOOSE THE CORRECT ANSWER!",
     key: "quiz",
     async hook(opts) {
-      const total: typeof import("@root/CommandFiles/commands/json/quiz.json") = require("@root/CommandFiles/commands/json/quiz.json");
+      const total: typeof import("@root/CommandFiles/commands/json/relapse_quiz_tagalog.json") = require("@root/CommandFiles/commands/json/relapse_quiz_tagalog.json");
       function shuffleOptionsPreserveAnswer(q: (typeof total)[number]) {
-        const pairedOptions = q.options.map((opt, idx) => ({
-          option: opt,
-          originalIndex: idx,
+        const pairedOptions = q.options.map((option, index) => ({
+          option,
+          index,
         }));
-        for (let i = pairedOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [pairedOptions[i], pairedOptions[j]] = [
-            pairedOptions[j],
-            pairedOptions[i],
-          ];
-        }
-        const newAnswerIndex = pairedOptions.findIndex(
-          (pair) => pair.originalIndex === q.answer
+
+        const shuffled = Datum.shuffle(
+          pairedOptions.map((pair) => ({ ...pair }))
         );
-        const shuffledOptions = pairedOptions.map((pair) => pair.option);
+
+        const newAnswerIndex = shuffled.findIndex(
+          (pair) => pair.index === q.answer
+        );
+
         return {
           ...q,
-          options: shuffledOptions,
+          options: shuffled.map((pair) => pair.option),
           answer: newAnswerIndex,
         };
       }
@@ -3101,9 +3103,9 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           message: `${i.question}\n\n${i.options
             .map((opt, ind) => `**${ind + 1}**. ${opt}`)
             .join("\n")}`,
-          correct: i.answer + 1,
+          correct: String(i.answer + 1),
         }));
-      const response = responses[Math.floor(Math.random() * responses.length)];
+      const response = Datum.shuffle(responses)[0];
 
       opts.expectReply();
       const i = await opts.reply(
@@ -3116,10 +3118,10 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
         opts.retryReply(info, async (opts) => {
           info.removeAtReply();
 
-          if (opts.body.toLowerCase() !== String(response.answer)) {
+          if (opts.body !== response.correct) {
             opts.setX(opts.x + 1);
           } else {
-            await opts.setPoints(opts.points + 300);
+            await opts.setPoints(opts.points + 100);
           }
 
           return opts.nextGame();
