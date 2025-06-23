@@ -63,7 +63,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.1.5",
+  version: "2.1.6",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -1811,28 +1811,26 @@ export async function entry(ctx: CommandContext) {
               async callback(rep) {
                 return GardenChoice({
                   title: `${targ.icon} Blocking? No, no... I'm just **nesting** where the soil remembers. The shop **sleeps for now**. But maybe... try the **vending roots** nearby. Heard they stir when **riddles are whispered**.`,
-                  choices: [
-                    ...choices,
-                    {
-                      txt: `Just let me in.`,
-                      async callback(rep2) {
-                        const shop = new UTShop({
-                          ...formatShopItems(gardenShop, currEvent),
-                          style,
-                        });
-                        if (isRef) {
-                          shop.resetStocks(
-                            ...gardenShop.itemData
-                              .filter((i) => i.inStock !== false)
-                              .map((i) => i.key)
-                          );
-                        }
-                        await shop.onPlay({ ...rep2, args: [] });
-                      },
-                    },
-                  ],
+                  choices,
                   style,
                 })(rep);
+              },
+            },
+            {
+              txt: `Just show me the seed shop!!!`,
+              async callback(rep2) {
+                const shop = new UTShop({
+                  ...formatShopItems(gardenShop, currEvent),
+                  style,
+                });
+                if (isRef) {
+                  shop.resetStocks(
+                    ...gardenShop.itemData
+                      .filter((i) => i.inStock !== false)
+                      .map((i) => i.key)
+                  );
+                }
+                await shop.onPlay({ ...rep2, args: [] });
               },
             },
           ];

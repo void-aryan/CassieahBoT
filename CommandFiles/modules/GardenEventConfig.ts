@@ -1,7 +1,6 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { gardenShop } from "./GardenShop";
-import { isInTimeRange } from "./unitypes";
-import { getCurrentWeather } from "@cass-commands/grow_garden";
+import { isInTimeRange, pickRandomWithProb } from "./unitypes";
 import { OutputResult } from "@cass-plugins/output";
 import { Collectibles } from "./InventoryEnhanced";
 import { formatValue } from "./ArielUtils";
@@ -207,7 +206,7 @@ export const EVENT_CONFIG = {
           name: "Reverie Bloom Pack",
           key: "pReverieBloom",
           flavorText: "For those who plant with memories, not plans.",
-          price: 1450,
+          price: 934,
           rarity: "Uncommon",
           maxStock: 5,
           minStock: 1,
@@ -2783,6 +2782,7 @@ export interface RelapseMinigame {
   title: string;
   key: string;
   maxSemiX?: number;
+  chance: number;
   hook(opts: RelapseMinigameOpts, ctx: CommandContext): Promise<any>;
 }
 
@@ -2815,7 +2815,12 @@ export async function PlayRelapseMinigame(
   let { uid, usersDB, input, output } = ctx;
   const author = uid;
   let isDone = false;
-  let CURRENT_GAME = RELAPSE_MINIGAMES.randomValue();
+  const getRandomGame = () => {
+    return pickRandomWithProb(
+      RELAPSE_MINIGAMES.map((i) => ({ value: i, chance: i.chance }))
+    );
+  };
+  let CURRENT_GAME = getRandomGame();
   let userCache = await usersDB.getCache(uid);
   let cll = new Collectibles(userCache.collectibles);
   let x = 0;
@@ -2853,7 +2858,7 @@ export async function PlayRelapseMinigame(
     nextGame() {
       if (isDone) return;
 
-      CURRENT_GAME = RELAPSE_MINIGAMES.randomValue();
+      CURRENT_GAME = getRandomGame();
       opts.executeGame();
     },
     setSemiX(newX) {
@@ -2918,6 +2923,7 @@ export async function PlayRelapseMinigame(
 
       info.atReply(async (rep) => {
         await opts.updateVariables(rep, CURRENT_GAME);
+        if (uid !== author) return;
         return callback(opts, ctx);
       });
     },
@@ -2954,6 +2960,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
     title: "🧩 UNSCRAMBLE THE WORD!",
     key: "wordgame",
     maxSemiX: 3,
+    chance: 1,
     async hook(opts) {
       opts.setSemiX(0);
       const allItems: typeof import("@root/CommandFiles/commands/json/relapse_words.json") = require("@root/CommandFiles/commands/json/relapse_words.json");
@@ -2983,7 +2990,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
               return opts.nextGame();
             }
           }
-          const rewards = [100, 80, 50, 0];
+          const rewards = [300, 200, 100, 0];
           const reward = rewards[opts.semiX];
           await opts.setPoints(opts.points + (reward || 0));
           opts.setSemiX(0);
@@ -2996,6 +3003,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
     title: "🥀 AVOID THE WILTED FLOWERS!",
     key: "tiles",
     maxSemiX: 3,
+    chance: 0.5,
     async hook(opts) {
       opts.setSemiX(0);
       const board = new Tiles({
@@ -3013,17 +3021,19 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
       );
 
       handleReply(i);
+      let good = 0;
 
       function handleReply(info: OutputResult) {
         opts.retryReply(info, async (opts) => {
           const num = Number(opts.body);
           const code = board.choose(num);
+
           if (
             board.state.filter((i) => i === board.coinIcon).length ===
             board.board.filter((i) => i === board.coinIcon).length
           ) {
             opts.setSemiX(0);
-            await opts.setPoints(opts.points + 100);
+            await opts.setPoints(opts.points + 500);
             return opts.nextGame();
           }
           opts.expectReply();
@@ -3053,9 +3063,14 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
             return handleReply(i);
           }
           if (code === "COIN") {
-            await opts.setPoints(opts.points + 20);
+            await opts.setPoints(opts.points + 50);
+            good++;
+            if (good >= 4) {
+              opts.setSemiX(0);
+              return opts.nextGame();
+            }
             const i = await opts.reply(
-              `🪻🕒 Good flower! **20** Points found!\n\n${board}`
+              `🪻🕒 Good flower! **50** Points found!\n\n${board}`
             );
             return handleReply(i);
           }
@@ -3073,6 +3088,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
   {
     title: "🏫 CHOOSE THE CORRECT ANSWER!",
     key: "quiz",
+    chance: 1,
     async hook(opts) {
       const total: typeof import("@root/CommandFiles/commands/json/relapse_quiz_tagalog.json") = require("@root/CommandFiles/commands/json/relapse_quiz_tagalog.json");
       function shuffleOptionsPreserveAnswer(q: (typeof total)[number]) {
@@ -3121,7 +3137,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           if (opts.body !== response.correct) {
             opts.setX(opts.x + 1);
           } else {
-            await opts.setPoints(opts.points + 100);
+            await opts.setPoints(opts.points + 200);
           }
 
           return opts.nextGame();
@@ -3132,6 +3148,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
   {
     title: "🌱 PLANT THE RIGHT SEED!",
     key: "plantseed",
+    chance: 0.3,
     async hook(opts) {
       const correct = Datum.randomInt(1, 7);
       const display = Array.from(
@@ -3161,7 +3178,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
             await opts.setPoints(opts.points + 120);
             return opts.nextGame();
           } else {
-            opts.setX(opts.x + 1);
+            await opts.setPoints(opts.points + 5);
             return opts.nextGame();
           }
         });
@@ -3171,6 +3188,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
   {
     title: "🎼 WHICH NOTE RESTORES THE MIND?",
     key: "musicpick",
+    chance: 0.1,
     async hook(opts) {
       const notes = ["🎵", "🎶", "🎼"];
       const correct = Datum.randomInt(0, 2);
@@ -3197,7 +3215,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           if (num - 1 === correct) {
             await opts.setPoints(opts.points + 50);
           } else {
-            opts.setX(opts.x + 1);
+            await opts.setPoints(opts.points + 2);
           }
           return opts.nextGame();
         });
@@ -3207,6 +3225,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
   {
     title: "🧠 PICK A MEMORY TO REPLANT",
     key: "memorybox",
+    chance: 0.2,
     async hook(opts) {
       const total = 4;
       const correct = Datum.randomInt(1, total);
@@ -3236,7 +3255,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           if (choice === correct) {
             await opts.setPoints(opts.points + 150);
           } else {
-            opts.setX(opts.x + 1);
+            await opts.setPoints(opts.points + 3);
           }
 
           return opts.nextGame();
@@ -3247,6 +3266,7 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
   {
     title: "🧠 REARRANGE THE SENTENCE!",
     key: "arrange_sentence",
+    chance: 1,
     async hook(opts) {
       opts.setSemiX(0);
 
@@ -3255,10 +3275,18 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
       const original = Datum.shuffle(raw)[0];
       const correct = original.split(" ");
       let current = Datum.shuffle([...correct]);
+      while (
+        current.length === original.length &&
+        current.every((val, index) => val === original[index])
+      ) {
+        current = Datum.shuffle([...correct]);
+      }
       let moveCount = 0;
+      const maxReward = 250;
+      const minReward = 80;
 
       const wordCount = correct.length;
-      const maxMoves = wordCount * 5;
+      const maxMoves = Math.round(wordCount * 1.5);
 
       opts.expectReply();
       const showSentence = () =>
@@ -3296,13 +3324,16 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
           moveCount++;
 
           if (current.join(" ") === correct.join(" ")) {
-            const reward = Math.max(100 - moveCount * 5, 20);
+            const reward = Math.round(
+              minReward +
+                ((maxMoves - moveCount) / maxMoves) * (maxReward - minReward)
+            );
             await opts.setPoints(opts.points + reward);
 
             opts.expectReply();
             const j = await opts.reply(
               `✅ Success! You solved it in **${moveCount}** moves.\n\n` +
-                `> **${current.join(" ")}**\n\n` +
+                `=> **${current.join(" ")}**\n\n` +
                 `Reply anything to continue.`
             );
 
@@ -3311,9 +3342,6 @@ export const RELAPSE_MINIGAMES: RelapseMinigame[] = [
 
           if (moveCount >= maxMoves) {
             opts.setX(opts.x + 1);
-            await opts.reply(
-              `❌ You used all **${maxMoves}** moves!\n\nCorrect Sentence:\n> ${original}`
-            );
             return opts.nextGame();
           }
 
