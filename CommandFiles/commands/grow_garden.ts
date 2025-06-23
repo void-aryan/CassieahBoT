@@ -63,7 +63,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.1.6",
+  version: "2.1.7",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -227,6 +227,7 @@ export type GardenPlot = InventoryItem & {
   maxKiloGrams: number;
   mutationAttempts: number;
   baseKiloGrams: number;
+  lastUpdated: number;
 };
 
 export function toBarnItem(plot: GardenPlot): GardenBarn[] {
@@ -399,6 +400,7 @@ async function autoUpdateCropData(
   pets: Inventory<GardenPetActive>
 ) {
   if (!crop) return null;
+  crop.lastUpdated ??= Date.now();
   crop.yields ??= 1;
   crop.mutationAttempts ??= 0;
   crop.maxKiloGrams ??= randomBiased(
@@ -431,12 +433,20 @@ async function autoUpdateCropData(
     allowM &&
     crop.mutationAttempts <= CROP_CONFIG.MAX_MUTATION_ATT
   ) {
-    const repeats = crop.lastMutation
-      ? Math.floor((now - crop.lastMutation) / CROP_CONFIG.MUTATION_INTERVAL)
-      : 1;
+    const maxCycles = Math.floor(
+      CROP_CONFIG.MAX_AFK / CROP_CONFIG.MUTATION_INTERVAL
+    );
+    const timeSinceMutation = crop.lastMutation
+      ? now - crop.lastMutation
+      : CROP_CONFIG.MUTATION_INTERVAL;
+    const repeats = Math.min(
+      Math.floor(timeSinceMutation / CROP_CONFIG.MUTATION_INTERVAL),
+      maxCycles
+    );
 
     const skipStamp =
       (await Cassidy.databases.globalDB.getCache("skipStamp"))?.skipStamp || 0;
+
     const cycle = EVENT_CONFIG.WEATHER_CYCLE_NEW;
     const adjustedNow = now + skipStamp;
     const currentCycle = Math.floor(adjustedNow / cycle);
@@ -499,6 +509,8 @@ async function autoUpdateCropData(
   crop.name = String(crop.name).replaceAll("Seed", "").trim();
 
   crop = correctPlot(crop);
+
+  crop.lastUpdated = Date.now();
 
   return crop;
 }
@@ -2200,6 +2212,7 @@ export async function entry(ctx: CommandContext) {
             ),
             mutationAttempts: 0,
             baseKiloGrams: seed.cropData.baseKG ?? 0,
+            lastUpdated: Date.now(),
           };
           if (Math.random() < 0.1) {
             plot = await applyMutation(

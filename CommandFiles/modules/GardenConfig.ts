@@ -44,15 +44,16 @@ export const CROP_CONFIG = {
   ],
   MBIAS: 1 as const,
   GROWTH_BASE_OLD: 5 * 60 * 1000,
-  GROWTH_BASE: 4 * 60 * 1000,
+  GROWTH_BASE: 15 * 60 * 1000,
   OVERGROWTH_PENALTY: 1.5 as const,
-  LUCKY_HARVEST_CHANCE: 0.05 as const,
+  LUCKY_HARVEST_CHANCE: 0.02 as const,
   ACHIEVEMENTS: [
     { key: "harvest_100", name: "Harvest Master", harvests: 100, reward: 1000 },
     { key: "mutation_10", name: "Mutation Maniac", mutations: 10, reward: 500 },
     { key: "expand_1", name: "Land Baron", expansions: 1, reward: 2000 },
   ],
   MUTATION_INTERVAL: 2 * 60 * 1000,
+  MAX_AFK: 1 * 60 * 60 * 1000,
   MIN_KG: 0.18 as const,
   MAX_KG: 200.32 as const,
   KILO_BIAS: 20 as const,
@@ -60,7 +61,7 @@ export const CROP_CONFIG = {
     return `https://growagardenstock.com/api/stock?type=gear-seeds&ts=${Date.now()}` as const;
   },
   NOTIF_TIMEOUT: 10 as const,
-  MAX_MUTATION_ATT: 360 as const,
+  MAX_MUTATION_ATT: 20 as const,
   STOCK_MIN_BIAS: 10 / 15,
 };
 
