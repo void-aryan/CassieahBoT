@@ -302,6 +302,7 @@ export default class UserStatsManager {
     const money = safeNumber(userData?.money);
     const bank = safeNumber(userData?.bankData?.bank);
     const lendAmount = safeNumber(userData?.lendAmount);
+    const barn = userData.gardenBarns ?? [];
 
     const getChequeAmount = (items: InventoryItem[]) =>
       Array.isArray(items)
@@ -318,6 +319,9 @@ export default class UserStatsManager {
     const cheques =
       getChequeAmount(userData?.inventory) +
       getChequeAmount(userData?.boxItems) +
+      getChequeAmount(userData?.bankData?.items) +
+      getChequeAmount(userData?.bagData?.items) +
+      getChequeAmount(userData?.ndrive?.items) +
       getChequeAmount(userData?.tradeVentory);
 
     const cars = new Inventory(userData.carsData ?? []);
@@ -328,7 +332,7 @@ export default class UserStatsManager {
       try {
         const car = carSys.updateCarData(car_);
 
-        const worth = carSys.calculateWorth(car);
+        const worth = carSys.calculateWorth(car, this.cache);
         if (typeof worth === "number" && !isNaN(worth)) {
           carsAssets += worth;
         }
@@ -341,14 +345,19 @@ export default class UserStatsManager {
       try {
         const pet = petSys.autoUpdatePetData(pet_);
 
-        const worth = petSys.calculateWorth(pet);
+        const worth = petSys.calculateWorth(pet, this.cache);
         if (typeof worth === "number" && !isNaN(worth)) {
           petsAssets += worth;
         }
       } catch (error) {}
     }
 
-    const total = money + bank + lendAmount + cheques + petsAssets + carsAssets;
+    const barnAccu = barn
+      .filter((i) => i && typeof i.price === "number" && !isNaN(i.price))
+      .reduce((acc, i) => (i.price || 0) + (acc || 0), 0);
+
+    const total =
+      money + bank + lendAmount + cheques + petsAssets + carsAssets + barnAccu;
 
     return {
       money,
@@ -358,6 +367,7 @@ export default class UserStatsManager {
       total,
       carsAssets,
       petsAssets,
+      gardenBarn: barnAccu,
     };
   }
 

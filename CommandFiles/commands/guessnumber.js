@@ -17,7 +17,7 @@ export const meta = {
   icon: "📝",
   cmdType: "arl_g",
 };
-const prize = 70;
+let prizeOrig = 70;
 export const style = {
   title: "Number Guessing Game 📝",
   titleFont: "bold",
@@ -54,9 +54,18 @@ Reply with your answer.`
  * @param {CommandContext & { repObj: { secretNumber: number; attempts: number; author: string; key: string; }; detectID: string }} ctx
  * @returns
  */
-export async function reply({ input, output, repObj, detectID, money }) {
+export async function reply({
+  input,
+  output,
+  repObj,
+  detectID,
+  money,
+  getInflationRate,
+}) {
   const { body, senderID } = input;
+  const rate = await getInflationRate();
   const gameState = repObj;
+  const prize = Math.round(prizeOrig + prizeOrig * rate);
 
   if (senderID !== gameState.author) {
     await output.reply("You can't participate in someone else's game!");
@@ -86,8 +95,8 @@ export async function reply({ input, output, repObj, detectID, money }) {
     await output.reply(
       `Congratulations! You guessed the number ${gameState.secretNumber} in ${gameState.attempts} attempts!
 
-You 𝘄𝗼𝗻!
-Earned 0 𝗘𝗫𝗣 and ${prize} 𝗚𝗢𝗟𝗗`
+You **won**!
+Earned 0 **EXP** and ${prize} **GOLD**`
     );
     return;
   }

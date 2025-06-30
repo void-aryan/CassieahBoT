@@ -33,6 +33,7 @@ export async function entry({
   Collectibles,
   CassExpress,
   CassEXP,
+  getInflationRate,
 }) {
   let {
     money: userMoney,
@@ -45,6 +46,7 @@ export async function entry({
   } = await money.getItem(input.senderID);
   let cassEXP = new CassEXP(cxp);
   const cassExpress = new CassExpress(cexpr);
+  const rate = await getInflationRate();
   const collectibles = new Collectibles(rawCLL);
 
   const currentTime = Date.now();
@@ -57,7 +59,8 @@ export async function entry({
     1,
     Math.floor(elapsedTime / oneDayInMilliseconds)
   );
-  const dailyReward = 100 * claimTimes;
+  let dailyReward = 100 * claimTimes;
+  dailyReward + Math.floor(dailyReward + dailyReward * rate);
   const gemReward = claimTimes;
   const extraEXP = claimTimes * cassEXP.level * 5;
   const petPoints = Math.floor(dailyReward / 10);

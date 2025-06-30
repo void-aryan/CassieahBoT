@@ -905,7 +905,9 @@ export async function entry({
   ctx,
   prefix,
   commandName,
+  getInflationRate,
 }: CommandContext): Promise<any> {
+  const rate = await getInflationRate();
   let gameState: ArenaGameState | null = {
     player1Pet: null,
     player2Pet: null,
@@ -1535,11 +1537,14 @@ export async function entry({
         1.5
     );
     winnerPts = Math.round(winnerPts ** 1.01);
-    const winnerCash = Math.round(Math.max(0, Math.pow(winnerPts * 1000, 1.2)));
+    let winnerCash = Math.round(Math.max(0, Math.pow(winnerPts * 1000, 1.2)));
+    winnerCash += Math.round(winnerCash * rate);
     const loserPts = Math.round(
       statMap.get(`${loserId}_${loserPet.OgpetData.key}`)!.totalDamageDealt / 10
     );
     const loserCash = Math.round(Math.max(0, Math.pow(winnerPts * 100, 1.1)));
+    winnerCash += Math.round(loserCash * rate);
+
     const winnerData = await ctx.money.getItem(winnerId);
     const winnerName =
       winner === 2 && gameState.isAIMode ? "AI Opponent" : winnerData.name;

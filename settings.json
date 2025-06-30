@@ -83,7 +83,7 @@
   "censorInput": false,
   "censorOutput": true,
   "forceWebUID": false,
-  "disableInflation": true,
+  "disableInflation": false,
   "standardSpectra": false,
   "autoGoogleTranslate": "",
   "silentNotiMode": false,

@@ -36,8 +36,9 @@ export const style = {
  * @param {CommandContext} param0
  * @returns
  */
-export async function entry({ output, input, money }) {
+export async function entry({ output, input, money, getInflationRate }) {
   const { min, max, delay } = extra;
+  const rate = await getInflationRate();
   try {
     const userData = await money.getItem(input.senderID);
     if (!userData) return output.reply("Your data is not ready");
@@ -60,8 +61,9 @@ export async function entry({ output, input, money }) {
 
     userData.work.lastWorked = Date.now();
     userData.work.delay = delay[Math.floor(Math.random() * delay.length)];
-    const amount = Math.floor(Math.random() * (max - min + 1)) + min;
-    await money.set(input.senderID, {
+    let amount = Math.floor(Math.random() * (max - min + 1)) + min;
+    amount += Math.round(rate * amount);
+    await money.setItem(input.senderID, {
       work: userData.work,
       money: userData.money + amount,
     });

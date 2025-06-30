@@ -10,12 +10,13 @@ import {
 import { formatCash } from "@cass-modules/ArielUtils";
 import { SmartPet } from "@cass-modules/SmartSpectra";
 import { ShopItem } from "@cass-modules/GardenBalancer";
+import { calculateInflation } from "@cass-modules/unitypes";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
-  version: "1.6.11",
+  version: "1.6.12",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
   author: "Liane Cagara",
@@ -1383,10 +1384,12 @@ const mythicExFoods: ShopItem[] = [
   },
 ];
 
-export function calculateWorth(pet) {
+export function calculateWorth(pet, allCache: Record<string, UserData>) {
+  const rate = calculateInflation(allCache);
   pet = autoUpdatePetData(pet);
   const { sellPrice, level, lastExp = 0 } = pet;
-  return Math.floor(sellPrice * 2 + lastExp * 9 * 2 ** (level - 1));
+  const worth = Math.floor(sellPrice * 2 + lastExp * 9 * 2 ** (level - 1));
+  return Math.round(worth + worth * rate);
 }
 
 function isPetHungry(pet) {
@@ -1711,6 +1714,7 @@ export async function entry(ctx: CommandContext) {
     petSells = 0,
     cassEXP: cxp,
   } = await money.getCache(input.senderID);
+  await money.getAllCache();
 
   const home = new SpectralCMDHome(
     {
@@ -1826,7 +1830,7 @@ export async function entry(ctx: CommandContext) {
 🗃️ ***Type***: ${pet.petType}
 🧭 ***Level***: ${pet.level}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${formatCash(calculateWorth(pet))}
+💵 **Worth**: ${formatCash(calculateWorth(pet, money.cache))}
 🍽️ ***Hungry ${
               hungryAfter >= 0 ? `After` : `Since`
             }***: ${global.utils.convertTimeSentence(
@@ -2022,10 +2026,14 @@ export async function entry(ctx: CommandContext) {
           function getDiff(key: string) {
             const diff =
               Number(
-                key === "worth" ? calculateWorth(updatedPet) : updatedPet[key]
+                key === "worth"
+                  ? calculateWorth(updatedPet, money.cache)
+                  : updatedPet[key]
               ) -
               Number(
-                key === "worth" ? calculateWorth(originalPet) : originalPet[key]
+                key === "worth"
+                  ? calculateWorth(originalPet, money.cache)
+                  : originalPet[key]
               );
             return key === "worth"
               ? diff
@@ -2052,9 +2060,9 @@ export async function entry(ctx: CommandContext) {
 ✨ ***Exp***: ${updatedPet.lastExp ?? 0}/${calculateNextExp(
             updatedPet
           )} ${getDiff("lastExp")}
-💵 **Worth**: ${formatCash(calculateWorth(updatedPet))} (+${formatCash(
-            Number(getDiff("worth"))
-          )})
+💵 **Worth**: ${formatCash(
+            calculateWorth(updatedPet, money.cache)
+          )} (+${formatCash(Number(getDiff("worth")))})
 🍽️ ***Hungry ${
             hungryAfter >= 0 ? `After` : `Since`
           }***: ${global.utils.convertTimeSentence(
@@ -2150,7 +2158,7 @@ export async function entry(ctx: CommandContext) {
 🗃️ ***Type***: ${pet.petType ?? "Unknown"}
 🧭 ***Level***: ${pet.level ?? 1}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n` +
+💵 **Worth**: ${formatCash(calculateWorth(pet, money.cache))}\n\n` +
               `${UNIRedux.charm} ***Gears***\n\n` +
               `${gearData.getWeaponUI("⚔️")}\n` +
               `${gearData.getArmorsUI("🔰")}\n\n`;
@@ -2168,7 +2176,7 @@ export async function entry(ctx: CommandContext) {
 🗃️ ***Type***: ${pet.petType ?? "Unknown"}
 🧭 ***Level***: ${pet.level ?? 1}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
+💵 **Worth**: ${formatCash(calculateWorth(pet, money.cache))}\n\n`;
           }
           result += `Type **${prefix}pet-gear <pet name>** to view the stats and gears of anyone's pet.`;
           return output.reply(result);
@@ -2322,7 +2330,7 @@ export async function entry(ctx: CommandContext) {
             );
           }
 
-          const price = calculateWorth(updatedPet);
+          const price = calculateWorth(updatedPet, money.cache);
           const newMoney = playerMoney + price;
           const code = global.utils.generateCaptchaCode(12);
           const newPetSells = petSells + price;
@@ -2461,17 +2469,17 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
                 .map(autoUpdatePetData)
                 .sort(
                   (a, b) =>
-                    calculateWorth(b) +
+                    calculateWorth(b, money.cache) +
                     (b.lastExp ?? 0) -
-                    (calculateWorth(a) + (a.lastExp ?? 0))
+                    (calculateWorth(a, money.cache) + (a.lastExp ?? 0))
                 );
               const sortedA = dataA
                 .map(autoUpdatePetData)
                 .sort(
                   (a, b) =>
-                    calculateWorth(b) +
+                    calculateWorth(b, money.cache) +
                     (b.lastExp ?? 0) -
-                    (calculateWorth(a) + (a.lastExp ?? 0))
+                    (calculateWorth(a, money.cache) + (a.lastExp ?? 0))
                 );
               const highestA = sortedA[0] || {};
               const highestB = sortedB[0] || {};
@@ -2487,14 +2495,14 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
                   petGearA
                 ).HP /
                   4 +
-                calculateWorth(highestA) / 1000;
+                calculateWorth(highestA, money.cache) / 1000;
               const statB =
                 new PetPlayer(
                   highestB as UserData["petsData"][number],
                   petGearB
                 ).HP /
                   4 +
-                calculateWorth(highestB) / 1000;
+                calculateWorth(highestB, money.cache) / 1000;
               return statB - statA;
             })
             .slice(sliceA, sliceB);
@@ -2510,9 +2518,10 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
             const pet = autoUpdatePetData(
               petsData.sort(
                 (a, b) =>
-                  calculateWorth(b) +
+                  calculateWorth(b, money.cache) +
                   (Number(b.lastExp) || 0) -
-                  (Number(calculateWorth(a)) + (Number(a.lastExp) ?? 0))
+                  (Number(calculateWorth(a, money.cache)) +
+                    (Number(a.lastExp) ?? 0))
               )[0]
             );
             const gearsManage = new GearsManage(gearsData);
@@ -2534,7 +2543,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
 🗃️ ***Type***: ${pet.petType ?? "Unknown"}
 🧭 ***Level***: ${pet.level ?? 1}
 ✨ ***Exp***: ${pet.lastExp ?? 0}/${calculateNextExp(pet)}
-💵 **Worth**: ${formatCash(calculateWorth(pet))}\n\n`;
+💵 **Worth**: ${formatCash(calculateWorth(pet, money.cache))}\n\n`;
             num++;
           }
           result += `Type **${prefix}pet-top ${
@@ -2799,7 +2808,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
 🗃️ ***Type***: ${updatedPet.petType}
 🧭 ***Level***: ${updatedPet.level}
 ✨ ***Exp***: ${updatedPet.lastExp ?? 0}/${calculateNextExp(updatedPet)}
-💵 **Worth**: ${formatCash(calculateWorth(updatedPet))}
+💵 **Worth**: ${formatCash(calculateWorth(updatedPet, money.cache))}
 🍽️ ***Hungry ${
               hungryAfter >= 0 ? `After` : `Since`
             }***: ${global.utils.convertTimeSentence(
@@ -2894,7 +2903,7 @@ You are going to sell ${petToSell.icon} **${petToSell.name}** for $${formatCash(
             QUEST_CONFIG.MAX_STREAK
           );
 
-          const worth = calculateWorth(updatedPet);
+          const worth = calculateWorth(updatedPet, money.cache);
           const baseReward = Math.floor(
             worth * QUEST_CONFIG.REWARD_MULTIPLIER * timeFactor
           );

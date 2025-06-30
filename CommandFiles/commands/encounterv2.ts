@@ -127,7 +127,10 @@ export async function entry({
   output,
   user,
   Slicer,
+  getInflationRate,
 }: CommandContext): Promise<any> {
+  const rate = await getInflationRate();
+
   const statMap = new Map<string, PersistentStats>();
   let gameState: GameState | null = null;
   let isDefeat = false;
@@ -141,14 +144,14 @@ export async function entry({
   if (input.arguments[0] === "list") {
     const entries = Object.entries(encounters);
     const slicer = new Slicer(entries, 7);
-    let page = Math.min(
-      Number(input.arguments[1]) || 1,
-      slicer.pagesLength + 1
-    );
+    let page = Math.min(Number(input.arguments[1]) || 1, slicer.pagesLength);
 
     const getReM = (gold: number) => {
-      const re = Math.round((gold / 15) * 1);
-      const mercy = Math.round(re * 1.7);
+      let re = Math.round((gold / 15) * 1);
+      re += Math.round(re * rate);
+      let mercy = Math.round(re * 1.7);
+      mercy += Math.round(mercy * rate);
+
       return { re, mercy };
     };
 
@@ -172,7 +175,7 @@ export async function entry({
       .join("\n\n");
     await output.reply(
       `🌏 Page **${page}** of **${
-        slicer.pagesLength + 1
+        slicer.pagesLength
       }**\n\n${str}\n\n📁 ***NEXT PAGE***, type: ${input.words[0]} ${
         input.words[1]
       } ${page + 1}`
@@ -190,8 +193,12 @@ export async function entry({
     targetEnc = currentEnc;
   }
 
-  const re = Math.round((targetEnc.goldFled / 15) * 1);
-  const mercy = Math.round(re * 1.7);
+  let re = Math.round((targetEnc.goldFled / 15) * 1);
+  re += Math.round(re * rate);
+
+  let mercy = Math.round(re * 1.7);
+  mercy += Math.round(mercy * rate);
+
   const infoBegin = await output.replyStyled(
     `🔎 **Random Encounter**:
 Your opponent is: ${targetEnc.wildIcon} ${targetEnc.wildName} [${Datum.keyOf(
@@ -1095,7 +1102,8 @@ The first **pet** will become the leader, which who can use the 🔊 **Act**\n\n
     if (mercyMode) {
       pts = Math.round(pts * 1.7);
     }
-    const winnerCash = Math.round(Math.pow(pts * 1000, 1.2));
+    let winnerCash = Math.round(Math.pow(pts * 1000, 1.2));
+    winnerCash += Math.round(winnerCash * rate);
     if (isGood) {
       dialogue = `${gameState.opponent.wildIcon} **${
         gameState.opponent.wildName

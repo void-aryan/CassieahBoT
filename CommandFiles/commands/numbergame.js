@@ -36,17 +36,20 @@ export async function reply({
   output,
   repObj: receive,
   money: moneyH,
+  getInflationRate,
   detectID,
 }) {
   if (!receive) return;
+  const rate = await getInflationRate();
   receive.mid = detectID;
 
   const curr = Date.now();
   const elapsedSeconds = Math.floor((curr - receive.timestamp) / 1000);
-  const currentReward = Math.max(
+  let currentReward = Math.max(
     initialReward - elapsedSeconds * penaltyPerSecond,
     minReward
   );
+  currentReward += Math.round(rate);
 
   const guessedNumber = parseInt(input?.words[0]?.trim());
   if (guessedNumber === receive.number) {

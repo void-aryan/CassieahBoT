@@ -472,7 +472,7 @@ export async function entry(ctx) {
             bestItems.length
               ? `🚀 **Best Items${key ? ` in ${key}` : ""}:**\n${
                   UNIRedux.arrow
-                } Page ${page} of ${slicer.pagesLength + 1}\n\n${
+                } Page ${page} of ${slicer.pagesLength}\n\n${
                   UNIRedux.arrow
                 } ${bestItems
                   .map(

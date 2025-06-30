@@ -232,6 +232,7 @@ export function randomBiased(
 }
 
 import { DateTime } from "luxon";
+import { InventoryItem } from "./cassidyUser";
 
 export function isInTimeRange(
   from: string,
@@ -249,4 +250,68 @@ export function isInTimeRange(
   const end = parse(to, timezone);
 
   return start > end ? now >= start || now <= end : now >= start && now <= end;
+}
+
+export function calculateInflation(usersData: Record<string, UserData>) {
+  if (global.Cassidy.config.disableInflation) {
+    return 0;
+  }
+  let sum = Object.values(usersData)
+    .filter((i) => !isNaN(i?.money))
+    .reduce((acc, { money = 0 }) => acc + money, 0);
+  const bankDatas = Object.values(usersData).filter(
+    (i) =>
+      typeof i?.bankData === "object" &&
+      typeof i.bankData.bank === "number" &&
+      !isNaN(i.bankData.bank)
+  );
+  const bankSum = bankDatas.reduce(
+    (acc, { bankData }) => acc + bankData.bank,
+    0
+  );
+  const lendUsers = Object.values(usersData).filter(
+    (i) => typeof i?.lendAmount === "number" && !isNaN(i.lendAmount)
+  );
+  const lendAmounts = lendUsers.reduce(
+    (acc, { lendAmount }) => acc + lendAmount,
+    0
+  );
+
+  const bankMean = bankSum / bankDatas.length;
+  let mean = sum / Object.keys(usersData).length;
+  !isNaN(bankMean) ? (mean += bankMean) : null;
+  const ll = lendAmounts / lendUsers.length;
+  !isNaN(ll) ? (mean += ll) : null;
+
+  const getChequeAmount = (items: InventoryItem[]) =>
+    items.reduce(
+      (acc, j) =>
+        j.type === "cheque" &&
+        typeof j.chequeAmount === "number" &&
+        !isNaN(j.chequeAmount)
+          ? j.chequeAmount + acc
+          : acc,
+      0
+    );
+
+  const invAmounts = Object.values(usersData).reduce((total, userData) => {
+    let userTotal = 0;
+    if (Array.isArray(userData.inventory)) {
+      userTotal += getChequeAmount(userData.inventory);
+    }
+    if (Array.isArray(userData.boxItems)) {
+      userTotal += getChequeAmount(userData.boxItems);
+    }
+    if (Array.isArray(userData.tradeVentory)) {
+      userTotal += getChequeAmount(userData.tradeVentory);
+    }
+    return total + userTotal;
+  }, 0);
+
+  mean += invAmounts;
+
+  if (isNaN(mean)) {
+    return 0;
+  }
+  return mean / 1_000_000_000;
 }

@@ -110,6 +110,7 @@ export async function entry({
   input,
   output,
   money,
+  getInflationRate,
 }: CommandContext): Promise<any> {
   let gameState: PetClashGameState | null = {
     player1Pets: [],
@@ -125,6 +126,7 @@ export async function entry({
     downPets2: new Set(),
   };
   let isDefeat = false;
+  const rate = await getInflationRate();
 
   const player1Data = await money.getItem(input.senderID);
   const { petsData, playersMap } = getInfos(player1Data);
@@ -893,7 +895,7 @@ export async function entry({
     const loserId =
       winner === 1 ? gameState.player2Author : gameState.player1Author;
 
-    const winnerPts = Math.round(
+    let winnerPts = Math.round(
       winnerPets.reduce(
         (sum, pet) =>
           sum +
@@ -902,7 +904,7 @@ export async function entry({
         0
       ) * 1.5
     );
-    const loserPts = Math.round(
+    let loserPts = Math.round(
       loserPets.reduce(
         (sum, pet) =>
           sum +
@@ -910,6 +912,8 @@ export async function entry({
         0
       )
     );
+    winnerPts += Math.round(winnerPts * rate);
+    loserPts += Math.round(loserPts * rate);
 
     const winnerData = await ctx.money.getItem(winnerId);
     const loserData = await ctx.money.getItem(loserId);

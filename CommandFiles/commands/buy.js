@@ -99,11 +99,7 @@ export async function entry(context) {
     const allItems = shop.getItems();
     const page = Slicer.parseNum(args[0]);
     const slicer = new Slicer([...allItems], 5);
-    let result = `💡 Use **${prefix} ${
-      context.commandName
-    } <item name | page number>** to make a purchase or navigate between pages.\n${
-      UNIRedux.arrow
-    } Page ${page} of ${slicer.pagesLength + 1}\n${UNIRedux.standardLine}\n`;
+    let result = `💡 Use **${prefix} ${context.commandName} <item name | page number>** to make a purchase or navigate between pages.\n${UNIRedux.arrow} Page ${page} of ${slicer.pagesLength}\n${UNIRedux.standardLine}\n`;
 
     const itemStr = slicer
       .getPage(page)

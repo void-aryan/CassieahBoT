@@ -385,6 +385,11 @@ export function createXaviaMessage(
     _type === "reaction";
   const extraEventProperties: Partial<XaviaCommandContext["message"]> = {
     ...event,
+    args: `${event.body}`
+      .split(" ")
+      .map((i) => i.trim())
+      .filter(Boolean)
+      .slice(1),
     async reply(message) {
       const info = await ctx.output.dispatch(message, {
         isReply: true,

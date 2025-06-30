@@ -372,6 +372,8 @@ export namespace Datum {
    * @returns Decoded UTF-8 string, or original input if decoding fails.
    */
   export function decodeGameID(input: string) {
+    input = `${input}`;
+
     input = input.replace(GAME_ID_PREFIX, "");
     const pad = input.length % 4;
     if (pad > 0) {
@@ -402,8 +404,14 @@ export namespace Datum {
    * @returns Encoded game ID string or the original input if encoding fails.
    */
   export function encodeGameID(input: string) {
+    input = `${input}`;
     try {
-      const encodedIP = Buffer.from(input).toString("base64").replace(/=/g, "");
+      if (input.startsWith(GAME_ID_PREFIX)) {
+        return input;
+      }
+      const encodedIP = Buffer.from(input.replaceAll("custom_", ""))
+        .toString("base64")
+        .replace(/=/g, "");
       return `${GAME_ID_PREFIX}${encodedIP}`;
     } catch (error) {
       return input;

@@ -65,13 +65,14 @@ function generateTable(answers) {
 export async function reply({
   input,
   output,
-
+  getInflationRate,
   repObj: receive,
   money: moneyH,
   detectID,
   Collectibles,
   CassEXP,
 }) {
+  const rate = await getInflationRate();
   try {
     if (typeof receive !== "object" || !receive) return;
     receive.mid = detectID;
@@ -127,7 +128,10 @@ export async function reply({
     }
 
     if (correctAnswer && !answers[correctAnswer.index]?.guessed) {
-      money += correctAnswer.points;
+      const inflatedPts = Math.floor(
+        correctAnswer.points + correctAnswer.points * rate
+      );
+      money += inflatedPts;
       answers[correctAnswer.index].guessed = true;
 
       const allGuessed = answers.every((answer) => answer.guessed);
@@ -159,9 +163,7 @@ export async function reply({
       } else {
         const replyMessage = `✅ | Correct ${name?.split(" ")[0]}! "${
           correctAnswer.answer
-        }" was worth **${
-          correctAnswer.points
-        } points** that was added to your balance!\n\nKeep guessing! (Reply more!)\n\nQuestion: ${question}\n\n${generateTable(
+        }" was worth **${inflatedPts} points** that was added to your balance!\n\nKeep guessing! (Reply more!)\n\nQuestion: ${question}\n\n${generateTable(
           answers
         )}`;
         const xp = clamp(1, correctAnswer.points / 20, 10);
@@ -203,9 +205,7 @@ export async function reply({
         return output.reply(
           `[ ${"❌ ".repeat(strikes).trim()} ]\n\nSorry ${
             name?.split(" ")[0]
-          }, you've received ten strikes! Better luck next time.\n\nQuestion: ${question}\n\n${generateTable(
-            answers
-          )}`
+          }, you've received ten strikes! Better luck next time.`
         );
       } else {
         await moneyH.set(input.senderID, {

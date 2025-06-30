@@ -58,6 +58,15 @@ import { BreifcaseUsagePlugin } from "@cass-modules/BriefcaseAPI";
 
 // ---- Hacky stuff ----
 import { evaluateItemBalance } from "@cass-modules/GardenBalancer";
+import {
+  GardenItem,
+  GardenSeed,
+  GardenPlot,
+  GardenBarn,
+  GardenTool,
+  GardenPetActive,
+  GardenStats,
+} from "@cass-modules/GardenTypes";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
@@ -175,62 +184,10 @@ export const PET_LIMIT = 60;
 export const PET_EQUIP_LIMIT = 8;
 export const ITEMS_PER_PAGE = 6;
 
-export type GardenSeed = InventoryItem & {
-  type: "gardenSeed";
-  cropData: {
-    baseValue: number;
-    growthTime: number;
-    harvests: number;
-    yields: number;
-    baseKG?: number;
-  };
-  isFavorite?: boolean;
-};
-export type GardenPack = InventoryItem & {
-  type: "roulette_pack";
-  treasureKey: `randomGrouped_${string}`;
-};
-
-export type GardenPetCage = InventoryItem & {
-  type: "gardenPetCage";
-  petData: { name: string; collectionRate: number; seedTypes: string[] };
-  isFavorite?: boolean;
-};
-
-export type GardenTool = InventoryItem & {
-  type: "gardenTool";
-  toolData: {
-    growthMultiplier?: number;
-    mutationChance?: { [key: string]: number };
-    favoriteEnabled?: boolean;
-  };
-  isFavorite?: boolean;
-};
-
-export type GardenPlot = InventoryItem & {
-  key: string;
-  seedKey: string;
-  name: string;
-  icon: string;
-  yields: number;
-  plantedAt: number;
-  growthTime: number;
-  harvestsLeft: number;
-  baseValue: number;
-  mutation: string[];
-  isFavorite?: boolean;
-  originalGrowthTime: number;
-  price: number;
-  lastMutation: number;
-  noAutoMutation?: never;
-  kiloGrams: number;
-  maxKiloGrams: number;
-  mutationAttempts: number;
-  baseKiloGrams: number;
-  lastUpdated: number;
-};
-
-export function toBarnItem(plot: GardenPlot): GardenBarn[] {
+export function toBarnItem(
+  plot: GardenPlot,
+  inflationRate: number
+): GardenBarn[] {
   const {
     key,
     icon,
@@ -243,7 +200,7 @@ export function toBarnItem(plot: GardenPlot): GardenBarn[] {
     price,
   } = plot;
 
-  const { final: value, yields } = calculateCropValue(plot);
+  const { final: value, yields } = calculateCropValue(plot, inflationRate);
 
   const item: GardenBarn = {
     key,
@@ -265,38 +222,7 @@ export function toBarnItem(plot: GardenPlot): GardenBarn[] {
     uuid: Inventory.generateUUID(),
   }));
 }
-
-export type GardenBarn = InventoryItem & {
-  key: string;
-  seedKey: string;
-  name: string;
-  icon: string;
-  mutation: string[];
-  isFavorite?: boolean;
-  kiloGrams: number;
-  value: number;
-  price: number;
-};
-
-export type GardenPetActive = InventoryItem & {
-  key: string;
-  name: string;
-  icon: string;
-  lastCollect: number;
-  petData: { collectionRate: number; seedTypes: string[] };
-  isEquipped: boolean;
-};
-
-export interface GardenStats {
-  plotsHarvested: number;
-  mutationsFound: number;
-  expansions: number;
-  achievements: string[];
-}
-
-export type GardenItem = GardenSeed | GardenPetCage | GardenTool | GardenPack;
-
-export function calculateCropValue(crop: GardenPlot) {
+export function calculateCropValue(crop: GardenPlot, inflationRate: number) {
   const mutations = (crop.mutation || [])
     .map((mutationName) =>
       CROP_CONFIG.MUTATIONS.find((m) => m.name === mutationName)
@@ -1209,8 +1135,10 @@ export async function entry(ctx: CommandContext) {
     commandName,
     command,
     fonts,
+    getInflationRate,
   } = ctx;
   await money.ensureUserInfo(input.senderID);
+  const inflationRate = await getInflationRate();
 
   await (async () => {
     const { money: balance, gardenPlots: rawPlots = [] } = await money.getCache(
@@ -1226,7 +1154,6 @@ export async function entry(ctx: CommandContext) {
   let {
     name = "",
     gardenPlots: rawPlots = [],
-    gardenPlotsBefore: rawPlotsBefore = [],
     gardenBarns: rawBarns = [],
     gardenPets: rawPets = [],
     gardenHeld = "",
@@ -2316,7 +2243,8 @@ export async function entry(ctx: CommandContext) {
 
         const sortedPlots = [...plots].sort(
           (a, b) =>
-            calculateCropValue(b).allYield - calculateCropValue(a).allYield
+            calculateCropValue(b, inflationRate).allYield -
+            calculateCropValue(a, inflationRate).allYield
         );
 
         const type = spectralArgs[0];
@@ -2402,8 +2330,8 @@ export async function entry(ctx: CommandContext) {
             gardenStats.mutationsFound =
               (gardenStats.mutationsFound || 0) + plot.mutation.length;
           }
-          const value = calculateCropValue(plot);
-          const collected = toBarnItem(plot);
+          const value = calculateCropValue(plot, inflationRate);
+          const collected = toBarnItem(plot, inflationRate);
           let yields = Math.min(
             value.yields,
             CROP_CONFIG.BARN_LIMIT - barn.size()
@@ -2500,9 +2428,7 @@ export async function entry(ctx: CommandContext) {
                             getMutation(i)?.icon ?? "❓"
                           } ${fonts.double_struck(i)}`
                       )
-                      .join(" + ")} +${abbreviateNumber(
-                      value.noExtra - plot.baseValue
-                    )} ] `
+                      .join(" + ")} ] `
                   : ""
               }${plot.icon} ${plot.name} (${plot.kiloGrams}kg)`
           );
@@ -2522,158 +2448,6 @@ export async function entry(ctx: CommandContext) {
             `📈 Total Earns: **${formatCash(
               gardenEarns
             )}** (+${abbreviateNumber(addedEarns)})\n\n` +
-            `**Next Steps**:\n` +
-            `${UNISpectra.arrowFromT} Sell crops: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }sell\n` +
-            `${UNISpectra.arrowFromT} Check the barn: ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }barn`,
-          style
-        );
-      },
-    },
-    {
-      key: "reset_claim",
-      description: "Collect reset plants (for players from old versions).",
-      icon: "🧺",
-      async handler(_, {}) {
-        const plotsBefore = new Inventory<GardenPlot>(
-          rawPlotsBefore,
-          plotLimit
-        );
-        const barn = new Inventory<GardenBarn>(
-          rawBarns,
-          CROP_CONFIG.BARN_LIMIT
-        );
-        const harvested: {
-          plot: GardenPlot;
-          value: ReturnType<typeof calculateCropValue>;
-        }[] = [];
-        const tools = new Inventory<GardenTool>(
-          rawInventory.filter(
-            (item) => item.type === "gardenTool"
-          ) as GardenTool[]
-        );
-
-        const sortedPlots = [...plotsBefore].sort(
-          (a, b) =>
-            calculateCropValue(b).allYield - calculateCropValue(a).allYield
-        );
-
-        const type = "all";
-
-        const isAll = type === "all";
-
-        const readyPlots: GardenPlot[] = [];
-        for (const plot of sortedPlots) {
-          const item = await autoUpdateCropData(plot, tools, exiPets);
-          if (isCropReady(item) && readyPlots.length < 20) {
-            if (isAll || item.seedKey === type) {
-              readyPlots.push(item);
-            }
-          }
-        }
-        if (readyPlots.length === 0) {
-          return output.replyStyled(`🌱 No crops available!`, style);
-        }
-        if (barn.isFull()) {
-          return output.replyStyled(
-            `🌱 Barn is full! Check barn items with ${prefix}${commandName}${
-              isHypen ? "-" : " "
-            }barn.\n\n` +
-              `**Next Steps**:\n` +
-              `${UNISpectra.arrowFromT} View plots: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }plots\n` +
-              `${UNISpectra.arrowFromT} Plant seeds: ${prefix}${commandName}${
-                isHypen ? "-" : " "
-              }plant`,
-            style
-          );
-        }
-
-        for (const plot of readyPlots) {
-          await autoUpdateCropData(
-            plot,
-            new Inventory<GardenTool>(
-              rawInventory.filter(
-                (item) => item.type === "gardenTool"
-              ) as GardenTool[]
-            ),
-            exiPets
-          );
-
-          if (plot.mutation.length > 0) {
-            gardenStats.mutationsFound =
-              (gardenStats.mutationsFound || 0) + plot.mutation.length;
-          }
-          const value = calculateCropValue(plot);
-          const collected = toBarnItem(plot);
-          let yields = Math.min(
-            value.yields,
-            CROP_CONFIG.BARN_LIMIT - barn.size()
-          );
-          barn.add(collected.slice(0, yields));
-          if (yields <= 0) {
-            continue;
-          }
-
-          harvested.push({
-            plot: { ...plot },
-            value: { ...value, allYield: value.final * yields },
-          });
-          plot.harvestsLeft -= yields;
-
-          gardenStats.plotsHarvested =
-            (gardenStats.plotsHarvested || 0) + yields;
-
-          plotsBefore.deleteByID(plot.uuid);
-        }
-
-        gardenEarns = Math.round(Math.max(0, gardenEarns));
-
-        await money.setItem(input.senderID, {
-          gardenPlotsBefore: Array.from(plotsBefore),
-          gardenStats,
-          gardenEarns,
-          gardenBarns: Array.from(barn),
-        });
-        await checkAchievements(
-          {
-            ...ctx.user,
-            gardenStats,
-            senderID: input.senderID,
-            money: userMoney,
-          },
-          money,
-          output,
-          input
-        );
-        const harvestedStr = [...harvested]
-          .sort((a, b) => b.value.final - a.value.final)
-          .map(
-            ({ plot, value }) =>
-              `(x${value.yields}) ${
-                (plot.mutation ?? []).length > 0
-                  ? `[ ${plot.mutation
-                      .map(
-                        (i) =>
-                          `${
-                            getMutation(i)?.icon ?? "❓"
-                          } ${fonts.double_struck(i)}`
-                      )
-                      .join(" + ")} +${abbreviateNumber(
-                      value.noExtra - plot.baseValue
-                    )} ] `
-                  : ""
-              }${plot.icon} ${plot.name} (${plot.kiloGrams}kg)`
-          );
-
-        return output.replyStyled(
-          `✅🧺 **Collected old crops and added to the Barn!**:\n${harvestedStr.join(
-            "\n"
-          )}\n\n` +
             `**Next Steps**:\n` +
             `${UNISpectra.arrowFromT} Sell crops: ${prefix}${commandName}${
               isHypen ? "-" : " "
@@ -2735,8 +2509,8 @@ export async function entry(ctx: CommandContext) {
             if (type === "most-time") {
               return timeB - timeA;
             }
-            const priceA = calculateCropValue(a).allYield;
-            const priceB = calculateCropValue(b).allYield;
+            const priceA = calculateCropValue(a, inflationRate).allYield;
+            const priceB = calculateCropValue(b, inflationRate).allYield;
             if (type === "highest") {
               return priceB - priceA;
             }
@@ -2792,7 +2566,7 @@ export async function entry(ctx: CommandContext) {
           const timeLeft = cropTimeLeft(plot);
           // const price =
           //   Math.min(plot.price || 0, plot.baseValue) || plot.baseValue || 0;
-          const calc = calculateCropValue(plot);
+          const calc = calculateCropValue(plot, inflationRate);
           // const cropValue = calc.final;
           // const earns = Math.floor(cropValue - price);
           result +=
@@ -3301,7 +3075,8 @@ export async function entry(ctx: CommandContext) {
 
         const sortedPlots = stealablePlots.toSorted(
           (a, b) =>
-            calculateCropValue(b).allYield - calculateCropValue(a).allYield
+            calculateCropValue(b, inflationRate).allYield -
+            calculateCropValue(a, inflationRate).allYield
         );
         const stolenPlot = sortedPlots[0];
         const stealSuccess = Math.random() < 0.3;
@@ -3364,7 +3139,7 @@ export async function entry(ctx: CommandContext) {
           )}! It was added to your plots!\n\n${
             UNISpectra.charm
           } Total Value: ${formatCash(
-            calculateCropValue(stolenPlot).allYield,
+            calculateCropValue(stolenPlot, inflationRate).allYield,
             true
           )}\n\n` +
             `**Next Steps**:\n` +

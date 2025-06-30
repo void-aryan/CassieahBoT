@@ -54,10 +54,12 @@ const looseTexts = [
  * @param {CommandContext} param0
  * @returns
  */
-export async function entry({ input, output, money, icon }) {
+export async function entry({ input, output, money, icon, getInflationRate }) {
   const { money: userMoney } = await money.getItem(input.senderID);
+  const rate = await getInflationRate();
   const outcome = Math.random() < 0.5 ? "win" : "lose";
   let amount = Math.floor(Math.random() * 100) + 1;
+  amount += Math.round(rate * amount);
   if (userMoney < amount && outcome === "lose") {
     amount = userMoney;
   }

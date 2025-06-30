@@ -3,6 +3,7 @@ export default easyCMD({
   description: "Reports a message to bot admins.",
   title: "📝 Report to Admin",
   category: "Utilities",
+  contentFont: "fancy",
   meta: {
     cooldown: 120,
     otherNames: ["re"],

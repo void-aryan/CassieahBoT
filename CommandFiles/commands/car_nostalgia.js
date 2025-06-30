@@ -3,6 +3,7 @@ import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { CassEXP } from "../modules/cassEXP.js";
 import { clamp } from "../modules/unisym.js";
 import { formatCash } from "@cass-modules/ArielUtils";
+import { calculateInflation } from "@cass-modules/unitypes";
 
 /**
  * @type {CassidySpectra.CommandMeta}
@@ -379,16 +380,19 @@ export function calculateWorthNew(car) {
 
 /**
  * @param {{ distance: number; level: number; fuel: number; condition: number; maxSpeed: number; fuelEfficiency: number; durability: number; currentSpeed: number; gear: number; isRunning: boolean; lastAction: any; upgrades: any[]; crew: any[]; achievements: any[]; sellPrice: number; carType: any; icon: any; name: any; key: any; }} car
+ * @param {Record<string, UserData>} allData
  */
-export function calculateWorth(car) {
+export function calculateWorth(car, allData) {
+  const rate = calculateInflation(allData);
   const updatedCar = updateCarData(car);
   const { sellPrice, level, distance, upgrades, condition } = updatedCar;
   const upgradeValue = upgrades.length * 500;
   const conditionFactor = condition / 100;
-  return Math.floor(
+  const worth = Math.floor(
     (sellPrice * 2 + distance * 0.1 * 2 ** (level - 1) + upgradeValue) *
       conditionFactor
   );
+  return Math.round(worth + worth * rate);
 }
 
 export function isCarLowOnFuel(car) {
@@ -553,7 +557,9 @@ export async function entry(ctx) {
                     ? updatedCar.achievements.join(", ")
                     : "None"
                 }\n` +
-                `💵 **Worth**: ${formatCash(calculateWorth(updatedCar))}\n` +
+                `💵 **Worth**: ${formatCash(
+                  calculateWorth(updatedCar, money.cache)
+                )}\n` +
                 `🔥 ***Engine***: ${
                   updatedCar.isRunning ? "Revving" : "Idle"
                 }\n` +
@@ -618,7 +624,7 @@ export async function entry(ctx) {
             );
           }
 
-          const price = calculateWorth(updatedCar);
+          const price = calculateWorth(updatedCar, money.cache);
           const newMoney = playerMoney + price;
           const code = global.utils.generateCaptchaCode(12);
           const i = await output.reply(
@@ -735,9 +741,15 @@ export async function entry(ctx) {
           function getDiff(key) {
             const diff =
               Number(
-                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+                key === "worth"
+                  ? calculateWorth(updatedCar, money.cache)
+                  : updatedCar[key]
               ) -
-              Number(key === "worth" ? calculateWorth(before) : before[key]);
+              Number(
+                key === "worth"
+                  ? calculateWorth(before, money.cache)
+                  : before[key]
+              );
             return key === "worth"
               ? diff
               : diff === 0
@@ -761,7 +773,7 @@ export async function entry(ctx) {
               `🧭 ***Distance***: ${updatedCar.distance.toFixed(1)} miles\n` +
               `✨ ***Level***: ${updatedCar.level} ${getDiff("level")}\n` +
               `💵 **Worth**: ${formatCash(
-                calculateWorth(updatedCar)
+                calculateWorth(updatedCar, money.cache)
               )} (+${formatCash(Number(getDiff("worth")))})\n` +
               `🏆 ***Earnings***: ${formatCash(
                 moneyEarned
@@ -874,9 +886,15 @@ export async function entry(ctx) {
           function getDiff(key) {
             const diff =
               Number(
-                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+                key === "worth"
+                  ? calculateWorth(updatedCar, money.cache)
+                  : updatedCar[key]
               ) -
-              Number(key === "worth" ? calculateWorth(before) : before[key]);
+              Number(
+                key === "worth"
+                  ? calculateWorth(before, money.cache)
+                  : before[key]
+              );
             return key === "worth"
               ? diff
               : diff === 0
@@ -989,9 +1007,15 @@ export async function entry(ctx) {
           function getDiff(key) {
             const diff =
               Number(
-                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+                key === "worth"
+                  ? calculateWorth(updatedCar, money.cache)
+                  : updatedCar[key]
               ) -
-              Number(key === "worth" ? calculateWorth(before) : before[key]);
+              Number(
+                key === "worth"
+                  ? calculateWorth(before, money.cache)
+                  : before[key]
+              );
             return key === "worth"
               ? diff
               : diff === 0
@@ -1038,7 +1062,7 @@ export async function entry(ctx) {
                 owner: playerName,
                 ownerID: playerID,
                 car: updatedCar,
-                worth: calculateWorth(updatedCar),
+                worth: calculateWorth(updatedCar, money.cache),
               };
             });
             allCars = allCars.concat(playerCars);
@@ -1169,9 +1193,15 @@ export async function entry(ctx) {
           function getDiff(key) {
             const diff =
               Number(
-                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+                key === "worth"
+                  ? calculateWorth(updatedCar, money.cache)
+                  : updatedCar[key]
               ) -
-              Number(key === "worth" ? calculateWorth(before) : before[key]);
+              Number(
+                key === "worth"
+                  ? calculateWorth(before, money.cache)
+                  : before[key]
+              );
             return key === "worth"
               ? diff
               : diff === 0
@@ -1190,7 +1220,7 @@ export async function entry(ctx) {
                 1
               )}% ${getDiff("condition")}\n` +
               `💵 **Worth**: ${formatCash(
-                calculateWorth(updatedCar)
+                calculateWorth(updatedCar, money.cache)
               )} (+${formatCash(Number(getDiff("worth")))})`
           );
         },
@@ -1286,9 +1316,15 @@ export async function entry(ctx) {
           function getDiff(key) {
             const diff =
               Number(
-                key === "worth" ? calculateWorth(updatedCar) : updatedCar[key]
+                key === "worth"
+                  ? calculateWorth(updatedCar, money.cache)
+                  : updatedCar[key]
               ) -
-              Number(key === "worth" ? calculateWorth(before) : before[key]);
+              Number(
+                key === "worth"
+                  ? calculateWorth(before, money.cache)
+                  : before[key]
+              );
             return key === "worth"
               ? diff
               : diff === 0

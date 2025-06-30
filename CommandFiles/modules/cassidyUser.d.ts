@@ -3,6 +3,12 @@
 
 import { IFCAU_User } from "@xaviabot/fca-unofficial";
 import { InputRoles } from "./InputClass";
+import {
+  GardenBarn,
+  GardenPetActive,
+  GardenPlot,
+  GardenStats,
+} from "./GardenTypes";
 
 type InventoryTypes =
   | "generic"
@@ -123,7 +129,7 @@ export type PetUncaged = {
   questStreak?: number;
 };
 
-type InventoryItem = (
+export type InventoryItem = (
   | (BaseInventoryItem & WeaponInventoryItem)
   | (BaseInventoryItem & ArmorInventoryItem)
   | (BaseInventoryItem & ChequeItem)
@@ -202,6 +208,13 @@ type UserData = {
     armors?: ArmorInventoryItem[];
   }>;
   userInfo?: IFCAU_User;
+  gardenPlots?: GardenPlot[];
+  gardenBarns?: GardenBarn[];
+  gardenHeld?: string;
+  gardenPets?: GardenPetActive[];
+  gardenStats?: GardenStats;
+  plotLimit?: number;
+  gardenEarns?: number;
 };
 
 type NullableUserData = {
@@ -219,7 +232,6 @@ type UserStatsManager = import("../../handlers/database/handleStat").default;
 
 export {
   UserData,
-  InventoryItem,
   InventoryTypes,
   NullableUserData,
   UserStatsManager,

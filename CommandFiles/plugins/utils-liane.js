@@ -2,7 +2,7 @@
 export const meta = {
   name: "utils-liane",
   author: "Liane Cagara",
-  version: "3.0.9",
+  version: "3.0.10",
   description:
     "Helpful but optional utilities that isn't used by default, DO NOT OWN THESE",
   supported: "^1.0.0",
@@ -115,7 +115,7 @@ export class Slicer {
    * @type {number}
    */
   get pagesLength() {
-    return Math.floor(this.array.length / (this.limit || 10));
+    return Math.ceil(this.array.length / (this.limit || 10));
   }
 
   /**

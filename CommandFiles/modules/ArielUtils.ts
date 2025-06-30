@@ -489,3 +489,12 @@ export function formatTimeSentence(ms: number, showMs = false): string {
   if (parts.length === 2) return `${parts[0]} and ${parts[1]}`;
   return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
 }
+
+export function getMinimumChange(total: number) {
+  const exp = Math.floor(Math.log2(Math.abs(total)));
+  return Math.pow(2, exp - 52);
+}
+
+export function isNoChange(change: number, total: number) {
+  return change < getMinimumChange(total);
+}

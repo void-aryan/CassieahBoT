@@ -1,5 +1,9 @@
 import { abbreviateNumber, UNIRedux, UNISpectra } from "@cassidy/unispectra";
-import { parseBet } from "@cass-modules/ArielUtils";
+import {
+  getMinimumChange,
+  isNoChange,
+  parseBet,
+} from "@cass-modules/ArielUtils";
 import { FontSystem } from "cassidy-styler";
 import { InventoryItem, UserData } from "@cass-modules/cassidyUser";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
@@ -11,7 +15,7 @@ const ABANK_LINE = UNISpectra.getLine(18);
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "abank",
-  version: "3.0.14",
+  version: "3.0.15",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
   waitingTime: 1,
   description: `Manage your finances and items with Ariel-Cass's Bank (Personalized Edition) (${ACBANK_LOGO}/${ABANK_LOGO} ®).`,
@@ -160,7 +164,8 @@ const formatCashORIG = (amount = 0, abbr = true) =>
     abbr ? `(**${abbreviateNumber(amount)}**) ` : ""
   }${amount.toLocaleString()} 💵`;
 
-const formatCashA = (amount = 0, _abbr = true) => `${amount} 💵`;
+const formatCashA = (amount = 0, abbr = true) =>
+  `${abbr ? `(**${abbreviateNumber(amount)}**) ` : ""} ${amount} 💵`;
 
 export async function entry({
   input,
@@ -190,6 +195,7 @@ export async function entry({
   const line = isAC ? UNIRedux.standardLine : ABANK_LINE;
 
   bankData.bank = Math.min(bankData.bank, Number.MAX_VALUE);
+
   if (!name) {
     return output.replyStyled(
       `Sorry, you must register your name with ${prefix}identity-setname first!`,
@@ -288,7 +294,7 @@ export async function entry({
       return output.replyStyled(
         `${
           trophys.length > 0 ? `🏆 ***Bank Awardee*** 🏆\n${line}\n` : ""
-        }${extraLine}➥ ${isPeek ? `**Peeking**: ` : ""}${
+        }${extraLine}${UNISpectra.arrowFromT} ${isPeek ? `**Peeking**: ` : ""}${
           targetData.userMeta?.name ?? targetData.name
         }\n${line}\n${trophys.length > 0 ? "👑" : "💳"}: ${formatTrophy(
           targetData
@@ -393,6 +399,22 @@ export async function entry({
           `Please provide a valid amount to withdraw. Your ${ABANK} ® balance is ${formatCash(
             funds
           )}.`,
+          targetNotif
+        );
+      }
+      if (isNoChange(amount, userMoney)) {
+        return output.replyStyled(
+          `Any amount below ${formatCash(
+            getMinimumChange(userMoney)
+          )} won't affect your balance and isn't allowed.`,
+          targetNotif
+        );
+      }
+      if (isNoChange(amount, bankData.bank)) {
+        return output.replyStyled(
+          `Any amount below ${formatCash(
+            getMinimumChange(bankData.bank)
+          )} won't affect your bank balance and isn't allowed.`,
           targetNotif
         );
       }
@@ -527,6 +549,22 @@ export async function entry({
           `Please provide a valid amount to deposit. Your wallet balance is ${formatCash(
             userMoney
           )}.`,
+          targetNotif
+        );
+      }
+      if (isNoChange(amount, userMoney)) {
+        return output.replyStyled(
+          `Any amount below ${formatCash(
+            getMinimumChange(userMoney)
+          )} won't affect your balance and isn't allowed.`,
+          targetNotif
+        );
+      }
+      if (isNoChange(amount, bankData.bank)) {
+        return output.replyStyled(
+          `Any amount below ${formatCash(
+            getMinimumChange(bankData.bank)
+          )} won't affect your bank balance and isn't allowed.`,
           targetNotif
         );
       }
@@ -720,6 +758,24 @@ export async function entry({
           targetNotif
         );
       }
+
+      if (isNoChange(amount, bankData.bank)) {
+        return output.replyStyled(
+          `Any amount below ${formatCash(
+            getMinimumChange(bankData.bank)
+          )} won't affect your bank balance and isn't allowed.`,
+          targetNotif
+        );
+      }
+
+      if (isNoChange(amount, recipient.bankData.bank)) {
+        return output.replyStyled(
+          `Any amount below ${formatCash(
+            getMinimumChange(recipient.bankData.bank)
+          )} won't affect the recipient's bank balance and isn't allowed.`,
+          targetNotif
+        );
+      }
       bankData.bank -= amount;
       recipient.bankData.bank += amount;
       const rcassExpress = new CassExpress(recipient.cassExpress ?? {});
@@ -824,7 +880,7 @@ export async function entry({
           index + 1 + (page - 1) * per
         } ━━━━━━\n☐ ${fonts.bold("name")}: ${
           user.userMeta?.name ?? user.name
-        }\n➥ ${formatTrophy(user)}\n${
+        }\n${UNISpectra.arrowFromT} ${formatTrophy(user)}\n${
           !isAC
             ? formatCash(user.bankData.bank || 0).replaceAll("💵", "")
             : abbreviateNumber(user.bankData.bank, 2, true)
@@ -925,7 +981,7 @@ export async function entry({
         {
           ...targetStyle,
           title: {
-            content: `🏦 ${fonts.bold("STALK")} 👀`,
+            content: `🏦 ${fonts.bold("STALKER")} 👀`,
             line_bottom: "default",
           },
         }
@@ -951,9 +1007,23 @@ export async function entry({
     await targetHandler();
   } else {
     return output.replyStyled(
-      `${fonts.bold(
-        "Usages"
-      )}:\n➥ \`${prefix}${commandName} register/r <nickname>\` - Create a ${ABANK} ® account.\n➥ \`${prefix}${commandName} check/c <uid | reply | nickname>\` - Check your ${ABANK} ® balance.\n➥ \`${prefix}${commandName} withdraw/w <amount>\` - Withdraw money or items (ex: apple*5) from your ${ABANK} ® account.\n➥ \`${prefix}${commandName} deposit/d <amount>\` - Deposit money or items (ex: apple*5) to your ${ABANK} ® account.\n➥ \`${prefix}${commandName} transfer/t <nickName> <amount>\` - Transfer money to another user.\n➥ \`${prefix}${commandName} rename/rn\` - Rename your ${ABANK} ® nickname.\n➥ \`${prefix}${commandName} top <page=1>\` - Check the top 10 richest users of ${ABANK} ®.\n➥ \`${prefix}${commandName} stalk\` - Check someone's ${ABANK} ® balance.`,
+      `${fonts.bold("Usages")}:\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} register/r <nickname>\` - Create a ${ABANK} ® account.\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} check/c <uid | reply | nickname>\` - Check your ${ABANK} ® balance.\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} withdraw/w <amount>\` - Withdraw money or items (ex: apple*5) from your ${ABANK} ® account.\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} deposit/d <amount>\` - Deposit money or items (ex: apple*5) to your ${ABANK} ® account.\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} transfer/t <nickName> <amount>\` - Transfer money to another user.\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} rename/rn\` - Rename your ${ABANK} ® nickname.\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} top <page=1>\` - Check the top 10 richest users of ${ABANK} ®.\n${
+        UNISpectra.arrowFromT
+      } \`${prefix}${commandName} stalk\` - Check someone's ${ABANK} ® balance.`,
       targetStyleH
     );
   }

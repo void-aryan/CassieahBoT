@@ -16,7 +16,7 @@ export const meta = {
   icon: "⭕",
   cmdType: "arl_g",
 };
-const reward = 50;
+const rewardOrig = 50;
 const X = "❌";
 const O = "⭕";
 const EMPTY = "⬜";
@@ -162,12 +162,21 @@ export let game2 = new TicTacToe();
  * @param {CommandContext & { repObj: { game: typeof game2; id: string; key: string }; detectID: string }} param0
  * @returns
  */
-export async function reply({ input, output, repObj, detectID, money }) {
+export async function reply({
+  input,
+  output,
+  repObj,
+  detectID,
+  money,
+  getInflationRate,
+}) {
   await delay(500);
   const { id, game } = repObj;
   if (input.senderID !== id || !game) {
     return;
   }
+  const rate = await getInflationRate();
+  const reward = Math.round(rewardOrig + rewardOrig * rate);
   const slot = parseInt(input.body) - 1;
   const reply = game.playRound(slot, async (i) => {
     if (i == X) {

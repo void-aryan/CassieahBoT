@@ -1,4 +1,4 @@
-import { GardenItem, GardenSeed } from "@cass-commands/grow_garden";
+import { GardenItem, GardenSeed } from "@cass-modules/GardenTypes";
 import { gardenShop } from "./GardenShop";
 import { InventoryItem } from "./cassidyUser";
 

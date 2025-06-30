@@ -1,5 +1,5 @@
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
-import { GardenItem, GardenSeed } from "@cass-commands/grow_garden";
+import { GardenItem, GardenSeed } from "@cass-modules/GardenTypes";
 import { ShopItem } from "./GardenBalancer";
 import { UNISpectra } from "./unisym";
 import { OutputResult } from "@cass-plugins/output";
@@ -679,7 +679,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 2708,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 10,
             harvests: 1,
             yields: 1,
             baseKG: 5,
@@ -709,7 +709,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 3700,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 10,
             harvests: 1,
             yields: 1,
             baseKG: 5,
@@ -768,7 +768,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 3610,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 2,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 10,
             harvests: 1,
             yields: 1,
             baseKG: 5,
@@ -777,7 +777,7 @@ export namespace gardenShop {
       },
     },
     {
-      icon: "🍈",
+      icon: "🥥",
       name: "Coconut Seed",
       key: "gsCoconut",
       flavorText: "Tropical and rich in value.",
@@ -949,7 +949,7 @@ export namespace gardenShop {
           sellPrice: 1,
           cropData: {
             baseValue: 136_278,
-            growthTime: CROP_CONFIG.GROWTH_BASE * 1.5,
+            growthTime: CROP_CONFIG.GROWTH_BASE * 13.5,
             harvests: 1,
             yields: 1,
             baseKG: 5,

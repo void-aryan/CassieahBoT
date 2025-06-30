@@ -15,7 +15,7 @@ export const meta = {
   cmdType: "arl_g",
 };
 
-const reward = 200;
+const rewardOrig = 200;
 
 /**
  * @type {CommandStyle}
@@ -34,6 +34,7 @@ export async function reply({
   api,
   input,
   output,
+  getInflationRate,
   repObj: recieve,
   money: moneyH,
   detectID,
@@ -46,6 +47,8 @@ export async function reply({
       style
     );
   }
+  const rate = await getInflationRate();
+  const reward = Math.round(rewardOrig + rewardOrig * rate);
 
   const curr = Date.now();
   if (recieve.author !== input.senderID && !recieve.public) {

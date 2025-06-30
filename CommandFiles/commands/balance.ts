@@ -39,13 +39,21 @@ export function sortUsers(
   top?: number,
   money?: typeof global.handleStat
 ) {
-  const entries = Object.entries(users).sort(([, a], [, b]) =>
-    money ? money.extractMoney(b).total - money.extractMoney(a).total : 0
-  );
+  const entries: [string, { total: number; data: UserData }][] = Object.entries(
+    users
+  ).map(([id, data]) => [
+    id,
+    {
+      data,
+      total: money ? money.extractMoney(data).total : 0,
+    },
+  ]);
+
+  entries.sort(([, a], [, b]) => b.total - a.total);
 
   const sliced = top && top > 0 ? entries.slice(0, top) : entries;
 
-  return Object.fromEntries(sliced);
+  return Object.fromEntries(sliced.map(([id, { data }]) => [id, data]));
 }
 
 export function sortUsersNotTotal(
@@ -83,6 +91,40 @@ export function getTop(
 }
 
 const configs: Config[] = [
+  {
+    key: "rem",
+    description: "Your clean balance overview.",
+    args: ["[uid]"],
+    aliases: ["-r"],
+    icon: "💰",
+    validator: new CassCheckly([
+      { index: 0, type: "string", required: false, name: "userID" },
+    ]),
+    async handler({ money, input, output }, { spectralArgs }) {
+      await money.ensureUserInfo(input.senderID);
+      let senderID = input.senderID;
+      if (input.replier) senderID = input.replier.senderID;
+      if (input.hasMentions) senderID = input.firstMention.senderID;
+      if (spectralArgs[0]) senderID = spectralArgs[0];
+
+      let playerMoney: UserData = await money.getCache(senderID);
+      if (
+        !playerMoney ||
+        !playerMoney.name ||
+        !(await money.exists(senderID))
+      ) {
+        if (senderID !== input.senderID) {
+          return output.reply(`❌ User ${senderID} does not exist!`);
+        }
+      }
+
+      return output.reply({
+        body: `You have ${formatCash(playerMoney.money, true)}`,
+        noLevelUI: true,
+        noRibbonUI: true,
+      });
+    },
+  },
   {
     key: "home",
     description: "Your minimal balance overview.",
@@ -149,7 +191,7 @@ const configs: Config[] = [
     key: "raw",
     description: "Your raw balance overview.",
     args: ["[uid]"],
-    aliases: ["-r", "rem"],
+    aliases: ["-ra"],
     icon: "💸",
     validator: new CassCheckly([
       { index: 0, type: "string", required: false, name: "userID" },
@@ -180,6 +222,7 @@ const configs: Config[] = [
       });
     },
   },
+
   {
     key: "all",
     description: "Your complete balance details.",
@@ -241,6 +284,7 @@ const configs: Config[] = [
         `🎒 Cheque(s): ${formatCash(otherMoney.cheques)}`,
         `🚗 Car(s): ${formatCash(otherMoney.carsAssets)}`,
         `🐈 Pet(s): ${formatCash(otherMoney.petsAssets)}`,
+        `🌱 Garden Barn(s): ${formatCash(otherMoney.gardenBarn)}`,
         (items ? `${items}` : "") + warn,
         `${UNIRedux.standardLine}`,
         `${UNIRedux.arrow} ***All Options***`,
@@ -292,25 +336,25 @@ const configs: Config[] = [
         index++;
       }
       output.reply(
-        result.filter(Boolean).join(`\n${UNIRedux.standardLine}\n`) +
-          `\n${UNIRedux.standardLine}\n🔎 Use **${prefix}${commandName} topall** to view total ranking.`
+        result.filter(Boolean).join(`\n\n`) +
+          `\n\n🔎 Use **${prefix}${commandName} topall** to view total ranking.`
       );
     },
   },
   {
     key: "toptotal",
     cooldown: 5,
-    description: "See the Top 10 richest",
+    description: "See the Top 5 richest",
     aliases: ["-tt", "leaderstotal", "topt", "topall"],
     icon: "🏆",
     async handler({ money, input, output, Collectibles }) {
       const users = await money.getAllCache();
-      const topUsers = sortUsers(users, 10, money);
+      const topUsers = sortUsers(users, 5, money);
       const participantIDs = Array.isArray(input.participantIDs)
         ? input.participantIDs
         : [];
 
-      let result = [`🏆 **Top 10 Users** 🏆\n`];
+      let result = [`🏆 **Top 5 Users** 🏆\n`];
       let index = 1,
         lastMoney: number;
       for (const key in topUsers) {
@@ -346,6 +390,7 @@ const configs: Config[] = [
           `🎒 Cheque(s): ${formatCash(otherMoney.cheques)}`,
           `🚗 Car(s): ${formatCash(otherMoney.carsAssets)}`,
           `🐈 Pet(s): ${formatCash(otherMoney.petsAssets)}`,
+          `🌱 Garden Barn(s): ${formatCash(otherMoney.gardenBarn)}`,
           items ? items : "",
           lastMoney
             ? `📉 Gap(s): $${formatCash(

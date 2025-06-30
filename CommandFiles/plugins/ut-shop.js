@@ -3,7 +3,13 @@ import { CassEXP } from "../modules/cassEXP.js";
 import { clamp, UNISpectra } from "@cassidy/unispectra";
 import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 import { PetPlayer } from "./pet-fight";
-import { formatCash, formatValue, parseBet } from "@cass-modules/ArielUtils";
+import {
+  abbreviateNumber,
+  formatCash,
+  formatValue,
+  parseBet,
+} from "@cass-modules/ArielUtils";
+import { calculateInflation } from "@cass-modules/unitypes";
 
 export const meta = {
   name: "ut-shop",
@@ -485,72 +491,8 @@ export async function use(obj) {
    * @returns
    */
   obj.getInflationRate = async function (usersData) {
-    if (global.Cassidy.config.disableInflation) {
-      return 0;
-    }
-    usersData ??= await obj.money.getAll();
-    let sum = Object.values(usersData)
-      .filter((i) => !isNaN(i?.money))
-      .reduce((acc, { money = 0 }) => acc + money, 0);
-    const bankDatas = Object.values(usersData).filter(
-      (i) =>
-        typeof i?.bankData === "object" &&
-        typeof i.bankData.bank === "number" &&
-        !isNaN(i.bankData.bank)
-    );
-    const bankSum = bankDatas.reduce(
-      (acc, { bankData }) => acc + bankData.bank,
-      0
-    );
-    const lendUsers = Object.values(usersData).filter(
-      (i) => typeof i?.lendAmount === "number" && !isNaN(i.lendAmount)
-    );
-    const lendAmounts = lendUsers.reduce(
-      (acc, { lendAmount }) => acc + lendAmount,
-      0
-    );
-
-    const bankMean = bankSum / bankDatas.length;
-    let mean = sum / Object.keys(usersData).length;
-    !isNaN(bankMean) ? (mean += bankMean) : null;
-    const ll = lendAmounts / lendUsers.length;
-    !isNaN(ll) ? (mean += ll) : null;
-
-    const getChequeAmount = (
-      /** @type {import("@cass-modules/cassidyUser").InventoryItem[]} */ items
-    ) =>
-      items.reduce(
-        (acc, j) =>
-          j.type === "cheque" &&
-          typeof j.chequeAmount === "number" &&
-          !isNaN(j.chequeAmount)
-            ? j.chequeAmount + acc
-            : acc,
-        0
-      );
-
-    const invAmounts = Object.values(usersData).reduce((total, userData) => {
-      let userTotal = 0;
-      if (Array.isArray(userData.inventory)) {
-        userTotal += getChequeAmount(userData.inventory);
-      }
-      if (Array.isArray(userData.boxItems)) {
-        userTotal += getChequeAmount(userData.boxItems);
-      }
-      if (Array.isArray(userData.tradeVentory)) {
-        userTotal += getChequeAmount(userData.tradeVentory);
-      }
-      return total + userTotal;
-    }, 0);
-
-    mean += invAmounts;
-
-    if (isNaN(mean)) {
-      return 0;
-    }
-    // return mean / 5000000000000;
-    // return mean / 5_000_000_000_000;
-    return mean / 1_000_000_000;
+    usersData ??= await obj.money.getAllCache();
+    return calculateInflation(usersData);
   };
   function randomWithProb(treasures) {
     // Step 1: Shuffle the treasures array to ensure random order for same probability items
@@ -1017,8 +959,10 @@ export class UTShop {
               userData.bankData?.items ?? [],
               Infinity
             );
+            const bag = new Inventory(userData.bagData?.items ?? [], Infinity);
             const ndriveAmount = ndrive.getAmount(item.key);
             const bankAmount = bank.getAmount(item.key);
+            const bagAmount = bag.getAmount(item.key);
             let isAffordable = currentAmount >= Number(item.price ?? 0);
             let isSellable = true;
             if (item.cannotBuy === true) {
@@ -1027,7 +971,9 @@ export class UTShop {
             if (stocks <= 0) {
               isSellable = false;
             }
-            let hasInv = invAmount && boxAmount;
+            let hasInv = Boolean(
+              invAmount || boxAmount || ndriveAmount || bankAmount || bagAmount
+            );
             let result = ``;
             if (isSellable) {
               result += `${item.num}. **${item.icon} ${item.name}**\n`;
@@ -1063,8 +1009,12 @@ export class UTShop {
                 boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
               }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
                 bankAmount ? ` 🏦 **x${bankAmount}**` : ""
-              }${
-                item.inflation ? ` [ 📈 **+${item.inflation ?? 0}$** ]` : ""
+              }${bagAmount ? ` 🎒 **x${bagAmount}**` : ""}${
+                item.inflation
+                  ? ` [ 📈 **+${abbreviateNumber(
+                      Number(item.inflation ?? 0) || 0
+                    )}$** ]`
+                  : ""
               }`.trim() +
               (item.flavorText || (!isSellable && item.cannotBuyFlavor)
                 ? "\n"
@@ -1243,6 +1193,14 @@ export class UTShop {
 
       const inflationRate = await getInflationRate();
       this.itemData = this.itemData.map((item) => {
+        if (item.priceType !== "money" && item.priceType) {
+          return {
+            ...item,
+            inflation: 0,
+            originalPrice: item.price,
+            price: item.price,
+          };
+        }
         const originalPrice = Number(item.price ?? 0);
         const inflation = Math.round(inflationRate * originalPrice);
         const newPrice = originalPrice + inflation;
