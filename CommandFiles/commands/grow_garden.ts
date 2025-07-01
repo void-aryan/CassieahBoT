@@ -72,7 +72,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.1.7",
+  version: "2.1.8",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -246,13 +246,22 @@ export function calculateCropValue(crop: GardenPlot, inflationRate: number) {
 
   const allYield = Math.floor(final * yields);
 
-  return {
+  let resOrig = {
     final: Math.max(final, 0) || 0,
     noExtra: Math.max(0, noExtra) || 0,
     yields,
     allYield,
     remainingHarvests: (crop.harvestsLeft || 0) - yields,
   };
+
+  const res = {
+    ...resOrig,
+    final: Math.round(resOrig.final + resOrig.final * inflationRate),
+    noExtra: Math.round(resOrig.noExtra + resOrig.noExtra * inflationRate),
+    allYield: Math.round(resOrig.allYield + resOrig.allYield * inflationRate),
+  };
+
+  return res;
 }
 
 function isCropReady(crop: GardenPlot) {
