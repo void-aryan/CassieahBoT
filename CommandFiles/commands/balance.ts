@@ -210,26 +210,26 @@ const configs: Config[] = [
       canv.drawText(`👤 ${playerMoney.name}`, {
         font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
         x: container.centerX,
-        y: container.centerY - 100,
+        y: container.top + 100,
         align: "center",
-        baseline: "top",
+        baseline: "bottom",
         fill: "rgba(255, 255,255, 0.7)",
       });
       canv.drawText(`$${abbreviateNumber(playerMoney.money, 2, true)}`, {
         font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
         x: container.centerX,
-        y: container.centerY + 100,
-        baseline: "bottom",
+        y: container.centerY,
+        baseline: "middle",
         align: "center",
         fill: "white",
       });
       canv.drawText(`🏆 Top #${top}`, {
-        font: `normal 30px Cassieah, EMOJI, sans-serif`,
+        font: `bold 100px Cassieah-Bold, EMOJI, sans-serif`,
         x: container.centerX,
-        y: container.bottom - 50,
-        baseline: "top",
+        y: container.bottom,
+        baseline: "middle",
         align: "center",
-        fill: "rgba(255, 255, 255, 0.5)",
+        fill: "white",
       });
 
       return output.reply({
