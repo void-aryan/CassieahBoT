@@ -167,6 +167,7 @@ const configs: Config[] = [
 
       const allCache = await money.getAllCache();
 
+      const top = getTop(input.sid, allCache, money);
       const outputText = [
         `${
           nonex
@@ -178,7 +179,7 @@ const configs: Config[] = [
           false
         )} in the cassidy chatbot system.`,
         ``,
-        `🏆 **${name}** Top #${getTop(input.sid, allCache, money)}`,
+        `🏆 **${name}** Top #${top}`,
         `✓ You can **check** by typing **${prefix}bal topall**.`,
         ``,
         `**Disclaimer**: This is not a real balance, it is all virtual, this cannot be converted into real money.`,
@@ -211,16 +212,24 @@ const configs: Config[] = [
         x: container.centerX,
         y: container.centerY - 100,
         align: "center",
-        baseline: "bottom",
+        baseline: "top",
         fill: "rgba(255, 255,255, 0.7)",
       });
       canv.drawText(`$${abbreviateNumber(playerMoney.money, 2, true)}`, {
         font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
         x: container.centerX,
         y: container.centerY + 100,
+        baseline: "bottom",
+        align: "center",
+        fill: "white",
+      });
+      canv.drawText(`🏆 Top #${top}`, {
+        font: `normal 30px Cassieah, EMOJI, sans-serif`,
+        x: container.centerX,
+        y: container.bottom - 50,
         baseline: "top",
         align: "center",
-        fill: "rgba(255, 255,255, 0.7)",
+        fill: "rgba(255, 255, 255, 0.5)",
       });
 
       return output.reply({
