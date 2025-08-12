@@ -357,7 +357,7 @@ let willAccept = false;
 async function main() {
   let loginErr;
 
-  logger(`Cassidy ${__pkg.version}`, "Info");
+  logger(`Cassieah ${__pkg.version}`, "Info");
   logger(
     `The CassieahBoT is currently in development and is also unstable. Some features might not work as expected.`,
     "WARN"
@@ -660,7 +660,7 @@ function web(api, funcListen, _) {
   });
   app.get("/", fake502, (_, res) => {
     const page = genericPage({
-      title: "Cassidy Homepage",
+      title: "Cassieah Homepage",
       content: "fs:public/home.html",
     });
     res.send(page);
@@ -764,7 +764,7 @@ function web(api, funcListen, _) {
     if (originalUrl.startsWith("/f:")) {
       const url = originalUrl.replace("/f:", "");
       const page = genericPage({
-        title: "Cassidy BoT Page",
+        title: "Cassieah BoT Page",
         content: fs.existsSync(`public/${url}.html`)
           ? `fs:public/${url}.html`
           : `${await aiPage(fs.readFileSync("public/404.html", "utf8"))}`,
@@ -932,7 +932,7 @@ function web(api, funcListen, _) {
   app.use(fake502);
   app.use((_, res, __) => {
     const page = genericPage({
-      title: "Cassidy BoT Page",
+      title: "Cassieah BoT Page",
       content: "fs:public/404.html",
     });
     res.send(page);
@@ -1009,7 +1009,9 @@ export async function logSummary(api, config, cookie = [], loginErr) {
   logger(`Setup complete!`, "Info");
   console.log("");
   console.log("");
-  console.log(`   █▀▀ ▄▀█ █▀ █▀ █ █▀▄ █▄█\n   █▄▄ █▀█ ▄█ ▄█ █ █▄▀ ░█░`);
+  console.log(
+    `   ░▄▀▀▒▄▀▄░▄▀▀░▄▀▀░█▒██▀▒▄▀▄░█▄█\n   ░▀▄▄░█▀█▒▄██▒▄██░█░█▄▄░█▀█▒█▒█`
+  );
   console.log(`   Version ${__pkg.version}`);
   console.log("");
   console.log("");
