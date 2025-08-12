@@ -4,7 +4,10 @@ import {
   CanvasTextAlign,
   CanvasTextBaseline,
   GlobalFonts,
+  Image,
+  SKRSContext2D,
   createCanvas,
+  loadImage,
 } from "@napi-rs/canvas";
 import { randomUUID } from "crypto";
 import {
@@ -44,7 +47,7 @@ export class CanvCass {
   #config: CanvCass.CreateConfig;
 
   canvas: Canvas;
-  #context: CanvasRenderingContext2D;
+  #context: SKRSContext2D;
 
   static createRect(basis: CanvCass.MakeRectParam): CanvCass.Rect {
     const halfW = basis.width / 2;
@@ -78,15 +81,74 @@ export class CanvCass {
       throw new TypeError("Invalid First Parameter (Config)");
     }
 
-    config.background ??= "black";
+    config.background ??= null;
 
     this.#config = config;
     this.canvas = createCanvas(config.width, config.height);
     this.#context = this.canvas.getContext("2d");
   }
 
+  premade() {
+    return new CanvCass(1024, 768);
+  }
+
   get config() {
     return this.#config;
+  }
+
+  get width() {
+    return this.#config.width;
+  }
+  get height() {
+    return this.#config.height;
+  }
+  get left() {
+    return 0;
+  }
+  get top() {
+    return 0;
+  }
+  get right() {
+    return this.width;
+  }
+  get bottom() {
+    return this.height;
+  }
+  get centerX() {
+    return this.width / 2;
+  }
+  get centerY() {
+    return this.height / 2;
+  }
+
+  drawBackground() {
+    if (this.#config.background !== null) {
+      this.drawBox({
+        left: this.left,
+        top: this.top,
+        width: this.width,
+        height: this.height,
+        fill: this.#config.background,
+      });
+    } else {
+      this.drawImage("./public/canvcassbg.png", this.left, this.top, {
+        width: this.width,
+        height: this.height,
+      });
+    }
+  }
+
+  get rect(): CanvCass.Rect {
+    return {
+      width: this.width,
+      height: this.height,
+      left: this.left,
+      top: this.top,
+      right: this.right,
+      bottom: this.bottom,
+      centerX: this.centerX,
+      centerY: this.centerY,
+    };
   }
 
   exposeContext() {
@@ -406,6 +468,49 @@ export class CanvCass {
 
     ctx.restore();
   }
+
+  async drawImage(
+    image: Image,
+    x: number,
+    y: number,
+    options?: { width?: number; height?: number }
+  ): Promise<void>;
+  async drawImage(
+    src: string | Buffer,
+    x: number,
+    y: number,
+    options?: { width?: number; height?: number }
+  ): Promise<void>;
+
+  async drawImage(
+    imageOrSrc: string | Buffer | Image,
+    x: number,
+    y: number,
+    options?: {
+      width?: number;
+      height?: number;
+    }
+  ): Promise<void> {
+    const ctx = this.#context;
+
+    let image: Image;
+
+    if (imageOrSrc instanceof Image) {
+      image = imageOrSrc;
+    } else {
+      image = await loadImage(imageOrSrc);
+    }
+
+    ctx.save();
+
+    if (options?.width && options?.height) {
+      ctx.drawImage(image, x, y, options.width, options.height);
+    } else {
+      ctx.drawImage(image, x, y);
+    }
+
+    ctx.restore();
+  }
 }
 
 export namespace CanvCass {
@@ -417,7 +522,7 @@ export namespace CanvCass {
   export interface CreateConfig {
     width: number;
     height: number;
-    background?: string;
+    background?: string | null;
   }
   export interface MakeRectParam {
     width: number;
