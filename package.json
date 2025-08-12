@@ -1,8 +1,8 @@
 {
-  "name": "cassidy-spectra",
+  "name": "cassieah-bot",
   "author": "Liane Cagara",
-  "version": "3.8.80-PRERELEASE",
-  "description": "Reworked Versatile Facebook Bot framework that provides many features.",
+  "version": "4.0.0-dev",
+  "description": "(Formerly CassidySpectra) Reworked Versatile Facebook Bot framework that provides many features.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js --trace-warnings",
@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@distube/ytdl-core": "^4.16.6",
+    "@napi-rs/canvas": "^0.1.77",
     "@types/axios": "^0.9.36",
     "@types/cors": "^2.8.17",
     "@types/form-data": "^2.2.1",

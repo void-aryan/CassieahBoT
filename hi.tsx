@@ -23,6 +23,7 @@ export const meta = {
   },
 };
 
+
 const entryConf: Record<string, CommandEntry> = {
   async test({ input, output, commandName }) {
     if (input.arguments[0] === "Error" && input.arguments[1]) {

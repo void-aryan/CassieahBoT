@@ -1,13 +1,12 @@
-# CassidySpectra (CassidyBoT 3.6+)
+# CassieahBoT 4.0+ (Dev)
 
-CassidySpectra is the first ever all-around (Personal Fb bot, Page Bot, Discord Bot, Web Bot) chatbot with the best Typescript Tooling and Rich Libraries. CassidySpectra is also a fork of CassidyRedux which is a revamped version of CassidyBoT with enhanced features and improved performance, created and well-maintained by Liane Cagara (lianecagara in github).
+CassieahBoT (formerly CassidySpectra, forked from CassidyRedux, originally CassidyBoT) is a multi-platform chatbot framework for Facebook, Discord, and web. Maintained by Liane Cagara ([lianecagara on GitHub](https://github.com/lianecagara)), it uses TypeScript for robust tooling and now includes **napi-rs canvas** for image generation because text-only output is outdated. This is the 4.0+ dev branch, so expect rough edges. If you break something, that’s on you.
 
 <img src="public/Cover.png"></img>
 
-
 ## Table of Contents
 
-- [Introduction](#introduction)
+- [Overview](#overview)
 - [Features](#features)
 - [Changelog](#changelog)
 - [Getting Started](#getting-started)
@@ -15,7 +14,7 @@ CassidySpectra is the first ever all-around (Personal Fb bot, Page Bot, Discord 
   - [Installation](#installation)
   - [Configuration](#configuration)
   - [Deployment](#deployment)
-- [Creating Commands](#creating-commands)
+- [Writing Commands](#writing-commands)
   - [Command Structure](#command-structure)
   - [Meta Options](#meta-options)
   - [Context Variables](#context-variables)
@@ -23,448 +22,314 @@ CassidySpectra is the first ever all-around (Personal Fb bot, Page Bot, Discord 
 - [Core Files](#core-files)
 - [License](#license)
 
-## Introduction
+## Overview
 
-CassidySpectra is designed to be a powerful and extensible bot framework that allows developers to create and manage a wide range of commands and functionalities. It leverages modern JavaScript and TypeScript features and provides a structured approach to command creation and management.
+CassieahBoT is a framework for building bots that work across Facebook (personal accounts and pages), Discord (partially), and web interfaces. It leverages TypeScript for type safety and includes **napi-rs canvas** for generating images dynamically. It’s extensible but not foolproof. If you don’t follow instructions, don’t expect it to work.
 
 ## Features
 
-- **Best Tooling**: The first Facebook Bot framework with best tooling support, and advanced typescript autocomplete and type safety.
-- **Command Management**: Easily create, register, and manage commands.
-- **Automatic Fonts**: Use unicode fonts the same way as markdown fonts.
-- **Premade Components**: Templates like UTShop and GameSimulator, ReduxCMDHome and SpectralCMDHome as an abstraction layer for your commands!
-- **Automatic Styling**: Add lines and titles to your command automatically.
-- **Page Support**: Works on pages (business chats) too!
-- **Personal Account Login**: The typical facebook bot.
-- **Discord** (Partial)
-- **API Integration**: Integrate with various APIs to extend the bot's capabilities.
-- **Customizable**: Highly customizable with support for plugins and middleware.
-- **Performance**: Optimized for performance with parallel execution of plugins.
-- **Extensible**: Support for external plugins and modules.
-- **User Management**: Manage users, permissions, and roles.
-- **Inventory System**: Advanced inventory management with support for indexing and limits.
-- **Database** - Built-in MongoDB Asbtraction.
-- **Idle Games**: Built-in support for idle games.
-- **Enhanced UI**: Improved user interface with support for themes and custom fonts.
-- **Better Plugin Handling**: Improved plugin handling using promises.
-- **Richer Database**: Richer but simpler database.
+- **TypeScript Tooling**: Strong typing and autocomplete. Use a proper IDE or deal with the consequences.
+- **Image Generation**: Uses **napi-rs canvas** to create images like memes or charts. Text output alone won’t cut it anymore.
+- **Command Management**: Define and manage commands with a clear structure.
+- **Multi-Platform**: Supports Facebook (personal and pages), Discord (limited), and web.
+- **Premade Components**: Templates like `UTShop` and `GameSimulator` for common tasks.
+- **Auto-Styling**: Commands get formatted titles and lines automatically.
+- **MongoDB Abstraction**: Simplified database interaction. Still requires a valid MongoDB URI.
+- **Idle Games**: Built-in support for idle game mechanics.
+- **Plugins**: Parallel plugin execution with promises. Better than the old system.
+- **User Management**: Handles permissions, roles, and inventory systems.
+- **Custom Fonts**: Unicode fonts styled like Markdown.
+- **API Integration**: Connect to external APIs for additional functionality.
+
+## Changelog
+
+- **4.0+ (Dev)**:
+  - Added **napi-rs canvas** for image generation.
+  - Improved plugin system with proper promise handling.
+  - Simplified MongoDB abstraction.
+  - Performance optimizations.
+  - Discord support remains partial and undertested.
+  - Fixed some bugs. New ones are probably lurking.
 
 ## Getting Started
 
-# Cassidy Bot Tutorial
-
-Welcome to the Cassidy Bot tutorial! 🎉 This guide will walk you through setting up and running the Cassidy bot on Railway. Cassidy is a bot that connects with Facebook Messenger (and optionally Discord) to automate your interactions. Follow these steps to get it up and running smoothly! 😎
-
----
-
-## Prerequisites
-
-Before you start, make sure you have:
-
-- A GitHub account 📂
-- A Facebook Page (create one if you don’t have it yet) 📘
-- A dummy Facebook account (don’t use your main account!) 🤖
-- A browser with extension support (e.g., Kiwi Browser) 🌐
-- The "Cookie Editor" extension installed 🛠️
-- A Railway account ([sign up here](https://railway.app)) 🚂
-
----
-
-## Step 1: Fork the Main Repository 🍴
-
-Get your own copy of the Cassidy bot code by forking the main repository or generating from it's template.
-
-1. Visit the main repo: [https://github.com/lianecagara/CassidySpectra](https://github.com/lianecagara/CassidySpectra).
-2. Click the **"Fork"** or **Use Template** button in the top-right corner. (we suggest to use template to get the ability to make your repository private (nobody else sees!))
-3. Select your GitHub account to create your forked/generated repo.
-
-Your forked/generated repository will be at `https://github.com/your-username/CassidySpectra`. ✅
-
----
-
-## Step 2: Set Up a Dummy Facebook Account & Get Cookies 🍪
-
-You’ll need a dummy Facebook account to run the bot safely.
-
-1. Create a new dummy Facebook account (not your main one!).
-2. Open the account in a browser with extension support (e.g., Kiwi Browser, Microsoft Edge, Chrome (PC)).
-3. Install the **"Cookie Editor"** or best, **"C3C FBState"** extension from the Chrome Web Store.
-4. Click the Cookie Editor icon and export the cookies in **JSON format**.
-5. Setup a programming environment (ex. Visual Studio Code, Replit)
-6. Clone your previously generated repository, example:
-```bash
-git clone https://github.com/your-username/CassidySpectra
-cd CassidySpectra
-```
-7. In your forked repo, find the `cookie.json` file.
-8. Replace its contents with your exported JSON cookies.
-9. (Optional) run this bash command: (only if you have an .env file)
-```bash
-node hidestate
-```
-This command will hide your appstate or cookie.
-
-**⚠️ Warning:** Don’t commit sensitive info like cookies to a public repo! If your fork is public, make it private or use environment variables instead. (Also don't ever push .env to your repo)
-
----
-
-## Step 3: (Optional) Set Up Discord Integration 🎮
-
-Want Cassidy to work with Discord too? This step is optional!
-
-1. Head to the [Discord Developer Portal](https://discord.com/developers/applications).
-2. Create a new application or pick an existing one.
-3. Go to the **"Bot"** section and create a bot.
-4. Copy the bot token.
-5. Add the token to the right file in your forked repo (e.g., `settings.json`—check the repo docs for details).
-```json
-{
- // other infos...
-  "discordBotToken": "",
-  "discordClientID": "",
-}
-```
-
-**Note:** This is optional and might depend on the bot’s setup. Skip if you’re only using Facebook Messenger.
-
----
-
-## Step 4: Set Up Facebook Messenger Integration 📩
-
-To make Cassidy work with Facebook Messenger, you’ll need to configure it via Facebook Developers.
+Follow these steps exactly. If the bot doesn’t work, check the logs first before asking for help.
 
 ### Prerequisites
-- A Facebook Page (create one if you don’t have it).
 
-### Steps
-1. **Go to Facebook Developers:**
-   - Visit [developers.facebook.com](https://developers.facebook.com).
+- GitHub account.
+- Facebook Page (required for Messenger integration).
+- Dummy Facebook account (don’t use your main one).
+- Browser with extension support (e.g., Chrome, Edge, Kiwi).
+- **Cookie Editor** or **C3C FBState** extension for exporting cookies.
+- Railway account ([railway.app](https://railway.app)).
+- Node.js 23.7.0 or higher. Older versions will fail.
+- MongoDB URI (e.g., from MongoDB Atlas).
+- Basic understanding of JavaScript/TypeScript and command-line tools.
 
-2. **Create a Developer Account (if needed):**
-   - Log in with your Facebook account and set up a developer profile.
+### Installation
 
-3. **Create an App:**
-   - Click **"My Apps"** > **"Create App"**.
-   - Select **"Business"** as the app type.
-   - Enter the app name and email, then hit **"Create App ID"**.
+1. **Fork or Generate the Repository**:
+   - Go to [https://github.com/lianecagara/CassieahBoT](https://github.com/lianecagara/CassieahBoT).
+   - Fork or use the template to create your own repo (`https://github.com/your-username/CassieahBoT`).
+   - Template is better for private repos.
 
-4. **Add Messenger Product:**
-   - In the sidebar, click **"Add Product"**.
-   - Find **"Messenger"** and click **"Set Up"**.
+2. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/your-username/CassieahBoT
+   cd CassieahBoT
+   ```
 
-5. **Connect Your Facebook Page:**
-   - Scroll to **"Access Tokens"**.
-   - Click **"Add or Remove Pages"** and link your page.
-   - Generate a **Page Access Token** by clicking **"Generate Token"**. Copy it!
+3. **Run Update Command**:
+   - Before touching *any* files, run:
+     ```bash
+     npm run update
+     ```
+   - This ensures dependencies and configs are up to date. If you skip this and modify files, updates will break. Don’t say I didn’t warn you.
 
-6. **Set Up Webhooks:**
-   - Go to **"Webhooks"** in Messenger settings.
-   - Click **"Setup Webhooks"**.
-   - Fill in:
-     - **Callback URL:** `https://your_hosting.site/webhook` (update this later after deployment).
-     - **Verify Token:** `(make your own verify token in the developer.facebook.com example: pagebot you put in the developer.facebook.com verify token pagebot and get the verify token once again and put it in the settings.json)`
-     - Warn: Never leak verify token.
-   - Subscribe to:
-     - `messages`
-     - `messaging_optins`
-     - `messaging_postbacks`
-   - Click **"Verify and Save"**.
+4. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+   - If this fails, verify Node.js version (23.7.0+).
 
-   **Note:** You’ll update the Callback URL after deploying on Railway.
+5. **Install napi-rs Canvas**:
+   ```bash
+   npm install @napi-rs/canvas
+   ```
+   - Linux users may need additional packages (`libcairo2-dev`, `libpango1.0-dev`). Search for solutions if it fails.
 
-7. **Add Page Subscriptions:**
-   - In **"Page Subscriptions"**, select your connected page.
-   - Ensure `messages`, `messaging_optins`, and `messaging_postbacks` are checked.
+6. **Set Up Cookies**:
+   - Log in to your dummy Facebook account.
+   - Use **Cookie Editor** or **C3C FBState** to export cookies in JSON format.
+   - Replace the contents of `cookie.json` with your cookies.
+   - Run `node hidestate` if using an `.env` file to secure appstate.
+   - **Warning**: Never commit `cookie.json` to a public repo. Use environment variables.
 
-8. **Get Your Page Access Token:**
-   - Back in **"Access Tokens"**, copy the Page Access Token.
+### Configuration
 
-9. **Add Token to Bot:**
-   - In your forked repo, open `settings.json`.
-   - Paste the Page Access Token there.
-```json
-{
- // other infos...
-  "pageAccessToken": "",
-  "pageVerifyToken": "",
-}
-```
+1. **Facebook Messenger Setup**:
+   - Go to [developers.facebook.com](https://developers.facebook.com).
+   - Create a Business app.
+   - Add the **Messenger** product.
+   - Link your Facebook Page and generate a **Page Access Token**.
+   - Configure webhooks:
+     - **Callback URL**: `https://your-railway-url/webhook` (set after deployment).
+     - **Verify Token**: Create one (e.g., `pagebot`) and note it.
+     - Subscribe to `messages`, `messaging_optins`, `messaging_postbacks`.
+   - Update `settings.json`:
+     ```json
+     {
+       "pageAccessToken": "your-page-access-token",
+       "pageVerifyToken": "your-verify-token",
+       "discordBotToken": "",
+       "discordClientID": ""
+     }
+     ```
+   - **Warning**: Keep tokens secure. Use environment variables.
 
-**⚠️ Warning:** Don’t commit tokens to a public repo! Use environment variables if possible.
+2. **Discord (Optional)**:
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications).
+   - Create a bot and copy its token.
+   - Add to `settings.json`.
+   - Discord support is partial. Test thoroughly or stick to Facebook.
 
----
-
-## Step 5: Configure the Bot ⚙️
-
-Double-check these files in your forked repo:
-- `cookie.json`: Has your dummy account’s cookies.
-- `settings.json`: Has your Page Access Token.
-- (Optional) Discord token file, if you set up Discord.
-
----
-
-## Step 6: Deploy on Railway 🚂
-
-Time to get Cassidy live using Railway and Docker!
-
-### Prerequisites
-- A Railway account ([railway.app](https://railway.app)).
-- Docker installed locally (optional, for testing).
-
-### Steps
-1. **Check the Dockerfile:**
-   - Your forked repo should have a Dockerfile set for **Node.js 23.7.0 or higher**.  
-   **⚠️ Important:** Lower versions will cause errors!
-
-2. **Create a Railway Project:**
-   - Log in to Railway.
-   - Click **"New Project"** > **"Deploy from GitHub repo"**.
-   - Pick your forked Cassidy-Spectra repo.
-
-3. **Set Up Deployment:**
-   - Railway will use the Dockerfile automatically.
-   - Set the server region to **USA Oregon** (no other regions allowed!).
-
-   **⚠️ Important:** USA Oregon is required for proper operation.
-
-4. **Setup Environment Variables**
-   - Add your MONGO_URI and APPSTATE there. 
-
-4. **Deploy the Bot:**
-   - Hit **"Deploy"** and wait for it to finish.
-   - Railway will give you a URL (e.g., `https://your-project-name.up.railway.app`).
-
-5. **Update Webhook URL:**
-   - Return to Facebook Developer settings.
-   - In **"Webhooks"**, update the Callback URL to your Railway URL + `/webhook` (e.g., `https://your-project-name.up.railway.app/webhook`).
-   - Verify and save.
-
----
-
-## Bonus Step: For Persistent Database
-1. Create a .env file in the root directory and add the following:
-
-```env
-MONGO_URI="replace with the mongodb uri"
-```
+3. **Database**:
+   - Add your MongoDB URI to `.env`:
+     ```env
+     MONGO_URI="your-mongodb-uri"
+     ```
+   - Get a URI from MongoDB Atlas if you don’t have one.
 
 ### Deployment
 
-1. To deploy the bot, simply run:
+1. **Local Testing**:
+   ```bash
+   npm start
+   ```
+   - If it fails, check `cookie.json`, `settings.json`, or logs.
 
-```bash
-npm start
-```
+2. **Railway Deployment**:
+   - Log in to [railway.app](https://railway.app).
+   - Create a new project and select your CassieahBoT repo.
+   - Ensure the Dockerfile uses Node.js 23.7.0+.
+   - Set environment variables:
+     - `MONGO_URI`: Your MongoDB URI.
+     - `APPSTATE`: Contents of `cookie.json` (or use the file).
+   - Deploy to **USA Oregon** region. Other regions won’t work.
+   - Get the Railway URL (e.g., `https://your-project-name.up.railway.app`).
+   - Update Facebook webhook with `/webhook` (e.g., `https://your-project-name.up.railway.app/webhook`).
 
-## Step 7: Test Your Messenger Bot 🧪
+3. **Testing**:
+   - Message your Facebook Page with “help” from a non-dummy account.
+   - No response? Check Railway logs. It’s usually a misconfigured token or role.
+   - Assign roles in [developers.facebook.com](https://developers.facebook.com) under **App Roles** to allow specific accounts to interact.
 
-Let’s make sure it works!
-
-1. **Open Your Facebook Page:**
-   - Go to the page you connected.
-
-2. **Send a Test Message:**
-   - Use a different account (not the dummy one) to message the page.
-   - Try sending **"help"** to see available commands.
-
-**Note:** The bot only responds to accounts with specific roles in the app. Add roles next!
-
----
-
-## Adding Roles 👤
-
-To let certain accounts interact with the bot, assign roles in your Facebook app.
-
-1. **Go to [developers.facebook.com](https://developers.facebook.com):**
-   - Log in to your developer account.
-
-2. **Access Your App:**
-   - Find your app in **"My Apps"**.
-
-3. **Select "App Roles":**
-   - Look for **"App Roles"** or **"Roles and Permissions"**.
-
-4. **Add Roles:**
-   - Click **"Add Role"** and define the role name/permissions.
-
-5. **Assign Roles to Users:**
-   - Assign the role to the accounts you want to use with the bot (provide their name or ID).
-
-**Note:** Ensure your test account has a role assigned to get responses!
-
----
-
-## Final Notes 📝
-
-- Keep cookies and tokens secure—don’t expose them in a public repo! 🔒
-- Check Railway logs if you run into issues. 🕵️‍♂️
-- For more features, peek at the repo’s documentation. 📚
-
-Congrats! Your Cassidy bot is now running on Railway. Enjoy automating your Messenger tasks! 🎉
- 
-
-
-## Creating Commands
+## Writing Commands
 
 ### Command Structure
 
-A command in CassidySpectra is typically defined in a JavaScript file with the following structure:
+Commands are defined in JavaScript/TypeScript files. Here’s the format:
 
 ```javascript
 export const meta = {
     name: "example",
-    otherNames: ["ex", "examples"],
-    author: "Author's Name",
-    version: '1.0.0',
-    description: "This is an example command used in demonstration.",
-    usage: "{prefix}{name}",
-    category: "Examples",
-    noPrefix: "both",
-    permissions: [0, 1, 2],
-    botAdmin: false,
-    waitingTime: 10,
-    ext_plugins: {
-        output: "^1.0.0"
-    },
-    whiteList: [
-        "id1",
-        "id2"
-    ],
-    args: [
-        {
-            degree: 0,
-            fallback: null,
-            response: "You cannot use this argument",
-            search: "disallowedArg",
-            required: false,
-        }
-    ],
-    supported: "^1.0.0"
-};
-
-export async function entry({ input, output }) {
-    output.reply('Hello, this is an example command!');
-}
-```
-
-### Meta Options
-
-The `meta` object contains important configuration information for the command. Here are the available options:
-
-- **name**: The primary name of the command.
-- **otherNames**: An array of alternative names for the command.
-- **author**: The author of the command.
-- **version**: The version of the command.
-- **description**: A brief description of what the command does.
-- **usage**: Instructions on how to use the command.
-- **category**: The category under which the command falls.
-- **noPrefix**: Specifies whether the command can be used without a prefix. Possible values are "both", true, or false.
-- **permissions**: An array specifying the required permissions to use the command. (0: non-admin, 1: gc admin, 2: bot admin)
-- **botAdmin**: A boolean indicating whether the command requires bot admin permissions.
-- **waitingTime**: The cooldown time (in seconds) before the command can be used again.
-- **ext_plugins**: An object specifying external plugins required by the command.
-- **whiteList**: An array of user IDs that are allowed to use the command.
-- **args**: An array of argument configurations. Each argument can have the following properties:
-  - **degree**: The degree of the argument.
-  - **fallback**: The fallback value if the argument is not provided.
-  - **response**: The response message if the argument is not allowed.
-  - **search**: The search term for the argument.
-  - **required**: A boolean indicating whether the argument is required.
-- **supported**: The supported version of the command.
-
-### Context Variables
-
-When defining the `entry` function for your command, you have access to several context variables:
-
-- **input**: The input object containing information about the command invocation.
-  - **input.text**: The text of the command.
-  - **input.senderID**: The ID of the user who sent the command.
-  - **input.threadID**: The ID of the thread where the command was sent.
-  - **input.arguments**: An array of arguments passed to the command.
-  - **input.isAdmin**: A boolean indicating whether the user is an admin.
-  - **input.replier**: The replier object if the command is a reply.
-- **output**: The output object used to send responses back to the user.
-  - **output.reply(text)**: Sends a reply to the user.
-  - **output.error(err)**: Sends an error message to the user.
-  - **output.send(text, id)**: Sends a message to a specific user or thread.
-  - **output.add(user, thread)**: Adds a user to a thread.
-  - **output.kick(user, thread)**: Kicks a user from a thread.
-  - **output.unsend(mid)**: Unsend a message by its ID.
-  - **output.reaction(emoji, mid)**: Reacts to a message with an emoji.
-- **event**: The event object containing details about the event that triggered the command.
-- **api**: The API object for interacting with the platform (e.g., sending messages).
-- **commandName**: The name of the command being executed.
-- **args**: An array of arguments passed to the command.
-
-### Example Command
-
-Here is a more detailed example of a command that uses various meta options and context variables:
-
-```javascript
-export const meta = {
-    name: "greet",
-    otherNames: ["hello", "hi"],
-    author: "Author's Name",
-    version: '1.0.0',
-    description: "Sends a greeting message.",
-    usage: "{prefix}greet [name]",
-    category: "General",
+    otherNames: ["ex", "test"],
+    author: "Your Name",
+    version: "1.0.0",
+    description: "Basic command example.",
+    usage: "{prefix}{name} [arg]",
+    category: "Misc",
     noPrefix: "both",
     permissions: [0],
     botAdmin: false,
     waitingTime: 5,
     ext_plugins: {
-        output: "^1.0.0"
+        output: "^1.0.0",
+        canvas: "^1.0.0"
     },
     whiteList: null,
     args: [
         {
             degree: 0,
-            fallback: "User",
-            response: "You need to provide a name.",
-            search: "name",
-            required: false,
+            fallback: null,
+            response: "Provide an argument.",
+            search: "arg",
+            required: false
         }
     ],
-    supported: "^1.0.0"
+    supported: "^4.0.0"
 };
 
 export async function entry({ input, output, args }) {
-    const name = args[0] || "User";
-    output.reply(`Hello, ${name}!`);
+    output.reply(`You said: ${args[0] || "nothing"}`);
 }
 ```
 
+### Meta Options
+
+- **name**: Primary command name.
+- **otherNames**: Array of aliases.
+- **author**: Command author.
+- **version**: Command version (e.g., `1.0.0`).
+- **description**: What the command does.
+- **usage**: Syntax, including `{prefix}`.
+- **category**: Command category.
+- **noPrefix**: `"both"`, `true`, or `false` for prefix requirement.
+- **permissions**: Array of `[0, 1, 2]` (0: anyone, 1: group admin, 2: bot admin).
+- **botAdmin**: `true` if restricted to bot admins.
+- **waitingTime**: Cooldown in seconds.
+- **ext_plugins**: Required plugins (e.g., `canvas: "^1.0.0"` for images).
+- **whiteList**: Array of allowed user IDs or `null`.
+- **args**: Argument configs:
+  - **degree**: Argument position (0-based).
+  - **fallback**: Default value.
+  - **response**: Error message for invalid args.
+  - **search**: Argument identifier.
+  - **required**: `true` or `false`.
+- **supported**: Minimum CassieahBoT version (`^4.0.0`).
+
+### Context Variables
+
+- **input**:
+  - `input.text`: Command text.
+  - `input.senderID`: Sender’s ID.
+  - `input.threadID`: Thread ID.
+  - `input.arguments`: Argument array.
+  - `input.isAdmin`: Admin status.
+  - `input.replier`: Replier object.
+- **output**:
+  - `output.reply(text)`: Send text reply.
+  - `output.error(err)`: Send error.
+  - `output.send(text, id)`: Send to specific ID.
+  - `output.add(user, thread)`: Add user to thread.
+  - `output.kick(user, thread)`: Kick user.
+  - `output.unsend(mid)`: Unsend message.
+  - `output.reaction(emoji, mid)`: Add reaction.
+  - `output.sendImage(buffer, id)`: Send image (new in 4.0+).
+- **event**: Raw event data.
+- **api**: Platform API.
+- **commandName**: Command name.
+- **args**: Parsed arguments.
+
+### Example Command
+
+A command using **napi-rs canvas** to generate an image:
+
+```javascript
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+
+export const meta = {
+    name: "meme",
+    otherNames: ["memegen"],
+    author: "Your Name",
+    version: "1.0.0",
+    description: "Generates a meme with custom text.",
+    usage: "{prefix}meme <text>",
+    category: "Fun",
+    noPrefix: false,
+    permissions: [0],
+    botAdmin: false,
+    waitingTime: 10,
+    ext_plugins: {
+        output: "^1.0.0",
+        canvas: "^1.0.0"
+    },
+    whiteList: null,
+    args: [
+        {
+            degree: 0,
+            fallback: null,
+            response: "Provide text for the meme.",
+            search: "text",
+            required: true
+        }
+    ],
+    supported: "^4.0.0"
+};
+
+export async function entry({ input, output, args }) {
+    const text = args[0];
+    const canvas = createCanvas(500, 500);
+    const ctx = canvas.getContext('2d');
+
+    const image = await loadImage('public/meme-template.jpg');
+    ctx.drawImage(image, 0, 0, 500, 500);
+
+    ctx.font = '30px Impact';
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+    ctx.textAlign = 'center';
+    ctx.fillText(text.toUpperCase(), 250, 450);
+    ctx.strokeText(text.toUpperCase(), 250, 450);
+
+    const buffer = await canvas.encode('png');
+    output.sendImage(buffer, input.threadID);
+}
+```
+
+**Note**: Place a `meme-template.jpg` in `public/`. It’s not included.
+
 ## Core Files
 
-### Cassidy.js
+- **Cassieah.js**: Core logic, command, and plugin handling.
+- **api.js**: Developer API handlers.
+- **loadCommand.js**: Command loading and registration.
+- **loadPlugins.js**: Plugin management.
+- **extends.js**: Additional utilities.
 
-This file contains the core logic and configuration for CassidySpectra. It includes methods for loading commands, plugins, and managing the bot's state.
-
-### api.js
-
-This file defines the `api` command, which provides access to Cassidy's Developer API. It includes various handlers for different API functionalities.
-
-### loadCommand.js
-
-This file contains the logic for loading and registering commands in CassidySpectra.
-
-### loadPlugins.js
-
-This file contains the logic for loading and managing plugins in CassidySpectra.
-
-### extends.js
-
-This file extends the core functionality of CassidySpectra with additional features and utilities.
+Don’t modify these unless you’re certain. Always run `npm run update` first.
 
 ## License
 
-This project is licensed under a special LICENSE, see the LICENSE file for details.
+See the `LICENSE` file for details.
 
+## Credits
 
-## Credits 💳
-- **MrKimstersDev (Symer Steve Berondo)**
-   - Making the toturial.md.
+- **MrKimstersDev (Symer Steve Berondo)**: Original tutorial.
+- **Liane Kaye Cagara**: Creator and maintainer.
 
-- **Liane Kaye Cagara 🎀**
-   - For Making Cassidy Bot.
+---
+
+**Important**: Always run `npm run update` before editing any files, or updates will break. If the bot isn’t responding, check the logs (Railway or local). Most issues are due to misconfigured tokens, cookies, or roles. Don’t skip steps, and don’t expect it to work if you half-read this.

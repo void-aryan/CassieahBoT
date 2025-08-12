@@ -749,7 +749,9 @@ declare global {
 
   var loadSymbols: Map<string, symbol>;
 
-  export namespace CassidySpectra {
+  export import CassidySpectra = Cassieah;
+
+  export namespace Cassieah {
     export interface CommandContext extends CommandContextOG {}
     export interface GlobalCassidy {
       /**

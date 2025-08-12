@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run with: sh updater.sh
 echo "Updating from CassidySpectra like a pro..."
-echo "WARNING: This pulls from https://github.com/lianecagara/CassidySpectra."
+echo "WARNING: This pulls from https://github.com/lianecagara/CassieahBoT."
 echo "1. Unrelated histories might merge if your local repo has no shared past. Could get messy."
 echo "2. Merge conflicts might happen. If they do, check files for '<<<<<<<' markers."
 echo "   - Fix: Edit files, remove markers, then 'git add <file>' and 'git commit'."
@@ -10,7 +10,7 @@ echo "Proceed? (y/n)"
 read -r response
 if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
     while true; do
-        git pull --no-ff --no-commit --allow-unrelated-histories https://github.com/lianecagara/CassidySpectra
+        git pull --no-ff --no-commit --allow-unrelated-histories https://github.com/lianecagara/CassieahBoT
         if [ $? -eq 0 ]; then
             echo "Pulled clean. You’re good. (Uncommitted changes left to review.)"
             break

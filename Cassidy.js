@@ -359,7 +359,7 @@ async function main() {
 
   logger(`Cassidy ${__pkg.version}`, "Info");
   logger(
-    `The CassidySpectra is currently in development and is also unstable. Some features might not work as expected.`,
+    `The CassieahBoT is currently in development and is also unstable. Some features might not work as expected.`,
     "WARN"
   );
   const loadLog = logger("Loading settings...", "Info");
