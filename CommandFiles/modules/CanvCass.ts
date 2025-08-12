@@ -28,17 +28,18 @@ export class CanvCass {
   static singleSetup() {
     logger("Registering fonts...", "CanvCass");
     this.registerFont({
+      name: "EMOJI",
+      path: "./public/NotoColorEmoji.ttf",
+    });
+    this.registerFont({
       name: "Cassieah",
       path: "./public/fonts/SFPRODISPLAYREGULAR.OTF",
     });
     this.registerFont({
-      name: "Cassieah",
+      name: "Cassieah-Bold",
       path: "./public/fonts/SFPRODISPLAYBOLD.OTF",
     });
-    this.registerFont({
-      name: "Cassieah",
-      path: "./public/NotoColorEmoji.ttf",
-    });
+
     logger("Fonts registered!", "CanvCass");
   }
 

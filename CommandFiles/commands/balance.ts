@@ -193,9 +193,32 @@ const configs: Config[] = [
         width: canv.width,
       });
 
-
       canv.drawBox(container, {
         fill: "rgba(0, 0, 0, 0.5)",
+      });
+
+      canv.drawText(`${style.title}`, {
+        font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
+        x: canv.left + 50,
+        y: canv.top + 50,
+        align: "left",
+        fill: "white",
+        baseline: "bottom",
+      });
+
+      canv.drawText(`👤 ${name}`, {
+        font: `normal 50px Cassieah, EMOJI, sans-serif`,
+        x: container.centerX,
+        y: container.top + 100,
+        align: "center",
+        fill: "rgba(255, 255,255, 0.7)",
+      });
+      canv.drawText(`$${abbreviateNumber(playerMoney.money, 2, true)}`, {
+        font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
+        x: container.centerX,
+        y: container.bottom - 100,
+        align: "center",
+        fill: "rgba(255, 255,255, 0.7)",
       });
 
       return output.reply({
