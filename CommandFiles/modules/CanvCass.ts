@@ -20,12 +20,20 @@ import {
 } from "fs";
 import { join } from "path";
 
+let sharedBG: Image = null;
+
 export class CanvCass {
   static registerFont(font: CanvCass.Font) {
     CanvCass.fonts.registerFromPath(font.path, font.name);
   }
 
-  static singleSetup() {
+  static get sharedBG() {
+    return sharedBG;
+  }
+
+  static async singleSetup() {
+    sharedBG = await loadImage(join(process.cwd(), "public", "canvcassbg.png"));
+    console.log(CanvCass.sharedBG);
     logger("Registering fonts...", "CanvCass");
     this.registerFont({
       name: "EMOJI",
@@ -158,7 +166,7 @@ export class CanvCass {
         fill: this.#config.background,
       });
     } else {
-      this.drawImage("./public/canvcassbg.png", this.left, this.top, {
+      this.drawImage(sharedBG, this.left, this.top, {
         width: this.width,
         height: this.height,
       });
@@ -533,6 +541,7 @@ export class CanvCass {
     if (imageOrSrc instanceof Image) {
       image = imageOrSrc;
     } else {
+      console.log("WTF??", imageOrSrc);
       image = await loadImage(imageOrSrc);
     }
 

@@ -481,7 +481,7 @@ async function main() {
     }
   };
   web(api, funcListen, settings);
-  CanvCass.singleSetup();
+  await CanvCass.singleSetup();
   loadLog("Loading plugins");
   const pPro = loadPlugins(allPlugins);
 

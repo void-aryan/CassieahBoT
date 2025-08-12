@@ -1,4 +1,5 @@
 // @ts-check
+import { CanvCass } from "@cass-modules/Canvcass";
 import { UNIRedux } from "../modules/unisym.js";
 
 /**
@@ -40,6 +41,9 @@ export function formatNumber(number) {
   }
 }
 
+/**
+ * @type {CommandStyle}
+ */
 export const style = {
   title: "🌟 Rank",
   titleFont: "bold",
@@ -137,8 +141,66 @@ export async function entry({ money, input, output, CassEXP }) {
   const { cassEXP } = data;
   const cxp = new CassEXP(cassEXP);
 
-  output.reply(
-    `${UNIRedux.arrow} ${
+  const canv = CanvCass.premade();
+  const container = CanvCass.createRect({
+    centerX: canv.centerX,
+    centerY: canv.centerY,
+    height: canv.height / 2,
+    width: canv.width,
+  });
+
+  canv.drawBox(container, {
+    fill: "rgba(0, 0, 0, 0.5)",
+  });
+
+  const margin = 100;
+
+  canv.drawText(`${style.title}`, {
+    font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
+    x: container.left + 50,
+    y: container.top - 70,
+    align: "left",
+    fill: "white",
+    baseline: "bottom",
+  });
+
+  canv.drawText(`👤 ${data.name}`, {
+    font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
+    x: container.left + margin,
+    y: container.top + margin,
+    align: "left",
+    baseline: "bottom",
+    fill: "white",
+  });
+
+  const per = Math.min(
+    1,
+    Math.max(0, cxp.getEXPCurrentLv() / cxp.getNextEXP())
+  );
+
+  const bar = CanvCass.createRect({
+    left: margin,
+    top: container.top + margin + 70 + 20,
+    width: canv.width - margin * 2,
+    height: 70,
+  });
+  const barP = CanvCass.createRect({
+    left: margin,
+    top: container.top + margin + 70 + 20,
+    width: (canv.width - margin * 2) * per,
+    height: 70,
+  });
+  canv.drawBox(bar, {
+    fill: "black",
+    stroke: "black",
+    strokeWidth: 10,
+  });
+  canv.drawBox(barP, {
+    fill: "white",
+  });
+
+  output.reply({
+    body: `${UNIRedux.arrow} ${
       input.senderID !== senderID ? data.name ?? "Unregistered" : "You"
     } are at Level ${cxp.getLevel()} with ${cxp.getEXP()} / ${cxp.getNextEXP()} experience points.\n${
       UNIRedux.arrowFromT
@@ -147,6 +209,7 @@ export async function entry({ money, input, output, CassEXP }) {
     } \n\n${UNIRedux.arrowFromT} ${progressBar(
       cxp.getEXPCurrentLv(),
       cxp.getNextEXP()
-    )}`
-  );
+    )}`,
+    attachment: await canv.toStream(),
+  });
 }
