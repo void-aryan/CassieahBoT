@@ -193,11 +193,15 @@ const configs: Config[] = [
         width: canv.width,
       });
 
+
       canv.drawBox(container, {
         fill: "rgba(0, 0, 0, 0.5)",
       });
 
-      return output.reply({ body: outputText, attachment: canv.toStream() });
+      return output.reply({
+        body: outputText,
+        attachment: await canv.toStream(),
+      });
     },
   },
   {

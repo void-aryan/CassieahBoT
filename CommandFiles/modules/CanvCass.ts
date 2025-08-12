@@ -111,6 +111,7 @@ export class CanvCass {
     this.#config = config;
     this.canvas = createCanvas(config.width, config.height);
     this.#context = this.canvas.getContext("2d");
+    this.drawBackground();
   }
 
   static premade() {
@@ -194,7 +195,7 @@ export class CanvCass {
     return this.canvas.toBuffer("image/png");
   }
 
-  toStream(): ReadStream {
+  toStream(): Promise<ReadStream> {
     const tempDir = join(process.cwd(), "temp");
     if (!existsSync(tempDir)) {
       mkdirSync(tempDir);
@@ -202,23 +203,30 @@ export class CanvCass {
 
     const filename = `${randomUUID()}.png`;
     const filePath = join(tempDir, filename);
-
     const buffer = this.canvas.toBuffer("image/png");
-    const out = createWriteStream(filePath);
-    out.write(buffer);
-    out.end();
 
-    const stream = createReadStream(filePath);
+    return new Promise((resolve, reject) => {
+      const out = createWriteStream(filePath);
 
-    stream.on("close", () => {
-      try {
-        unlinkSync(filePath);
-      } catch (err) {
-        console.error(`Failed to delete temp file ${filePath}`, err);
-      }
+      out.on("error", reject);
+
+      out.write(buffer, (err) => {
+        if (err) return reject(err);
+        out.end();
+      });
+
+      out.on("finish", () => {
+        const stream = createReadStream(filePath);
+        stream.on("close", () => {
+          try {
+            unlinkSync(filePath);
+          } catch (err) {
+            console.error(`Failed to delete temp file ${filePath}`, err);
+          }
+        });
+        resolve(stream);
+      });
     });
-
-    return stream;
   }
 
   drawBox(
