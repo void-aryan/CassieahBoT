@@ -236,18 +236,26 @@ global.cachePath = path.join(process.cwd(), "temp");
 
 global.Datum = require("@cass-modules/Datum").Datum;
 
-function monitorBlocking(threshold = 5000) {
+function monitorBlocking(
+  delay = 5000,
+  threshold = 100,
+
+  onBlock = (blockTime, delta) => {
+    console.warn(`⚠️ Event loop blocked for ${blockTime}ms`);
+  }
+) {
   let last = Date.now();
   setInterval(() => {
     const now = Date.now();
     const delta = now - last;
-    if (delta > threshold) {
-      console.warn(`⚠️ Event loop blocked for ${delta}ms`);
+    const blockTime = delta - delay;
+    if (blockTime > threshold) {
+      onBlock(blockTime, delta);
     }
     last = now;
-  }, threshold).unref();
+  }, delay).unref();
 }
 
-monitorBlocking();
+monitorBlocking(5000, 1000);
 
 require("./Cassidy");

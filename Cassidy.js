@@ -28,7 +28,7 @@ import extend from "./extends.js";
 extend();
 
 const MEMORY_THRESHOLD = 500;
-const WARNING_THRESHOLD = MEMORY_THRESHOLD * 0.75;
+const WARNING_THRESHOLD = MEMORY_THRESHOLD * 0.9;
 import { fontTag } from "./handlers/styler.js/main";
 import cors from "cors";
 import * as fs from "fs";
@@ -63,7 +63,7 @@ const checkMemoryUsage = (normal) => {
     console.warn(`High memory usage detected: ${usedMemoryMB.toFixed(2)} MB`);
   } else if (usedMemoryMB > WARNING_THRESHOLD) {
     console.warn(
-      `Warning: Memory usage is at 75% of the threshold: ${usedMemoryMB.toFixed(
+      `Warning: Memory usage is at 90% of the threshold: ${usedMemoryMB.toFixed(
         2
       )} MB`
     );
