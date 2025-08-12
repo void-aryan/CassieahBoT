@@ -6,6 +6,16 @@ import {
   GlobalFonts,
   createCanvas,
 } from "@napi-rs/canvas";
+import { randomUUID } from "crypto";
+import {
+  createReadStream,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  ReadStream,
+  unlinkSync,
+} from "fs";
+import { join } from "path";
 
 export class CanvCass {
   static registerFont(font: CanvCass.Font) {
@@ -27,7 +37,6 @@ export class CanvCass {
       path: "./public/NotoColorEmoji.ttf",
     });
     logger("Fonts registered!", "CanvCass");
-    console.log(GlobalFonts.families);
   }
 
   static fonts = GlobalFonts;
@@ -82,6 +91,46 @@ export class CanvCass {
 
   exposeContext() {
     return this.#context;
+  }
+
+  withContext(cb: (ctx: CanvasRenderingContext2D) => void): void {
+    const ctx = this.#context;
+    ctx.save();
+    try {
+      cb(ctx);
+    } finally {
+      ctx.restore();
+    }
+  }
+
+  toPng() {
+    return this.canvas.toBuffer("image/png");
+  }
+
+  toStream(): { stream: ReadStream; delete(): void } {
+    const tempDir = join(process.cwd(), "temp");
+    if (!existsSync(tempDir)) {
+      mkdirSync(tempDir);
+    }
+
+    const filename = `${randomUUID()}.png`;
+    const filePath = join(tempDir, filename);
+
+    const buffer = this.canvas.toBuffer("image/png");
+    const out = createWriteStream(filePath);
+    out.write(buffer);
+    out.end();
+
+    return {
+      stream: createReadStream(filePath),
+      delete: () => {
+        try {
+          unlinkSync(filePath);
+        } catch (err) {
+          console.error(`Failed to delete temp file ${filePath}`, err);
+        }
+      },
+    };
   }
 
   drawBox(rect: CanvCass.Rect, style?: CanvCass.DrawBoxInlineParam): void;
