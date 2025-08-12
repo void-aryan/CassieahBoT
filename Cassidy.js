@@ -479,6 +479,7 @@ async function main() {
     }
   };
   web(api, funcListen, settings);
+  CanvCass.singleSetup();
   loadLog("Loading plugins");
   const pPro = loadPlugins(allPlugins);
 
@@ -580,6 +581,7 @@ import fetchMeta from "./CommandFiles/modules/fetchMeta.js";
 import { TempFile } from "./handlers/page/sendMessage";
 import { inspect } from "util";
 import getCUser from "@cass-modules/XaviaSupport/User";
+import { CanvCass } from "@cass-modules/Canvcass";
 const { UTYPlayer } = global.utils;
 
 const limit = {
