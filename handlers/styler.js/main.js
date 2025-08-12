@@ -49,6 +49,11 @@ export function convertLegacyStyling(style) {
   const { CUSTOM_STYLE = { enabled: false, TITLE_PATTERN: "" } } =
     global.Cassidy.config;
   const { enabled: customEnabled = false } = CUSTOM_STYLE;
+  const ex =
+    Cassidy.config.showAuthorOnStyle ||
+    (style.lineDeco && style.lineDeco) !== "none"
+      ? { [`line_bottom_inside_${style.lineDeco || "x"}`]: "default" }
+      : {};
   return {
     ...style,
     titleStyle: undefined,
@@ -80,7 +85,7 @@ export function convertLegacyStyling(style) {
     content: {
       text_font: style.contentFont ?? "none",
       content: null,
-      [`line_bottom_inside_${style.lineDeco || "x"}`]: "default",
+      ...ex,
       ...(typeof style.content === "object" && style.content
         ? style.content
         : {}),
