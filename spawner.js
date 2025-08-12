@@ -235,6 +235,7 @@ global.assetsPath = path.join(process.cwd(), "temp");
 global.cachePath = path.join(process.cwd(), "temp");
 
 global.Datum = require("@cass-modules/Datum").Datum;
+global.CanvCass = require("@cass-modules/Canvcass").CanvCass;
 
 function monitorBlocking(
   delay = 5000,

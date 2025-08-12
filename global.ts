@@ -46,6 +46,7 @@ declare global {
   export type AnyRecord = Record<string, any>;
 
   export type AnyConstructor = new (...args: any[]) => any;
+  export import CanvCass = _CanvCass.CanvCass;
 
   interface CommandContextOG {
     /**
@@ -1163,6 +1164,7 @@ import { ObjectKey } from "@cass-modules/unitypes";
 import { FormatArgs } from "@cass-modules/format-with";
 import { FontSystem } from "cassidy-styler";
 import { createThreads, createUsers } from "@cass-plugins/botpack-utils";
+import * as _CanvCass from "@cass-modules/Canvcass";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {
