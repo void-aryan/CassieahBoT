@@ -138,6 +138,8 @@ const configs: Config[] = [
       { money, input, output, prefix, commandName },
       { spectralArgs }
     ) {
+      const canv = CanvCass.premade();
+
       await money.ensureUserInfo(input.senderID);
       let senderID = input.senderID;
       if (input.replier) senderID = input.replier.senderID;
@@ -184,7 +186,18 @@ const configs: Config[] = [
         `**Tip:** Type **${prefix}${commandName} all** for full balance info.`,
       ].join("\n");
 
-      return output.reply(outputText);
+      const container = CanvCass.createRect({
+        centerX: canv.centerX,
+        centerY: canv.centerY,
+        height: canv.height / 2,
+        width: canv.width,
+      });
+
+      canv.drawBox(container, {
+        fill: "rgba(0, 0, 0, 0.5)",
+      });
+
+      return output.reply({ body: outputText, attachment: canv.toStream() });
     },
   },
   {
@@ -464,6 +477,7 @@ const home = new SpectralCMDHome(
 import { defineEntry } from "@cass/define";
 import { FontSystem } from "cassidy-styler";
 import { formatCash } from "@cass-modules/ArielUtils";
+import { CanvCass } from "@cass-modules/Canvcass";
 
 export const entry = defineEntry(async (ctx) => {
   return home.runInContext(ctx);

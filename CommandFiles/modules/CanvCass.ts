@@ -48,19 +48,44 @@ export class CanvCass {
 
   canvas: Canvas;
   #context: SKRSContext2D;
+  static createRect(basis: Partial<CanvCass.MakeRectParam>): CanvCass.Rect {
+    const { width, height } = basis;
 
-  static createRect(basis: CanvCass.MakeRectParam): CanvCass.Rect {
-    const halfW = basis.width / 2;
-    const halfH = basis.height / 2;
+    if (typeof width !== "number" || typeof height !== "number") {
+      throw new Error(
+        "createRect: width and height must be provided as numbers."
+      );
+    }
+
+    const centerX =
+      basis.centerX ??
+      (typeof basis.left === "number" ? basis.left + width / 2 : undefined);
+    const centerY =
+      basis.centerY ??
+      (typeof basis.top === "number" ? basis.top + height / 2 : undefined);
+
+    const left =
+      basis.left ??
+      (typeof centerX === "number" ? centerX - width / 2 : undefined);
+    const top =
+      basis.top ??
+      (typeof centerY === "number" ? centerY - height / 2 : undefined);
+
+    if (typeof left !== "number" || typeof top !== "number") {
+      throw new Error(
+        "createRect: insufficient data to calculate position. Provide at least (left & top) or (centerX & centerY)."
+      );
+    }
+
     return {
-      centerX: basis.left + halfW,
-      centerY: basis.top + halfH,
-      left: basis.left,
-      top: basis.top,
-      right: basis.left + basis.width,
-      bottom: basis.top + basis.height,
-      width: basis.width,
-      height: basis.height,
+      width,
+      height,
+      left,
+      top,
+      right: left + width,
+      bottom: top + height,
+      centerX: left + width / 2,
+      centerY: top + height / 2,
     };
   }
 
@@ -88,7 +113,7 @@ export class CanvCass {
     this.#context = this.canvas.getContext("2d");
   }
 
-  premade() {
+  static premade() {
     return new CanvCass(1024, 768);
   }
 
@@ -169,7 +194,7 @@ export class CanvCass {
     return this.canvas.toBuffer("image/png");
   }
 
-  toStream(): { stream: ReadStream; delete(): void } {
+  toStream(): ReadStream {
     const tempDir = join(process.cwd(), "temp");
     if (!existsSync(tempDir)) {
       mkdirSync(tempDir);
@@ -183,34 +208,38 @@ export class CanvCass {
     out.write(buffer);
     out.end();
 
-    return {
-      stream: createReadStream(filePath),
-      delete: () => {
-        try {
-          unlinkSync(filePath);
-        } catch (err) {
-          console.error(`Failed to delete temp file ${filePath}`, err);
-        }
-      },
-    };
+    const stream = createReadStream(filePath);
+
+    stream.on("close", () => {
+      try {
+        unlinkSync(filePath);
+      } catch (err) {
+        console.error(`Failed to delete temp file ${filePath}`, err);
+      }
+    });
+
+    return stream;
   }
 
-  drawBox(rect: CanvCass.Rect, style?: CanvCass.DrawBoxInlineParam): void;
+  drawBox(
+    rect: CanvCass.Rect,
+    style?: Partial<CanvCass.DrawBoxInlineParam>
+  ): void;
   drawBox(style: CanvCass.DrawBoxInlineParam): void;
   drawBox(
     left: number,
     top: number,
     width: number,
     height: number,
-    style?: CanvCass.DrawBoxInlineParam
+    style?: Partial<CanvCass.DrawBoxInlineParam>
   ): void;
 
   drawBox(
     arg1: number | CanvCass.Rect | CanvCass.DrawBoxInlineParam,
-    arg2?: number | CanvCass.DrawBoxInlineParam,
+    arg2?: number | Partial<CanvCass.DrawBoxInlineParam>,
     arg3?: number,
     arg4?: number,
-    arg5?: CanvCass.DrawBoxInlineParam
+    arg5?: Partial<CanvCass.DrawBoxInlineParam>
   ): void {
     let rect: CanvCass.Rect;
     let style: CanvCass.DrawParam = {};
@@ -234,10 +263,7 @@ export class CanvCass {
     } else {
       const inline = arg1 as CanvCass.DrawBoxInlineParam;
       rect = CanvCass.createRect({
-        left: inline.left,
-        top: inline.top,
-        width: inline.width,
-        height: inline.height,
+        ...inline,
       });
       style = inline;
     }
@@ -524,12 +550,14 @@ export namespace CanvCass {
     height: number;
     background?: string | null;
   }
-  export interface MakeRectParam {
+  export type MakeRectParam = {
     width: number;
     height: number;
-    top: number;
-    left: number;
-  }
+    top?: number;
+    left?: number;
+    centerX?: number;
+    centerY?: number;
+  };
 
   export interface DrawParam {
     stroke?: string;
