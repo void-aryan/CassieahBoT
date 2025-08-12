@@ -182,7 +182,7 @@ global.Cassidy = {
   loadAllCommands: null,
   // reduxlogo: `🌌 𝗖𝗮𝘀𝘀𝗶𝗱𝘆ℝ𝕖𝕕𝕦𝕩 ✦`,
   get logo() {
-    return autoBold(global.Cassidy.config.LOGO) || fontTag(UNISpectra.spectra);
+    return autoBold(global.Cassidy.config.LOGO) || fontTag(`💌 **Cass**ieah`);
   },
   spectra: true,
   oldLogo: `🔬 𝗖𝗮𝘀𝘀𝗶𝗱𝘆 𝖠𝗌𝗌𝗂𝗌𝗍𝖺𝗇𝖼𝖾`,

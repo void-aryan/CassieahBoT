@@ -51,6 +51,7 @@ import emojiRegex from "emoji-regex";
  * @returns
  */
 export function emojiEnd(str) {
+  return forceTitleFormat(str, "{emojis} ❲ {word} ❳ {emojis}");
   const regex = emojiRegex();
   const matchedEmojis = str.match(regex) || [];
   const emojis = matchedEmojis.join("");
@@ -916,6 +917,7 @@ export async function extractCommandRole(
 }
 
 import { ReadableStream } from "stream/web";
+import { forceTitleFormat } from "cassidy-styler";
 
 /**
  * Fetches a welcome card image stream from PopCat API.
