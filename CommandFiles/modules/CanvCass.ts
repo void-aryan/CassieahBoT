@@ -27,13 +27,7 @@ export class CanvCass {
     CanvCass.fonts.registerFromPath(font.path, font.name);
   }
 
-  static get sharedBG() {
-    return sharedBG;
-  }
-
   static async singleSetup() {
-    sharedBG = await loadImage(join(process.cwd(), "public", "canvcassbg.png"));
-    console.log(CanvCass.sharedBG);
     logger("Registering fonts...", "CanvCass");
     this.registerFont({
       name: "EMOJI",
@@ -120,7 +114,6 @@ export class CanvCass {
     this.#config = config;
     this.canvas = createCanvas(config.width, config.height);
     this.#context = this.canvas.getContext("2d");
-    this.drawBackground();
   }
 
   static premade() {
@@ -156,7 +149,7 @@ export class CanvCass {
     return this.height / 2;
   }
 
-  drawBackground() {
+  async drawBackground() {
     if (this.#config.background !== null) {
       this.drawBox({
         left: this.left,
@@ -166,10 +159,10 @@ export class CanvCass {
         fill: this.#config.background,
       });
     } else {
-      this.drawImage(sharedBG, this.left, this.top, {
-        width: this.width,
-        height: this.height,
-      });
+      const bg = await loadImage(
+        join(process.cwd(), "public", "canvcassbg.png")
+      );
+      this.#context.drawImage(bg, this.left, this.top, this.width, this.height);
     }
   }
 
@@ -538,10 +531,9 @@ export class CanvCass {
 
     let image: Image;
 
-    if (imageOrSrc instanceof Image) {
+    if (typeof imageOrSrc !== "string" && "onload" in imageOrSrc) {
       image = imageOrSrc;
     } else {
-      console.log("WTF??", imageOrSrc);
       image = await loadImage(imageOrSrc);
     }
 

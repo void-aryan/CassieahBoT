@@ -142,6 +142,7 @@ export async function entry({ money, input, output, CassEXP }) {
   const cxp = new CassEXP(cassEXP);
 
   const canv = CanvCass.premade();
+  await canv.drawBackground();
   const container = CanvCass.createRect({
     centerX: canv.centerX,
     centerY: canv.centerY,

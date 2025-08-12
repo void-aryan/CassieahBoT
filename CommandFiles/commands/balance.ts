@@ -187,6 +187,8 @@ const configs: Config[] = [
         `**Tip:** Type **${prefix}${commandName} all** for full balance info.`,
       ].join("\n");
 
+      await canv.drawBackground();
+
       const container = CanvCass.createRect({
         centerX: canv.centerX,
         centerY: canv.centerY,
