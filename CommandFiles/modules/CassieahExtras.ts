@@ -125,8 +125,11 @@ export class CanvCass {
   }
 
   static premade() {
-    return new CanvCass(1024, 768);
+    return new CanvCass(CanvCass.preW, CanvCass.preH);
   }
+
+  static preW = 1024;
+  static preH = 768;
 
   get config() {
     return this.#config;
@@ -641,11 +644,12 @@ export namespace CanvCass {
   export function lineYs(height: number, lines: number): number[] {
     if (lines <= 0) return [];
 
-    const spacing = height / (lines + 1);
-    const ys = [];
+    const spacing = height / lines;
+    const halfSpacing = spacing / 2;
+    const ys: number[] = [];
 
     for (let i = 0; i < lines; i++) {
-      ys.push(Math.round(spacing * (i + 1)));
+      ys.push(Math.round(halfSpacing + spacing * i));
     }
 
     return ys;

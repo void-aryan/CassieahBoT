@@ -126,12 +126,12 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
   const { cassEXP } = data;
   const cxp = new CassEXP(cassEXP);
 
-  const canv = CanvCass.premade();
+  const canv = new CanvCass(CanvCass.preW, CanvCass.preH / 2);
   await canv.drawBackground();
   const container = CanvCass.createRect({
     centerX: canv.centerX,
     centerY: canv.centerY,
-    height: canv.height / 2,
+    height: canv.height * 0.9,
     width: canv.width,
   });
 
@@ -140,23 +140,16 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
     fill: "rgba(0, 0, 0, 0.5)",
   });
 
-  const margin = 100;
+  const lines = CanvCass.lineYs(container.height, 2);
 
-  canv.drawText(`${style.title}`, {
-    font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
-    x: container.left + 50,
-    y: container.top - 70,
-    align: "left",
-    fill: "white",
-    baseline: "bottom",
-  });
+  const margin = 100;
 
   canv.drawText(`👤 ${data.name}`, {
     font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
     x: container.left + margin,
-    y: container.top + margin,
+    y: lines.at(0),
     align: "left",
-    baseline: "bottom",
+    baseline: "middle",
     fill: "white",
   });
 
@@ -167,13 +160,13 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
 
   const bar = CanvCass.createRect({
     left: margin,
-    top: container.top + margin + 70 + 20,
+    centerY: lines.at(1),
     width: canv.width - margin * 2,
     height: 70,
   });
   const barP = CanvCass.createRect({
     left: margin,
-    top: container.top + margin + 70 + 20,
+    centerY: lines.at(1),
     width: (canv.width - margin * 2) * per,
     height: 70,
   });
