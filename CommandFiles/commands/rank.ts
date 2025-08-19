@@ -141,6 +141,7 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
   });
 
   const lines = CanvCass.lineYs(container.height, 2);
+  const d = lines[1] - lines[0];
 
   const margin = 100;
 
@@ -178,8 +179,31 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
   });
   canv.drawBox({
     rect: barP,
+    fill: "rgba(255, 255, 255, 0.5)",
+  });
+
+  canv.drawText(`Level ${cxp.getLevel()}`, {
+    font: `bold 40px Cassieah-Bold, EMOJI, sans-serif`,
+    x: container.left + margin,
+    y: lines.at(0) + d / 2,
+    align: "left",
+    baseline: "middle",
     fill: "white",
   });
+
+  canv.drawText(
+    `${cxp.getEXPCurrentLv()} / ${
+      cxp.getNextEXP() - CassEXP.getEXPFromLevel(cxp.level - 1)
+    }`,
+    {
+      font: `normal 35px Cassieah, EMOJI, sans-serif`,
+      x: bar.centerX,
+      y: lines.at(1),
+      align: "center",
+      baseline: "middle",
+      fill: "white",
+    }
+  );
 
   output.reply({
     body: `${UNIRedux.arrow} ${

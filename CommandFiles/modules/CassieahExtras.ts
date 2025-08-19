@@ -521,15 +521,14 @@ export class CanvCass {
     ctx.textAlign = align;
     ctx.textBaseline = baseline;
 
-    if (fill) {
-      ctx.fillStyle = fill;
-      ctx.fillText(text, x, y);
-    }
-
     if (stroke) {
       ctx.strokeStyle = stroke;
       ctx.lineWidth = strokeWidth;
       ctx.strokeText(text, x, y);
+    }
+    if (fill) {
+      ctx.fillStyle = fill;
+      ctx.fillText(text, x, y);
     }
 
     ctx.restore();
