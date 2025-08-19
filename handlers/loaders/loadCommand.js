@@ -99,6 +99,13 @@ export async function loadCommand(
         command = fileName;
         fileName = command.meta?.name || "";
       } else {
+        if (force) {
+          Cassidy.clearModuleCache(
+            "CommandFiles",
+            "commands",
+            String(fileName)
+          );
+        }
         command = importModule(`CommandFiles/commands/${fileName}`);
       }
     } catch (error) {
@@ -304,6 +311,7 @@ export async function loadCommand(
       );
       return;
     }
+
     await cassWatchJob({ commandData: command, fileName, version });
 
     if (force) {

@@ -1,17 +1,12 @@
 // @ts-check
-import {
-  isAdminCommand,
-  ObjectX,
-  removeCommandAliases,
-  UNIRedux,
-} from "@cassidy/unispectra";
+import { UNIRedux } from "@cassidy/unispectra";
 
 export const meta = {
   name: "prefix",
   author: "Liane Cagara",
-  version: "2.5.0",
+  version: "4.0.0",
   description: "Nothing special.",
-  supported: "^2.5.0",
+  supported: "^4.0.0",
   order: 4,
   type: "plugin",
   after: ["input", "output"],
@@ -23,91 +18,68 @@ export const meta = {
  * @returns
  */
 export async function use(obj) {
-  const {
-    input,
-    output,
-    prefix,
-    popularCMD,
-    recentCMD,
-    prefixes,
-    commands: origCommands,
-  } = obj;
-  if (
-    input.text?.toLowerCase() === "prefix" ||
-    input.text?.toLowerCase() === "cassidy" ||
-    input.text.trim() === prefix ||
-    prefixes.some((prefix) => input.text.trim() === prefix)
-  ) {
-    const commands = ObjectX.filter(
-      removeCommandAliases(origCommands),
-      (command) => {
-        return Boolean(input.isAdmin) ? true : !isAdminCommand(command);
-      }
-    );
+  const { input, output, prefix, prefixes } = obj;
+  const words = ["prefix", "cassidy", "cassieah", "ieah", "zeah"];
+  if (words.includes(input.trim()) || input.text.trim() === prefix) {
+    const canv = new CanvCass(CanvCass.preW, CanvCass.preH / 2);
+    await canv.drawBackground();
 
-    const randomCommands = Object.keys(
-      ObjectX.slice(
-        ObjectX.toSorted(commands, (a, b) => Math.random() - 0.5),
-        0,
-        10
-      )
-    );
-    const populars = Object.entries(popularCMD)
-      .sort((a, b) => b[1] - a[1])
-      .map((i) => i[0]);
+    const container = CanvCass.createRect({
+      centerX: canv.centerX,
+      centerY: canv.centerY,
+      height: canv.height * 0.75,
+      width: canv.width,
+    });
 
-    const myRecent = recentCMD[input.senderID] ?? [];
-    if (!global.Cassidy.config.verboseBotMode) {
-      return output.replyStyled(
-        `✨ | **System Prefix:** [ ${prefix} ]
+    canv.drawBox({
+      rect: container,
+      fill: "rgba(0, 0, 0, 0.5)",
+    });
+
+    const lines = CanvCass.lineYs(container.height, 2);
+    const d = lines[1] - lines[0];
+
+    const margin = 100;
+
+    canv.drawText(`💌 CassieahBoT`, {
+      font: `bold 65px Cassieah-Bold, EMOJI, sans-serif`,
+      x: container.left + margin,
+      y: lines.at(0) + 65 / 2,
+      align: "left",
+      baseline: "middle",
+      fill: "white",
+    });
+    canv.drawText(`v${global.package.version}`, {
+      font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
+      x: container.right - margin,
+      y: lines.at(0) + 25,
+      align: "right",
+      baseline: "middle",
+      fill: "rgba(255, 255, 255, 0.7)",
+    });
+    canv.drawText(`Prefixes: [ ${[...prefixes].join(", ")} ]`, {
+      font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
+      x: container.centerX,
+      y: lines.at(1) + 35,
+      align: "center",
+      baseline: "middle",
+      fill: "rgba(255, 255, 255, 0.7)",
+    });
+
+    return output.replyStyled(
+      {
+        body: `✨ | **System Prefix:** [ ${prefix} ]
 🌠 | **Other Prefixes:** [ ${prefixes.slice(1).join(", ")} ]\n${
           UNIRedux.standardLine
-        }\nUse '**${prefix}start**' to list available commands and some concept guides.`,
-        {
-          title: global.Cassidy.logo,
-          titleFont: "none",
-          contentFont: "none",
-        }
-      );
-    }
-    output.reply(`${global.Cassidy.logo}
-${UNIRedux.standardLine}
-✨ | **System Prefix:** [ ${prefix} ]
-🌠 | **Other Prefixes:** [ ${prefixes.slice(1).join(", ")} ]
-${UNIRedux.standardLine}
-📅 | **Random Commands**:
-
-${
-  randomCommands.length > 0
-    ? randomCommands.map((i) => `${UNIRedux.disc} ${prefix}${i}`).join("\n")
-    : `No random commands.`
-}
-${UNIRedux.standardLine}
-🔥 | **Popular Commands**:
-
-${
-  populars.length > 0
-    ? populars
-        .toReversed()
-        .slice(0, 10)
-        .map((i) => `${UNIRedux.disc} ${prefix}${i}`)
-        .join("\n")
-    : `No popular commands.`
-}
-${UNIRedux.standardLine}
-🕒 | **Recent Commands**:
-
-${
-  myRecent.length > 0
-    ? myRecent
-        .toReversed()
-        .slice(0, 10)
-        .map((i) => `${UNIRedux.disc} ${prefix}${i}`)
-        .join("\n")
-    : `No recent commands.`
-}
-${UNIRedux.standardLine}
-Use '**${prefix}start**' to list available commands and some concept guides.`);
+        }\nUse '**${prefix}menu**' to list available commands.`,
+        attachment: await canv.toStream(),
+      },
+      {
+        title: global.Cassidy.logo,
+        titleFont: "none",
+        contentFont: "none",
+      }
+    );
   } else {
     obj.next();
   }

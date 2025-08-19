@@ -119,6 +119,9 @@ export async function loadPlugin(name, allPlugins, force = false) {
   let plugin;
 
   try {
+    if (force) {
+      Cassidy.clearModuleCache("CommandFiles", "plugins", String(name));
+    }
     plugin = require(process.cwd() + `/CommandFiles/plugins/${name}`);
   } catch (err) {
     global.logger(err.message);

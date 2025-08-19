@@ -120,9 +120,10 @@ const consoleDisplay = new ConsoleArray();
 global.Cassidy = {
   consoleDisplay,
   clearModuleCache(...paths) {
-    const p = require.resolve(path.resolve(process.cwd(), ...paths));
-    if (Reflect.has(require.cache, p)) {
-      Reflect.deleteProperty(require.cache, p);
+    const p = require.resolve(path.resolve(__dirname, ...paths));
+    if (require.cache[p]) {
+      let d = delete require.cache[p];
+      logger(`Require Cache for "${p}"`, d ? "DELETED" : "NOT DELETED");
       return true;
     }
     return false;

@@ -18,7 +18,7 @@ export const meta: CommandMeta = {
 };
 
 export const style: CommandStyle = {
-  title: "💗 Accept Users",
+  title: "👤 Accept Users",
   titleFont: "bold",
   contentFont: "fancy",
 };
