@@ -196,7 +196,8 @@ const configs: Config[] = [
         width: canv.width,
       });
 
-      canv.drawBox(container, {
+      canv.drawBox({
+        rect: container,
         fill: "rgba(0, 0, 0, 0.5)",
       });
 

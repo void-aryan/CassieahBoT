@@ -20,8 +20,6 @@ import {
 } from "fs";
 import { join } from "path";
 
-let sharedBG: Image = null;
-
 export class CanvCass {
   static registerFont(font: CanvCass.Font) {
     CanvCass.fonts.registerFromPath(font.path, font.name);
@@ -49,7 +47,7 @@ export class CanvCass {
 
   #config: CanvCass.CreateConfig;
 
-  canvas: Canvas;
+  #canvas: Canvas;
   #context: SKRSContext2D;
   static createRect(basis: Partial<CanvCass.MakeRectParam>): CanvCass.Rect {
     const { width, height } = basis;
@@ -60,23 +58,28 @@ export class CanvCass {
       );
     }
 
-    const centerX =
-      basis.centerX ??
-      (typeof basis.left === "number" ? basis.left + width / 2 : undefined);
-    const centerY =
-      basis.centerY ??
-      (typeof basis.top === "number" ? basis.top + height / 2 : undefined);
+    const x = basis.centerX ?? basis.centerX;
+    const y = basis.centerY ?? basis.centerY;
 
     const left =
       basis.left ??
-      (typeof centerX === "number" ? centerX - width / 2 : undefined);
+      (typeof x === "number"
+        ? x - width / 2
+        : typeof basis.right === "number"
+        ? basis.right - width
+        : undefined);
+
     const top =
       basis.top ??
-      (typeof centerY === "number" ? centerY - height / 2 : undefined);
+      (typeof y === "number"
+        ? y - height / 2
+        : typeof basis.bottom === "number"
+        ? basis.bottom - height
+        : undefined);
 
     if (typeof left !== "number" || typeof top !== "number") {
       throw new Error(
-        "createRect: insufficient data to calculate position. Provide at least (left & top) or (centerX & centerY)."
+        "createRect: insufficient data to calculate position. Provide at least (x/y), (right/bottom), or (left/top)."
       );
     }
 
@@ -112,8 +115,10 @@ export class CanvCass {
     config.background ??= null;
 
     this.#config = config;
-    this.canvas = createCanvas(config.width, config.height);
-    this.#context = this.canvas.getContext("2d");
+    this.#canvas = createCanvas(config.width, config.height);
+    this.#context = this.#canvas.getContext("2d");
+
+    return this;
   }
 
   static premade() {
@@ -162,7 +167,15 @@ export class CanvCass {
       const bg = await loadImage(
         join(process.cwd(), "public", "canvcassbg.png")
       );
-      this.#context.drawImage(bg, this.left, this.top, this.width, this.height);
+      if (bg) {
+        this.#context.drawImage(
+          bg,
+          this.left,
+          this.top,
+          this.width,
+          this.height
+        );
+      }
     }
   }
 
@@ -179,22 +192,26 @@ export class CanvCass {
     };
   }
 
-  exposeContext() {
-    return this.#context;
-  }
-
   withContext(cb: (ctx: CanvasRenderingContext2D) => void): void {
     const ctx = this.#context;
     ctx.save();
     try {
-      cb(ctx);
+      cb({
+        ...ctx,
+        save() {
+          throw new Error("Cannot allow saving.");
+        },
+        restore() {
+          throw new Error("Cannot allow restoring.");
+        },
+      });
     } finally {
       ctx.restore();
     }
   }
 
   toPng() {
-    return this.canvas.toBuffer("image/png");
+    return this.#canvas.toBuffer("image/png");
   }
 
   toStream(): Promise<ReadStream> {
@@ -205,7 +222,7 @@ export class CanvCass {
 
     const filename = `${randomUUID()}.png`;
     const filePath = join(tempDir, filename);
-    const buffer = this.canvas.toBuffer("image/png");
+    const buffer = this.#canvas.toBuffer("image/png");
 
     return new Promise((resolve, reject) => {
       const out = createWriteStream(filePath);
@@ -231,10 +248,7 @@ export class CanvCass {
     });
   }
 
-  drawBox(
-    rect: CanvCass.Rect,
-    style?: Partial<CanvCass.DrawBoxInlineParam>
-  ): void;
+  drawBox(style?: { rect: CanvCass.Rect } & Partial<CanvCass.DrawParam>): void;
   drawBox(style: CanvCass.DrawBoxInlineParam): void;
   drawBox(
     left: number,
@@ -245,7 +259,10 @@ export class CanvCass {
   ): void;
 
   drawBox(
-    arg1: number | CanvCass.Rect | CanvCass.DrawBoxInlineParam,
+    arg1:
+      | number
+      | ({ rect: CanvCass.Rect } & Partial<CanvCass.DrawParam>)
+      | CanvCass.DrawBoxInlineParam,
     arg2?: number | Partial<CanvCass.DrawBoxInlineParam>,
     arg3?: number,
     arg4?: number,
@@ -267,15 +284,22 @@ export class CanvCass {
         height: arg4,
       });
       style = arg5 ?? {};
-    } else if ("centerX" in (arg1 as CanvCass.Rect)) {
-      rect = arg1 as CanvCass.Rect;
-      style = (arg2 as CanvCass.DrawParam) ?? {};
-    } else {
-      const inline = arg1 as CanvCass.DrawBoxInlineParam;
+    } else if (typeof arg1 !== "number" && "rect" in arg1) {
+      rect = arg1.rect;
+      style = arg1;
+      if ("rect" in style) {
+        delete style.rect;
+      }
+    } else if (typeof arg1 !== "number") {
+      const inline = arg1;
       rect = CanvCass.createRect({
         ...inline,
       });
       style = inline;
+    } else {
+      throw new TypeError(
+        "Invalid Arguments, please check the method overloads."
+      );
     }
 
     const ctx = this.#context;
@@ -567,6 +591,8 @@ export namespace CanvCass {
     left?: number;
     centerX?: number;
     centerY?: number;
+    right?: number;
+    bottom?: number;
   };
 
   export interface DrawParam {
@@ -607,5 +633,18 @@ export namespace CanvCass {
     strokeWidth?: number;
     align?: CanvasTextAlign;
     baseline?: CanvasTextBaseline;
+  }
+
+  export function lineYs(height: number, lines: number): number[] {
+    if (lines <= 0) return [];
+
+    const spacing = height / (lines + 1);
+    const ys = [];
+
+    for (let i = 0; i < lines; i++) {
+      ys.push(Math.round(spacing * (i + 1)));
+    }
+
+    return ys;
   }
 }

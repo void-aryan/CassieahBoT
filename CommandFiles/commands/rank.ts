@@ -1,11 +1,6 @@
-// @ts-check
-import { CanvCass } from "@cass-modules/Canvcass";
 import { UNIRedux } from "../modules/unisym.js";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
+export const meta: CassidySpectra.CommandMeta = {
   name: "rank",
   description: "Displays your in-game rank and experience.",
   version: "1.1.7",
@@ -41,24 +36,15 @@ export function formatNumber(number) {
   }
 }
 
-/**
- * @type {CommandStyle}
- */
-export const style = {
+export const style: CommandStyle = {
   title: "🌟 Rank",
   titleFont: "bold",
-  content: {
-    text_font: "fancy",
-    // text_prefix: "➤ ",
-  },
+  contentFont: "fancy",
   lineDeco: "altar",
 };
 
-/**
- * @param {CommandContext} ctx
- */
-export async function entry({ money, input, output, CassEXP }) {
-  const progressBar = (prog, need, totalBars = 7) => {
+export async function entry({ money, input, output, CassEXP }: CommandContext) {
+  const progressBar = (prog: number, need: number, totalBars = 7) => {
     const bar = "🟨";
     const empty = "⬜";
     const percent =
@@ -74,8 +60,6 @@ export async function entry({ money, input, output, CassEXP }) {
     const barX = bar.repeat(filledBars) + empty.repeat(emptyBars);
     return barX;
   };
-
-  // output.prepend = UNIRedux.arrow;
 
   if (input.arguments[0] === "top") {
     let { participantIDs = [] } = input;
@@ -150,7 +134,8 @@ export async function entry({ money, input, output, CassEXP }) {
     width: canv.width,
   });
 
-  canv.drawBox(container, {
+  canv.drawBox({
+    rect: container,
     fill: "rgba(0, 0, 0, 0.5)",
   });
 
@@ -191,12 +176,14 @@ export async function entry({ money, input, output, CassEXP }) {
     width: (canv.width - margin * 2) * per,
     height: 70,
   });
-  canv.drawBox(bar, {
+  canv.drawBox({
+    rect: bar,
     fill: "black",
     stroke: "black",
     strokeWidth: 10,
   });
-  canv.drawBox(barP, {
+  canv.drawBox({
+    rect: barP,
     fill: "white",
   });
 

@@ -755,6 +755,7 @@ declare global {
   export namespace Cassieah {
     export interface CommandContext extends CommandContextOG {}
     export interface GlobalCassidy {
+      clearModuleCache(...paths: string[]): boolean;
       /**
        * @deprecated
        */
@@ -1164,7 +1165,7 @@ import { ObjectKey } from "@cass-modules/unitypes";
 import { FormatArgs } from "@cass-modules/format-with";
 import { FontSystem } from "cassidy-styler";
 import { createThreads, createUsers } from "@cass-plugins/botpack-utils";
-import * as _CanvCass from "@cass-modules/Canvcass";
+import * as _CanvCass from "@cass-modules/CanvCass";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {

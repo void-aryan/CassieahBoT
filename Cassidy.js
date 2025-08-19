@@ -119,6 +119,14 @@ const consoleDisplay = new ConsoleArray();
  */
 global.Cassidy = {
   consoleDisplay,
+  clearModuleCache(...paths) {
+    const p = require.resolve(path.resolve(process.cwd(), ...paths));
+    if (Reflect.has(require.cache, p)) {
+      Reflect.deleteProperty(require.cache, p);
+      return true;
+    }
+    return false;
+  },
   get config() {
     const cache = loadSettings();
     return new Proxy(cache, {
@@ -602,8 +610,9 @@ import fetchMeta from "./CommandFiles/modules/fetchMeta.js";
 import { TempFile } from "./handlers/page/sendMessage";
 import { inspect } from "util";
 import getCUser from "@cass-modules/XaviaSupport/User";
-import { CanvCass } from "@cass-modules/Canvcass";
+import { CanvCass } from "@cass-modules/CanvCass";
 import { formatTimeSentence } from "@cass-modules/ArielUtils";
+import path from "path";
 const { UTYPlayer } = global.utils;
 
 const limit = {
