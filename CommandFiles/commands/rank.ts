@@ -1,4 +1,3 @@
-import { CanvCass } from "@cass-modules/CassieahExtras";
 import { UNIRedux } from "../modules/unisym.js";
 
 export const meta: CassidySpectra.CommandMeta = {
@@ -62,20 +61,20 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
     return barX;
   };
 
+  const allData = await money.getAll();
+
+  const topData = Object.entries(allData).sort(
+    (a, b) =>
+      new CassEXP(b[1].cassEXP).getEXP() - new CassEXP(a[1].cassEXP).getEXP()
+  );
+
   if (input.arguments[0] === "top") {
     let { participantIDs = [] } = input;
     if (!Array.isArray(participantIDs)) {
       participantIDs = [];
     }
-    const allData = await money.getAll();
 
-    const topList = Object.entries(allData)
-      .sort(
-        (a, b) =>
-          new CassEXP(b[1].cassEXP).getEXP() -
-          new CassEXP(a[1].cassEXP).getEXP()
-      )
-      .slice(0, 10);
+    const topList = topData.slice(0, 10);
 
     const formattedTopList = topList.map(([, data], index) => {
       const { name, cassEXP } = data;
@@ -145,11 +144,21 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
 
   const margin = 100;
 
+  const top = topData.findIndex((i) => i[1].userID === senderID) + 1;
+
   canv.drawText(`👤 ${data.name}`, {
     font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
     x: container.left + margin,
     y: lines.at(0),
     align: "left",
+    baseline: "middle",
+    fill: "white",
+  });
+  canv.drawText(`#${top}`, {
+    font: `bold 60px Cassieah-Bold, EMOJI, sans-serif`,
+    x: container.right - margin,
+    y: lines.at(0),
+    align: "right",
     baseline: "middle",
     fill: "white",
   });
@@ -173,13 +182,11 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
   });
   canv.drawBox({
     rect: bar,
-    fill: "black",
-    stroke: "black",
-    strokeWidth: 10,
+    fill: "rgba(0, 0, 0, 0.5)",
   });
   canv.drawBox({
     rect: barP,
-    fill: "rgba(255, 255, 255, 0.5)",
+    fill: canv.defaultGradient(barP.width, barP.height),
   });
 
   canv.drawText(`Level ${cxp.getLevel()}`, {
@@ -196,7 +203,7 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
       cxp.getNextEXP() - CassEXP.getEXPFromLevel(cxp.level - 1)
     }`,
     {
-      font: `normal 35px Cassieah, EMOJI, sans-serif`,
+      font: `bold 40px Cassieah-Bold, EMOJI, sans-serif`,
       x: bar.centerX,
       y: lines.at(1),
       align: "center",

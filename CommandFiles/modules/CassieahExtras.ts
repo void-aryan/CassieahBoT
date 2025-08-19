@@ -1,5 +1,6 @@
 import {
   Canvas,
+  CanvasGradient,
   CanvasRenderingContext2D,
   CanvasTextAlign,
   CanvasTextBaseline,
@@ -534,6 +535,44 @@ export class CanvCass {
     ctx.restore();
   }
 
+  static colorA = "#9700af";
+  static colorB = "#a69a00";
+
+  defaultGradient(width: number, height: number) {
+    return this.tiltedGradient(width, height, Math.PI / 4, [
+      [0, CanvCass.colorB],
+      [1, CanvCass.colorA],
+    ]);
+  }
+
+  tiltedGradient(
+    width: number,
+    height: number,
+    angleRad: number,
+    colorStops: [number, string][]
+  ): CanvasGradient {
+    const cx = width / 2;
+    const cy = height / 2;
+
+    const halfLen = Math.sqrt(width ** 2 + height ** 2) / 2;
+
+    const dx = Math.cos(angleRad) * halfLen;
+    const dy = Math.sin(angleRad) * halfLen;
+
+    const x0 = cx - dx;
+    const y0 = cy - dy;
+    const x1 = cx + dx;
+    const y1 = cy + dy;
+
+    const gradient = this.#context.createLinearGradient(x0, y0, x1, y1);
+
+    for (const [offset, color] of colorStops) {
+      gradient.addColorStop(offset, color);
+    }
+
+    return gradient;
+  }
+
   async drawImage(
     image: Image,
     x: number,
@@ -602,7 +641,7 @@ export namespace CanvCass {
 
   export interface DrawParam {
     stroke?: string;
-    fill?: string;
+    fill?: Color;
     strokeWidth?: number;
   }
 
@@ -633,7 +672,7 @@ export namespace CanvCass {
     x: number;
     y: number;
     font?: string;
-    fill?: string;
+    fill?: Color;
     stroke?: string;
     strokeWidth?: number;
     align?: CanvasTextAlign;
@@ -653,4 +692,6 @@ export namespace CanvCass {
 
     return ys;
   }
+
+  export type Color = string | CanvasGradient;
 }

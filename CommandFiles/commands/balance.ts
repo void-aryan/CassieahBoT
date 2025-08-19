@@ -518,7 +518,6 @@ const home = new SpectralCMDHome(
 import { defineEntry } from "@cass/define";
 import { FontSystem } from "cassidy-styler";
 import { formatCash } from "@cass-modules/ArielUtils";
-import { CanvCass } from "@cass-modules/CassieahExtras";
 
 export const entry = defineEntry(async (ctx) => {
   return home.runInContext(ctx);
