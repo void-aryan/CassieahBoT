@@ -101,5 +101,6 @@
   "disableUIDLinks": false,
   "ignoreUIDLinksOfAdminBOT": true,
   "disabledCategories": ["Xavia Economy", "Idle Accumulation Games"],
-  "showAuthorOnStyle": false
+  "showAuthorOnStyle": false,
+  "RESTART_CACHE": ""
 }

@@ -29,12 +29,11 @@ extend();
 
 const MEMORY_THRESHOLD = 500;
 const WARNING_THRESHOLD = MEMORY_THRESHOLD * 0.9;
-import { fontTag } from "./handlers/styler.js/main";
 import cors from "cors";
 import * as fs from "fs";
 
 import { lookup } from "mime-types";
-import { autoBold } from "cassidy-styler";
+import { autoBold, format } from "cassidy-styler";
 
 import __pkg from "./package.json";
 global.package = __pkg;
@@ -50,10 +49,7 @@ global.easyCMD = easyCMD;
 let commands = {};
 const allPlugins = {};
 
-import {
-  removeCommandAliases,
-  UNISpectra,
-} from "./CommandFiles/modules/unisym.js";
+import { removeCommandAliases } from "./CommandFiles/modules/unisym.js";
 import { ConsoleArray } from "@cass-modules/ConsoleArray";
 
 const checkMemoryUsage = (normal) => {
@@ -496,6 +492,7 @@ async function main() {
   logger("Listener Started!", "LISTEN");
 
   try {
+    setupRestart();
     setupAutoRestart();
     await setupCommands();
   } catch (error) {
@@ -506,6 +503,27 @@ async function main() {
 }
 import request from "request";
 
+function setupRestart() {
+  if (Cassidy.config.RESTART_CACHE !== "") {
+    const [now_, tid] = Cassidy.config.RESTART_CACHE.split("_");
+    const now = Number(now_);
+    if (!now || !tid) return;
+    if (api) {
+      const ela = Date.now() - now;
+      api.sendMessage(
+        format({
+          title: Cassidy.logo,
+          titleFont: "none",
+          contentFont: "fancy",
+          content: `✅ Restarted!\n\n⏳ **Time Took**: ${formatTimeSentence(
+            ela
+          )}`,
+        }),
+        tid
+      );
+    }
+  }
+}
 function setupAutoRestart() {
   const { mqttRestart } = global.Cassidy.config;
   if (mqttRestart?.enabled) {
@@ -584,6 +602,7 @@ import { TempFile } from "./handlers/page/sendMessage";
 import { inspect } from "util";
 import getCUser from "@cass-modules/XaviaSupport/User";
 import { CanvCass } from "@cass-modules/Canvcass";
+import { formatTimeSentence } from "@cass-modules/ArielUtils";
 const { UTYPlayer } = global.utils;
 
 const limit = {
@@ -672,7 +691,7 @@ function web(api, funcListen, _) {
   app.get("/api/usercache", async (req, res) => {
     const { uid, format = "yes" } = req.query;
     const cache = await global.handleStat.getCache(
-      format === "yes" ? formatIP(uid) : uid
+      String(format === "yes" ? formatIP(String(uid)) : uid)
     );
 
     const userMeta = await fetchMeta(uid);
