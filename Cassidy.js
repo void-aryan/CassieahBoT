@@ -522,6 +522,7 @@ function setupRestart() {
         tid
       );
     }
+    Cassidy.config.RESTART_CACHE = "";
   }
 }
 function setupAutoRestart() {
