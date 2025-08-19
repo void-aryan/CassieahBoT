@@ -125,7 +125,7 @@ React with 👍 to continue.`
     }
     if (!silent) {
       if (willReloads.length <= 0) {
-        if (input.isWeb) {
+        if (true || input.isWeb) {
           return output.reply(`✅ There's nothing to reload!`);
         }
         return;
