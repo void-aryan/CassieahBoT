@@ -24,7 +24,6 @@ export async function loadPluginsEach(
    * @type {Record<string, Error>}
    */
   const errs = {};
-  require.cache = {};
   const plugins = fs
     .readdirSync("CommandFiles/plugins")
     .filter(
@@ -68,7 +67,6 @@ export async function loadPlugins(
    * @type {Record<string, Error>}
    */
   const errs = {};
-  require.cache = {};
   const plugins = fs
     .readdirSync("CommandFiles/plugins")
     .filter((file) => file.endsWith(".js") || file.endsWith(".ts"));

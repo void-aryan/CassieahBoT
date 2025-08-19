@@ -1165,7 +1165,7 @@ import { ObjectKey } from "@cass-modules/unitypes";
 import { FormatArgs } from "@cass-modules/format-with";
 import { FontSystem } from "cassidy-styler";
 import { createThreads, createUsers } from "@cass-plugins/botpack-utils";
-import * as _CanvCass from "@cass-modules/CanvCass";
+import * as _CanvCass from "@cass-modules/CassieahExtras";
 
 // import { defineOutputJSX, defineUserStatsJSX, VNode } from "@cass/define";
 declare global {

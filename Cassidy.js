@@ -321,10 +321,6 @@ export async function loadAllCommands(callback = async () => {}) {
     (file) => file.endsWith(".js") || file.endsWith(".ts")
   );
 
-  Object.keys(require.cache).forEach((i) => {
-    delete require.cache[i];
-  });
-
   // const commandPromises = fileNames.map(async (fileName) => {
   //   try {
   //     const e = await loadCommand(fileName, commands);
@@ -610,7 +606,7 @@ import fetchMeta from "./CommandFiles/modules/fetchMeta.js";
 import { TempFile } from "./handlers/page/sendMessage";
 import { inspect } from "util";
 import getCUser from "@cass-modules/XaviaSupport/User";
-import { CanvCass } from "@cass-modules/CanvCass";
+import { CanvCass } from "@cass-modules/CassieahExtras";
 import { formatTimeSentence } from "@cass-modules/ArielUtils";
 import path from "path";
 const { UTYPlayer } = global.utils;

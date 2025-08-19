@@ -19,11 +19,14 @@ import {
   unlinkSync,
 } from "fs";
 import { join } from "path";
+import { v4 } from "uuid";
 
 export class CanvCass {
   static registerFont(font: CanvCass.Font) {
     CanvCass.fonts.registerFromPath(font.path, font.name);
   }
+
+  static ID = v4();
 
   static async singleSetup() {
     logger("Registering fonts...", "CanvCass");

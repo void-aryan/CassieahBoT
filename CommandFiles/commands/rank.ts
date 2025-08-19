@@ -1,3 +1,4 @@
+import { CanvCass } from "@cass-modules/CassieahExtras";
 import { UNIRedux } from "../modules/unisym.js";
 
 export const meta: CassidySpectra.CommandMeta = {
@@ -14,7 +15,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "cplx_g",
 };
 
-export function formatNumber(number) {
+export function formatNumber(number: number) {
   const absNumber = Math.abs(number);
 
   if (absNumber >= 1e21) {
