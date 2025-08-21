@@ -1336,7 +1336,15 @@ export class UTShop {
     return false;
     return this.playerRoute.toLowerCase() === "genocide" && !this.notScaredGeno;
   }
+
   optionText() {
+    return (
+      `💵 **Buy**` +
+      `💬 **Talk**` +
+      `\n💌 ***Reply/send with an option without/with a prefix.***`
+    );
+  }
+  optionTextOLD__() {
     return (
       `      💵        💬 \n` +
       `     **Buy**     **Talk**\n` +
@@ -1376,6 +1384,18 @@ export class UTShop {
       );
     }
     let author = "";
+    const stateShop = {
+      author,
+      command: context.command,
+      isItemChoose: false,
+      isTalkChoose: false,
+      isTalkNext: false,
+      talkIndex: 0,
+      page: 1,
+      targetTalk: null,
+      detectID: "",
+    };
+
     try {
       const { invLimit } = global.Cassidy;
 
@@ -1424,6 +1444,19 @@ export class UTShop {
 
       this.itemData.forEach((i) => this.ensureStock(input.senderID, i.key));
 
+      const jumpToReply = () => {
+        onReply({ ...context });
+      };
+
+      if (input.args.at(-1)?.toLowerCase() === "buy") {
+        stateShop.isItemChoose = true;
+        jumpToReply();
+      }
+      if (input.args.at(-1)?.toLowerCase() === "talk") {
+        stateShop.isTalkChoose = true;
+        jumpToReply();
+      }
+
       const { money: cash, inventory = [] } = await money.getItem(
         input.senderID
       );
@@ -1448,17 +1481,6 @@ ${this.optionText()}
       console.error(error);
       context.output?.error?.(error);
     }
-    const stateShop = {
-      author,
-      command: context.command,
-      isItemChoose: false,
-      isTalkChoose: false,
-      isTalkNext: false,
-      talkIndex: 0,
-      page: 1,
-      targetTalk: null,
-      detectID: "",
-    };
 
     const self = this;
 
@@ -1511,7 +1533,9 @@ ${this.optionText()}
          * @param {Partial<typeof stateShop>} param1
          */
         async function handleEnd(id, { ...additional } = {}) {
-          input.delReply(context.repObj.detectID);
+          try {
+            input.delReply(context.repObj?.detectID);
+          } catch (error) {}
           Object.assign(stateShop, additional);
           input.setReply(id, {
             key: context.commandName,
@@ -1524,7 +1548,7 @@ ${this.optionText()}
         }
 
         async function handleBuy() {
-          const userInfo = await money.get(input.senderID);
+          const userInfo = await money.getItem(input.senderID);
           const { money: cash, inventory = [], boxItems = [] } = userInfo;
           const { playersMap } = context.petPlayerMaps(userInfo);
           const { str: items, canv } = await self.stringItemData({
@@ -1818,7 +1842,7 @@ ${this.optionText()}
           return handleGoBack();
         }
         async function handleGoBack() {
-          const { money: cash, inventory = [] } = await money.get(
+          const { money: cash, inventory = [] } = await money.getItem(
             input.senderID
           );
 
