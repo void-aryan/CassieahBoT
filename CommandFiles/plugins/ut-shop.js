@@ -1376,7 +1376,7 @@ export class UTShop {
         "No context provided! Please update your SHOP FILE to include the entire CommandContext as first argument of onPlay. DO NOT PUT INCOMPLETE CONTEXT"
       );
     }
-    let author = "";
+    let author = context.input.senderID;
     const self = this;
 
     const stateShop = {
