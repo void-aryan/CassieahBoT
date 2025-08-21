@@ -139,14 +139,20 @@ export class InputClass extends String implements InputProps {
         global.currData =
           self.#__context.multiCommands.getOne(key) ||
           self.#__context.multiCommands.getOne(key.toLowerCase());
-        replies[detectID] = {
+        const ii = {
           repObj,
           commandKey: key,
           detectID,
           command: self.#__context.command as CassidyCommand,
           registeredSender: self.senderID,
         };
+        replies[detectID] = ii;
         logger(`Reply Detector Added: ${detectID}`, "INPUT");
+        setTimeout(() => {
+          if (replies[detectID] === ii) {
+            self.ReplySystem.delete(detectID);
+          }
+        }, 30 * 60 * 1000);
 
         return replies[detectID] as RepliesObj<T>;
       },
@@ -199,13 +205,19 @@ export class InputClass extends String implements InputProps {
         global.currData =
           self.#__context.multiCommands.getOne(key) ||
           self.#__context.multiCommands.getOne(key.toLowerCase());
-        reacts[detectID] = {
+        const ii = {
           reactObj,
           commandKey: key,
           detectID,
           command: self.#__context.command as CassidyCommand,
         };
+        reacts[detectID] = ii;
         logger(`Reaction Detector Added: ${detectID}`, "INPUT");
+        setTimeout(() => {
+          if (reacts[detectID] === ii) {
+            self.ReactSystem.delete(detectID);
+          }
+        }, 30 * 60 * 1000);
         return reacts[detectID] as ReactObj<T>;
       },
       delete<T extends StandardReactArg>(detectID: string): ReactObj<T> {

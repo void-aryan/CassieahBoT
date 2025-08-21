@@ -10,6 +10,7 @@ import {
   parseBet,
 } from "@cass-modules/ArielUtils";
 import { calculateInflation } from "@cass-modules/unitypes";
+import { Slicer } from "./utils-liane";
 
 export const meta = {
   name: "ut-shop",
@@ -891,9 +892,17 @@ export class UTShop {
     return null;
   }
 
+  get pageLimit() {
+    return 4;
+  }
+
+  getPageSlicer() {
+    return new Slicer(this.itemData, this.pageLimit);
+  }
+
   /**
    *
-   * @param {{ inventory: Inventory; boxInventory: Inventory; userMoney: number; playersMap: Map<string, PetPlayer>; userData: UserData }} param0
+   * @param {{ inventory: Inventory; boxInventory: Inventory; userMoney: number; playersMap: Map<string, PetPlayer>; userData: UserData, page: number }} param0
    * @returns
    */
   async stringItemData({
@@ -902,10 +911,13 @@ export class UTShop {
     userMoney: _money = 0,
     playersMap,
     userData,
+    page,
   }) {
     const collectibles = new Collectibles(userData.collectibles ?? []);
 
-    const data = this.itemData;
+    const slicer = this.getPageSlicer();
+    const data = slicer.getPage(page);
+
     let result;
     const itemHeight = 128;
     const width = 480;
@@ -1221,6 +1233,11 @@ export class UTShop {
           return result;
         })
         .join("\n\n");
+      if (page !== this.getPageSlicer().pagesLength) {
+        result += `\n\n📃 **MORE ITEMS**: Reply with **page ${
+          page + 1
+        }** to see the next page!`;
+      }
       if (allCll.length > 0) {
         result += `\n\n${UNISpectra.charm} 🏆 **Your Collectibles**:\n${allCll
           .map(
@@ -1287,11 +1304,13 @@ export class UTShop {
         "No context provided! Please update your SHOP FILE to include the entire CommandContext as first argument of onPlay. DO NOT PUT INCOMPLETE CONTEXT"
       );
     }
+    let author = "";
     try {
       const { invLimit } = global.Cassidy;
 
       const inventoryLimit = invLimit;
       const { input, output, money, getInflationRate } = context;
+      author = input.senderID;
       this.style ??= context.command?.style;
 
       if (context.command?.style) {
@@ -1335,11 +1354,12 @@ export class UTShop {
 ${this.optionText()}
 
 **${formatCash(cash)}** 🧰 **${inventory.length}/${inventoryLimit}**`);
-      const self = this;
       input.setReply(i.messageID, {
         key: context.commandName,
         author: input.senderID,
-        callback: self.onReply.bind(self),
+        callback(c) {
+          return onReply(c);
+        },
         detectID: i.messageID,
         command: context.command,
       });
@@ -1347,340 +1367,383 @@ ${this.optionText()}
       console.error(error);
       context.output?.error?.(error);
     }
-  }
-  /**
-   * @param {CommandContext & { repObj?: Record<string, any> }} context
-   */
-  async onReply(context) {
-    try {
-      const { invLimit } = global.Cassidy;
+    const stateShop = {
+      author,
+      command: context.command,
+      isItemChoose: false,
+      isTalkChoose: false,
+      isTalkNext: false,
+      talkIndex: 0,
+      page: 1,
+      targetTalk: null,
+      detectID: "",
+    };
 
-      const { input, output, money, repObj } = context;
-      if (repObj.command?.style) {
-        output.setStyle(repObj.command.style);
-      }
-      if (this.style) {
-        output.setStyle(this.style);
-      }
-      const { author } = repObj;
-      const inventoryLimit = invLimit;
-      const self = this;
-      if (input.senderID !== author) {
-        return;
-      }
-      let [option] = input.splitBody(" ");
-      option = option.toLowerCase();
-      if (repObj.isItemChoose) {
-        return handleBuyItem();
-      }
-      if (repObj.isTalkChoose) {
-        return handleTalkChoices();
-      }
+    const self = this;
 
-      if (repObj.isTalkNext && (option === "next" || option === "back")) {
-        return handleTalkChoices();
-      }
+    /**
+     * @type {(context: CommandContext & { repObj?: Record<string, any> }) => Promise<any>}
+     */
+    async function onReply(context) {
+      try {
+        const { invLimit } = global.Cassidy;
 
-      switch (option) {
-        case "buy":
-          return handleBuy();
-        case "talk":
-          return handleTalk();
-        case "back":
-          return handleGoBack();
-        default:
-          break;
-      }
-
-      async function handleEnd(id, { ...additional } = {}) {
-        input.delReply(repObj.detectID);
-        input.setReply(id, {
-          key: context.commandName,
-          author,
-          callback: self.onReply.bind(self),
-          detectID: id,
-          ...additional,
-        });
-      }
-
-      async function handleBuy() {
-        const userInfo = await money.get(input.senderID);
-        const { money: cash, inventory = [], boxItems = [] } = userInfo;
-        const { playersMap } = context.petPlayerMaps(userInfo);
-        const { str: items, canv } = await self.stringItemData({
-          userMoney: cash,
-          inventory: new Inventory(inventory),
-          boxInventory: new Inventory(boxItems, 100),
-          playersMap,
-          userData: userInfo,
-        });
-        const dialogue = self.rand(self.buyTexts);
-        const i = await output.reply({
-          body: `🔎 Reply with **<num> <quantity>** to purchase.\n\n${
-            UNISpectra.charm
-          } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(cash)}** 🧰 **${
-            inventory.length
-          }/${inventoryLimit}**`,
-          attachment: await canv.toStream(),
-        });
-        handleEnd(i.messageID, {
-          isItemChoose: true,
-        });
-      }
-
-      async function handleTalk() {
-        repObj.isTalkNext = false;
-        repObj.talkIndex = 0;
-        if (self.talkTexts.length === 0) {
-          return output.reply(`${UNISpectra.charm} 💬 No topics available.`);
+        const { input, output, money } = context;
+        if (stateShop.command?.style) {
+          output.setStyle(stateShop.command.style);
         }
-        const talks = self.stringTalkTexts();
-        const i = await output.reply(
-          `${UNISpectra.charm} 💬 ${self.rand(
-            self.askTalkTexts
-          )}\n\n${talks}\n💌 ***Reply with a topic number***.`
-        );
-        handleEnd(i.messageID, {
-          isTalkChoose: true,
-        });
-      }
-
-      async function handleBuyItem() {
-        const { petPlayerMaps } = context;
-        const userInfo = await money.getItem(input.senderID);
-        const {
-          money: cash = 0,
-          inventory = [],
-          boxItems: boxInventory = [],
-
-          cassEXP: cxp,
-        } = userInfo;
-
-        const collectibles = new Collectibles(userInfo.collectibles ?? []);
-        const cassEXP = new CassEXP(cxp);
-
-        let { playersMap } = petPlayerMaps(userInfo);
-
-        let { str: items, canv } = await self.stringItemData({
-          userMoney: cash,
-          inventory: new Inventory(inventory),
-          boxInventory: new Inventory(boxInventory, 100),
-          playersMap,
-          userData: userInfo,
-        });
-        const num = parseInt(input.words[0]);
-
-        if (String(input.words[0]).toLowerCase() === "back") {
-          return handleGoBack();
+        if (self.style) {
+          output.setStyle(self.style);
+        }
+        const { author } = stateShop;
+        const inventoryLimit = invLimit;
+        if (input.senderID !== author) {
+          return;
+        }
+        let [option] = input.splitBody(" ");
+        option = option.toLowerCase();
+        if (stateShop.isItemChoose) {
+          return handleBuyItem();
+        }
+        if (stateShop.isTalkChoose) {
+          return handleTalkChoices();
         }
 
-        const targetItem = self.itemData.find(
-          (item) => String(item.num) === String(num)
-        );
-        if (isNaN(num) || !targetItem) {
-          return output.reply(
-            `❗ **Invalid input:** Please reply with a valid number (1st argument) shown to the **left of the item name**.`
-          );
+        if (stateShop.isTalkNext && (option === "next" || option === "back")) {
+          return handleTalkChoices();
         }
 
-        let { price = 0, onPurchase } = targetItem;
-        targetItem.priceType ??= "money";
-        const priceInfo = self.isCll(targetItem.priceType);
-        const currentAmount = self.getUserHas(userInfo, targetItem.priceType);
-        const stocks = self.getStock(input.senderID, targetItem.key);
+        switch (option) {
+          case "buy":
+            return handleBuy();
+          case "talk":
+            return handleTalk();
+          case "back":
+            return handleGoBack();
+          default:
+            break;
+        }
+
         /**
-         * @type {import("@cass-modules/cassidyUser").CollectibleItem["metadata"]}
+         *
+         * @param {string} id
+         * @param {Partial<typeof stateShop>} param1
          */
-        const cllItem =
-          priceInfo.state && collectibles.has(priceInfo.cllKey)
-            ? collectibles.getMeta(priceInfo.cllKey)
-            : {
-                icon: "❓",
-                name: "Unknown Item",
-                key: priceInfo.cllKey,
-                type: "unknown",
-              };
-
-        let amount =
-          parseBet(
-            input.words[1],
-            isFinite(stocks) ? stocks : invLimit - inventory.length
-          ) || 1;
-        if (isNaN(amount) || amount <= 0) {
-          amount = 1;
-        }
-        if (amount > inventoryLimit - inventory.length) {
-          amount = inventoryLimit - inventory.length;
+        async function handleEnd(id, { ...additional } = {}) {
+          input.delReply(context.repObj.detectID);
+          Object.assign(stateShop, additional);
+          input.setReply(id, {
+            key: context.commandName,
+            author,
+            callback(c) {
+              return onReply(c);
+            },
+            detectID: id,
+          });
         }
 
-        if (amount >= stocks) {
-          amount = stocks;
-        }
-        if (targetItem.cannotBuy || stocks <= 0) {
-          return output.reply(
-            `🚫 **OUT OF STOCK:** You can't buy this item at the moment.`
-          );
-        }
-        if (inventory.length >= inventoryLimit) {
-          return output.reply(
-            `📦 **Inventory full:** You have **${inventory.length}/${inventoryLimit}** items.\nPlease free up space before buying more.`
-          );
-        }
-
-        if (amount <= 0) {
-          return output.reply(
-            `💌 **Invalid amount:** The number you entered (2nd argument) is **not valid**.`
-          );
-        }
-
-        price = amount * price;
-        if (currentAmount < price) {
-          return output.reply(
-            `💸 **Insufficient funds:** You have ${
-              priceInfo.state
-                ? `${formatValue(currentAmount, cllItem.icon)} ${cllItem.name}`
-                : formatCash(currentAmount, true)
-            }, but need ${
-              priceInfo.state
-                ? `${formatValue(price, cllItem.icon)} ${cllItem.name}`
-                : formatCash(price, true)
-            }.\nPlease choose a valid option or type **back**.`
-          );
+        async function handleBuy() {
+          const userInfo = await money.get(input.senderID);
+          const { money: cash, inventory = [], boxItems = [] } = userInfo;
+          const { playersMap } = context.petPlayerMaps(userInfo);
+          const { str: items, canv } = await self.stringItemData({
+            userMoney: cash,
+            inventory: new Inventory(inventory),
+            boxInventory: new Inventory(boxItems, 100),
+            playersMap,
+            userData: userInfo,
+            page: stateShop.page,
+          });
+          const dialogue = self.rand(self.buyTexts);
+          const i = await output.reply({
+            body: `📃 **Page ${stateShop.page}** of ${
+              self.getPageSlicer().pagesLength
+            }\n🔎 Reply with **<num> <quantity>** to purchase.\n📁 Reply with **page <num>** to switch pages.\n\n${
+              UNISpectra.charm
+            } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(cash)}** 🧰 **${
+              inventory.length
+            }/${inventoryLimit}**`,
+            attachment: await canv.toStream(),
+          });
+          handleEnd(i.messageID, {
+            isItemChoose: true,
+          });
         }
 
-        cassEXP.expControls.raise(
-          targetItem.expReward ??
-            clamp(0, targetItem.price / 500000, 10) * amount
-        );
-        /**
-         * @type {Partial<UserData>}
-         */
-        const argu = {
-          inventory,
-          cassEXP: cassEXP.raw(),
-          boxInventory,
-        };
-        const newCtx = {
-          ...context,
-          moneySet: argu,
-        };
-        if (!priceInfo.state && targetItem.priceType === "money") {
-          argu.money = cash - price;
-          userInfo.money = argu.money;
-        }
-        if (priceInfo.state && cllItem) {
-          collectibles.raise(priceInfo.cllKey, -price);
-          argu.collectibles = Array.from(collectibles);
-          userInfo.collectibles = argu.collectibles;
-        }
-
-        const invCache = [...inventory];
-        for (let i = 0; i < amount; i++) {
-          try {
-            // @ts-ignore
-            await onPurchase(newCtx);
-            self.decreaseStock(input.senderID, targetItem.key);
-          } catch (error) {
-            console.error(error);
-            output.error(error);
+        async function handleTalk() {
+          stateShop.isTalkNext = false;
+          stateShop.talkIndex = 0;
+          if (self.talkTexts.length === 0) {
+            return output.reply(`${UNISpectra.charm} 💬 No topics available.`);
           }
-        }
-        const added = argu.inventory.filter((i) => !invCache.includes(i));
-        const firstAdded = added[0];
-        await money.setItem(input.senderID, {
-          ...argu,
-          inventory: new Inventory(argu.inventory).raw(),
-        });
-        ({ items, canv } = await self.stringItemData({
-          userMoney:
-            !priceInfo.state && targetItem.priceType === "money"
-              ? cash - price
-              : cash,
-          inventory: new Inventory(inventory),
-          boxInventory: new Inventory(boxInventory, 100),
-          playersMap,
-          userData: userInfo,
-        }));
-
-        const dialogue = self.rand(self.thankTexts);
-        const header = `✅ Added **x${amount} ${firstAdded.icon} ${
-          firstAdded.name
-        }** (${firstAdded.key}) for ${
-          priceInfo.state
-            ? `${formatValue(price, cllItem.icon)} ${cllItem.name}`
-            : formatCash(price, true)
-        }`;
-
-        const i = await output.reply({
-          body: `${header}\n\n${
-            UNISpectra.charm
-          } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(
-            !priceInfo.state && targetItem.priceType === "money"
-              ? cash - price
-              : cash
-          )}** 🧰 **${inventory.length}/${inventoryLimit}**`,
-          attachment: await canv.toStream(),
-        });
-        handleEnd(i.messageID, {
-          isItemChoose: true,
-        });
-      }
-
-      async function handleTalkChoices() {
-        if (input.words[0] === "back") {
-          if (!repObj.isTalkNext) {
-            return handleBack();
-          }
-          return handleTalk();
-        }
-        const num = parseInt(input.words[0]);
-        const targetTalk =
-          repObj.targetTalk ??
-          self.talkTexts.find((talk) => String(talk.num) === String(num));
-        if ((!repObj.isTalkNext && isNaN(num)) || !targetTalk) {
-          return output.reply(
-            `(Go back and reply with a valid number that you can see at the left side of the choice name.)`
-          );
-        }
-        const { responses } = targetTalk;
-        const index = repObj.talkIndex ?? 0;
-        const text = responses[index];
-        repObj.isTalkChoose = false;
-        if (text) {
+          const talks = self.stringTalkTexts();
           const i = await output.reply(
-            `${UNISpectra.charm} 💬 ${text}\n\n**Next**\n**Back**`
+            `${UNISpectra.charm} 💬 ${self.rand(
+              self.askTalkTexts
+            )}\n\n${talks}\n💌 ***Reply with a topic number***.`
           );
           handleEnd(i.messageID, {
-            isTalkNext: true,
-            talkIndex: index + 1,
-            targetTalk,
-            isBox: repObj.isBox,
+            isTalkChoose: true,
           });
-        } else {
-          repObj.isTalkNext = false;
-          repObj.talkIndex = 0;
-          repObj.targetTalk = null;
-          return handleTalk();
         }
-      }
-      async function handleBack() {
-        return handleGoBack();
-      }
-      async function handleGoBack() {
-        const { money: cash, inventory = [] } = await money.get(input.senderID);
 
-        const i = await output.reply(`${UNISpectra.charm} 💬 ${
-          self.isGenoR() ? `Nobody is here.` : self.rand(self.goBackTexts)
+        async function handleBuyItem() {
+          if (input.words.at(0)?.toLowerCase() === "page") {
+            const newPage = Math.floor(
+              Math.max(
+                1,
+                Math.min(
+                  Number(input.words[1]) || 1,
+                  self.getPageSlicer().pagesLength
+                )
+              )
+            );
+            stateShop.page = newPage;
+            return handleBuy();
+          }
+          const { petPlayerMaps } = context;
+          const userInfo = await money.getItem(input.senderID);
+          const {
+            money: cash = 0,
+            inventory = [],
+            boxItems: boxInventory = [],
+
+            cassEXP: cxp,
+          } = userInfo;
+
+          const collectibles = new Collectibles(userInfo.collectibles ?? []);
+          const cassEXP = new CassEXP(cxp);
+
+          let { playersMap } = petPlayerMaps(userInfo);
+
+          // let { str: items, canv } = await self.stringItemData({
+          //   userMoney: cash,
+          //   inventory: new Inventory(inventory),
+          //   boxInventory: new Inventory(boxInventory, 100),
+          //   playersMap,
+          //   userData: userInfo,
+          //   page: stateShop.page,
+          // });
+          const num = parseInt(input.words[0]);
+
+          if (String(input.words[0]).toLowerCase() === "back") {
+            return handleGoBack();
+          }
+
+          const targetItem = self.itemData.find(
+            (item) => String(item.num) === String(num)
+          );
+          if (isNaN(num) || !targetItem) {
+            return output.reply(
+              `❗ **Invalid input:** Please reply with a valid number (1st argument) shown to the **left of the item name**.`
+            );
+          }
+
+          let { price = 0, onPurchase } = targetItem;
+          targetItem.priceType ??= "money";
+          const priceInfo = self.isCll(targetItem.priceType);
+          const currentAmount = self.getUserHas(userInfo, targetItem.priceType);
+          const stocks = self.getStock(input.senderID, targetItem.key);
+          /**
+           * @type {import("@cass-modules/cassidyUser").CollectibleItem["metadata"]}
+           */
+          const cllItem =
+            priceInfo.state && collectibles.has(priceInfo.cllKey)
+              ? collectibles.getMeta(priceInfo.cllKey)
+              : {
+                  icon: "❓",
+                  name: "Unknown Item",
+                  key: priceInfo.cllKey,
+                  type: "unknown",
+                };
+
+          let amount =
+            parseBet(
+              input.words[1],
+              isFinite(stocks) ? stocks : invLimit - inventory.length
+            ) || 1;
+          if (isNaN(amount) || amount <= 0) {
+            amount = 1;
+          }
+          if (amount > inventoryLimit - inventory.length) {
+            amount = inventoryLimit - inventory.length;
+          }
+
+          if (amount >= stocks) {
+            amount = stocks;
+          }
+          if (targetItem.cannotBuy || stocks <= 0) {
+            return output.reply(
+              `🚫 **OUT OF STOCK:** You can't buy this item at the moment.`
+            );
+          }
+          if (inventory.length >= inventoryLimit) {
+            return output.reply(
+              `📦 **Inventory full:** You have **${inventory.length}/${inventoryLimit}** items.\nPlease free up space before buying more.`
+            );
+          }
+
+          if (amount <= 0) {
+            return output.reply(
+              `💌 **Invalid amount:** The number you entered (2nd argument) is **not valid**.`
+            );
+          }
+
+          price = amount * price;
+          if (currentAmount < price) {
+            return output.reply(
+              `💸 **Insufficient funds:** You have ${
+                priceInfo.state
+                  ? `${formatValue(currentAmount, cllItem.icon)} ${
+                      cllItem.name
+                    }`
+                  : formatCash(currentAmount, true)
+              }, but need ${
+                priceInfo.state
+                  ? `${formatValue(price, cllItem.icon)} ${cllItem.name}`
+                  : formatCash(price, true)
+              }.\nPlease choose a valid option or type **back**.`
+            );
+          }
+
+          cassEXP.expControls.raise(
+            targetItem.expReward ??
+              clamp(0, targetItem.price / 500000, 10) * amount
+          );
+          /**
+           * @type {Partial<UserData>}
+           */
+          const argu = {
+            inventory,
+            cassEXP: cassEXP.raw(),
+            boxInventory,
+          };
+          const newCtx = {
+            ...context,
+            moneySet: argu,
+          };
+          if (!priceInfo.state && targetItem.priceType === "money") {
+            argu.money = cash - price;
+            userInfo.money = argu.money;
+          }
+          if (priceInfo.state && cllItem) {
+            collectibles.raise(priceInfo.cllKey, -price);
+            argu.collectibles = Array.from(collectibles);
+            userInfo.collectibles = argu.collectibles;
+          }
+
+          const invCache = [...inventory];
+          for (let i = 0; i < amount; i++) {
+            try {
+              // @ts-ignore
+              await onPurchase(newCtx);
+              self.decreaseStock(input.senderID, targetItem.key);
+            } catch (error) {
+              console.error(error);
+              output.error(error);
+            }
+          }
+          const added = argu.inventory.filter((i) => !invCache.includes(i));
+          const firstAdded = added[0];
+          await money.setItem(input.senderID, {
+            ...argu,
+            inventory: new Inventory(argu.inventory).raw(),
+          });
+          let { str: items, canv } = await self.stringItemData({
+            userMoney:
+              !priceInfo.state && targetItem.priceType === "money"
+                ? cash - price
+                : cash,
+            inventory: new Inventory(inventory),
+            boxInventory: new Inventory(boxInventory, 100),
+            playersMap,
+            userData: userInfo,
+            page: stateShop.page,
+          });
+
+          const dialogue = self.rand(self.thankTexts);
+          const header = `📃 **Page ${stateShop.page}** of ${
+            self.getPageSlicer().pagesLength
+          }\n\n✅ Added **x${amount} ${firstAdded.icon} ${firstAdded.name}** (${
+            firstAdded.key
+          }) for ${
+            priceInfo.state
+              ? `${formatValue(price, cllItem.icon)} ${cllItem.name}`
+              : formatCash(price, true)
+          }`;
+
+          const i = await output.reply({
+            body: `${header}\n\n${
+              UNISpectra.charm
+            } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(
+              !priceInfo.state && targetItem.priceType === "money"
+                ? cash - price
+                : cash
+            )}** 🧰 **${inventory.length}/${inventoryLimit}**`,
+            attachment: await canv.toStream(),
+          });
+          handleEnd(i.messageID, {
+            isItemChoose: true,
+          });
         }
+
+        async function handleTalkChoices() {
+          if (input.words[0] === "back") {
+            if (!stateShop.isTalkNext) {
+              return handleBack();
+            }
+            return handleTalk();
+          }
+          const num = parseInt(input.words[0]);
+          const targetTalk =
+            stateShop.targetTalk ??
+            self.talkTexts.find((talk) => String(talk.num) === String(num));
+          if ((!stateShop.isTalkNext && isNaN(num)) || !targetTalk) {
+            return output.reply(
+              `(Go back and reply with a valid number that you can see at the left side of the choice name.)`
+            );
+          }
+          const { responses } = targetTalk;
+          const index = stateShop.talkIndex ?? 0;
+          const text = responses[index];
+          stateShop.isTalkChoose = false;
+          if (text) {
+            const i = await output.reply(
+              `${UNISpectra.charm} 💬 ${text}\n\n**Next**\n**Back**`
+            );
+            handleEnd(i.messageID, {
+              isTalkNext: true,
+              talkIndex: index + 1,
+              targetTalk,
+            });
+          } else {
+            stateShop.isTalkNext = false;
+            stateShop.talkIndex = 0;
+            stateShop.targetTalk = null;
+            return handleTalk();
+          }
+        }
+        async function handleBack() {
+          return handleGoBack();
+        }
+        async function handleGoBack() {
+          const { money: cash, inventory = [] } = await money.get(
+            input.senderID
+          );
+
+          const i = await output.reply(`${UNISpectra.charm} 💬 ${
+            self.isGenoR() ? `Nobody is here.` : self.rand(self.goBackTexts)
+          }
 
 ${self.optionText()}
 
 **${formatCash(cash)}**$ 🧰 **${inventory.length}/${inventoryLimit}**`);
-        handleEnd(i.messageID);
+          handleEnd(i.messageID);
+        }
+      } catch (error) {
+        console.error(error);
+        context.output?.error?.(error);
       }
-    } catch (error) {
-      console.error(error);
-      context.output?.error?.(error);
     }
   }
 }

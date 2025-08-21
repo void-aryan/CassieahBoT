@@ -1,9 +1,9 @@
 {
   "web:bmVha3l1dGk": {
-    "money": 10000,
+    "money": 3820,
     "exp": 0,
     "battlePoints": 10,
-    "lastModified": 1755764099816,
+    "lastModified": 1755768353748,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -74,10 +74,133 @@
       }
     ],
     "cassEXP": {
-      "exp": 5
+      "exp": 5.012
     },
     "shopInv": {
       "petnostalgia": true
-    }
+    },
+    "inventory": [
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755767830371_ca951125-a059-484a-a38c-4f283fc78809",
+        "index": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755767830371_fd6d2492-7f8e-41dc-99c8-7668a567c906",
+        "index": 1,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755767830371_f6e257f6-97d2-4d99-9db8-f4b5679120b0",
+        "index": 2,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCoconut",
+        "name": "Coconut Seed",
+        "flavorText": "Tropical and rich in value.",
+        "icon": "🥥",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 361,
+          "growthTime": 3600000,
+          "harvests": 20,
+          "yields": 12,
+          "baseKG": 8
+        },
+        "uuid": "1755768353747_ab5e2563-9393-4773-a802-fdb6064d0021",
+        "index": 6,
+        "cannotToss": false
+      },
+      {
+        "key": "gsStrawberry",
+        "name": "Strawberry Seed",
+        "flavorText": "Sweet berries with multiple harvests.",
+        "icon": "🍓",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 14,
+          "growthTime": 1800000,
+          "harvests": 6,
+          "yields": 4
+        },
+        "uuid": "1755768146531_8258a229-8d7c-4ac4-80fc-c9419500bbe5",
+        "index": 3,
+        "cannotToss": false
+      },
+      {
+        "key": "gsStrawberry",
+        "name": "Strawberry Seed",
+        "flavorText": "Sweet berries with multiple harvests.",
+        "icon": "🍓",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 14,
+          "growthTime": 1800000,
+          "harvests": 6,
+          "yields": 4
+        },
+        "uuid": "1755768146532_f02c7d58-ca2a-4830-8d04-6686dd3ecce7",
+        "index": 4,
+        "cannotToss": false
+      },
+      {
+        "key": "gsStrawberry",
+        "name": "Strawberry Seed",
+        "flavorText": "Sweet berries with multiple harvests.",
+        "icon": "🍓",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 14,
+          "growthTime": 1800000,
+          "harvests": 6,
+          "yields": 4
+        },
+        "uuid": "1755768146532_6ee76d11-d943-405a-a720-89f3b91affbe",
+        "index": 5,
+        "cannotToss": false
+      }
+    ],
+    "boxInventory": []
   }
 }
