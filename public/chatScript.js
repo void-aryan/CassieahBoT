@@ -309,7 +309,17 @@ function loadConvo() {
 }
 
 // window.onload always execute when the page loads..
-window.onload = async () => {
+let isConnected = false;
+updateConnectUI();
+window.onload = onConnect;
+
+function updateConnectUI() {
+  // document.body.style.filter = isConnected ? "" : "brightness(0.5)";
+  const messageDoc = document.querySelector("#userText");
+  messageDoc.disabled = !isConnected;
+}
+
+async function onConnect() {
   const reactOpt = document.querySelector("#reactOpt");
 
   //const reactOptions = document.querySelector("#reactOptions");
@@ -384,6 +394,17 @@ window.onload = async () => {
         panelID,
       })
     );
+    isConnected = true;
+    updateConnectUI();
+    handleMessage({
+      messageID: crypto.randomUUID(),
+      botSend: true,
+      isYou: false,
+      body: "Connected!",
+      messageReply: null,
+    });
+    // @ts-ignore
+    smoothScroll2(ccc);
   };
   ws.onmessage = (i) => {
     const data = JSON.parse(i.data);
@@ -409,10 +430,22 @@ window.onload = async () => {
   };
 
   ws.onclose = () => {
-    window.location.href = window.location.href;
-    // Lmao refresh
+    if (isConnected) {
+      handleMessage({
+        messageID: crypto.randomUUID(),
+        botSend: true,
+        isYou: false,
+        body: "Disconnected, attempting to reconnect.",
+        messageReply: null,
+      });
+      // @ts-ignore
+      smoothScroll2(ccc);
+    }
+    isConnected = false;
+    updateConnectUI();
+    onConnect();
   };
-};
+}
 
 function pushConvo(data) {
   const convo = loadConvo();
