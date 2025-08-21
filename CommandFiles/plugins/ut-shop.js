@@ -938,10 +938,7 @@ export class UTShop {
             height: itemHeight,
             width: itemWidth,
           });
-          canv.drawBox({
-            rect: containerCan,
-            fill: "rgba(0, 0, 0, 0.5)",
-          });
+
           const priceInfo = this.isCll(item.priceType);
           const currentAmount = this.getUserHas(userData, item.priceType);
           /**
@@ -1001,8 +998,12 @@ export class UTShop {
             height: iconW,
           });
           canv.drawBox({
+            rect: containerCan,
+            fill: isSellable ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.3)",
+          });
+          canv.drawBox({
             rect: iconBox,
-            fill: "rgba(0, 0, 0, 0.5)",
+            fill: isSellable ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.3)",
           });
           const iconLen = countEmojis(item.icon);
           canv.drawText(`${item.icon}`, {
@@ -1011,6 +1012,8 @@ export class UTShop {
             align: "center",
             baseline: "middle",
             fontType: "cnormal",
+            fill: isSellable ? "white" : "rgba(255, 255, 255, 0.7)",
+
             size: iconW / iconLen - spacing * 2,
           });
           const mainFSize = 20;
@@ -1028,16 +1031,16 @@ export class UTShop {
             y: iconBox.top + mainFSize / 2,
             align: "left",
             baseline: "middle",
-            fontType: isSellable ? "cbold" : "cnormal",
+            fontType: "cbold",
             size: mainFSize,
-            fill: "white",
+            fill: isSellable ? "white" : "rgba(255, 255, 255, 0.7)",
           });
           canv.drawText(
             `${
               isSellable
                 ? stocks !== Infinity && typeof item.stockLimit === "number"
                   ? `x${stocks} STOCK`
-                  : "Unlimited STOCK"
+                  : ""
                 : `NO STOCK`
             }`,
             {
@@ -1045,7 +1048,7 @@ export class UTShop {
               y: iconBox.top + mainFSize / 2 + mainFSize / 2 + spacing,
               align: "left",
               baseline: "middle",
-              fontType: "cnormal",
+              fontType: "cbold",
               size: mainFSize,
               fill: isSellable ? "rgba(255, 255, 255, 0.7)" : "red",
             }
@@ -1071,7 +1074,7 @@ export class UTShop {
                     ? "white"
                     : "lime"
                   : "orange"
-                : "grey",
+                : "red",
             }
           );
 
