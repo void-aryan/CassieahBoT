@@ -3,7 +3,7 @@
     "money": 0,
     "exp": 0,
     "battlePoints": 0,
-    "lastModified": 1755771210474,
+    "lastModified": 1755772041743,
     "analytics": [
       [
         "gsCarrot",
@@ -12,6 +12,10 @@
       [
         "gsStrawberry",
         2
+      ],
+      [
+        "darkburger",
+        1
       ]
     ]
   }

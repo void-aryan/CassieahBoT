@@ -1,9 +1,9 @@
 {
   "web:bmVha3l1dGk": {
-    "money": 1000000,
+    "money": 991122,
     "exp": 0,
     "battlePoints": 10,
-    "lastModified": 1755771355023,
+    "lastModified": 1755772041741,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -74,12 +74,24 @@
       }
     ],
     "cassEXP": {
-      "exp": 5.0002
+      "exp": 5.017756
     },
     "shopInv": {
       "petnostalgia": true
     },
     "inventory": [
+      {
+        "name": "Darkburger",
+        "key": "darkburger",
+        "flavorText": "A burger from the Dark World. Restores 60 HP to one ally.",
+        "icon": "🍔",
+        "type": "food",
+        "heal": 60,
+        "uuid": "1755772041740_6d07081e-1a88-47b0-aeac-d534261d28a3",
+        "index": 1,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
       {
         "name": "Fishy Feline Feast ✦",
         "key": "fishyFelineFeast",
