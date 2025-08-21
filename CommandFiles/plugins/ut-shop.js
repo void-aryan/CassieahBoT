@@ -915,7 +915,7 @@ export class UTShop {
     userData,
     page,
   }) {
-    const { analytics = [] } = await Cassidy.databases.globalDB.getItem(
+    const { analytics = [] } = await Cassidy.databases.globalDB.getCache(
       UTShop.analyticsKey
     );
     const analyMap = new Map(analytics);
@@ -1391,7 +1391,7 @@ export class UTShop {
         output.setStyle(this.style);
       }
 
-      const { analytics = [] } = await Cassidy.databases.globalDB.getItem(
+      const { analytics = [] } = await Cassidy.databases.globalDB.getCache(
         UTShop.analyticsKey
       );
       const analyMap = new Map(analytics);
@@ -1713,7 +1713,7 @@ ${this.optionText()}
             userInfo.collectibles = argu.collectibles;
           }
 
-          const { analytics = [] } = await Cassidy.databases.globalDB.getItem(
+          const { analytics = [] } = await Cassidy.databases.globalDB.getCache(
             UTShop.analyticsKey
           );
           const analyMap = new Map(analytics);
