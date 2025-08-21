@@ -1339,13 +1339,6 @@ export class UTShop {
 
   optionText() {
     return (
-      `💵 **Buy**` +
-      `💬 **Talk**` +
-      `\n💌 ***Reply/send with an option without/with a prefix.***`
-    );
-  }
-  optionTextOLD__() {
-    return (
       `      💵        💬 \n` +
       `     **Buy**     **Talk**\n` +
       `\n💌 ***Reply with an option without a prefix.***`
@@ -1384,6 +1377,8 @@ export class UTShop {
       );
     }
     let author = "";
+    const self = this;
+
     const stateShop = {
       author,
       command: context.command,
@@ -1451,10 +1446,12 @@ export class UTShop {
       if (input.args.at(-1)?.toLowerCase() === "buy") {
         stateShop.isItemChoose = true;
         jumpToReply();
+        return;
       }
       if (input.args.at(-1)?.toLowerCase() === "talk") {
         stateShop.isTalkChoose = true;
         jumpToReply();
+        return;
       }
 
       const { money: cash, inventory = [] } = await money.getItem(
@@ -1481,8 +1478,6 @@ ${this.optionText()}
       console.error(error);
       context.output?.error?.(error);
     }
-
-    const self = this;
 
     /**
      * @type {(context: CommandContext & { repObj?: Record<string, any> }) => Promise<any>}
