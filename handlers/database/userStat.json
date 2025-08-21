@@ -1,9 +1,9 @@
 {
   "web:bmVha3l1dGk": {
-    "money": 991122,
+    "money": 979304,
     "exp": 0,
     "battlePoints": 10,
-    "lastModified": 1755772041741,
+    "lastModified": 1755775001346,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -74,12 +74,46 @@
       }
     ],
     "cassEXP": {
-      "exp": 5.017756
+      "exp": 5.011818
     },
     "shopInv": {
       "petnostalgia": true
     },
     "inventory": [
+      {
+        "key": "gsBlueberry",
+        "name": "Blueberry Seed",
+        "flavorText": "Tasty berries with multiple harvests.",
+        "icon": "🫐",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 2250000,
+          "harvests": 30,
+          "yields": 8
+        },
+        "uuid": "1755774990525_72964316-8d2f-41df-8c55-f67d4200698a",
+        "index": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "gsBlueberry",
+        "name": "Blueberry Seed",
+        "flavorText": "Tasty berries with multiple harvests.",
+        "icon": "🫐",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 2250000,
+          "harvests": 30,
+          "yields": 8
+        },
+        "uuid": "1755775001345_cdacdca7-8c26-4148-82d1-c0fe223fb15b",
+        "index": 3,
+        "cannotToss": false
+      },
       {
         "name": "Darkburger",
         "key": "darkburger",
@@ -101,7 +135,7 @@
         "sellPrice": 7,
         "saturation": 90000,
         "uuid": "1755768560051_84e38e39-ef6f-4184-bb15-002fd61fc80b",
-        "index": 0,
+        "index": 2,
         "cannotToss": false
       }
     ],
