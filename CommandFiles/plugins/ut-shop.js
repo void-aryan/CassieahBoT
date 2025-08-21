@@ -15,7 +15,7 @@ import { Slicer } from "./utils-liane";
 export const meta = {
   name: "ut-shop",
   author: "Liane Cagara",
-  version: "2.1.6",
+  version: "4.0.0",
   description: "I'm lazy so I made these",
   supported: "^1.0.0",
   order: 1,
@@ -922,10 +922,50 @@ export class UTShop {
     const itemHeight = 128;
     const width = 480;
     const spacing = 15;
+    const header = CanvCass.createRect({
+      width: width - spacing * 2,
+      left: spacing,
+      height: 64,
+      top: spacing,
+    });
     const itemWidth = width - spacing * 2;
-    const height = itemHeight * data.length + spacing * (data.length + 1);
+    const height =
+      itemHeight * data.length +
+      spacing * (data.length + 1) +
+      header.height +
+      spacing * 2;
     const canv = new CanvCass(width, height);
     await canv.drawBackground();
+    const mainFSize = 20;
+    const lineDiff = 5;
+
+    canv.drawText(`👤 ${userData.name ?? "Unregistered"}`, {
+      x: header.left,
+      y: header.top + mainFSize / 2,
+      align: "left",
+      baseline: "middle",
+      fontType: "cbold",
+      size: mainFSize,
+      fill: "white",
+    });
+    canv.drawText(`🧰 ${inventory.size()}/${inventory.limit}`, {
+      x: header.right,
+      y: header.top + mainFSize / 2 + mainFSize + lineDiff,
+      align: "right",
+      baseline: "middle",
+      fontType: "cbold",
+      size: mainFSize,
+      fill: "white",
+    });
+    canv.drawText(`$${abbreviateNumber(userData.money, 4)} 💵`, {
+      x: header.right,
+      y: header.top + mainFSize / 2,
+      align: "right",
+      baseline: "middle",
+      fontType: "cbold",
+      size: mainFSize,
+      fill: "white",
+    });
     if (data.length === 0) {
       result = `🧹 No items available!`;
       canv.drawText(result, {
@@ -943,7 +983,8 @@ export class UTShop {
       let allCll = [];
       result = data
         .map((item, index) => {
-          const top = itemHeight * index + spacing * (index + 1);
+          const top =
+            itemHeight * index + spacing * (index + 1) + header.height;
           const containerCan = CanvCass.createRect({
             centerX: canv.centerX,
             top,
@@ -997,6 +1038,8 @@ export class UTShop {
             invAmount || boxAmount || ndriveAmount || bankAmount || bagAmount
           );
           let result = ``;
+          result += `${UNISpectra.standardLine}\n`;
+
           if (isSellable) {
             result += `${item.num}. **${item.icon} ${item.name}**\n`;
           } else {
@@ -1028,7 +1071,6 @@ export class UTShop {
 
             size: iconW / iconLen - spacing * 2,
           });
-          const mainFSize = 20;
           canv.drawText(`#${item.num}`, {
             x: iconBox.right,
             y: iconBox.bottom - mainFSize / 2,
@@ -1057,7 +1099,7 @@ export class UTShop {
             }`,
             {
               x: iconBox.right + spacing,
-              y: iconBox.top + mainFSize / 2 + mainFSize / 2 + spacing,
+              y: iconBox.top + mainFSize / 2 + mainFSize + lineDiff,
               align: "left",
               baseline: "middle",
               fontType: "cbold",
@@ -1092,7 +1134,7 @@ export class UTShop {
 
           canv.drawText(`Price:`, {
             x: iconBox.right + spacing,
-            y: iconBox.bottom - mainFSize / 2 - spacing - mainFSize / 2,
+            y: iconBox.bottom - mainFSize / 2 - mainFSize - lineDiff,
             align: "left",
             baseline: "middle",
             fontType: "cnormal",
@@ -1232,9 +1274,11 @@ export class UTShop {
           }
           return result;
         })
-        .join("\n\n");
+        .join("\n");
       if (page !== this.getPageSlicer().pagesLength) {
-        result += `\n\n📃 **MORE ITEMS**: Reply with **page ${
+        result += `\n${
+          UNISpectra.standardLine
+        }\n📃 **MORE ITEMS**: Reply with **page ${
           page + 1
         }** to see the next page!`;
       }

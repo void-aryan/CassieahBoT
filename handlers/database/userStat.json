@@ -1,9 +1,9 @@
 {
   "web:bmVha3l1dGk": {
-    "money": 3820,
+    "money": 3805,
     "exp": 0,
     "battlePoints": 10,
-    "lastModified": 1755768353748,
+    "lastModified": 1755768560052,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -74,7 +74,7 @@
       }
     ],
     "cassEXP": {
-      "exp": 5.012
+      "exp": 5.00003
     },
     "shopInv": {
       "petnostalgia": true
@@ -146,7 +146,19 @@
           "baseKG": 8
         },
         "uuid": "1755768353747_ab5e2563-9393-4773-a802-fdb6064d0021",
-        "index": 6,
+        "index": 3,
+        "cannotToss": false
+      },
+      {
+        "name": "Fishy Feline Feast ✦",
+        "key": "fishyFelineFeast",
+        "flavorText": "Tasty fish treats for your curious cat.",
+        "icon": "🐟",
+        "type": "cat_food",
+        "sellPrice": 7,
+        "saturation": 90000,
+        "uuid": "1755768560051_84e38e39-ef6f-4184-bb15-002fd61fc80b",
+        "index": 7,
         "cannotToss": false
       },
       {
@@ -163,23 +175,6 @@
           "yields": 4
         },
         "uuid": "1755768146531_8258a229-8d7c-4ac4-80fc-c9419500bbe5",
-        "index": 3,
-        "cannotToss": false
-      },
-      {
-        "key": "gsStrawberry",
-        "name": "Strawberry Seed",
-        "flavorText": "Sweet berries with multiple harvests.",
-        "icon": "🍓",
-        "type": "gardenSeed",
-        "sellPrice": 1,
-        "cropData": {
-          "baseValue": 14,
-          "growthTime": 1800000,
-          "harvests": 6,
-          "yields": 4
-        },
-        "uuid": "1755768146532_f02c7d58-ca2a-4830-8d04-6686dd3ecce7",
         "index": 4,
         "cannotToss": false
       },
@@ -196,8 +191,25 @@
           "harvests": 6,
           "yields": 4
         },
-        "uuid": "1755768146532_6ee76d11-d943-405a-a720-89f3b91affbe",
+        "uuid": "1755768146532_f02c7d58-ca2a-4830-8d04-6686dd3ecce7",
         "index": 5,
+        "cannotToss": false
+      },
+      {
+        "key": "gsStrawberry",
+        "name": "Strawberry Seed",
+        "flavorText": "Sweet berries with multiple harvests.",
+        "icon": "🍓",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 14,
+          "growthTime": 1800000,
+          "harvests": 6,
+          "yields": 4
+        },
+        "uuid": "1755768146532_6ee76d11-d943-405a-a720-89f3b91affbe",
+        "index": 6,
         "cannotToss": false
       }
     ],

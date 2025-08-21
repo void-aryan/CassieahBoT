@@ -72,7 +72,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
-  version: "2.1.8",
+  version: "2.1.9",
   usage: "{prefix}{name} [subcommand]",
   category: "Idle Investment Games",
   author: "Solo Programmed By: Liane Cagara 🎀",
@@ -885,39 +885,35 @@ function formatShopItems(
   return {
     ...items,
     // itemData: items.itemData.filter((item) => item.inStock !== false),
-    itemData: items.itemData
-      .map((item) => {
-        let noStock = item.inStock === false;
-        let flavor = item.flavorText || "";
-        if (item.isOfficialStock) {
-          // flavor = `🌱 **STOCKED IN ROBLOX!**\n${flavor}`;
+    itemData: items.itemData.map((item) => {
+      let noStock = item.inStock === false;
+      let flavor = item.flavorText || "";
+      if (item.isOfficialStock) {
+        // flavor = `🌱 **STOCKED IN ROBLOX!**\n${flavor}`;
+      }
+      const moneySet: { inventory: GardenItem[] } = { inventory: [] };
+      item.onPurchase({ moneySet });
+      const purchased = moneySet.inventory[0];
+      if (purchased) {
+        if (purchased.type === "gardenSeed") {
+          flavor = `${`***${item.rarity}*** - ${Math.round(
+            (item.stockChance ?? 1) * 100
+          )}%`.toUpperCase()}\n🪙 ${abbreviateNumber(
+            purchased.cropData.baseValue || 0
+          )} | 🧺 ${abbreviateNumber(purchased.cropData.harvests || 0)} | ⏳ ${
+            formatTimeSentence(purchased.cropData.growthTime || 0) || "Instant"
+          }`;
         }
-        const moneySet: { inventory: GardenItem[] } = { inventory: [] };
-        item.onPurchase({ moneySet });
-        const purchased = moneySet.inventory[0];
-        if (purchased) {
-          if (purchased.type === "gardenSeed") {
-            flavor = `${`***${item.rarity}*** - ${Math.round(
-              (item.stockChance ?? 1) * 100
-            )}%`.toUpperCase()}\n🪙 ${abbreviateNumber(
-              purchased.cropData.baseValue || 0
-            )} | 🧺 ${abbreviateNumber(
-              purchased.cropData.harvests || 0
-            )} | ⏳ ${
-              formatTimeSentence(purchased.cropData.growthTime || 0) ||
-              "Instant"
-            }`;
-          }
-        }
-        const stockLimit = item.stockLimitOfficial ?? item.stockLimit;
-        return {
-          ...item,
-          cannotBuy: noStock,
-          stockLimit: noStock ? 0 : stockLimit,
-          flavorText: noStock ? `` : flavor,
-        };
-      })
-      .filter((i) => i.inStock !== false),
+      }
+      const stockLimit = item.stockLimitOfficial ?? item.stockLimit;
+      return {
+        ...item,
+        cannotBuy: noStock,
+        stockLimit: noStock ? 0 : stockLimit,
+        flavorText: noStock ? `` : flavor,
+      };
+    }),
+    // .filter((i) => i.inStock !== false),
     buyTexts: [timeText],
     thankTexts: [timeText],
     ...(currentEvent?.isNoEvent !== true && isEvent && currentEvent
