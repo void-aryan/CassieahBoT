@@ -313,5 +313,5 @@ export function calculateInflation(usersData: Record<string, UserData>) {
   if (isNaN(mean)) {
     return 0;
   }
-  return mean ** (1 / 10);
+  return mean ** (1 / 5);
 }

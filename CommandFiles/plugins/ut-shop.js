@@ -1137,7 +1137,7 @@ export class UTShop {
           canv.drawText(
             `${
               priceInfo.state
-                ? `x${abbreviateNumber(item.price, 4)}`
+                ? `${cllItem.icon}${abbreviateNumber(item.price, 4)}`
                 : `$${abbreviateNumber(item.price, 4)}`
             } ${
               isSellable ? (isAffordable ? (hasInv ? "✅" : "💰") : "❌") : "🚫"
