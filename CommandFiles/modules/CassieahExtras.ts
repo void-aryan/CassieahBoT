@@ -641,12 +641,10 @@ export class CanvCass {
     rect,
     item,
     dontDrawRect = false,
-    spacing,
   }: {
     rect: CanvCass.Rect;
     item: UserData["inventory"][number];
     dontDrawRect?: boolean;
-    spacing: number;
   }) {
     if (!dontDrawRect) {
       this.drawBox({
@@ -654,26 +652,17 @@ export class CanvCass {
         fill: "rgba(0, 0, 0, 0.5)",
       });
     }
-    const iconW = rect.height - spacing * 2;
-    const iconBox = CanvCass.createRect({
-      left: rect.left + spacing,
-      centerY: rect.centerY,
-      width: iconW,
-      height: iconW,
-    });
-    this.drawBox({
-      rect: iconBox,
-      fill: "rgba(0, 0, 0, 0.5)",
-    });
+    const spacing = rect.width / 8;
+
     const iconLen = countEmojis(item.icon);
     this.drawText(`${item.icon}`, {
-      x: iconBox.centerX,
-      y: iconBox.centerY,
+      x: rect.centerX,
+      y: rect.centerY,
       align: "center",
       baseline: "middle",
       fontType: "cnormal",
       fill: "white",
-      size: iconW / iconLen - spacing * 2,
+      size: rect.width / iconLen - spacing * 2,
     });
   }
 }
