@@ -1124,7 +1124,7 @@ export class UTShop {
             }
           );
           if (boughts > 0) {
-            canv.drawText(`${abbreviateNumber(boughts)} Sold 🛍️`, {
+            canv.drawText(`x${abbreviateNumber(boughts)} Sold 🛍️`, {
               x: containerCan.right - spacing,
               y: iconBox.top + mainFSize / 2,
               align: "right",
@@ -1390,6 +1390,16 @@ export class UTShop {
       if (this.style) {
         output.setStyle(this.style);
       }
+
+      const { analytics = [] } = await Cassidy.databases.globalDB.getItem(
+        UTShop.analyticsKey
+      );
+      const analyMap = new Map(analytics);
+      this.itemData = [...this.itemData].sort(
+        (a, b) =>
+          (Number(analyMap.get(b.key)) || 0) -
+          (Number(analyMap.get(a.key)) || 0)
+      );
 
       const inflationRate = await getInflationRate();
       this.itemData = this.itemData.map((item) => {
