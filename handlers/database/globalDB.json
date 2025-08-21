@@ -1,1 +1,18 @@
-{}
+{
+  "UTShop_Analytics": {
+    "money": 0,
+    "exp": 0,
+    "battlePoints": 0,
+    "lastModified": 1755771210474,
+    "analytics": [
+      [
+        "gsCarrot",
+        16
+      ],
+      [
+        "gsStrawberry",
+        2
+      ]
+    ]
+  }
+}

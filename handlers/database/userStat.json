@@ -1,9 +1,9 @@
 {
   "web:bmVha3l1dGk": {
-    "money": 3805,
+    "money": 1045,
     "exp": 0,
     "battlePoints": 10,
-    "lastModified": 1755768560052,
+    "lastModified": 1755771210464,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -74,7 +74,7 @@
       }
     ],
     "cassEXP": {
-      "exp": 5.00003
+      "exp": 5.0002
     },
     "shopInv": {
       "petnostalgia": true
@@ -93,7 +93,7 @@
           "harvests": 1,
           "yields": 1
         },
-        "uuid": "1755767830371_ca951125-a059-484a-a38c-4f283fc78809",
+        "uuid": "1755771193068_b106b3ec-254d-49ca-9691-1bfc17df7e08",
         "index": 0,
         "cannotToss": false
       },
@@ -110,7 +110,7 @@
           "harvests": 1,
           "yields": 1
         },
-        "uuid": "1755767830371_fd6d2492-7f8e-41dc-99c8-7668a567c906",
+        "uuid": "1755771193068_bc2b3e28-f261-4fda-b7f9-9ceea44d2fb0",
         "index": 1,
         "cannotToss": false
       },
@@ -127,26 +127,229 @@
           "harvests": 1,
           "yields": 1
         },
-        "uuid": "1755767830371_f6e257f6-97d2-4d99-9db8-f4b5679120b0",
+        "uuid": "1755771193068_cb3ceaba-4a34-4447-97cf-984675ccd92c",
         "index": 2,
         "cannotToss": false
       },
       {
-        "key": "gsCoconut",
-        "name": "Coconut Seed",
-        "flavorText": "Tropical and rich in value.",
-        "icon": "🥥",
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
         "type": "gardenSeed",
         "sellPrice": 1,
         "cropData": {
-          "baseValue": 361,
-          "growthTime": 3600000,
-          "harvests": 20,
-          "yields": 12,
-          "baseKG": 8
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
         },
-        "uuid": "1755768353747_ab5e2563-9393-4773-a802-fdb6064d0021",
+        "uuid": "1755771193068_10623f7e-d67d-4f6d-84db-af78c6c0d029",
         "index": 3,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_fa8e29d0-914c-42b1-9958-338fd1ac5195",
+        "index": 4,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_f59a2747-cbf7-4821-83a8-3f5c35774993",
+        "index": 5,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_85ee0bcf-9bd8-452b-b258-bad015c5ac2b",
+        "index": 6,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_f4be0a41-efaf-496a-ab8a-777da3b92d32",
+        "index": 7,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_74d57c07-3654-43c8-952d-3e3b1385326d",
+        "index": 8,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_213a21dd-e328-411d-8114-7a5c8125f246",
+        "index": 9,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_65f07749-bb81-45bb-b0ee-faacb8534a83",
+        "index": 10,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_fc02a1f1-ded8-4698-a141-7d078bbaadc0",
+        "index": 11,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_d5941543-58bd-419a-8ee9-a9be971d41db",
+        "index": 12,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_506af18e-1bc1-4216-986b-b98d336acad9",
+        "index": 13,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_8cc44b5d-39c8-4854-bb75-6db6f1e927c9",
+        "index": 14,
+        "cannotToss": false
+      },
+      {
+        "key": "gsCarrot",
+        "name": "Carrot Seed",
+        "flavorText": "A basic crop for quick profits.",
+        "icon": "🥕",
+        "type": "gardenSeed",
+        "sellPrice": 1,
+        "cropData": {
+          "baseValue": 18,
+          "growthTime": 900000,
+          "harvests": 1,
+          "yields": 1
+        },
+        "uuid": "1755771193068_725a2df5-658a-4064-b3b0-bff8cf2daf44",
+        "index": 15,
         "cannotToss": false
       },
       {
@@ -158,7 +361,7 @@
         "sellPrice": 7,
         "saturation": 90000,
         "uuid": "1755768560051_84e38e39-ef6f-4184-bb15-002fd61fc80b",
-        "index": 7,
+        "index": 16,
         "cannotToss": false
       },
       {
@@ -174,8 +377,8 @@
           "harvests": 6,
           "yields": 4
         },
-        "uuid": "1755768146531_8258a229-8d7c-4ac4-80fc-c9419500bbe5",
-        "index": 4,
+        "uuid": "1755771210463_9b31b059-17a1-43b6-bba4-9c858e685431",
+        "index": 17,
         "cannotToss": false
       },
       {
@@ -191,28 +394,235 @@
           "harvests": 6,
           "yields": 4
         },
-        "uuid": "1755768146532_f02c7d58-ca2a-4830-8d04-6686dd3ecce7",
-        "index": 5,
-        "cannotToss": false
-      },
-      {
-        "key": "gsStrawberry",
-        "name": "Strawberry Seed",
-        "flavorText": "Sweet berries with multiple harvests.",
-        "icon": "🍓",
-        "type": "gardenSeed",
-        "sellPrice": 1,
-        "cropData": {
-          "baseValue": 14,
-          "growthTime": 1800000,
-          "harvests": 6,
-          "yields": 4
-        },
-        "uuid": "1755768146532_6ee76d11-d943-405a-a720-89f3b91affbe",
-        "index": 6,
+        "uuid": "1755771210463_895e5eab-7ec2-448c-b5df-c447fd7e1ae9",
+        "index": 18,
         "cannotToss": false
       }
     ],
-    "boxInventory": []
+    "boxInventory": [],
+    "gardenPlots": [
+      {
+        "key": "plot_1755770336460_0",
+        "seedKey": "gsCarrot",
+        "name": "Carrot",
+        "icon": "🥕",
+        "plantedAt": 1755770336460,
+        "growthTime": 900000,
+        "originalGrowthTime": 900000,
+        "harvestsLeft": 1,
+        "baseValue": 18,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 1,
+        "isFavorite": false,
+        "price": 10,
+        "lastMutation": null,
+        "kiloGrams": 0.09,
+        "maxKiloGrams": 0.18077764841790586,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 0,
+        "lastUpdated": 1755770358974,
+        "uuid": "1755770336462_48a6158e-9bd4-4f5f-af39-600ae89bebd4",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 0,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "plot_1755770336462_1",
+        "seedKey": "gsCarrot",
+        "name": "Carrot",
+        "icon": "🥕",
+        "plantedAt": 1755770336462,
+        "growthTime": 900000,
+        "originalGrowthTime": 900000,
+        "harvestsLeft": 1,
+        "baseValue": 18,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 1,
+        "isFavorite": false,
+        "price": 10,
+        "lastMutation": null,
+        "kiloGrams": 0.09,
+        "maxKiloGrams": 0.18,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 0,
+        "lastUpdated": 1755770358974,
+        "uuid": "1755770336464_6e3bb1f0-5f34-41a6-af5f-721e96e95321",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 1,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "plot_1755770336464_2",
+        "seedKey": "gsCarrot",
+        "name": "Carrot",
+        "icon": "🥕",
+        "plantedAt": 1755770336464,
+        "growthTime": 900000,
+        "originalGrowthTime": 900000,
+        "harvestsLeft": 1,
+        "baseValue": 18,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 1,
+        "isFavorite": false,
+        "price": 10,
+        "lastMutation": null,
+        "kiloGrams": 68.71,
+        "maxKiloGrams": 130.87114288166214,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 0,
+        "lastUpdated": 1755770358975,
+        "uuid": "1755770336466_c68d1f14-5c23-48ad-867d-08c631a06a73",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 2,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "plot_1755770342892_0",
+        "seedKey": "gsCoconut",
+        "name": "Coconut",
+        "icon": "🥥",
+        "plantedAt": 1755770342892,
+        "growthTime": 3600000,
+        "originalGrowthTime": 3600000,
+        "harvestsLeft": 20,
+        "baseValue": 361,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 12,
+        "isFavorite": false,
+        "price": 300,
+        "lastMutation": null,
+        "kiloGrams": 4.13,
+        "maxKiloGrams": 8.180000000035502,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 8,
+        "lastUpdated": 1755770358975,
+        "uuid": "1755770342895_2c067912-0c40-453a-91aa-d37b3a7c4c36",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 3,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "plot_1755770349049_0",
+        "seedKey": "gsStrawberry",
+        "name": "Strawberry",
+        "icon": "🍓",
+        "plantedAt": 1755770349049,
+        "growthTime": 1800000,
+        "originalGrowthTime": 1800000,
+        "harvestsLeft": 6,
+        "baseValue": 14,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 4,
+        "isFavorite": false,
+        "price": 8.333333333333334,
+        "lastMutation": null,
+        "kiloGrams": 13.72,
+        "maxKiloGrams": 27.14715702023747,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 0,
+        "lastUpdated": 1755770358977,
+        "uuid": "1755770349071_47c9174c-7af4-4bc2-becd-9339889315b0",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 4,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "plot_1755770349072_1",
+        "seedKey": "gsStrawberry",
+        "name": "Strawberry",
+        "icon": "🍓",
+        "plantedAt": 1755770349072,
+        "growthTime": 1800000,
+        "originalGrowthTime": 1800000,
+        "harvestsLeft": 6,
+        "baseValue": 14,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 4,
+        "isFavorite": false,
+        "price": 8.333333333333334,
+        "lastMutation": null,
+        "kiloGrams": 76.23,
+        "maxKiloGrams": 150.80240313237965,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 0,
+        "lastUpdated": 1755770358977,
+        "uuid": "1755770349076_463bb86c-0088-4ae8-bb59-99aa3f954d7a",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 5,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "plot_1755770349077_2",
+        "seedKey": "gsStrawberry",
+        "name": "Strawberry",
+        "icon": "🍓",
+        "plantedAt": 1755770349077,
+        "growthTime": 1800000,
+        "originalGrowthTime": 1800000,
+        "harvestsLeft": 6,
+        "baseValue": 14,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 4,
+        "isFavorite": false,
+        "price": 8.333333333333334,
+        "lastMutation": null,
+        "kiloGrams": 0.09,
+        "maxKiloGrams": 0.1800000000000922,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 0,
+        "lastUpdated": 1755770358979,
+        "uuid": "1755770349079_90088a89-117d-4fbb-9b88-26d0fe89a5cc",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 6,
+        "sellPrice": 0,
+        "cannotToss": false
+      },
+      {
+        "key": "plot_1755770358996_0",
+        "seedKey": "gsWatermelon",
+        "name": "Watermelon",
+        "icon": "🍉",
+        "plantedAt": 1755770358996,
+        "growthTime": 9000000,
+        "originalGrowthTime": 9000000,
+        "harvestsLeft": 1,
+        "baseValue": 2708,
+        "mutation": [],
+        "type": "activePlot",
+        "yields": 1,
+        "isFavorite": false,
+        "price": 2500,
+        "lastMutation": null,
+        "kiloGrams": 2.59,
+        "maxKiloGrams": 5.18,
+        "mutationAttempts": 0,
+        "baseKiloGrams": 5,
+        "lastUpdated": 1755770359002,
+        "uuid": "1755770359002_1c6d413c-fd6b-4840-b8c6-8560bb78d501",
+        "flavorText": "Mysteriously not known to anyone.",
+        "index": 7,
+        "sellPrice": 0,
+        "cannotToss": false
+      }
+    ],
+    "gardenStats": {
+      "plotsHarvested": 0,
+      "mutationsFound": 0,
+      "expansions": 0,
+      "achievements": []
+    }
   }
 }

@@ -636,6 +636,8 @@ export class UTShop {
    */
   static stocksData = new Map();
 
+  static analyticsKey = "UTShop_Analytics";
+
   /**
    * @type {Map<string, number>}
    */
@@ -913,6 +915,10 @@ export class UTShop {
     userData,
     page,
   }) {
+    const { analytics = [] } = await Cassidy.databases.globalDB.getItem(
+      UTShop.analyticsKey
+    );
+    const analyMap = new Map(analytics);
     const collectibles = new Collectibles(userData.collectibles ?? []);
 
     const slicer = this.getPageSlicer();
@@ -1000,6 +1006,7 @@ export class UTShop {
             height: itemHeight,
             width: itemWidth,
           });
+          const boughts = Number(analyMap.get(item.key)) || 0;
 
           const priceInfo = this.isCll(item.priceType);
           const currentAmount = this.getUserHas(userData, item.priceType);
@@ -1116,6 +1123,17 @@ export class UTShop {
               fill: isSellable ? "rgba(255, 255, 255, 0.7)" : "red",
             }
           );
+          if (boughts > 0) {
+            canv.drawText(`${boughts} 🛍️`, {
+              x: containerCan.right - spacing,
+              y: iconBox.top + mainFSize / 2,
+              align: "right",
+              baseline: "middle",
+              fontType: "cbold",
+              size: mainFSize,
+              fill: "rgba(255, 255, 255, 0.5)",
+            });
+          }
           canv.drawText(
             `${
               priceInfo.state
@@ -1685,22 +1703,32 @@ ${this.optionText()}
             userInfo.collectibles = argu.collectibles;
           }
 
+          const { analytics = [] } = await Cassidy.databases.globalDB.getItem(
+            UTShop.analyticsKey
+          );
+          const analyMap = new Map(analytics);
           const invCache = [...inventory];
           for (let i = 0; i < amount; i++) {
             try {
               // @ts-ignore
               await onPurchase(newCtx);
               self.decreaseStock(input.senderID, targetItem.key);
+              const b = Number(analyMap.get(targetItem.key)) || 0;
+              analyMap.set(targetItem.key, b + 1);
             } catch (error) {
               console.error(error);
               output.error(error);
             }
           }
+
           const added = argu.inventory.filter((i) => !invCache.includes(i));
           const firstAdded = added[0];
           await money.setItem(input.senderID, {
             ...argu,
             inventory: new Inventory(argu.inventory).raw(),
+          });
+          await Cassidy.databases.globalDB.setItem(UTShop.analyticsKey, {
+            analytics: [...analyMap],
           });
           let { str: items, canv } = await self.stringItemData({
             userMoney:

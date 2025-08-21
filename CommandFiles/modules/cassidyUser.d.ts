@@ -149,6 +149,7 @@ export type CollectibleItem = {
 };
 
 type UserData = {
+  analytics?: [string, number][];
   nameMeta?:
     | undefined
     | {
