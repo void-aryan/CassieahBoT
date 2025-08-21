@@ -1124,7 +1124,7 @@ export class UTShop {
             }
           );
           if (boughts > 0) {
-            canv.drawText(`${boughts} 🛍️`, {
+            canv.drawText(`${abbreviateNumber(boughts)} Sold 🛍️`, {
               x: containerCan.right - spacing,
               y: iconBox.top + mainFSize / 2,
               align: "right",
