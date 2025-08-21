@@ -1,6 +1,6 @@
 // @ts-check
 import { CassEXP } from "../modules/cassEXP.js";
-import { clamp, UNISpectra } from "@cassidy/unispectra";
+import { clamp, countEmojis, UNISpectra } from "@cassidy/unispectra";
 import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 import { PetPlayer } from "./pet-fight";
 import {
@@ -896,234 +896,341 @@ export class UTShop {
    * @param {{ inventory: Inventory; boxInventory: Inventory; userMoney: number; playersMap: Map<string, PetPlayer>; userData: UserData }} param0
    * @returns
    */
-  stringItemData(
-    { inventory, boxInventory, userMoney: _money = 0, playersMap, userData } = {
-      inventory: undefined,
-      boxInventory: undefined,
-      playersMap: undefined,
-      userMoney: 0,
-      userData: null,
-    }
-  ) {
-    let isLegacy = true;
-    if (inventory instanceof Inventory && boxInventory instanceof Inventory) {
-      isLegacy = false;
-    }
+  async stringItemData({
+    inventory,
+    boxInventory,
+    userMoney: _money = 0,
+    playersMap,
+    userData,
+  }) {
     const collectibles = new Collectibles(userData.collectibles ?? []);
 
     const data = this.itemData;
     let result;
-    if (!isLegacy) {
-      if (data.length === 0) {
-        result = `🧹 No items available!`;
-      } else {
-        /**
-         * @type {Array<import("@cass-modules/cassidyUser").CollectibleItem>}
-         */
-        let allCll = [];
-        result = data
-          .map((item) => {
-            const priceInfo = this.isCll(item.priceType);
-            const currentAmount = this.getUserHas(userData, item.priceType);
-            /**
-             * @type {import("@cass-modules/cassidyUser").CollectibleItem["metadata"]}
-             */
-            const cllItem =
-              priceInfo.state && collectibles.has(priceInfo.cllKey)
-                ? collectibles.getMeta(priceInfo.cllKey)
-                : {
-                    icon: "❓",
-                    name: "Unknown Item",
-                    key: priceInfo.cllKey,
-                    type: "unknown",
-                  };
-
-            if (
-              !allCll.some((i) => i?.metadata?.key === cllItem.key) &&
-              cllItem.key !== "money"
-            ) {
-              allCll.push({
-                amount: currentAmount,
-                metadata: cllItem,
-              });
-            }
-
-            const stocks = this.getStock(userData.userID, item.key);
-            const invAmount = inventory.getAmount(item.key);
-            const boxAmount = boxInventory.getAmount(item.key);
-            const ndrive = new Inventory(
-              userData.ndrive?.items ?? [],
-              Infinity
-            );
-            const bank = new Inventory(
-              userData.bankData?.items ?? [],
-              Infinity
-            );
-            const bag = new Inventory(userData.bagData?.items ?? [], Infinity);
-            const ndriveAmount = ndrive.getAmount(item.key);
-            const bankAmount = bank.getAmount(item.key);
-            const bagAmount = bag.getAmount(item.key);
-            let isAffordable = currentAmount >= Number(item.price ?? 0);
-            let isSellable = true;
-            if (item.cannotBuy === true) {
-              isSellable = false;
-            }
-            if (stocks <= 0) {
-              isSellable = false;
-            }
-            let hasInv = Boolean(
-              invAmount || boxAmount || ndriveAmount || bankAmount || bagAmount
-            );
-            let result = ``;
-            if (isSellable) {
-              result += `${item.num}. **${item.icon} ${item.name}**\n`;
-            } else {
-              result += `${item.num}. ${item.icon} ${item.name}\n`;
-            }
-            result +=
-              `- ${
-                isSellable
-                  ? `${
-                      priceInfo.state
-                        ? `**${formatValue(item.price ?? 0, cllItem.icon)}** ${
-                            cllItem.name
-                          } [${cllItem.key}]\n`
-                        : `**${formatCash(
-                            Number(this.isGenoR() ? 0 : item.price ?? 0)
-                          )}**`
-                    } ${
-                      isSellable
-                        ? isAffordable
-                          ? hasInv
-                            ? "✅"
-                            : "💰"
-                          : "❌"
-                        : "🚫"
-                    }${
-                      stocks !== Infinity && typeof item.stockLimit === "number"
-                        ? ` 「 **${stocks}**/${item.stockLimit ?? 5} 」`
-                        : ""
-                    }`
-                  : "🚫 No Stock"
-              } ${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
-                boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
-              }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
-                bankAmount ? ` 🏦 **x${bankAmount}**` : ""
-              }${bagAmount ? ` 🎒 **x${bagAmount}**` : ""}${
-                item.inflation
-                  ? ` [ 📈 **+${abbreviateNumber(
-                      Number(item.inflation ?? 0) || 0
-                    )}$** ]`
-                  : ""
-              }`.trim() +
-              (item.flavorText || (!isSellable && item.cannotBuyFlavor)
-                ? "\n"
-                : "");
-            if (!(playersMap instanceof Map)) {
-              throw new Error(`playersMap must be a Map`);
-            }
-            if (
-              playersMap &&
-              playersMap instanceof Map &&
-              (item.type === "weapon" || item.type === "armor")
-            ) {
-              let hasLine = false;
-              for (const [, petPlayer] of playersMap) {
-                const clone = petPlayer.clone();
-                let isHead = false;
-                const applyHead = () => {
-                  if (!isHead) {
-                    result += `☆ ${petPlayer.petIcon} `;
-                    isHead = true;
-                    hasLine = true;
-                  }
+    const itemHeight = 128;
+    const width = 480;
+    const spacing = 15;
+    const itemWidth = width - spacing * 2;
+    const height = itemHeight * data.length + spacing * (data.length + 1);
+    const canv = new CanvCass(width, height);
+    await canv.drawBackground();
+    if (data.length === 0) {
+      result = `🧹 No items available!`;
+      canv.drawText(result, {
+        align: "center",
+        x: canv.centerX,
+        y: canv.centerY,
+        fill: "white",
+        fontType: "cbold",
+        size: 50,
+      });
+    } else {
+      /**
+       * @type {Array<import("@cass-modules/cassidyUser").CollectibleItem>}
+       */
+      let allCll = [];
+      result = data
+        .map((item, index) => {
+          const top = itemHeight * index + spacing * (index + 1);
+          const containerCan = CanvCass.createRect({
+            centerX: canv.centerX,
+            top,
+            height: itemHeight,
+            width: itemWidth,
+          });
+          canv.drawBox({
+            rect: containerCan,
+            fill: "rgba(0, 0, 0, 0.5)",
+          });
+          const priceInfo = this.isCll(item.priceType);
+          const currentAmount = this.getUserHas(userData, item.priceType);
+          /**
+           * @type {import("@cass-modules/cassidyUser").CollectibleItem["metadata"]}
+           */
+          const cllItem =
+            priceInfo.state && collectibles.has(priceInfo.cllKey)
+              ? collectibles.getMeta(priceInfo.cllKey)
+              : {
+                  icon: "❓",
+                  name: "Unknown Item",
+                  key: priceInfo.cllKey,
+                  type: "unknown",
                 };
-                if (item.type === "weapon") {
-                  clone.weapon[0] = JSON.parse(JSON.stringify(item));
-                  const diff = clone.ATK - petPlayer.ATK;
-                  const defDiff = clone.DF - petPlayer.DF;
-                  if (diff !== 0) {
-                    let i = diff > 0;
-                    let b = i ? "**" : "";
-                    applyHead();
-                    result += `**${diff > 0 ? "+" : ""}${diff}** ${b}ATK${b}, `;
-                  }
-                  if (defDiff !== 0) {
-                    let i = defDiff > 0;
-                    let b = i ? "**" : "";
-                    applyHead();
-                    result += `**${
-                      defDiff > 0 ? "+" : ""
-                    }${defDiff}** ${b}DEF${b}, `;
-                  }
-                } else if (item.type === "armor") {
-                  if (
-                    clone.armors[0] &&
-                    clone.armors[0].def > Number(item.def)
-                  ) {
-                    clone.armors[1] = JSON.parse(JSON.stringify(item));
-                  } else {
-                    clone.armors[0] = JSON.parse(JSON.stringify(item));
-                  }
 
-                  const diff = clone.DF - petPlayer.DF;
-                  const atkDiff = clone.ATK - petPlayer.ATK;
-                  if (diff !== 0) {
-                    applyHead();
-                    let i = diff > 0;
-                    let b = i ? "**" : "";
-                    result += `**${diff > 0 ? "+" : ""}${diff}** ${b}DEF${b}, `;
-                  }
-                  if (atkDiff !== 0) {
-                    let i = atkDiff > 0;
-                    let b = i ? "**" : "";
-                    applyHead();
-                    result += `**${
-                      atkDiff > 0 ? "+" : ""
-                    }${atkDiff}** ${b}ATK${b}, `;
-                  }
+          if (
+            !allCll.some((i) => i?.metadata?.key === cllItem.key) &&
+            cllItem.key !== "money"
+          ) {
+            allCll.push({
+              amount: currentAmount,
+              metadata: cllItem,
+            });
+          }
+
+          const stocks = this.getStock(userData.userID, item.key);
+          const invAmount = inventory.getAmount(item.key);
+          const boxAmount = boxInventory.getAmount(item.key);
+          const ndrive = new Inventory(userData.ndrive?.items ?? [], Infinity);
+          const bank = new Inventory(userData.bankData?.items ?? [], Infinity);
+          const bag = new Inventory(userData.bagData?.items ?? [], Infinity);
+          const ndriveAmount = ndrive.getAmount(item.key);
+          const bankAmount = bank.getAmount(item.key);
+          const bagAmount = bag.getAmount(item.key);
+          let isAffordable = currentAmount >= Number(item.price ?? 0);
+          let isSellable = true;
+          if (item.cannotBuy === true) {
+            isSellable = false;
+          }
+          if (stocks <= 0) {
+            isSellable = false;
+          }
+          let hasInv = Boolean(
+            invAmount || boxAmount || ndriveAmount || bankAmount || bagAmount
+          );
+          let result = ``;
+          if (isSellable) {
+            result += `${item.num}. **${item.icon} ${item.name}**\n`;
+          } else {
+            result += `${item.num}. ${item.icon} ${item.name}\n`;
+          }
+          const iconW = containerCan.height - spacing * 2;
+          const iconBox = CanvCass.createRect({
+            left: containerCan.left + spacing,
+            centerY: containerCan.centerY,
+            width: iconW,
+            height: iconW,
+          });
+          canv.drawBox({
+            rect: iconBox,
+            fill: "rgba(0, 0, 0, 0.5)",
+          });
+          const iconLen = countEmojis(item.icon);
+          canv.drawText(`${item.icon}`, {
+            x: iconBox.centerX,
+            y: iconBox.centerY,
+            align: "center",
+            baseline: "middle",
+            fontType: "cnormal",
+            size: iconW / iconLen - spacing * 2,
+          });
+          const mainFSize = 20;
+          canv.drawText(`#${item.num}`, {
+            x: iconBox.right,
+            y: iconBox.bottom - mainFSize / 2,
+            align: "right",
+            baseline: "middle",
+            fontType: "cbold",
+            size: mainFSize,
+            fill: "white",
+          });
+          canv.drawText(`${item.name}`, {
+            x: iconBox.right + spacing,
+            y: iconBox.top + mainFSize / 2,
+            align: "left",
+            baseline: "middle",
+            fontType: isSellable ? "cbold" : "cnormal",
+            size: mainFSize,
+            fill: "white",
+          });
+          canv.drawText(
+            `${
+              isSellable
+                ? stocks !== Infinity && typeof item.stockLimit === "number"
+                  ? `x${stocks} STOCK`
+                  : "Unlimited STOCK"
+                : `NO STOCK`
+            }`,
+            {
+              x: iconBox.right + spacing,
+              y: iconBox.top + mainFSize / 2 + mainFSize / 2 + spacing,
+              align: "left",
+              baseline: "middle",
+              fontType: "cnormal",
+              size: mainFSize,
+              fill: isSellable ? "rgba(255, 255, 255, 0.7)" : "red",
+            }
+          );
+          canv.drawText(
+            `${
+              priceInfo.state
+                ? `x${abbreviateNumber(item.price, 4)}`
+                : `$${abbreviateNumber(item.price, 4)}`
+            } ${
+              isSellable ? (isAffordable ? (hasInv ? "✅" : "💰") : "❌") : "🚫"
+            }`,
+            {
+              x: containerCan.right - spacing,
+              y: iconBox.bottom - mainFSize / 2,
+              align: "right",
+              baseline: "middle",
+              fontType: "cbold",
+              size: mainFSize,
+              fill: isSellable
+                ? isAffordable
+                  ? hasInv
+                    ? "white"
+                    : "lime"
+                  : "orange"
+                : "grey",
+            }
+          );
+
+          canv.drawText(`Price:`, {
+            x: iconBox.right + spacing,
+            y: iconBox.bottom - mainFSize / 2 - spacing - mainFSize / 2,
+            align: "left",
+            baseline: "middle",
+            fontType: "cnormal",
+            size: mainFSize,
+            fill: "rgba(255, 255, 255, 0.7)",
+          });
+          canv.drawText(
+            `${
+              priceInfo.state ? `${cllItem.icon} ${cllItem.name}` : `💵 Money`
+            }`,
+            {
+              x: iconBox.right + spacing,
+              y: iconBox.bottom - mainFSize / 2,
+              align: "left",
+              baseline: "middle",
+              fontType: "cbold",
+              size: mainFSize,
+              fill: "white",
+            }
+          );
+
+          result +=
+            `- ${
+              isSellable
+                ? `${
+                    priceInfo.state
+                      ? `**${formatValue(item.price ?? 0, cllItem.icon)}** ${
+                          cllItem.name
+                        } [${cllItem.key}]\n`
+                      : `**${formatCash(
+                          Number(this.isGenoR() ? 0 : item.price ?? 0)
+                        )}**`
+                  } ${
+                    isSellable
+                      ? isAffordable
+                        ? hasInv
+                          ? "✅"
+                          : "💰"
+                        : "❌"
+                      : "🚫"
+                  }${
+                    stocks !== Infinity && typeof item.stockLimit === "number"
+                      ? ` 「 **${stocks}**/${item.stockLimit ?? 5} 」`
+                      : ""
+                  }`
+                : "🚫 No Stock"
+            } ${invAmount ? ` 🧰 **x${invAmount}**` : ""}${
+              boxAmount ? ` 🗃️ **x${boxAmount}**` : ""
+            }${ndriveAmount ? ` 💾 **x${ndriveAmount}**` : ""}${
+              bankAmount ? ` 🏦 **x${bankAmount}**` : ""
+            }${bagAmount ? ` 🎒 **x${bagAmount}**` : ""}${
+              item.inflation
+                ? ` [ 📈 **+${abbreviateNumber(
+                    Number(item.inflation ?? 0) || 0
+                  )}$** ]`
+                : ""
+            }`.trim() +
+            (item.flavorText || (!isSellable && item.cannotBuyFlavor)
+              ? "\n"
+              : "");
+          if (!(playersMap instanceof Map)) {
+            throw new Error(`playersMap must be a Map`);
+          }
+          if (
+            playersMap &&
+            playersMap instanceof Map &&
+            (item.type === "weapon" || item.type === "armor")
+          ) {
+            let hasLine = false;
+            for (const [, petPlayer] of playersMap) {
+              const clone = petPlayer.clone();
+              let isHead = false;
+              const applyHead = () => {
+                if (!isHead) {
+                  result += `☆ ${petPlayer.petIcon} `;
+                  isHead = true;
+                  hasLine = true;
                 }
-                if (isHead) {
-                  result += `\n`;
+              };
+              if (item.type === "weapon") {
+                clone.weapon[0] = JSON.parse(JSON.stringify(item));
+                const diff = clone.ATK - petPlayer.ATK;
+                const defDiff = clone.DF - petPlayer.DF;
+                if (diff !== 0) {
+                  let i = diff > 0;
+                  let b = i ? "**" : "";
+                  applyHead();
+                  result += `**${diff > 0 ? "+" : ""}${diff}** ${b}ATK${b}, `;
+                }
+                if (defDiff !== 0) {
+                  let i = defDiff > 0;
+                  let b = i ? "**" : "";
+                  applyHead();
+                  result += `**${
+                    defDiff > 0 ? "+" : ""
+                  }${defDiff}** ${b}DEF${b}, `;
+                }
+              } else if (item.type === "armor") {
+                if (clone.armors[0] && clone.armors[0].def > Number(item.def)) {
+                  clone.armors[1] = JSON.parse(JSON.stringify(item));
+                } else {
+                  clone.armors[0] = JSON.parse(JSON.stringify(item));
+                }
+
+                const diff = clone.DF - petPlayer.DF;
+                const atkDiff = clone.ATK - petPlayer.ATK;
+                if (diff !== 0) {
+                  applyHead();
+                  let i = diff > 0;
+                  let b = i ? "**" : "";
+                  result += `**${diff > 0 ? "+" : ""}${diff}** ${b}DEF${b}, `;
+                }
+                if (atkDiff !== 0) {
+                  let i = atkDiff > 0;
+                  let b = i ? "**" : "";
+                  applyHead();
+                  result += `**${
+                    atkDiff > 0 ? "+" : ""
+                  }${atkDiff}** ${b}ATK${b}, `;
                 }
               }
-              if (hasLine) {
+              if (isHead) {
                 result += `\n`;
               }
             }
-
-            if (item.flavorText || (!isSellable && item.cannotBuyFlavor)) {
-              result += `${UNISpectra.charm} ${
-                isSellable
-                  ? item.flavorText
-                  : item.cannotBuyFlavor ?? item.flavorText
-              }`;
+            if (hasLine) {
+              result += `\n`;
             }
-            return result;
-          })
-          .join("\n\n");
-        if (allCll.length > 0) {
-          result += `\n\n${UNISpectra.charm} 🏆 **Your Collectibles**:\n${allCll
-            .map(
-              (i) =>
-                `${formatValue(i.amount, i.metadata?.icon, true)} ${
-                  i.metadata?.name
-                } [${i.metadata.key}]`
-            )
-            .join("\n")}`;
-        }
-      }
-    } else {
-      result = data
-        .map(
-          (item) =>
-            `${item.num}. **${item.icon} ${item.name}** - **${
-              this.isGenoR() ? 0 : item.price
-            }$**\n${UNISpectra.charm} ${item.flavorText}`
-        )
+          }
+
+          if (item.flavorText || (!isSellable && item.cannotBuyFlavor)) {
+            result += `${UNISpectra.charm} ${
+              isSellable
+                ? item.flavorText
+                : item.cannotBuyFlavor ?? item.flavorText
+            }`;
+          }
+          return result;
+        })
         .join("\n\n");
+      if (allCll.length > 0) {
+        result += `\n\n${UNISpectra.charm} 🏆 **Your Collectibles**:\n${allCll
+          .map(
+            (i) =>
+              `${formatValue(i.amount, i.metadata?.icon, true)} ${
+                i.metadata?.name
+              } [${i.metadata.key}]`
+          )
+          .join("\n")}`;
+      }
     }
-    return result;
+
+    return { str: result, canv };
   }
   rand(arr) {
     if (arr.length === 1) {
@@ -1297,7 +1404,7 @@ ${this.optionText()}
         const userInfo = await money.get(input.senderID);
         const { money: cash, inventory = [], boxItems = [] } = userInfo;
         const { playersMap } = context.petPlayerMaps(userInfo);
-        const items = self.stringItemData({
+        const { str: items, canv } = await self.stringItemData({
           userMoney: cash,
           inventory: new Inventory(inventory),
           boxInventory: new Inventory(boxItems, 100),
@@ -1305,13 +1412,14 @@ ${this.optionText()}
           userData: userInfo,
         });
         const dialogue = self.rand(self.buyTexts);
-        const i = await output.reply(
-          `🔎 Reply with **<num> <quantity>** to purchase.\n\n${
+        const i = await output.reply({
+          body: `🔎 Reply with **<num> <quantity>** to purchase.\n\n${
             UNISpectra.charm
           } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(cash)}** 🧰 **${
             inventory.length
-          }/${inventoryLimit}**`
-        );
+          }/${inventoryLimit}**`,
+          attachment: await canv.toStream(),
+        });
         handleEnd(i.messageID, {
           isItemChoose: true,
         });
@@ -1350,7 +1458,7 @@ ${this.optionText()}
 
         let { playersMap } = petPlayerMaps(userInfo);
 
-        let items = self.stringItemData({
+        let { str: items, canv } = await self.stringItemData({
           userMoney: cash,
           inventory: new Inventory(inventory),
           boxInventory: new Inventory(boxInventory, 100),
@@ -1480,7 +1588,7 @@ ${this.optionText()}
           ...argu,
           inventory: new Inventory(argu.inventory).raw(),
         });
-        items = self.stringItemData({
+        ({ items, canv } = await self.stringItemData({
           userMoney:
             !priceInfo.state && targetItem.priceType === "money"
               ? cash - price
@@ -1489,7 +1597,7 @@ ${this.optionText()}
           boxInventory: new Inventory(boxInventory, 100),
           playersMap,
           userData: userInfo,
-        });
+        }));
 
         const dialogue = self.rand(self.thankTexts);
         const header = `✅ Added **x${amount} ${firstAdded.icon} ${
@@ -1500,15 +1608,16 @@ ${this.optionText()}
             : formatCash(price, true)
         }`;
 
-        const i = await output.reply(
-          `${header}\n\n${
+        const i = await output.reply({
+          body: `${header}\n\n${
             UNISpectra.charm
           } 💬 ${dialogue}\n\n${items}\n\n**${formatCash(
             !priceInfo.state && targetItem.priceType === "money"
               ? cash - price
               : cash
-          )}** 🧰 **${inventory.length}/${inventoryLimit}**`
-        );
+          )}** 🧰 **${inventory.length}/${inventoryLimit}**`,
+          attachment: await canv.toStream(),
+        });
         handleEnd(i.messageID, {
           isItemChoose: true,
         });

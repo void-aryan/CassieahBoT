@@ -1,1 +1,83 @@
-{}
+{
+  "web:bmVha3l1dGk": {
+    "money": 10000,
+    "exp": 0,
+    "battlePoints": 10,
+    "lastModified": 1755764099816,
+    "name": "Liane",
+    "usernameHistory": [
+      "Liane"
+    ],
+    "cassExpress": {
+      "mailList": [
+        {
+          "body": "Your name has been updated!\n\n➤ Old Name: **Unregistered**\n➥ New Name: **Liane**\n➥ Changed on: 8/21/2025, 3:47:54 PM",
+          "timeStamp": 1755762474300,
+          "title": "🍃 Name Changed",
+          "author": "web:bmVha3l1dGk"
+        },
+        {
+          "body": "Congratulations **Liane** for claiming your daily reward!",
+          "timeStamp": 1755764080293,
+          "title": "Daily Reward Claimed",
+          "author": "web:bmVha3l1dGk"
+        }
+      ],
+      "bankLogs": []
+    },
+    "lastDailyClaim": 1755764080293,
+    "collectibles": [
+      {
+        "metadata": {
+          "key": "relapseEnergy",
+          "name": "Relapse Energy",
+          "icon": "⚡",
+          "type": "garden"
+        },
+        "amount": 0
+      },
+      {
+        "metadata": {
+          "key": "honey",
+          "name": "Honey",
+          "icon": "🍯",
+          "type": "garden"
+        },
+        "amount": 0
+      },
+      {
+        "metadata": {
+          "key": "gems",
+          "name": "Daily Gems",
+          "icon": "💎",
+          "type": "currency"
+        },
+        "amount": 1
+      },
+      {
+        "metadata": {
+          "key": "feudTickets",
+          "name": "Feud Tickets",
+          "icon": "🎫",
+          "type": "hardWork"
+        },
+        "amount": 0
+      },
+      {
+        "metadata": {
+          "key": "repoints",
+          "name": "Repoints",
+          "icon": "🕓",
+          "type": "garden"
+        },
+        "amount": 0
+      }
+    ],
+    "cassEXP": {
+      "exp": 5
+    },
+    "shopInv": {
+      "petnostalgia": true
+    }
+  }
+}

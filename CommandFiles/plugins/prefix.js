@@ -20,7 +20,10 @@ export const meta = {
 export async function use(obj) {
   const { input, output, prefix, prefixes } = obj;
   const words = ["prefix", "cassidy", "cassieah", "ieah", "zeah"];
-  if (words.includes(input.trim()) || input.text.trim() === prefix) {
+  if (
+    words.some((w) => `${w}`.toLowerCase() === input.toLowerCase()) ||
+    input.text.trim() === prefix
+  ) {
     const canv = new CanvCass(CanvCass.preW, CanvCass.preH / 2);
     await canv.drawBackground();
 
@@ -42,7 +45,8 @@ export async function use(obj) {
     const margin = 100;
 
     canv.drawText(`💌 CassieahBoT`, {
-      font: `bold 65px Cassieah-Bold, EMOJI, sans-serif`,
+      fontType: "cbold",
+      size: 65,
       x: container.left + margin,
       y: lines.at(0) + 65 / 2,
       align: "left",
@@ -50,7 +54,8 @@ export async function use(obj) {
       fill: "white",
     });
     canv.drawText(`v${global.package.version}`, {
-      font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
+      fontType: "cbold",
+      size: 50,
       x: container.right - margin,
       y: lines.at(0) + 25,
       align: "right",
@@ -58,7 +63,8 @@ export async function use(obj) {
       fill: "rgba(255, 255, 255, 0.7)",
     });
     canv.drawText(`Prefixes: [ ${[...prefixes].join(", ")} ]`, {
-      font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
+      fontType: "cbold",
+      size: 70,
       x: container.centerX,
       y: lines.at(1) + 35,
       align: "center",

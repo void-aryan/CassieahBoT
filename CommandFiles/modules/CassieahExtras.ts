@@ -199,19 +199,11 @@ export class CanvCass {
     };
   }
 
-  withContext(cb: (ctx: CanvasRenderingContext2D) => void): void {
+  withContext(cb: (ctx: SKRSContext2D) => void): void {
     const ctx = this.#context;
     ctx.save();
     try {
-      cb({
-        ...ctx,
-        save() {
-          throw new Error("Cannot allow saving.");
-        },
-        restore() {
-          throw new Error("Cannot allow restoring.");
-        },
-      });
+      cb(ctx);
     } finally {
       ctx.restore();
     }
@@ -507,11 +499,13 @@ export class CanvCass {
       options = config;
     }
 
+    this.#processFont(options);
+
     const {
       fill = "white",
       stroke,
       strokeWidth = 1,
-      font = `16px "Cassieah"`,
+      cssFont: font = "",
       align = "center",
       baseline = "middle",
     } = options;
@@ -535,6 +529,19 @@ export class CanvCass {
     ctx.restore();
   }
 
+  #processFont(options: Partial<CanvCass.DrawTextParam>) {
+    if (!options.cssFont) {
+      options.fontType ??= "cnormal";
+      options.size ??= 50;
+      if (options.fontType === "cbold") {
+        options.cssFont = `bold ${options.size}px Cassieah-Bold, EMOJI, sans-serif`;
+      }
+      if (options.fontType === "cnormal") {
+        options.cssFont = `normal ${options.size}px Cassieah, EMOJI, sans-serif`;
+      }
+    }
+  }
+
   static colorA = "#9700af";
   static colorB = "#a69a00";
 
@@ -543,6 +550,19 @@ export class CanvCass {
       [0, CanvCass.colorB],
       [1, CanvCass.colorA],
     ]);
+  }
+
+  measureText(style: CanvCass.MeasureTextParam) {
+    const ctx = this.#context;
+    ctx.save();
+    this.#processFont(style);
+    const { cssFont: font = "" } = style;
+    ctx.font = font;
+    const result = ctx.measureText(style.text);
+
+    ctx.restore();
+
+    return result;
   }
 
   tiltedGradient(
@@ -671,12 +691,20 @@ export namespace CanvCass {
     text: string;
     x: number;
     y: number;
-    font?: string;
+    cssFont?: string;
+    fontType?: "cbold" | "cnormal" | "css";
+    size?: number;
     fill?: Color;
     stroke?: string;
     strokeWidth?: number;
     align?: CanvasTextAlign;
     baseline?: CanvasTextBaseline;
+  }
+  export interface MeasureTextParam {
+    text: string;
+    cssFont?: string;
+    fontType?: "cbold" | "cnormal" | "css";
+    size?: number;
   }
 
   export function lineYs(height: number, lines: number): number[] {

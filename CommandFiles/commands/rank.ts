@@ -147,7 +147,7 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
   const top = topData.findIndex((i) => i[1].userID === senderID) + 1;
 
   canv.drawText(`👤 ${data.name}`, {
-    font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
+    cssFont: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
     x: container.left + margin,
     y: lines.at(0),
     align: "left",
@@ -155,7 +155,7 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
     fill: "white",
   });
   canv.drawText(`#${top}`, {
-    font: `bold 60px Cassieah-Bold, EMOJI, sans-serif`,
+    cssFont: `bold 60px Cassieah-Bold, EMOJI, sans-serif`,
     x: container.right - margin,
     y: lines.at(0),
     align: "right",
@@ -190,7 +190,7 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
   });
 
   canv.drawText(`Level ${cxp.getLevel()}`, {
-    font: `bold 40px Cassieah-Bold, EMOJI, sans-serif`,
+    cssFont: `bold 40px Cassieah-Bold, EMOJI, sans-serif`,
     x: container.left + margin,
     y: lines.at(0) + d / 2,
     align: "left",
@@ -203,7 +203,7 @@ export async function entry({ money, input, output, CassEXP }: CommandContext) {
       cxp.getNextEXP() - CassEXP.getEXPFromLevel(cxp.level - 1)
     }`,
     {
-      font: `bold 40px Cassieah-Bold, EMOJI, sans-serif`,
+      cssFont: `bold 40px Cassieah-Bold, EMOJI, sans-serif`,
       x: bar.centerX,
       y: lines.at(1),
       align: "center",

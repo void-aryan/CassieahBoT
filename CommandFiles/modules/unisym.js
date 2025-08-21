@@ -1053,3 +1053,7 @@ export async function handleDefaultCommand(
     return output.error(error);
   }
 }
+
+export function countEmojis(str = "") {
+  return [...`${str}`.matchAll(/\p{Emoji}/gu)].length;
+}

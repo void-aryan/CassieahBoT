@@ -202,7 +202,7 @@ const configs: Config[] = [
       });
 
       canv.drawText(`${style.title}`, {
-        font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
+        cssFont: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
         x: container.left + 50,
         y: container.top - 70,
         align: "left",
@@ -211,7 +211,8 @@ const configs: Config[] = [
       });
 
       canv.drawText(`👤 ${playerMoney.name}`, {
-        font: `bold 50px Cassieah-Bold, EMOJI, sans-serif`,
+        fontType: "cbold",
+        size: 50,
         x: container.centerX,
         y: container.top + 100,
         align: "center",
@@ -219,7 +220,8 @@ const configs: Config[] = [
         fill: "rgba(255, 255,255, 0.7)",
       });
       canv.drawText(`$${abbreviateNumber(playerMoney.money, 2, true)}`, {
-        font: `bold 70px Cassieah-Bold, EMOJI, sans-serif`,
+        fontType: "cbold",
+        size: 75,
         x: container.centerX,
         y: container.centerY,
         baseline: "middle",
@@ -227,7 +229,8 @@ const configs: Config[] = [
         fill: "white",
       });
       canv.drawText(`🏆 Top #${top}`, {
-        font: `bold 100px Cassieah-Bold, EMOJI, sans-serif`,
+        fontType: "cbold",
+        size: 100,
         x: container.centerX,
         y: container.bottom,
         baseline: "middle",
