@@ -948,6 +948,15 @@ export class UTShop {
       size: mainFSize,
       fill: "white",
     });
+    canv.drawText(`📃 Page ${page} of ${this.getPageSlicer().pagesLength}`, {
+      x: header.left,
+      y: header.top + mainFSize / 2 + mainFSize + lineDiff,
+      align: "left",
+      baseline: "middle",
+      fontType: "cbold",
+      size: mainFSize,
+      fill: "white",
+    });
     canv.drawText(`🧰 ${inventory.size()}/${inventory.limit}`, {
       x: header.right,
       y: header.top + mainFSize / 2 + mainFSize + lineDiff,
