@@ -9,6 +9,7 @@ import {
   GardenPlot,
   GardenStats,
 } from "./GardenTypes";
+import { CasaieahRaw } from "./CasaieahUtils";
 
 type InventoryTypes =
   | "generic"
@@ -216,6 +217,7 @@ type UserData = {
   gardenStats?: GardenStats;
   plotLimit?: number;
   gardenEarns?: number;
+  casaieah?: CasaieahRaw;
 };
 
 type NullableUserData = {

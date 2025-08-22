@@ -25,7 +25,7 @@ export const meta: CassidySpectra.CommandMeta = {
   version: "2.1.12",
   usage: "{prefix}{name} [id | 'new']",
   category: "Spinoff Games",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   permissions: [0],
   noPrefix: false,
   waitingTime: 1,

@@ -6,7 +6,7 @@
 export const meta = {
   name: "active",
   description: "Lists the top 10 most active users.",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   noPrefix: false,
   permissions: [0, 1, 2],

@@ -6,7 +6,7 @@ export const meta = {
   name: "gift",
   description: "Claim your gift every 20 minutes.",
   version: "2.0.5",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   category: "Rewards",
   permissions: [0],
   waitingTime: 1,

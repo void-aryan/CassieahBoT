@@ -6,7 +6,7 @@
 export const meta = {
   name: "cassexpress",
   version: "1.3.0",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   waitingTime: 1,
   description: "Advanced and Sophisticated way of managing bank system.",
   category: "Finance",

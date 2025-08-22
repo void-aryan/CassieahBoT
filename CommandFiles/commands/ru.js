@@ -4,7 +4,7 @@
  */
 export const meta = {
   name: "russianroulette",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   waitingTime: 5,
   description: "Russian Roulette game with betting mechanics!",

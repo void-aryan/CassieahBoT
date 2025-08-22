@@ -15,7 +15,7 @@ const isT = Cassidy.config.gambleNeedsMint ?? false;
 export const meta = {
   name: "slot",
   description: "Play the slot machine game",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.1.9",
   usage: "{prefix}{name} [mtls_key] <bet>",
   category: "Gambling Games",

@@ -8,7 +8,7 @@ import { ShopClass } from "@cass-plugins/shopV2";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "menu",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   description:
     "Acts as a central hub, like a Start Menu, providing users with an overview of available commands, their functionalities, and access to specific command details. Helps users quickly navigate the bot's features.",
   version: "3.0.7",

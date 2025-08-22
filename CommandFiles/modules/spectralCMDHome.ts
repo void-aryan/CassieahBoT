@@ -8,6 +8,7 @@ export type Extra = {
   spectralArgs?: string[];
   cooldown?: number | undefined;
   self: SpectralCMDHome;
+  useDefault(): Promise<void>;
 } & Record<string, unknown>;
 
 export type Handler = {
@@ -337,6 +338,16 @@ export class SpectralCMDHome {
             this.cooldowns.delete(userId);
           }
         }
+      },
+      useDefault: async () => {
+        await this.options.home!.call(
+          this.getCommand(this.options.defaultKey),
+          ctx,
+          {
+            ...extraCTX,
+            spectralArgs: ctx.args.slice(0),
+          }
+        );
       },
     };
 

@@ -11,7 +11,7 @@ import { generateInterface } from "@cass-modules/generateInterface";
 export const meta = {
   name: "api",
   description: "Cassidy's Developer API!",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.1.4",
   usage: "{prefix}inventory <action> [args]",
   category: "Finance",

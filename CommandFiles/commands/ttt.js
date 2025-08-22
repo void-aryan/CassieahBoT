@@ -5,7 +5,7 @@
 export const meta = {
   name: "ttt",
   description: "Tic-Tac-Toe game",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   usage: "{prefix}{name}",
   category: "Chance Games",

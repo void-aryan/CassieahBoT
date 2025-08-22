@@ -9,7 +9,7 @@ import { SpectralCMDHome } from "@cassidy/spectral-home";
 
 export const meta: Cassieah.CommandMeta = {
   name: "system",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "4.0.0",
   description: "Manage system files and modules (original ver)",
   usage: "system [options]",

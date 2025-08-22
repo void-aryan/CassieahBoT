@@ -12,7 +12,7 @@ export const meta = {
   name: "shop",
   description: "Buy anything!",
   version: "1.1.9",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   usage: "{prefix}shop",
   category: "Shopping",
   permissions: [0],

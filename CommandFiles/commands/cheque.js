@@ -9,7 +9,7 @@ import { ReduxCMDHome } from "@cassidy/redux-home";
 export const meta = {
   name: "cheque",
   description: "Manage your cheques and cash them for money.",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.8",
   usage: "{prefix}cheque <action> [amount]",
   category: "Finance",

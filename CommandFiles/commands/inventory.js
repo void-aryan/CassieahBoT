@@ -12,7 +12,7 @@ import {
 export const meta = {
   name: "inventory",
   description: "Manage your inventory.",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.1.3",
   usage: "{prefix}inventory <action> [args]",
   category: "Inventory",

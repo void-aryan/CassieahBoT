@@ -8,7 +8,7 @@ import { defineEntry } from "@cass/define";
 export const meta = {
   name: "random",
   description: "Everything random.",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   usage: "{prefix}{name}",
   category: "Utilities",

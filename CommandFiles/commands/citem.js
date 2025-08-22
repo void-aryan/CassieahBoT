@@ -6,7 +6,7 @@
 export const meta = {
   name: "citem",
   description: "Create custom items to add to your inventory.",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.2",
   usage: "{prefix}citem <...json>",
   category: "Inventory",

@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   version: "1.6.12",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   permissions: [0],
   noPrefix: false,
   waitingTime: 1,

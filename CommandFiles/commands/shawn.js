@@ -7,7 +7,7 @@ export const meta = {
   description:
     "A mysterious shop in the Dark World, selling artifacts and sharing tales.",
   version: "1.0.3",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   usage: "{prefix}seam",
   category: "Shopping",
   permissions: [0],

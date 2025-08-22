@@ -2,7 +2,7 @@ import { NeaxScript } from "@cass-modules/NeaxScript";
 
 export const meta: CassidySpectra.CommandMeta = {
   name: "neax",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   description:
     "Neax is a new scripting language for CassidySpectra, designed to provide a powerful and flexible interface for interacting with the Cassidy Redux chatbot. It deprecates the older CassCLI, offering enhanced command execution, permission management, and integration with virtual file systems.",
   usage:

@@ -12,7 +12,7 @@ export const meta: CassidySpectra.CommandMeta = {
   version: "1.0.0",
   usage: "{prefix}{name} [newPrefix]",
   category: "Thread",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   permissions: [0],
   noPrefix: false,
   waitingTime: 0,

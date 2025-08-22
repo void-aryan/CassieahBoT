@@ -4,7 +4,7 @@
  */
 export const meta = {
   name: "support",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   description: "Support Group Chat!",
   otherNames: ["supportgc", "gc"],

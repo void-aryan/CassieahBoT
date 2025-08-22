@@ -7,7 +7,7 @@ export const meta = {
   description:
     "A bakery run by the sly Baker Bob, known for selling baked goods with misleading qualities and deceptive stats.",
   version: "1.0.0",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   usage: "{prefix}bakery",
   category: "Shopping",
   permissions: [0],

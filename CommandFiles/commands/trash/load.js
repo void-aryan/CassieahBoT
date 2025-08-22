@@ -1,6 +1,6 @@
 export const meta = {
   name: "load",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   description: "Look how simple it is, it will just refresh loaded commands, has reboot and prefix.",
   usage: "{prefix}load",

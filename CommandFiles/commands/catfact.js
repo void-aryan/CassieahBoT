@@ -5,7 +5,7 @@
  */
 export const meta = {
   name: "catfact",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   description: "Get a random cat fact",
   usage: "{prefix}catfact",
   category: "Fun",

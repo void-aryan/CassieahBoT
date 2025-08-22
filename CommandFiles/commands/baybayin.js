@@ -9,7 +9,7 @@ export const meta = {
   description: "Convert text into baybayin",
   version: "2.5.0",
   usage: "<prefix>baybayin <query>",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   category: "Utilities",
   permissions: [0],
   noPrefix: false,

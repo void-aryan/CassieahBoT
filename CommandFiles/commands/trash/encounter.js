@@ -12,7 +12,7 @@ export const meta = {
   version: "1.0.2",
   usage: "{prefix}{name}",
   category: "Spinoff Games",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   permissions: [0],
   noPrefix: "both",
   waitingTime: 1,

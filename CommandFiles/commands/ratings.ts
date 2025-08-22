@@ -8,7 +8,7 @@ export const meta: CassidySpectra.CommandMeta = {
   version: "1.0.1",
   usage: "{prefix}{name} <submit|update|list|view|home|delete> [args]",
   category: "Utility",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   role: 0,
   noPrefix: false,
   waitingTime: 3,

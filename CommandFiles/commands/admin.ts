@@ -13,7 +13,7 @@ export const meta: CassidySpectra.CommandMeta = {
   version: "3.0.0",
   usage: "{prefix}{name} [add|remove|addmod|removemod|list] [args]",
   category: "User Management",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   role: 0,
   noPrefix: false,
   waitingTime: 0,

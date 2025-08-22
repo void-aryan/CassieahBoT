@@ -4,7 +4,7 @@
  */
 export const meta = {
   name: "quiz",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.1",
   waitingTime: 5,
   description: "Quiz game!",

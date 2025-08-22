@@ -9,7 +9,7 @@ export const meta = {
   version: "1.0.8",
   usage: "{prefix}{name} <title> | <content>",
   category: "Utilities",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   permissions: [0],
   noPrefix: false,
   shopPrice: 500000,

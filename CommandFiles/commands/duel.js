@@ -9,7 +9,7 @@ import { PetPlayer } from "@cass-plugins/pet-fight";
 export const meta = {
   name: "duel",
   description: "Challenge another player to a pet duel!",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   usage: "{prefix}duel <pet name>",
   category: "Spinoff Games",

@@ -894,6 +894,10 @@ declare global {
       [name: string]: any;
     }
 
+    export interface Meta extends CommandMeta {}
+    export interface Style extends CommandStyle {}
+    export interface Command extends CassidyCommand {}
+
     export interface CommandMeta {
       name: string;
       fbOnly?: boolean;

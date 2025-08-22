@@ -7,7 +7,7 @@ export const meta: CassidySpectra.CommandMeta = {
   name: "busy",
   description:
     "Turning do not disturb mode which notifies a user whenever they tag you.",
-  author: "Liane Cagara",
+  author: "@lianecagara",
   version: "1.0.0",
   usage: "{prefix}busy",
   category: "Config",
