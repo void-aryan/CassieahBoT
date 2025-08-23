@@ -475,5 +475,34 @@ export namespace Casaieah {
   export function parseInputCoords(x: string | number, y: string | number) {
     return [Number(x) - 1, Number(y) - 1];
   }
+
+  export const itemType = "casatile";
+  export type Item = UserData["inventory"][number] & {
+    type: typeof itemType;
+    tileID: string;
+  };
+
+  export function itemToTile(item: Item): CasaTile | null {
+    if (item.type !== "casatile" || !item.tileID) {
+      return null;
+    }
+    const found = registry.get(item.tileID);
+    if (!found) return null;
+    return {
+      emoji: String(found.emoji),
+      name: String(found.name),
+      flags: new Map(found.flags ?? []),
+      id: String(found.id),
+    };
+  }
+  export function tileToItem(tile: CasaTile): Item | null {
+    return {
+      tileID: tile.id,
+      type: itemType,
+      icon: `🔨${tile.emoji}`,
+      name: `CasaTile - ${tile.name}`,
+      key: `casa_${tile.id}`,
+    };
+  }
 }
 import { CanvCass } from "./CassieahExtras";

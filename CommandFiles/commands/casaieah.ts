@@ -1,4 +1,5 @@
 import { Casa2d, Casaieah } from "@cass-modules/CasaieahUtils";
+import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { defineHome } from "@cass/define";
 import { Config, SpectralCMDHome } from "@cassidy/spectral-home";
 
@@ -16,7 +17,7 @@ export const meta: Cassieah.Meta = {
 };
 
 export const style: Cassieah.Style = {
-  title: "🔨 Casa-Ieah",
+  title: "🔨 Casa-Ieah (Build)",
   contentFont: "fancy",
   titleFont: "bold",
   lineDeco: "none",
@@ -48,7 +49,7 @@ const config: Config[] = [
 
       const roomCan = await room.tiles.renderView();
       return output.attach(
-        `👤 **${user.name}**\n✅ Room successfully created, and it is empty!\n\n🚪 **Room**: ${room.name}\n***Please refer to the image below***`,
+        `👤 **${user.name}**\n✅ Room successfully created, and it is empty!\n\n🚪 **Room**: ${room.name}\n\n***Please refer to the image below***`,
         await roomCan.toStream()
       );
     },
@@ -89,15 +90,70 @@ const config: Config[] = [
       }
       const roomCan = await room.tiles.renderView();
       return output.attach(
-        `👤 **${user.name}**\n\n🚪 **Room**: ${room.name}\n***Please refer to the image below***`,
+        `👤 **${user.name}**\n\n🚪 **Room**: ${room.name}\n\n***Please refer to the image below***`,
         await roomCan.toStream()
       );
     },
   },
   {
-    key: "set",
-    aliases: ["-s"],
-    args: ["<room_name>", "<x>", "<y>", "<id>"],
+    key: "place",
+    aliases: ["-p"],
+    args: ["<room_name>", "<x>", "<y>", "<item_key>"],
+    async handler({ input, output, user }, { spectralArgs, useDefault }) {
+      const { parsed: casa } = await Casaieah.fromDB(input.senderID);
+      const inv = new Inventory(user.inventory);
+      const inpname = spectralArgs[0];
+      const [x, y] = Casaieah.parseInputCoords(
+        spectralArgs[1],
+        spectralArgs[2]
+      );
+      const itemKey = String(spectralArgs[3] ?? "");
+      if (!inpname || isNaN(x) || isNaN(y) || !itemKey) {
+        return useDefault();
+      }
+      const room = Casaieah.getRoom(casa, inpname);
+      if (!room) {
+        return output.reply(`❌ Room not **found**.`);
+      }
+      const item = inv.getOne(itemKey) as Casaieah.Item;
+      if (!item) {
+        return output.reply(
+          `❌ Can't find an item with key **${itemKey}**, please check your inventory.`
+        );
+      }
+      if (!item.tileID) {
+        return output.reply(`❌ This item is not a valid tile.`);
+      }
+      const tile = Casaieah.registry.get(item.tileID);
+      if (!tile && itemKey !== "null") {
+        return output.reply(`❌ Can't find a tile with ID **${itemKey}**`);
+      }
+      if (!room.tiles.inBounds(x, y)) {
+        return output.reply(`❌ Out of bounds!`);
+      }
+      const old = room.tiles.get(x, y);
+      const itemOld = Casaieah.tileToItem(old);
+      inv.addOne(itemOld);
+      inv.deleteRef(item);
+      room.tiles.set(x, y, tile);
+      const roomCan = await room.tiles.renderView();
+      await Casaieah.toDB(input.senderID, casa);
+      return output.attach(
+        `👤 **${user.name}**\n\n✅ Set from ${old?.emoji ?? "NULL"} **${
+          old?.name ?? "Null"
+        }** to ${tile?.emoji ?? "NULL"} **${
+          tile?.name ?? "Null"
+        }**\n🚪 **Room**: ${
+          room.name
+        }\n\n***Please refer to the image below***`,
+        await roomCan.toStream()
+      );
+    },
+  },
+  {
+    key: "remove",
+    aliases: ["-r"],
+    args: ["<room_name>", "<x>", "<y>"],
     async handler({ input, output, user }, { spectralArgs, useDefault }) {
       const { parsed: casa } = await Casaieah.fromDB(input.senderID);
       const inpname = spectralArgs[0];
@@ -105,31 +161,30 @@ const config: Config[] = [
         spectralArgs[1],
         spectralArgs[2]
       );
-      const ID = String(spectralArgs[3] ?? "");
-      if (!inpname || isNaN(x) || isNaN(y) || !ID) {
+      if (!inpname || isNaN(x) || isNaN(y)) {
         return useDefault();
       }
       const room = Casaieah.getRoom(casa, inpname);
       if (!room) {
         return output.reply(`❌ Room not **found**.`);
       }
-      const item = Casaieah.registry.get(ID);
-      if (!item && ID !== "null") {
-        return output.reply(`❌ Can't find a tile with ID **${ID}**`);
-      }
+
       if (!room.tiles.inBounds(x, y)) {
         return output.reply(`❌ Out of bounds!`);
       }
       const old = room.tiles.get(x, y);
-      room.tiles.set(x, y, item);
+      const item = Casaieah.tileToItem(old);
+      const inv = new Inventory(user.inventory);
+      inv.addOne(item);
+      room.tiles.set(x, y, null);
       const roomCan = await room.tiles.renderView();
       await Casaieah.toDB(input.senderID, casa);
       return output.attach(
         `👤 **${user.name}**\n\n✅ Set from ${old?.emoji ?? "NULL"} **${
           old?.name ?? "Null"
-        }** to ${item?.emoji ?? "NULL"} **${
-          item?.name ?? "Null"
-        }**\n🚪 **Room**: ${room.name}\n***Please refer to the image below***`,
+        }** to ${"NULL"} **${"Null"}**\n🚪 **Room**: ${
+          room.name
+        }\n\n***Please refer to the image below***`,
         await roomCan.toStream()
       );
     },
