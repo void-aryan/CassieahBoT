@@ -6,6 +6,7 @@ import { TILE_REGISTRY } from "./CasaRegistry";
 export type CasaTile = null | {
   id: string;
   name: string;
+  price?: number;
   flags?: FlagsParsed;
   emoji: string;
 };
@@ -55,10 +56,13 @@ export class Casa2d<T extends CasaTile> {
           name: rawTile,
           emoji: "❓",
           flags: [],
+          price: 0,
+          id: "unknown",
         };
 
         return {
           id: rawTile,
+          price: registry.price,
           name: registry.name,
           emoji: registry.emoji,
           flags: new Map(registry.flags ?? []),
@@ -455,10 +459,15 @@ export namespace Casaieah {
       parsed: parse(casaieah),
     };
   }
-  export async function toDB(userID: string, casa: CasaieahParsed) {
+  export async function toDB(
+    userID: string,
+    casa: CasaieahParsed,
+    extra: Partial<UserData> = {}
+  ) {
     const { usersDB } = Cassidy.databases;
     const raw = exportRaw(casa);
     await usersDB.setItem(userID, {
+      ...extra,
       casaieah: raw,
     });
   }
@@ -493,15 +502,18 @@ export namespace Casaieah {
       name: String(found.name),
       flags: new Map(found.flags ?? []),
       id: String(found.id),
+      price: found.price,
     };
   }
   export function tileToItem(tile: CasaTile): Item | null {
+    if (!tile) return null;
     return {
       tileID: tile.id,
       type: itemType,
       icon: `🔨${tile.emoji}`,
       name: `CasaTile - ${tile.name}`,
       key: `casa_${tile.id}`,
+      flavorText: "This item can be used with Casa.",
     };
   }
 }

@@ -1,7 +1,9 @@
 import { Casa2d, Casaieah } from "@cass-modules/CasaieahUtils";
+import { ShopItem } from "@cass-modules/GardenBalancer";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { defineHome } from "@cass/define";
 import { Config, SpectralCMDHome } from "@cassidy/spectral-home";
+import { UTShop } from "@cassidy/ut-shop";
 
 export const meta: Cassieah.Meta = {
   name: "casaieah",
@@ -23,7 +25,37 @@ export const style: Cassieah.Style = {
   lineDeco: "none",
 };
 
+const shop = new UTShop({
+  key: "casashop",
+  welcomeTexts: ["Welcome to the **Casa Shop**!"],
+  buyTexts: ["Don't hesistate to choose your favorite tile!"],
+  stockInterval: 5 * 60 * 1000,
+  style,
+  itemData: [...Casaieah.registry.values()].map((c) => {
+    const converted = Casaieah.tileToItem(c);
+    return {
+      ...converted,
+      price: c.price,
+      stockChance: 1,
+      stockLimit: 5,
+      flavorText: "",
+      onPurchase({ moneySet }) {
+        moneySet.inventory.push({
+          ...converted,
+        });
+      },
+    };
+  }) satisfies ShopItem[],
+});
+
 const config: Config[] = [
+  {
+    key: "shop",
+    aliases: ["-sh"],
+    async handler(ctx) {
+      return shop.onPlay(ctx);
+    },
+  },
   {
     key: "create",
     aliases: ["-cr", "new"],
@@ -99,7 +131,10 @@ const config: Config[] = [
     key: "place",
     aliases: ["-p"],
     args: ["<room_name>", "<x>", "<y>", "<item_key>"],
-    async handler({ input, output, user }, { spectralArgs, useDefault }) {
+    async handler(
+      { input, output, user, usersDB },
+      { spectralArgs, useDefault }
+    ) {
       const { parsed: casa } = await Casaieah.fromDB(input.senderID);
       const inv = new Inventory(user.inventory);
       const inpname = spectralArgs[0];
@@ -133,11 +168,16 @@ const config: Config[] = [
       }
       const old = room.tiles.get(x, y);
       const itemOld = Casaieah.tileToItem(old);
-      inv.addOne(itemOld);
+      if (itemOld) {
+        inv.addOne(itemOld);
+      }
       inv.deleteRef(item);
       room.tiles.set(x, y, tile);
       const roomCan = await room.tiles.renderView();
-      await Casaieah.toDB(input.senderID, casa);
+
+      await Casaieah.toDB(input.senderID, casa, {
+        inventory: inv.raw(),
+      });
       return output.attach(
         `👤 **${user.name}**\n\n✅ Set from ${old?.emoji ?? "NULL"} **${
           old?.name ?? "Null"
@@ -154,7 +194,10 @@ const config: Config[] = [
     key: "remove",
     aliases: ["-r"],
     args: ["<room_name>", "<x>", "<y>"],
-    async handler({ input, output, user }, { spectralArgs, useDefault }) {
+    async handler(
+      { input, output, user, usersDB },
+      { spectralArgs, useDefault }
+    ) {
       const { parsed: casa } = await Casaieah.fromDB(input.senderID);
       const inpname = spectralArgs[0];
       const [x, y] = Casaieah.parseInputCoords(
@@ -175,10 +218,14 @@ const config: Config[] = [
       const old = room.tiles.get(x, y);
       const item = Casaieah.tileToItem(old);
       const inv = new Inventory(user.inventory);
-      inv.addOne(item);
+      if (item) {
+        inv.addOne(item);
+      }
       room.tiles.set(x, y, null);
       const roomCan = await room.tiles.renderView();
-      await Casaieah.toDB(input.senderID, casa);
+      await Casaieah.toDB(input.senderID, casa, {
+        inventory: inv.raw(),
+      });
       return output.attach(
         `👤 **${user.name}**\n\n✅ Set from ${old?.emoji ?? "NULL"} **${
           old?.name ?? "Null"

@@ -8,6 +8,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "grass",
       name: "Grass",
       emoji: "🌿",
+      price: 10_000,
     },
   ],
   [
@@ -16,6 +17,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "path",
       name: "Path",
       emoji: "🪵",
+      price: 10_000,
     },
   ],
   [
@@ -24,6 +26,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "fence",
       name: "Fence",
       emoji: "🚧",
+      price: 20_000,
     },
   ],
   [
@@ -32,6 +35,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "tree",
       name: "Tree",
       emoji: "🌳",
+      price: 20_000,
     },
   ],
   [
@@ -40,6 +44,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "water",
       name: "Water",
       emoji: "💧",
+      price: 5_000,
     },
   ],
 
@@ -50,6 +55,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "wall",
       name: "Wall",
       emoji: "🧱",
+      price: 5_000,
     },
   ],
   [
@@ -58,6 +64,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "window",
       name: "Window",
       emoji: "🪟",
+      price: 20_000,
     },
   ],
   [
@@ -66,6 +73,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "door",
       name: "Door",
       emoji: "🚪",
+      price: 30_000,
     },
   ],
   [
@@ -74,6 +82,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "roof",
       name: "Roof",
       emoji: "🏠",
+      price: 5_000,
     },
   ],
 
@@ -84,6 +93,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "floor",
       name: "Floor",
       emoji: "🪵",
+      price: 5_000,
     },
   ],
   [
@@ -92,6 +102,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "rug",
       name: "Rug",
       emoji: "🟥",
+      price: 5_000,
     },
   ],
   [
@@ -100,6 +111,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "bed",
       name: "Bed",
       emoji: "🛏️",
+      price: 100_000,
     },
   ],
   [
@@ -108,6 +120,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "couch",
       name: "Couch",
       emoji: "🛋️",
+      price: 50_000,
     },
   ],
   [
@@ -116,6 +129,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "table",
       name: "Table",
       emoji: "🪑",
+      price: 50_000,
     },
   ],
   [
@@ -124,6 +138,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "tv",
       name: "TV",
       emoji: "📺",
+      price: 200_000,
     },
   ],
   [
@@ -132,6 +147,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "lamp",
       name: "Lamp",
       emoji: "💡",
+      price: 30_000,
     },
   ],
   [
@@ -140,6 +156,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "plant",
       name: "Plant",
       emoji: "🪴",
+      price: 30_000,
     },
   ],
   [
@@ -148,6 +165,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "fridge",
       name: "Fridge",
       emoji: "🧊",
+      price: 10_000,
     },
   ],
   [
@@ -156,6 +174,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "stove",
       name: "Stove",
       emoji: "🔥",
+      price: 10_000,
     },
   ],
   [
@@ -164,6 +183,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "sink",
       name: "Sink",
       emoji: "🚰",
+      price: 10_000,
     },
   ],
   [
@@ -172,6 +192,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "toilet",
       name: "Toilet",
       emoji: "🚽",
+      price: 200_000,
     },
   ],
   [
@@ -180,6 +201,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "bathtub",
       name: "Bathtub",
       emoji: "🛁",
+      price: 700_000,
     },
   ],
   [
@@ -188,6 +210,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "mirror",
       name: "Mirror",
       emoji: "🪞",
+      price: 50_000,
     },
   ],
 
@@ -198,6 +221,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "book",
       name: "Book",
       emoji: "📕",
+      price: 10_000,
     },
   ],
   [
@@ -206,6 +230,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "clock",
       name: "Clock",
       emoji: "🕒",
+      price: 80_000,
     },
   ],
   [
@@ -214,6 +239,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "painting",
       name: "Painting",
       emoji: "🖼️",
+      price: 10_000,
     },
   ],
   [
@@ -222,6 +248,7 @@ export const TILE_REGISTRY = new Map<string, CasaTile>([
       id: "computer",
       name: "Computer",
       emoji: "💻",
+      price: 900_000,
     },
   ],
 ]);
