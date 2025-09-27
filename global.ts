@@ -991,8 +991,8 @@ declare global {
       | "hidden"
       | "whiteline"
       | "default"
-      | "akhiro"
       | `${number}chars`;
+    export type LineType = "akhiro" | "default" | "thin" | "double";
 
     export type LineDecoration = "none" | "cross" | "text";
 
@@ -1007,13 +1007,23 @@ declare global {
       titleStyle?: Partial<StylerItem>;
       contentStyle?: Partial<StylerItem>;
       lineDeco?: "x" | "altar" | "none";
+      topLine?: LineType;
     }
 
     export type CommandStyle = CommandStyleBase & {
       [key: string]: StylerItem | string | string[];
     };
 
-    export interface StylerItem {
+    export type StylerItem = {
+      [key in `line_${"top" | "bottom"}_${LineType}`]?: LineStyle;
+    } & {
+      [key in `line_${"top" | "bottom"}`]?: LineStyle;
+    } & {
+      [key in `line_${"top" | "bottom"}_inside_${
+        | "altar"
+        | "x"
+        | "text"}`]?: LineStyle;
+    } & {
       preset?: string | string[];
       content?: string | null;
       content_template?: (string | number)[] | Record<string, string | number>;
@@ -1032,7 +1042,7 @@ declare global {
       line_bottom_inside_text_elegant?: string;
       line_replacer?: string;
       line_replace?: string;
-    }
+    };
 
     export type CommandHandler = (
       context: CommandContext
@@ -1349,7 +1359,7 @@ declare global {
      * @warning May cause side effects outside CassidySpectra; avoid in other codebases
      * @reusable Safe within CassidySpectra projects
      */
-    toFonted(this: string, font: string): string;
+    toFonted(this: string, font: Cassieah.FontTypes): string;
 
     /**
      * Converts the string to title case.

@@ -21,6 +21,7 @@ export const style: CommandStyle = {
   title: "👤 Accept Users",
   titleFont: "bold",
   contentFont: "fancy",
+  topLine: "thin",
 };
 
 interface ReplyObj {

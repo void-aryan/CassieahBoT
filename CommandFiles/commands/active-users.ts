@@ -1,38 +1,32 @@
-// @ts-check
+import { UNISpectra } from "@cassidy/unispectra";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
-  name: "active",
+export const meta: CassidySpectra.CommandMeta = {
+  name: "activeusers",
+  otherNames: ["active", "acv"],
   description: "Lists the top 10 most active users.",
   author: "@lianecagara",
   version: "1.0.0",
   noPrefix: false,
-  permissions: [0, 1, 2],
+  role: 0,
   waitingTime: 3,
   requirement: "3.0.0",
   icon: "⚡",
   category: "User Management",
-  cmdType: "smpl_g",
 };
 
-/**
- * @type {CassidySpectra.CommandStyle}
- */
-export class style {
-  title = "Most Active Users ⚡";
-  titleFont = "bold";
-  contentFont = "none";
-}
+export const style: CassidySpectra.CommandStyle = {
+  title: "Most Active Users ⚡",
+  titleFont: "bold",
+  contentFont: "none",
+};
 
-/**
- *
- * @param {CommandContext} param0
- */
-export async function entry({ output, input, money, Slicer, args }) {
-  const time = Date.now();
-
+export async function entry({
+  output,
+  input,
+  money,
+  Slicer,
+  args,
+}: CommandContext) {
   const allUsers = await money.getAll();
 
   const sortedUsers = Object.keys(allUsers).sort((a, b) => {
@@ -56,7 +50,7 @@ export async function entry({ output, input, money, Slicer, args }) {
   let i = ((isNaN(parseInt(args[0])) ? 1 : parseInt(args[0])) - 1) * 10;
   const slicer = new Slicer(sortedUsers, 10);
 
-  let result = `Top 10 Most Active Users: (${Date.now() - time}ms)\n\n`;
+  let result = `Top 10 Active Users:\n${UNISpectra.standardLine}\n`;
 
   for (const userID of slicer.getPage(args[0])) {
     i++;
@@ -68,12 +62,15 @@ export async function entry({ output, input, money, Slicer, args }) {
       data.userMeta?.name && data.name ? ` (${data.name})` : ""
     }**\n🕒 Last Active: **${lastActiveDate}**\n\n`;
   }
+  result = result.trim();
 
   output.reply(
     result +
-      `\n\n${input.words[0]} <page> - View a specific page.\n${
+      `\n${UNISpectra.standardLine}\n${
         input.words[0]
-      } ${Slicer.parseNum(args[0]) + 1} - View next page.\n${input.words[0]} ${
+      } <page> - View a specific page.\n${input.words[0]} ${
+        Slicer.parseNum(args[0]) + 1
+      } - View next page.\n${input.words[0]} ${
         slicer.pagesLength
       } - View the last page.`
   );

@@ -59,6 +59,7 @@ export function convertLegacyStyling(style) {
     titleStyle: undefined,
     contentStyle: undefined,
     lineDeco: undefined,
+    topLine: undefined,
     ...(style.title
       ? {
           title: {
@@ -72,7 +73,7 @@ export function convertLegacyStyling(style) {
                     CUSTOM_STYLE.TITLE_PATTERN
                   )
                 : emojiEnd(String(style.title)),
-            line_bottom: "default",
+            [`line_bottom_${style.topLine ?? "default"}`]: "default",
             ...(typeof style.title === "object" && style.title
               ? style.title
               : {}),
@@ -526,7 +527,14 @@ export function applyLine(text, styling) {
     } else if (field === "hidden") {
       length = 0;
     }
-    let line = (etc[0] !== "akhiro" ? "━" : "▱").repeat(length);
+    const lineMap = {
+      akhiro: "▱",
+      default: "━",
+      thin: "─",
+      double: "═",
+    };
+    const lineChar = lineMap[etc[0]] ?? lineMap.default;
+    let line = lineChar.repeat(length);
     if (field === "whiteline") {
       line = "";
     }
@@ -627,6 +635,7 @@ export function deepMerge(target, ...sources) {
 }
 
 export function styledForHTML(text = "", StyleClass) {
+  return styled(text, StyleClass);
   text = String(text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
   try {

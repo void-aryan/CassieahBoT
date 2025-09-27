@@ -3,7 +3,7 @@
     "money": 979304,
     "exp": 0,
     "battlePoints": 10,
-    "lastModified": 1755775001346,
+    "lastModified": 1758983202159,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -111,7 +111,7 @@
           "yields": 8
         },
         "uuid": "1755775001345_cdacdca7-8c26-4148-82d1-c0fe223fb15b",
-        "index": 3,
+        "index": 1,
         "cannotToss": false
       },
       {
@@ -122,7 +122,7 @@
         "type": "food",
         "heal": 60,
         "uuid": "1755772041740_6d07081e-1a88-47b0-aeac-d534261d28a3",
-        "index": 1,
+        "index": 2,
         "sellPrice": 0,
         "cannotToss": false
       },
@@ -135,7 +135,20 @@
         "sellPrice": 7,
         "saturation": 90000,
         "uuid": "1755768560051_84e38e39-ef6f-4184-bb15-002fd61fc80b",
-        "index": 2,
+        "index": 3,
+        "cannotToss": false
+      },
+      {
+        "name": "Gift Pack",
+        "icon": "🎁🎴",
+        "flavorText": "This is a gift item, this item might grant you something. It's not guaranteed enough, you can use this using inventory command, if you know..",
+        "sellPrice": 100,
+        "type": "roulette_pack",
+        "treasureKey": "generic",
+        "key": "giftPack",
+        "cannotSend": true,
+        "uuid": "1758983202158_5e0687e7-abd4-449d-8892-990121d9e0ec",
+        "index": 4,
         "cannotToss": false
       }
     ],
@@ -849,6 +862,7 @@
       "mutationsFound": 0,
       "expansions": 0,
       "achievements": []
-    }
+    },
+    "lastGiftClaim": 1758983202158
   }
 }

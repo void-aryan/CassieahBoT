@@ -17,6 +17,7 @@ export const style: CassidySpectra.CommandStyle = {
   titleFont: "bold",
   contentFont: "fancy",
   lineDeco: "altar",
+  topLine: "double",
 };
 
 export async function entry({ output, args }: CommandContext) {

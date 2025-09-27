@@ -1,14 +1,11 @@
-// @ts-check
 import axios, { AxiosError } from "axios";
 import { ReduxCMDHome } from "@cassidy/redux-home";
 import { PetPlayer } from "@cass-plugins/pet-fight";
 import { UNISpectra } from "@cassidy/unispectra";
 import { generateInterface } from "@cass-modules/generateInterface";
+import { SpectralCMDHome } from "@cassidy/spectral-home";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
+export const meta: CassidySpectra.CommandMeta = {
   name: "api",
   description: "Cassidy's Developer API!",
   author: "@lianecagara",
@@ -24,10 +21,7 @@ export const meta = {
   cmdType: "etc_xcmd",
 };
 
-/**
- * @type {CassidySpectra.CommandStyle}
- */
-export const style = {
+export const style: CassidySpectra.CommandStyle = {
   title: "CassAPI 💻",
   titleFont: "bold",
   contentFont: "none",
@@ -140,36 +134,7 @@ export const langs = {
   },
 };
 
-/**
- *
- * @param {CommandContext} param0
- * @returns
- */
-export async function entry({
-  args,
-  prefix,
-  commandName,
-  output,
-  langParser,
-  ctx,
-}) {
-  const getLang = langParser.createGetLang(langs);
-  const handler = handlers[args[0]] ?? handlers[String(args[0]).toLowerCase()];
-  if (typeof handler === "function") {
-    args.shift();
-    return handler({ ...ctx, langParser });
-  }
-  let handlerList = "";
-  for (const [key] of Object.entries(handlers)) {
-    handlerList += `${prefix}${commandName} ${key}\n`;
-  }
-  return output.reply(getLang("welcomeMessage", handlerList));
-}
-
-/**
- * @type {Record<string, CommandEntry>}
- */
-const handlers = {
+const handlers: Record<string, CommandEntryFunc> = {
   async redux_demo({ langParser, ctx }) {
     const getLang = langParser.createGetLang(langs);
     const home = new ReduxCMDHome(
@@ -335,7 +300,7 @@ const handlers = {
     const getLang = langParser.createGetLang(langs);
     const adminData = await money.getItem("wss:admin");
     const allData = await money.getAll();
-    const items = Array.from(adminData.requestItems);
+    const items: Record<string, any>[] = Array.from(adminData.requestItems);
     let result = "";
     const slicer = new Slicer(items.reverse(), 5);
     for (const itemReq of slicer.getPage(args[0])) {
@@ -346,7 +311,7 @@ const handlers = {
       /**
        * @type {UserData}
        */
-      const userData = allData[itemReq.author] ?? money.defaults;
+      const userData: UserData = allData[itemReq.author] ?? money.defaults;
       if (args.includes("--json")) {
         result += `${item.icon} **${item.name}** (${item.key}) #${
           itemReq.requestNum ?? "??"
@@ -390,7 +355,7 @@ ${item.flavorText ?? "Not Configured"}
      * @param {UserData} data
      * @returns
      */
-    function getInfos(data) {
+    function getInfos(data: UserData) {
       const gearsManage = new GearsManage(data.gearsData);
       const petsData = new Inventory(data.petsData);
       const playersMap = new Map();
@@ -405,13 +370,12 @@ ${item.flavorText ?? "Not Configured"}
         playersMap,
       };
     }
-    // @ts-ignore
     const { gearsManage, petsData, playersMap } = getInfos(userData);
 
     /**
      * @type {Array<string | number>}
      */
-    let [targetName, enemyAtk, enemyDef, enemyHP] = args;
+    let [targetName, enemyAtk, enemyDef, enemyHP]: (string | number)[] = args;
     enemyAtk = parseInt(enemyAtk);
     enemyDef = parseInt(enemyDef);
     enemyHP = parseInt(enemyHP);
@@ -421,10 +385,7 @@ ${item.flavorText ?? "Not Configured"}
     const petKey = petsData.findKey(
       (i) => String(i?.name).toLowerCase() === String(targetName).toLowerCase()
     );
-    /**
-     * @type {PetPlayer}
-     */
-    const player = playersMap.get(petKey);
+    const player: PetPlayer = playersMap.get(petKey);
     if (!player) {
       return output.reply(getLang("petTestNoPet"));
     }
@@ -522,7 +483,6 @@ ${item.flavorText ?? "Not Configured"}
       callback: handleInput,
     });
   },
-  // @ts-ignore
   async test({ input, output, api, args, langParser }) {
     const getLang = langParser.createGetLang(langs);
     const [url, ...pArgs] = args;
@@ -547,12 +507,12 @@ ${item.flavorText ?? "Not Configured"}
     /**
      * @type {import("axios").AxiosResponse | undefined}
      */
-    let res;
+    let res: import("axios").AxiosResponse | undefined;
 
     /**
      * @type {AxiosError | undefined}
      */
-    let err;
+    let err: AxiosError | undefined;
     const timeA = performance.now();
 
     try {
@@ -656,3 +616,23 @@ ${item.flavorText ?? "Not Configured"}
     return output.reply(generateInterface("GeneratedType", jsonStr));
   },
 };
+
+const home = new SpectralCMDHome(
+  {
+    isHypen: true,
+    home({ output, getLang }, { itemList }) {
+      return output.reply(getLang("welcomeMessage", itemList));
+    },
+  },
+  Object.entries(handlers).map(([key, handler]) => {
+    return {
+      key,
+      handler,
+      aliases: [`${key.at(0)}${key.at(1)}${key.at(-1)}`],
+    };
+  })
+);
+
+export async function entry({ ctx }: CommandContext) {
+  return home.runInContext(ctx);
+}

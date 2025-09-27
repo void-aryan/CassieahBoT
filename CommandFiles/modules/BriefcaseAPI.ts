@@ -330,13 +330,21 @@ export interface BreifcaseUsagePluginArg {
   propertyKey: string;
 }
 
-export function listItem(
+export function listItemOLD(
   item: Partial<InventoryItem> = {},
   count: number = undefined
 ) {
   return `${item.icon} **${item.name}**${
     typeof count === "number" && count > 1 ? ` (x${count})` : ""
   } [${item.key}]`;
+}
+export function listItem(
+  item: Partial<InventoryItem> = {},
+  count: number = undefined
+) {
+  return `${item.icon}${
+    typeof count === "number" && count > 1 ? ` **x${count}**` : ""
+  } ${item.name} (${item.key})`;
 }
 
 export function groupItems(items: InventoryItem[]) {
@@ -585,7 +593,7 @@ export class BriefcaseAPI {
           for (const [_, items] of sorted) {
             itemList += `${UNISpectra.charm} ${String(_)
               .toTitleCase()
-              .toFonted("fancy_italic")}\n`;
+              .toFonted("bold_italic")}\n`;
 
             const itemCounts = new Map();
 
@@ -601,9 +609,7 @@ export class BriefcaseAPI {
             itemList += Array.from(itemCounts.entries())
               .map(([key, count]) => {
                 const item = items.find((item) => item.key === key);
-                return `${item.icon} **${item.name}**${
-                  count > 1 ? ` (x${count})` : ""
-                } [${item.key}]`;
+                return listItem(item, count);
               })
               .join("\n");
 
@@ -626,10 +632,11 @@ export class BriefcaseAPI {
             for (const [_, items] of sorted2) {
               cllList += `${UNISpectra.charm} ${String(_)
                 .toTitleCase()
-                .toFonted("fancy_italic")}\n`;
+                .toFonted("bold_italic")}\n`;
               cllList += items
                 .map(
                   ({ metadata, amount }) =>
+                    listItem(metadata, amount) ??
                     `${metadata.icon} **${metadata.name}** ${
                       amount > 1 ? `(x${pCy(amount)}) ` : ""
                     }[${metadata.key}]`
@@ -726,23 +733,49 @@ export class BriefcaseAPI {
                 `Try "${prefix}${commandName} list" to see what’s in your ${inventoryIcon}!`
             );
           }
+          const infos = Object.entries(item)
+            .filter(
+              (i) =>
+                typeof i[1] === "string" ||
+                typeof i[1] === "number" ||
+                typeof i[1] === "boolean"
+            )
+            .filter(
+              (i) =>
+                ![
+                  "type",
+                  "heal",
+                  "atk",
+                  "def",
+                  "saturation",
+                  "sellPrice",
+                  "heal",
+                  "index",
+                  "key",
+                  "name",
+                  "icon",
+                  "flavorText",
+                ].includes(i[0])
+            )
+            .map((i) => `${i[0].toTitleCase()}: **${i[1]}**`)
+            .join("\n");
           return output.reply(
             `👤 **${userData.name || "Unregistered"}** (${inventoryName})\n\n` +
               `${UNIRedux.arrow} ***Item Details***\n\n` +
               `${item.icon} **${item.name}** (x${customInventory.getAmount(
                 keyToCheck
               )})\n` +
-              `✦ ${
-                item.flavorText || "A curious item from your travels."
-              }\n\n` +
+              `${UNISpectra.charm} ${item.flavorText || "???"}\n\n` +
               `Type: **${item.type}**\n` +
               `Heal: **${item.heal ?? 0} HP**\n` +
               `DEF: **+${item.def ?? 0}**\n` +
               `ATK: **+${item.atk ?? 0}**\n` +
               `Saturation: **${
-                (Number(item.saturation) ?? 0) / 60 / 1000
-              } mins** 🐾\n\n` +
-              `Sell Price: **$${item.sellPrice ?? 0}** 💵`
+                isNaN(Number(item.saturation))
+                  ? "N/A"
+                  : (Number(item.saturation) || 0) / 60 / 1000
+              } mins** 🐾\n` +
+              `Sell Price: **$${item.sellPrice ?? 0}** 💵\n${infos}`
           );
         },
       },

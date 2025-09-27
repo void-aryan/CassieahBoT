@@ -1,12 +1,8 @@
-// @ts-check
 import moment from "moment-timezone";
 import { defineEntry } from "@cass/define";
 import { UNISpectra } from "@cassidy/unispectra";
 
-/**
- * @type {CassidySpectra.CommandMeta}
- */
-export const meta = {
+export const meta: CommandMeta = {
   name: "anime",
   description: "Search for anime information",
   author: "MrkimstersDev, Fixed",
@@ -22,10 +18,7 @@ export const meta = {
   noLevelUI: true,
 };
 
-/**
- * @type {CassidySpectra.CommandStyle}
- */
-export const style = {
+export const style: CommandStyle = {
   title: "Astral • Anime Search 🌌",
   titleFont: "bold",
   contentFont: "fancy",
@@ -41,12 +34,7 @@ export const langs = {
   },
 };
 
-/**
- *
- * @param {string} query
- * @returns {Promise<{ data: any[] }>}
- */
-async function fetchAnimeData(query) {
+async function fetchAnimeData(query: string): Promise<{ data: any[] }> {
   const apiUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(
     query
   )}&limit=20`;
@@ -124,12 +112,13 @@ export const entry = defineEntry(
   }
 );
 
-/**
- *
- * @param {CommandContext & { repObj: { id: string; results: any[] } }} param0
- * @returns
- */
-export async function reply({ input, output, repObj, detectID, langParser }) {
+export async function reply({
+  input,
+  output,
+  repObj,
+  detectID,
+  langParser,
+}: CommandContext & { repObj: { id: string; results: any[] } }) {
   const getLang = langParser.createGetLang(langs);
   const { id, results } = repObj;
 
