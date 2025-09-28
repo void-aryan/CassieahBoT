@@ -471,7 +471,6 @@ async function handleMiddleWare({
       .split("-")
       .map((i) => i.trim())
       .filter(Boolean);
-    commandName = commandName.trim();
 
     if (startsHypen && !commandName.startsWith("-")) {
       commandName = `-${commandName}`;
@@ -486,7 +485,6 @@ async function handleMiddleWare({
       mapProp(event.property, prop, index);
     }
     commandName = `${commandName ?? ""}`;
-    commandName = commandName.trim();
 
     function mapProp(obj, prop, index) {
       if (property[index + 1]) {
