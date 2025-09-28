@@ -73,7 +73,11 @@ export function convertLegacyStyling(style) {
                     CUSTOM_STYLE.TITLE_PATTERN
                   )
                 : emojiEnd(String(style.title)),
-            [`line_bottom_${style.topLine ?? "default"}`]: "default",
+            [`line_bottom${
+              !style.topLine || style.topLine === "default"
+                ? ""
+                : `_${style.topLine}`
+            }`]: "default",
             ...(typeof style.title === "object" && style.title
               ? style.title
               : {}),

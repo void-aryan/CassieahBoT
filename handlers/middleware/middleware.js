@@ -400,7 +400,9 @@ async function handleMiddleWare({
     if (event.body && global.Cassidy.config.censorInput) {
       event.body = censor(event.body);
     }
-    let prefixes = [prefix, ...global.Cassidy.config.EXTRAPREFIX];
+    let prefixes = [prefix, ...global.Cassidy.config.EXTRAPREFIX].filter(
+      Boolean
+    );
     const threadCache = await threadsDB.getCache(event.threadID);
     const { links = [] } = await globalDB.getCache(UID_LINKS_KEY);
     const linksMap = new Map(links);
@@ -418,10 +420,14 @@ async function handleMiddleWare({
       prefix = prefixes[0];
     }
 
+    prefixes = prefixes.filter(Boolean);
+    prefix = prefixes[0] || "+";
+
     // @ts-ignore
     const { createSafeProxy } = global.utils;
     const { logo: icon } = global.Cassidy;
-    let [pref1 = "", commandName = "", ...etc] = (event.body ?? "")
+
+    let [pref1 = "", commandName = "", ...etc] = String(event.body ?? "")
       .split(" ")
       .filter((i) => !!i);
     if (prefixes.includes(pref1)) {
@@ -465,6 +471,7 @@ async function handleMiddleWare({
       .split("-")
       .map((i) => i.trim())
       .filter(Boolean);
+    commandName = commandName.trim();
 
     if (startsHypen && !commandName.startsWith("-")) {
       commandName = `-${commandName}`;
@@ -479,6 +486,7 @@ async function handleMiddleWare({
       mapProp(event.property, prop, index);
     }
     commandName = `${commandName ?? ""}`;
+    commandName = commandName.trim();
 
     function mapProp(obj, prop, index) {
       if (property[index + 1]) {
@@ -503,6 +511,7 @@ async function handleMiddleWare({
     const defCommand = Cassidy.multiCommands.findOne(
       (_, v) => v?.meta?.name === defCmdName
     )?.[1];
+    commandName = commandName.trim();
 
     /**
      * @type {Partial<CommandContext>}

@@ -1,27 +1,6 @@
 import { SpectralCMDHome, Config } from "@cass-modules/spectralCMDHome";
 import { UNIRedux, UNISpectra } from "@cassidy/unispectra";
-import { defineEntry } from "@cass/define";
-
-export const meta: CommandMeta = {
-  name: "admin",
-  description: "Manage admins and moderators",
-  otherNames: ["admins", "mod", "moderator"],
-  version: "3.0.0",
-  usage: "{prefix}{name} [add|remove|addmod|removemod|list] [args]",
-  category: "User Management",
-  author: "@lianecagara",
-  role: 0,
-  noPrefix: false,
-  waitingTime: 0,
-  requirement: "3.0.0",
-  icon: "👑",
-};
-
-export const style: CommandStyle = {
-  title: "👑 Admods",
-  titleFont: "bold",
-  contentFont: "fancy",
-};
+import { defineEntry, defineHome } from "@cass/define";
 
 const configs: Config[] = [
   {
@@ -356,6 +335,28 @@ const home = new SpectralCMDHome(
   configs
 );
 
-export const entry = defineEntry(async (ctx) => {
-  return home.runInContext(ctx);
+const command = defineCommand({
+  meta: {
+    name: "admin",
+    description: "Manage admins and moderators",
+    otherNames: ["admins", "mod", "moderator"],
+    version: "3.0.0",
+    usage: "{prefix}{name} [add|remove|addmod|removemod|list] [args]",
+    category: "User Management",
+    author: "@lianecagara",
+    role: 0,
+    noPrefix: false,
+    waitingTime: 0,
+    requirement: "3.0.0",
+    icon: "👑",
+  },
+  style: {
+    title: "👑 Admods",
+    titleFont: "bold",
+    contentFont: "fancy",
+  },
+  entry: defineHome(home),
 });
+const style = command.style;
+
+export default command;

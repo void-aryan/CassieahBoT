@@ -164,6 +164,7 @@ export type SpectraMainConfig = {
   defaultCategory?: string;
   defaultKey?: string | null;
   allowDefaultOnCooldown?: boolean;
+  showDescription?: boolean;
 };
 
 export class SpectralCMDHome {
@@ -179,6 +180,7 @@ export class SpectralCMDHome {
     validator?: CassCheckly;
     defaultCategory?: string;
     defaultKey?: string | null;
+    showDescription?: boolean;
   };
   cooldowns: Map<string, Map<string, number>>;
 
@@ -196,6 +198,7 @@ export class SpectralCMDHome {
       validator,
       defaultCategory = "General",
       allowDefaultOnCooldown = false,
+      showDescription = true,
     }: SpectraMainConfig,
     configs?: Config[]
   ) {
@@ -236,6 +239,7 @@ export class SpectralCMDHome {
       defaultCategory,
       defaultKey,
       allowDefaultOnCooldown,
+      showDescription,
     };
     this.cooldowns = new Map();
   }
@@ -517,7 +521,7 @@ export class SpectralCMDHome {
       .filter((c) => !c.hidden)
       .map(
         (c) =>
-          `${UNIRedux.arrowFromT} ${c.icon || "✨"} ${ctx.prefix}${
+          `${c.icon || "✨"} ${ctx.prefix}${
             !this.checkCooldown(ctx, c.key)
               ? `***${ctx.commandName}***`
               : ctx.commandName
@@ -527,7 +531,11 @@ export class SpectralCMDHome {
             this.checkCooldown(ctx, c.key)
               ? ""
               : ` (⏳ **${this.getCooldown(ctx, c.key) / 1000}s**)`
-          }${(c.args ?? []).join(" ")}`
+          }${(c.args ?? []).join(" ")}${
+            this.options.showDescription && c.description
+              ? `\n    ${UNIRedux.arrowFromT} ${c.description}\n`
+              : ""
+          }`
       )
       .join("\n");
   }

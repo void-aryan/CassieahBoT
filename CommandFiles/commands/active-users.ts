@@ -1,77 +1,73 @@
 import { UNISpectra } from "@cassidy/unispectra";
 
-export const meta: CommandMeta = {
-  name: "activeusers",
-  otherNames: ["active", "acv"],
-  description: "Lists the top 10 most active users.",
-  author: "@lianecagara",
-  version: "1.0.0",
-  noPrefix: false,
-  role: 0,
-  waitingTime: 3,
-  requirement: "3.0.0",
-  icon: "⚡",
-  category: "User Management",
-};
+const command = defineCommand({
+  meta: {
+    name: "activeusers",
+    otherNames: ["active", "acv"],
+    description: "Lists the top 10 most active users.",
+    author: "@lianecagara",
+    version: "1.0.0",
+    noPrefix: false,
+    role: 0,
+    waitingTime: 3,
+    requirement: "3.0.0",
+    icon: "⚡",
+    category: "User Management",
+  },
+  style: {
+    title: "Active Users ⚡",
+    titleFont: "bold",
+    contentFont: "none",
+  },
+  async entry({ output, input, money, Slicer, args }) {
+    const allUsers = await money.getAll();
 
-export const style: CommandStyle = {
-  title: "Most Active Users ⚡",
-  titleFont: "bold",
-  contentFont: "none",
-};
+    const sortedUsers = Object.keys(allUsers).sort((a, b) => {
+      allUsers[a] ??= {
+        money: 0,
+        battlePoints: 0,
+        exp: 0,
+      };
+      allUsers[b] ??= {
+        money: 0,
+        battlePoints: 0,
+        exp: 0,
+      };
+      const { lastModified: lastModifiedA = Date.now() } = allUsers[a];
 
-export async function entry({
-  output,
-  input,
-  money,
-  Slicer,
-  args,
-}: CommandContext) {
-  const allUsers = await money.getAll();
+      const { lastModified: lastModifiedB = Date.now() } = allUsers[b];
 
-  const sortedUsers = Object.keys(allUsers).sort((a, b) => {
-    allUsers[a] ??= {
-      money: 0,
-      battlePoints: 0,
-      exp: 0,
-    };
-    allUsers[b] ??= {
-      money: 0,
-      battlePoints: 0,
-      exp: 0,
-    };
-    const { lastModified: lastModifiedA = Date.now() } = allUsers[a];
+      return lastModifiedB - lastModifiedA;
+    });
 
-    const { lastModified: lastModifiedB = Date.now() } = allUsers[b];
+    let i = ((isNaN(parseInt(args[0])) ? 1 : parseInt(args[0])) - 1) * 10;
+    const slicer = new Slicer(sortedUsers, 10);
 
-    return lastModifiedB - lastModifiedA;
-  });
+    let result = `Top 10 Active Users:\n${UNISpectra.standardLine}\n`;
 
-  let i = ((isNaN(parseInt(args[0])) ? 1 : parseInt(args[0])) - 1) * 10;
-  const slicer = new Slicer(sortedUsers, 10);
+    for (const userID of slicer.getPage(args[0])) {
+      i++;
+      const data = allUsers[userID];
 
-  let result = `Top 10 Active Users:\n${UNISpectra.standardLine}\n`;
+      const { lastModified = 0 } = data;
+      const lastActiveDate = new Date(lastModified).toLocaleDateString();
+      result += `${i}. **${data.userMeta?.name ?? data.name}${
+        data.userMeta?.name && data.name ? ` (${data.name})` : ""
+      }**\n🕒 Last Active: **${lastActiveDate}**\n\n`;
+    }
+    result = result.trim();
 
-  for (const userID of slicer.getPage(args[0])) {
-    i++;
-    const data = allUsers[userID];
+    output.reply(
+      result +
+        `\n${UNISpectra.standardLine}\n${
+          input.words[0]
+        } <page> - View a specific page.\n${input.words[0]} ${
+          Slicer.parseNum(args[0]) + 1
+        } - View next page.\n${input.words[0]} ${
+          slicer.pagesLength
+        } - View the last page.`
+    );
+  },
+});
 
-    const { lastModified = 0 } = data;
-    const lastActiveDate = new Date(lastModified).toLocaleDateString();
-    result += `${i}. **${data.userMeta?.name ?? data.name}${
-      data.userMeta?.name && data.name ? ` (${data.name})` : ""
-    }**\n🕒 Last Active: **${lastActiveDate}**\n\n`;
-  }
-  result = result.trim();
-
-  output.reply(
-    result +
-      `\n${UNISpectra.standardLine}\n${
-        input.words[0]
-      } <page> - View a specific page.\n${input.words[0]} ${
-        Slicer.parseNum(args[0]) + 1
-      } - View next page.\n${input.words[0]} ${
-        slicer.pagesLength
-      } - View the last page.`
-  );
-}
+export default command;

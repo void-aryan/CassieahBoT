@@ -84,9 +84,7 @@ export type VNode = {
 /**
  * Defines and returns a Cassidy Command.
  */
-export function defineCommand(
-  command: CassidySpectra.CassidyCommand
-): CassidySpectra.CassidyCommand {
+export function defineCommand(command: CassidyCommand): CassidyCommand {
   return command;
 }
 
