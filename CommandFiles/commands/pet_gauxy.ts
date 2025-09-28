@@ -19,7 +19,7 @@ export type PetData = InventoryItem & {
   tricks: string[];
 };
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "petg",
   description: "Adopt, care for, and grow your pet empire!",
   otherNames: ["p", "pet", "petgauxy", "pgauxy", "pa", "petariel"],

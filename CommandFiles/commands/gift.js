@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "gift",
@@ -18,7 +18,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Free Gift 💗",

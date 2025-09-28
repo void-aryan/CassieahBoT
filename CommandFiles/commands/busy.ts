@@ -3,7 +3,7 @@
 import { defineHome } from "@cass/define";
 import { limitString, UNISpectra } from "@cassidy/unispectra";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "busy",
   description:
     "Turning do not disturb mode which notifies a user whenever they tag you.",
@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   noWeb: true,
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "🔕 Busy",
   titleFont: "bold",
   contentFont: "fancy",

@@ -10,7 +10,7 @@ import {
 const isT = Cassidy.config.gambleNeedsMint ?? false;
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "slot",

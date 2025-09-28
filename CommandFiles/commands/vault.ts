@@ -3,7 +3,7 @@ import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
 import { Datum } from "@cass-modules/Datum";
 import { UNIRedux } from "@cassidy/unispectra";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "vault",
   description:
     "Organize and manage your external inventory with an additional 100 slots.",

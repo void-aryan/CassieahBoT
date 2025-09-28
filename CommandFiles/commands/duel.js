@@ -4,7 +4,7 @@ import { parseBet } from "@cass-modules/ArielUtils";
 import { PetPlayer } from "@cass-plugins/pet-fight";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "duel",
@@ -23,7 +23,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Pet Duel ⚔️",

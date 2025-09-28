@@ -10,7 +10,7 @@ export const style = {
 };
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "gambleden",

@@ -1,6 +1,6 @@
 import { UNISpectra } from "@cassidy/unispectra";
 
-const style: CassidySpectra.CommandStyle = {
+const style: CommandStyle = {
   title: "⚠️ Catch Pastebin",
   contentFont: "none",
 };

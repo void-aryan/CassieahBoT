@@ -7,7 +7,7 @@ import { GearsManage } from "../plugins/pet-fight";
 import { FontSystem } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "upgrader",
   description: "Upgrade your armor or weapon to higher ranks!",
   version: "1.0.5",
@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "cplx_g",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "Gear Upgrader ⚒️",
   titleFont: "bold",
   contentFont: "fancy",

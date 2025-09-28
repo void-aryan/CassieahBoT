@@ -21,7 +21,7 @@ export interface ThreadWarnConfig {
   author: string;
 }
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "badwords",
   author: "MrkimstersDev, Liane",
   description:

@@ -1,6 +1,6 @@
 import { UNIRedux } from "../modules/unisym.js";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "rank",
   description: "Displays your in-game rank and experience.",
   version: "1.1.7",

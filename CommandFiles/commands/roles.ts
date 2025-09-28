@@ -5,7 +5,7 @@ import {
 } from "../modules/spectralCMDHome";
 import { UNIRedux, UNISpectra } from "@cassidy/unispectra";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "roles",
   description: "Set or view the custom roles for command in your thread.",
   otherNames: ["setrole", "changerole", "sr"],
@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   noWeb: true,
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "👑 Roles",
   titleFont: "bold",
   contentFont: "fancy",

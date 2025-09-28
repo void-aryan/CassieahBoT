@@ -3,7 +3,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 import fs from "fs-extra";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "encounterv1",

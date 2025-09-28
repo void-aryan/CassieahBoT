@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "gameid",

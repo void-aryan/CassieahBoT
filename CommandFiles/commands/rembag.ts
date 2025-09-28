@@ -7,7 +7,7 @@ const { fonts } = FontSystem;
 
 const REMOTEBAG = fonts.serif("REMOTE-BAG");
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "remotebag",
   version: "1.0.2",
   author: "Adapted from Duke's Ariel's Bank by Liane Cagara",
@@ -58,7 +58,7 @@ export function listRemoteBagItem(
   }`;
 }
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: {
     content: `🎒 ${REMOTEBAG} ®`,
     text_font: "none",
@@ -72,7 +72,7 @@ export const style: CassidySpectra.CommandStyle = {
   lineDeco: "altar",
 };
 
-export const notifStyle: CassidySpectra.CommandStyle = {
+export const notifStyle: CommandStyle = {
   title: {
     content: `🎒 ${fonts.bold("BAG NOTIF")} 👩‍💼`,
     text_font: "none",

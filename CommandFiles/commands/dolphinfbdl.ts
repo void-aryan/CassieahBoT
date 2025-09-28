@@ -18,7 +18,7 @@ export class style {
   };
 }
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "dolphinfbdl",
   description:
     "Downloads videos from Facebook using a provided URL and attaches them.",

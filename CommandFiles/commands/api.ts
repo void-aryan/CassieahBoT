@@ -5,7 +5,7 @@ import { UNISpectra } from "@cassidy/unispectra";
 import { generateInterface } from "@cass-modules/generateInterface";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "api",
   description: "Cassidy's Developer API!",
   author: "@lianecagara",
@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "etc_xcmd",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "CassAPI 💻",
   titleFont: "bold",
   contentFont: "none",

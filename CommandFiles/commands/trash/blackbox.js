@@ -4,7 +4,7 @@ import { Deku } from "@cass-modules/deku-api";
 import { UNISpectra } from "@cassidy/unispectra";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "blackbox",
@@ -24,7 +24,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "⬛ Blackbox",

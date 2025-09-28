@@ -4,7 +4,7 @@ import { parseBet } from "@cass-modules/ArielUtils";
 import { ReduxCMDHome } from "@cassidy/redux-home";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "cheque",

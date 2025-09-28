@@ -79,7 +79,7 @@ const fishItems = [
 ];
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "fish",

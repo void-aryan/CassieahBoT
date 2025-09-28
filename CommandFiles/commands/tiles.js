@@ -12,7 +12,7 @@ const { delay, Tiles } = global.utils;
 const { invLimit } = global.Cassidy;
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "tiles",

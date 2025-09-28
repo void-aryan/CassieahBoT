@@ -21,7 +21,7 @@ export const meta = {
 const { invLimit } = global.Cassidy;
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Briefcase 🧰",

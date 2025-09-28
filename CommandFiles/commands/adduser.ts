@@ -1,8 +1,7 @@
-// @ts-check
 const { findUid } = global.utils;
 const { delay } = global.utils;
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "adduser",
   version: "1.5.0",
   author: "@ntkhang03 | @lianecagara",
@@ -15,7 +14,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "fb_utl",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "👥 Add User",
   titleFont: "bold",
   contentFont: "fancy",
@@ -25,16 +24,16 @@ export async function entry({ input, api, output, args }: CommandContext) {
   const success = [
     {
       type: "success",
-      uids: [],
+      uids: [] as string[],
     },
     {
       type: "waitApproval",
-      uids: [],
+      uids: [] as string[],
     },
   ];
   const failed = [];
 
-  function checkErrorAndPush(messageError, item) {
+  function checkErrorAndPush(messageError: string, item: string) {
     item = item.replace(
       /(?:https?:\/\/)?(?:www\.)?(?:facebook|fb|m\.facebook)\.(?:com|me)/i,
       ""
@@ -51,7 +50,7 @@ export async function entry({ input, api, output, args }: CommandContext) {
   const regExMatchFB =
     /(?:https?:\/\/)?(?:www\.)?(?:facebook|fb|m\.facebook)\.(?:com|me)\/(?:(?:\w)*#!\/)?(?:pages\/)?(?:[\w\-]*\/)*([\w\-\.]+)(?:\/)?/i;
   for (const item of args) {
-    let uid;
+    let uid: string;
     let continueLoop = false;
 
     if (isNaN(Number(item)) && regExMatchFB.test(item)) {
@@ -60,12 +59,12 @@ export async function entry({ input, api, output, args }: CommandContext) {
           uid = await findUid(item);
           break;
         } catch (err) {
-          if (err.name == "SlowDown" || err.name == "CannotGetData") {
+          if (err.name === "SlowDown" || err.name === "CannotGetData") {
             await delay(1000);
             continue;
           } else if (
             i == 9 ||
-            (err.name != "SlowDown" && err.name != "CannotGetData")
+            (err.name !== "SlowDown" && err.name !== "CannotGetData")
           ) {
             checkErrorAndPush(
               err.name == "InvalidLink"

@@ -3,7 +3,7 @@ import { ReduxCMDHome } from "@cassidy/redux-home";
 import { UNISpectra } from "@cassidy/unispectra";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "admin",
@@ -21,7 +21,7 @@ export const meta = {
 const { Cassidy } = global;
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Admins 👑",

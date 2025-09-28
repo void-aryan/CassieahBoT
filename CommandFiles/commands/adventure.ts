@@ -131,7 +131,7 @@ const outcomes: Outcome[] = [
   },
 ];
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "adventure",
   description: "Manage your adventure, explore zones, and collect rewards.",
   author: "Aljur Pogoy",
@@ -157,7 +157,7 @@ interface AdventureInventory extends Record<string, AdventureInventoryItem> {}
 /**
  * This shi does the job automatically
  */
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: {
     content: `🌍 Adventure`,
     line_bottom: "default",

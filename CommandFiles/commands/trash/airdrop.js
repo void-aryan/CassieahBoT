@@ -5,7 +5,7 @@ import { Inventory, Collectibles } from "@cass-modules/InventoryEnhanced";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "airdrop",
@@ -25,7 +25,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Airdrop ✈️",

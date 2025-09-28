@@ -12,7 +12,7 @@ export interface BanEntry {
   timestamp: number;
 }
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "ban",
   author: "MrkimstersDev, Liane",
   description:

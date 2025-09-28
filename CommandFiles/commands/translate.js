@@ -1,7 +1,7 @@
 // @ts-check
 import { translate } from "@cassidy/unispectra";
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "translate",

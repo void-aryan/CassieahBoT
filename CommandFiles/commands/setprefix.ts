@@ -5,7 +5,7 @@ import {
 } from "../modules/spectralCMDHome";
 import { UNIRedux, UNISpectra } from "@cassidy/unispectra";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "setprefix",
   description: "Set or view the command prefix",
   otherNames: ["pfx", "changeprefix", "sprefix", "pref"],

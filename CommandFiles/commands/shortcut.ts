@@ -11,7 +11,7 @@ interface Shortcut {
   author: string;
 }
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "shortcut",
   description: "Manage message shortcuts",
   otherNames: ["sc", "shortcuts"],

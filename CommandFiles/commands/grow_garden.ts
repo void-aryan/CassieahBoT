@@ -68,7 +68,7 @@ import {
   GardenStats,
 } from "@cass-modules/GardenTypes";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "garden",
   description: "Grow crops and earn Money in your garden!",
   otherNames: ["grow", "growgarden", "gr", "g", "gag", "plant"],
@@ -3853,7 +3853,7 @@ export async function entry(ctx: CommandContext) {
   await home.runInContext(ctx);
 }
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: {
     content: `${UNISpectra.charm} **G🍓rden**`,
     text_font: "fancy",

@@ -4,7 +4,7 @@ import { UNIRedux } from "cassidy-styler";
 import { PersistentStats } from "@cass-modules/Encounter";
 import { formatCash, parseBet } from "@cass-modules/ArielUtils";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "oneshot",
   description: "Instant 1v1 pet gambling battle with a single bash",
   otherNames: ["oshot"],
@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "cplx_g",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: `🎰 OneShot Duel`,
   titleFont: "double_struck",
   contentFont: "fancy",

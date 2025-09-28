@@ -1,6 +1,6 @@
 import { getFbVideoInfo } from "fb-downloader-scrapper";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "autodl",
   description:
     "Autodownloader for Facebook videos. Automatically detects and downloads media from Facebook URLs. Upcoming support: Spotify, YouTube, YouTube Music, Twitter, and Instagram.",

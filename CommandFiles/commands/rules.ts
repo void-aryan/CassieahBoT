@@ -1,7 +1,7 @@
 import { SpectralCMDHome, Config } from "../modules/spectralCMDHome";
 import { UNIRedux, UNISpectra } from "@cassidy/unispectra";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "rules",
   description: "Manage server rules",
   otherNames: ["rule", "rulz", "law"],

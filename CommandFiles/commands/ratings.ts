@@ -1,7 +1,7 @@
 import { SpectralCMDHome, Config } from "../modules/spectralCMDHome";
 import { limitString, UNIRedux } from "@cassidy/unispectra";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "ratings",
   description: "Manage and view ratings and reviews",
   otherNames: ["rate", "review"],
@@ -24,7 +24,7 @@ export interface Rating {
   timestamp: number;
 }
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "🟩 Ratings",
   titleFont: "bold",
   contentFont: "fancy",

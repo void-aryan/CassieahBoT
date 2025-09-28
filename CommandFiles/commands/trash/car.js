@@ -5,7 +5,7 @@ import { clamp, UNIRedux } from "../modules/unisym.js";
 import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "carnica",

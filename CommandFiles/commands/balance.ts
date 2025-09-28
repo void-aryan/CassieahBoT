@@ -2,7 +2,7 @@ import { SpectralCMDHome, CassCheckly, Config } from "@cassidy/spectral-home";
 import { abbreviateNumber, UNIRedux } from "@cassidy/unispectra";
 import utils from "@cassidy/utils";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "balance",
   description: "Check your virtual cash",
   otherNames: ["bal", "money"],
@@ -19,7 +19,7 @@ export const meta: CassidySpectra.CommandMeta = {
   noRibbonUI: true,
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   titleFont: "bold",
   title: "💵 Balance",
   contentFont: "fancy",

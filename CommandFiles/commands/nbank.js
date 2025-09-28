@@ -33,7 +33,7 @@ function deductMoneyFromTopUsers(topUsers, amount) {
 }
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "nbank",

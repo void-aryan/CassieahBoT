@@ -3,7 +3,7 @@ import { ReduxCMDHome } from "@cassidy/redux-home";
 import { abbreviateNumber } from "@cassidy/unispectra";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "donate",

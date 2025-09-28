@@ -13,7 +13,7 @@ const ACBANK_LOGO = fonts.serif("AC-BANK");
 const ABANK_LOGO = fonts.serif("A-BANK");
 const ABANK_LINE = UNISpectra.getLine(18);
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "abank",
   version: "3.0.15",
   author: "Duke Agustin (Original), Coded by Liane Cagara",
@@ -63,7 +63,7 @@ export function listABANKItem(
   }`;
 }
 
-export const styleH: CassidySpectra.CommandStyle = {
+export const styleH: CommandStyle = {
   title: {
     content: `🏦 ${ABANK_LOGO} ®`,
     text_font: "none",
@@ -78,9 +78,9 @@ export const styleH: CassidySpectra.CommandStyle = {
   },
 };
 
-export const style0: CassidySpectra.CommandStyle = {};
+export const style0: CommandStyle = {};
 
-export const styleC: CassidySpectra.CommandStyle = {
+export const styleC: CommandStyle = {
   title: {
     content: `🏦 ${ACBANK_LOGO} ®`,
     text_font: "none",
@@ -97,7 +97,7 @@ export const styleC: CassidySpectra.CommandStyle = {
 const NOTIF_AC = `🏦 ${fonts.bold("ARIEL-CASS NOTIF")} 👩🏻‍💼`;
 const NOTIF_A = `🏦 ${fonts.bold("ARIEL NOTIF")} 👩🏻‍💼`;
 
-export const notifStyleC: CassidySpectra.CommandStyle = {
+export const notifStyleC: CommandStyle = {
   title: {
     content: `${NOTIF_AC}`,
     text_font: "none",
@@ -110,7 +110,7 @@ export const notifStyleC: CassidySpectra.CommandStyle = {
   },
   lineDeco: "altar",
 };
-export const notifStyle0: CassidySpectra.CommandStyle = {
+export const notifStyle0: CommandStyle = {
   title: {
     content: `${NOTIF_A}`,
     text_font: "none",

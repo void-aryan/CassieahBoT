@@ -12,7 +12,7 @@ import {
   MintManager,
 } from "@cass-modules/MTLSUtils";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "mtls",
   description: "Minting Token and Lending Service. (Rework 3.6.0)",
   author: "@lianecagara",
@@ -25,7 +25,7 @@ export const meta: CassidySpectra.CommandMeta = {
   icon: "🪙",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: {
     content: `${UNISpectra.charm} MTLS V4 🪙`,
     line_bottom: "default",

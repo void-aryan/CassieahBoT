@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "tiktok",
@@ -22,7 +22,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "TikTok Video 🎵",

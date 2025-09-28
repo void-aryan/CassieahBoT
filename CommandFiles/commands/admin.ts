@@ -1,12 +1,8 @@
-import {
-  SpectralCMDHome,
-  CassCheckly,
-  Config,
-} from "../modules/spectralCMDHome";
+import { SpectralCMDHome, Config } from "@cass-modules/spectralCMDHome";
 import { UNIRedux, UNISpectra } from "@cassidy/unispectra";
 import { defineEntry } from "@cass/define";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "admin",
   description: "Manage admins and moderators",
   otherNames: ["admins", "mod", "moderator"],
@@ -21,7 +17,7 @@ export const meta: CassidySpectra.CommandMeta = {
   icon: "👑",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "👑 Admods",
   titleFont: "bold",
   contentFont: "fancy",

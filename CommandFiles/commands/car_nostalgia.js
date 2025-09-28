@@ -6,7 +6,7 @@ import { formatCash } from "@cass-modules/ArielUtils";
 import { calculateInflation } from "@cass-modules/unitypes";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "carnostalgia",
@@ -137,7 +137,7 @@ async function uncageReply({ input, output, Inventory, money, repObj }) {
 }
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: {

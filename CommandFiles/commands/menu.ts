@@ -6,7 +6,7 @@ import {
 } from "@cassidy/unispectra";
 import { ShopClass } from "@cass-plugins/shopV2";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "menu",
   author: "@lianecagara",
   description:
@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   otherNames: ["start", "help"],
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: Cassidy.logo,
   titleFont: "none",
   contentFont: "fancy",

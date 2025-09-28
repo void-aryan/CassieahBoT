@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "meowshop",
@@ -338,7 +338,7 @@ export async function entry({ UTShop, isTimeAvailable, output, ctx }) {
 }
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "😺 Meow Shop",

@@ -4,7 +4,7 @@ import { FontSystem, UNIRedux } from "cassidy-styler";
 import { OutputResult } from "@cass-plugins/output";
 import { PersistentStats, PetSchema } from "@cass-modules/Encounter";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "petclash",
   description: "Multi-pet PvP battle system with up to 7 pets per player",
   otherNames: ["clash"],
@@ -20,7 +20,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "cplx_g",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: `⚔️ PetClash ${FontSystem.applyFonts("EX", "double_struck")}`,
   titleFont: "bold_italic",
   contentFont: "fancy",

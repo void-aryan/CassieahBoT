@@ -5,7 +5,7 @@ import { UNIRedux } from "../modules/unisym.js";
 import { Slicer } from "../plugins/utils-liane.js";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "intellnica",

@@ -1,6 +1,6 @@
 import { NeaxScript } from "@cass-modules/NeaxScript";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "neax",
   author: "@lianecagara",
   description:

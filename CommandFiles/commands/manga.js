@@ -3,7 +3,7 @@ import { UNISpectra } from "@cassidy/unispectra";
 import moment from "moment-timezone";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "manga",
@@ -22,7 +22,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Astral • Manga Reader 🌌",

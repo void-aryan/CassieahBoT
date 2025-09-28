@@ -1,4 +1,4 @@
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "movies",
   author: "rifat, fixed by liane and symer",
   noPrefix: false,
@@ -12,7 +12,7 @@ export const meta: CassidySpectra.CommandMeta = {
   otherNames: ["mov"],
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "OMDB Movie Search 🎥",
   titleFont: "bold",
   contentFont: "fancy",

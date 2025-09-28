@@ -3,7 +3,7 @@
 import { defineEntry } from "@cass/define";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "random",

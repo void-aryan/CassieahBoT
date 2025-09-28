@@ -6,7 +6,7 @@ import { Inventory } from "@cass-modules/InventoryEnhanced";
 import { SpectralCMDHome } from "@cassidy/spectral-home";
 import { abbreviateNumber, formatCash } from "@cass-modules/ArielUtils";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "skyrise",
   description: "Build and manage your floating island empire!",
   otherNames: ["srs", "sky", "skyr"],
@@ -24,7 +24,7 @@ export const meta: CassidySpectra.CommandMeta = {
 
 const { invLimit } = global.Cassidy;
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "SkyRise Empire 🏰",
   titleFont: "bold",
   contentFont: "fancy",

@@ -1,6 +1,6 @@
 import { UNISpectra } from "@cassidy/unispectra";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "activeusers",
   otherNames: ["active", "acv"],
   description: "Lists the top 10 most active users.",
@@ -14,7 +14,7 @@ export const meta: CassidySpectra.CommandMeta = {
   category: "User Management",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "Most Active Users ⚡",
   titleFont: "bold",
   contentFont: "none",

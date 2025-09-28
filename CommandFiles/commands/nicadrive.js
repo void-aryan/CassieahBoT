@@ -3,7 +3,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 import { Slicer } from "../plugins/utils-liane.js";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "nicadrive",
@@ -28,7 +28,7 @@ const ndriveLimit = 100;
 const proLimit = 1000;
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "NicaDrive™ 💾",

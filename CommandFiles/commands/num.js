@@ -3,7 +3,7 @@
 import { abbreviateNumber, parseBet } from "@cass-modules/ArielUtils";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "numberize",
@@ -22,7 +22,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "💰 Numberize",

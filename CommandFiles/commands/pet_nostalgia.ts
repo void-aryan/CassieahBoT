@@ -12,7 +12,7 @@ import { SmartPet } from "@cass-modules/SmartSpectra";
 import { ShopItem } from "@cass-modules/GardenBalancer";
 import { calculateInflation } from "@cass-modules/unitypes";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "petnostalgia",
   description: "Manage your pets! (Reworked but same as old!)",
   otherNames: ["p", "pet", "petn"],
@@ -260,7 +260,7 @@ async function renameReply({
   }
 }
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: {
     content: "🐕 Pet",
     text_font: "bold",

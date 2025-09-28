@@ -16,7 +16,7 @@ export interface ThreadWarnConfig {
   author: string;
 }
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "warn",
   description: "Manage user warnings in the thread",
   otherNames: ["wrn"],

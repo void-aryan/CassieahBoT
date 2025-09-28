@@ -4,7 +4,7 @@ import { ShopClass } from "../plugins/shopV2.js";
 import { Slicer } from "../plugins/utils-liane.js";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "buy",
@@ -20,7 +20,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "🛒 Buy Command",

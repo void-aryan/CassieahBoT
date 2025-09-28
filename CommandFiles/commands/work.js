@@ -12,7 +12,7 @@ const extra = {
 };
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "work",

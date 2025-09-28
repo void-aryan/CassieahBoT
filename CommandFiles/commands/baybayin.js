@@ -2,7 +2,7 @@
 import baybayin from "baybayin-transliterator";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "baybayin",
@@ -20,7 +20,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Baybayin ✏️",

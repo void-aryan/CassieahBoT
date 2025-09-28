@@ -5,7 +5,7 @@ import { OutputResult } from "@cass-plugins/output";
 import { PersistentStats, PetSchema } from "@cass-modules/Encounter";
 import { formatCash } from "@cass-modules/ArielUtils";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "arena",
   description: "1v1 PvP pet battle system",
   otherNames: ["pvp", "battle"],
@@ -21,7 +21,7 @@ export const meta: CassidySpectra.CommandMeta = {
   cmdType: "cplx_g",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: `⚔️ Arena ${FontSystem.applyFonts("EX", "double_struck")}`,
   titleFont: "bold",
   contentFont: "fancy",

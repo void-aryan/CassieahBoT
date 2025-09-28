@@ -2,7 +2,7 @@
 import { parseBet } from "@cass-modules/ArielUtils";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "lotto",

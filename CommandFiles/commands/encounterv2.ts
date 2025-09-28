@@ -18,7 +18,7 @@ import { OutputResult } from "@cass-plugins/output";
 import { formatCash } from "@cass-modules/ArielUtils";
 import { Datum } from "@cass-modules/Datum";
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "encounter",
   description: "Pets Encounter - A reworked interactive pet battle system",
   otherNames: ["encv2", "encounterv2", "enc"],
@@ -36,7 +36,7 @@ export const meta: CassidySpectra.CommandMeta = {
     "Reworked for improved modularity, scalability, and TypeScript support",
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: `🔱 Encounter ${FontSystem.applyFonts("EX", "double_struck")}`,
   titleFont: "bold_italic",
   contentFont: "fancy",

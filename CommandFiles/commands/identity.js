@@ -5,7 +5,7 @@ import { UNIRedux } from "@cassidy/unispectra";
 import { PasteClient } from "pastebin-api";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "identity",
@@ -25,7 +25,7 @@ export const meta = {
 };
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style2 = {
   title: "🍃 Change User",
@@ -37,7 +37,7 @@ export const style2 = {
 const { parseCurrency: pCy } = global.utils;
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "Identity Dashboard 💬",

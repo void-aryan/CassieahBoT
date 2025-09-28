@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "ytdl",
@@ -23,7 +23,7 @@ export const meta = {
 import yts from "yt-search";
 
 /**
- * @type {CassidySpectra.CommandStyle}
+ * @type {CommandStyle}
  */
 export const style = {
   title: "🎥 YouTube Video",

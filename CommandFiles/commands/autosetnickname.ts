@@ -24,7 +24,7 @@ function checkShortCut(
   return nickname;
 }
 
-export const meta: CassidySpectra.CommandMeta = {
+export const meta: CommandMeta = {
   name: "autosetnickname",
   description: "Manage automatic nickname setting for new users in the thread",
   otherNames: ["asn", "autonick"],
@@ -40,7 +40,7 @@ export const meta: CassidySpectra.CommandMeta = {
   noWeb: true,
 };
 
-export const style: CassidySpectra.CommandStyle = {
+export const style: CommandStyle = {
   title: "🏷️ Auto Nickname",
   titleFont: "bold",
   contentFont: "fancy",

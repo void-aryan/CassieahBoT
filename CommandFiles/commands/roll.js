@@ -3,7 +3,7 @@ import { parseBet } from "@cass-modules/ArielUtils";
 import { secureRandom } from "../modules/unisym.js";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "roll",

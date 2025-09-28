@@ -4,7 +4,7 @@ import { stoData } from "../modules/stoData.js";
 import { toTitleCase, UNIRedux } from "@cassidy/unispectra";
 import { ShopClass } from "../plugins/shopV2.js";
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "tileshop",

@@ -2,7 +2,7 @@
 import axios from "axios";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "autocass",

@@ -3,7 +3,7 @@
 import { exec } from "child_process";
 
 /**
- * @type {CassidySpectra.CommandMeta}
+ * @type {CommandMeta}
  */
 export const meta = {
   name: "exec",
