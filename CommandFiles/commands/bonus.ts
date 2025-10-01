@@ -1,9 +1,16 @@
+import { groupItems, listItem } from "@cass-modules/BriefcaseAPI";
 import { CollectibleItem, InventoryItem } from "@cass-modules/cassidyUser";
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { Inventory } from "@cass-modules/InventoryEnhanced";
-import { UNIRedux } from "@cassidy/unispectra";
+import {
+  getCompletePercent,
+  listIcons,
+  UNIRedux,
+  UNISpectra,
+} from "@cassidy/unispectra";
 import { generateGift } from "@cassidy/ut-shop";
 import { FontSystem } from "cassidy-styler";
+import { clamp } from "lodash";
 
 export const meta: CommandMeta = {
   name: "daily",
@@ -381,7 +388,7 @@ export const possibleRewardItems = new Inventory([
 export const possibleRewardPacks = new Inventory([
   {
     key: "beginnerPack",
-    name: "Beginner Bonus Pack",
+    name: "Beginner Pack",
     icon: "📦👶",
     type: "zip",
     sellPrice: -1,
@@ -397,7 +404,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "lovePack",
-    name: "Loved Bonus Pack",
+    name: "Loved Pack",
     icon: "📦💌",
     type: "zip",
     sellPrice: -1,
@@ -414,7 +421,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "bambooPack1",
-    name: "Bamboo Bonus Pack",
+    name: "Bamboo Pack",
     icon: "📦🎍",
     type: "zip",
     sellPrice: -1,
@@ -430,7 +437,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "wieldersPack",
-    name: "Wielders Bonus Pack",
+    name: "Wielders Pack",
     icon: "📦⚔️",
     type: "zip",
     sellPrice: -1,
@@ -446,10 +453,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "wieldersPack2",
-    name: `Wielders Bonus Pack ${FontSystem.applyFonts(
-      "PLUS",
-      "double_struck"
-    )}`,
+    name: `Wielders Pack ${FontSystem.applyFonts("PLUS", "double_struck")}`,
     icon: "📦⚔️",
     type: "zip",
     sellPrice: -1,
@@ -465,7 +469,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "jandelPack1",
-    name: `Jandel Bonus Pack`,
+    name: `Jandel Pack`,
     icon: "📦🌱",
     type: "zip",
     sellPrice: -1,
@@ -481,7 +485,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "jandelPack2",
-    name: `Jandel Bonus Pack II`,
+    name: `Jandel Pack II`,
     icon: "📦🐝",
     type: "zip",
     sellPrice: -1,
@@ -497,7 +501,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "mexPack",
-    name: `${FontSystem.applyFonts("EX", "double_struck")} Foods Bonus Pack`,
+    name: `${FontSystem.applyFonts("EX", "double_struck")} Foods Pack`,
     icon: "📦🧃",
     type: "zip",
     sellPrice: -1,
@@ -513,7 +517,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "giftOverloadPack",
-    name: `Gift Overload Bonus Pack`,
+    name: `Gift Overload Pack`,
     icon: "📦🎁",
     type: "zip",
     sellPrice: -1,
@@ -529,7 +533,7 @@ export const possibleRewardPacks = new Inventory([
   },
   {
     key: "gamblerPack",
-    name: "Gambler10 Bonus Pack",
+    name: "Gambler10 Pack",
     icon: "📦🎰",
     type: "zip",
     sellPrice: -1,
@@ -544,17 +548,162 @@ export const possibleRewardPacks = new Inventory([
     ],
   },
 ]);
-
 export const STREAK_REWARDS_0: Reward[] = [
   {
-    cash: 10000,
+    cash: 10_000,
     bp: 0,
     clls: [{ key: "gems", amountAdded: 3 }],
     items: [{ ...possibleRewardPacks.getOne("beginnerPack") }],
   },
+  {
+    cash: 20_000,
+    bp: 100,
+    clls: [
+      { key: "gems", amountAdded: 6 },
+      {
+        key: "repoints",
+        amountAdded: 100,
+      },
+    ],
+    items: [{ ...possibleRewardPacks.getOne("lovePack") }],
+  },
+  {
+    cash: 20_000,
+    bp: 100,
+    clls: [{ key: "gems", amountAdded: 12 }],
+    items: [{ ...possibleRewardPacks.getOne("bambooPack1") }],
+  },
+  {
+    cash: 160_000,
+    bp: 2000,
+    clls: [{ key: "gems", amountAdded: 24 }],
+    items: [{ ...possibleRewardPacks.getOne("wieldersPack") }],
+  },
+  {
+    cash: 320_000,
+    bp: 4000,
+    clls: [{ key: "gems", amountAdded: 36 }],
+    items: [{ ...possibleRewardPacks.getOne("wieldersPack2") }],
+  },
+  {
+    cash: 320_000,
+    bp: 200,
+    clls: [{ key: "gems", amountAdded: 48 }],
+    items: [{ ...possibleRewardPacks.getOne("jandelPack1") }],
+  },
+  {
+    cash: 320_000,
+    bp: 200,
+    clls: [
+      { key: "gems", amountAdded: 48 },
+      {
+        key: "honey",
+        amountAdded: 100,
+      },
+    ],
+    items: [{ ...possibleRewardPacks.getOne("jandelPack2") }],
+  },
+  {
+    cash: 320_000,
+    bp: 200,
+    clls: [{ key: "gems", amountAdded: 57 }],
+    items: [{ ...possibleRewardPacks.getOne("mexPack") }],
+  },
+  {
+    cash: 640_000,
+    bp: 200,
+    clls: [{ key: "gems", amountAdded: 100 }],
+    items: [{ ...possibleRewardPacks.getOne("giftOverloadPack") }],
+  },
+  {
+    cash: 2_000_000,
+    bp: 10000,
+    clls: [{ key: "gems", amountAdded: 500 }],
+    items: [{ ...possibleRewardPacks.getOne("gamblerPack") }],
+  },
 ];
 
+const oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+
 export async function entry({
+  input,
+  output,
+  money,
+  getInflationRate,
+}: CommandContext) {
+  let {
+    money: userMoney,
+    lastDailyClaim,
+    collectibles: rawCLL,
+    battlePoints = 0,
+    dailyStreak = 1,
+    name = "Unregistered",
+  } = await money.getItem(input.senderID);
+  dailyStreak = Math.max(1, dailyStreak);
+  lastDailyClaim ??= Date.now() - oneDayInMilliseconds;
+  const rate = await getInflationRate();
+
+  const currentTime = Date.now();
+
+  const percentSinceClaim = getCompletePercent(
+    lastDailyClaim,
+    oneDayInMilliseconds,
+    currentTime
+  );
+
+  const currentStreak = STREAK_REWARDS_0.at(
+    (dailyStreak - 1) % STREAK_REWARDS_0.length
+  );
+
+  const tops = `👤 **${name}** (Daily Claim)\n`;
+
+  if (!currentStreak) {
+    return output.reply(
+      `${tops}\n❌ | ☹️ Something went terribly wrong. Your streak doesn't have a correct reward counterpart.`
+    );
+  }
+
+  const repeatsAdd =
+    Math.floor(dailyStreak / STREAK_REWARDS_0.length) * STREAK_REWARDS_0.length;
+
+  const indexCurr = STREAK_REWARDS_0.indexOf(currentStreak);
+
+  const lastPage1 = Math.floor(STREAK_REWARDS_0.length / 2);
+  const visibles =
+    indexCurr >= lastPage1
+      ? STREAK_REWARDS_0.slice(lastPage1)
+      : STREAK_REWARDS_0.slice(0, lastPage1);
+
+  const rewardsList = visibles.map((reward) => {
+    const index = STREAK_REWARDS_0.indexOf(reward);
+    const isCurrent = reward === currentStreak;
+    const day = index + 1 + repeatsAdd;
+    return `${isCurrent ? UNISpectra.arrowFromT + " " : ""}${
+      isCurrent ? `**` : ""
+    }${indexCurr > index ? `✅ ` : ""} Day ${day}${isCurrent ? `**` : ""}:${
+      indexCurr > index ? ` ***CLAIMED***` : ""
+    }\n${Array.from(groupItems(reward.items).values())
+      .map((data) =>
+        listItem(data, data.amount, {
+          bold: isCurrent,
+          showID: false,
+        })
+      )
+      .join("\n")}${isCurrent ? `\nReply with **"claim"** to collect!` : ""}`;
+  });
+
+  return output.reply(
+    `${tops}\n${UNISpectra.standardLine}\n${rewardsList.join(
+      `\n${UNISpectra.standardLine}\n`
+    )}\n${UNISpectra.standardLine}\n${
+      indexCurr >= Math.floor(STREAK_REWARDS_0.length / 2)
+        ? ""
+        : `(There are rewards after day ${lastPage1}!)`
+    }`
+  );
+}
+
+export async function entryOLD({
   input,
   output,
   money,

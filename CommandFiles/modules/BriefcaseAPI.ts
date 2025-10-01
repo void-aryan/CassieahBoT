@@ -340,11 +340,12 @@ export function listItemOLD(
 }
 export function listItem(
   item: Partial<InventoryItem> = {},
-  count: number = undefined
+  count: number = undefined,
+  { bold = false, showID = true } = {}
 ) {
   return `${item.icon}${
     typeof count === "number" && count > 1 ? ` **x${count}**` : ""
-  } ${item.name} (${item.key})`;
+  } ${bold ? `**${item.name}**` : item.name}${showID ? `  (${item.key})` : ""}`;
 }
 
 export function groupItems(items: InventoryItem[]) {

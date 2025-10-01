@@ -3,7 +3,7 @@
     "money": 983304,
     "exp": 0,
     "battlePoints": 410,
-    "lastModified": 1759299119997,
+    "lastModified": 1759306354017,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -918,6 +918,7 @@
       "expansions": 0,
       "achievements": []
     },
-    "lastGiftClaim": 1758983202158
+    "lastGiftClaim": 1758983202158,
+    "dailyStreak": 999
   }
 }

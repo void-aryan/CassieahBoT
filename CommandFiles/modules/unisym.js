@@ -1057,3 +1057,17 @@ export async function handleDefaultCommand(
 export function countEmojis(str = "") {
   return [...`${str}`.matchAll(/\p{Emoji}/gu)].length;
 }
+
+/**
+ *
+ * @param {number} timestamp
+ * @param {number} targetLength
+ * @param {number?} now
+ */
+export function getCompletePercent(timestamp, targetLength, now = Date.now()) {
+  timestamp = Number(timestamp);
+  targetLength = Number(targetLength);
+  now = Number(now);
+  const delta = now - timestamp;
+  return Math.max(0, delta / targetLength);
+}
