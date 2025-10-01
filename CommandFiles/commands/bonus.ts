@@ -1,7 +1,12 @@
+import {
+  abbreviateNumber,
+  formatCash,
+  formatTimeSentence,
+} from "@cass-modules/ArielUtils";
 import { groupItems, listItem } from "@cass-modules/BriefcaseAPI";
 import { CollectibleItem, InventoryItem } from "@cass-modules/cassidyUser";
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
-import { Inventory } from "@cass-modules/InventoryEnhanced";
+import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
 import {
   getCompletePercent,
   listIcons,
@@ -13,18 +18,18 @@ import { FontSystem } from "cassidy-styler";
 import { clamp } from "lodash";
 
 export const meta: CommandMeta = {
-  name: "daily",
+  name: "streak",
   description: "Daily login bonus!",
   version: "2.0.0",
   author: "Liane Cagara",
   category: "Rewards",
-  otherNames: ["bonus"],
+  otherNames: ["bonus", "daily"],
   requirement: "4.1.0",
   icon: "💎",
 };
 
 export const style: CommandStyle = {
-  title: "Login Bonus 💎",
+  title: "Daily Streak 💎",
   titleFont: "bold",
   contentFont: "fancy",
   topLine: "double",
@@ -632,18 +637,21 @@ export async function entry({
   getInflationRate,
 }: CommandContext) {
   let {
-    money: userMoney,
     lastDailyClaim,
-    collectibles: rawCLL,
-    battlePoints = 0,
     dailyStreak = 1,
+    collectibles: rawCll = [],
+
     name = "Unregistered",
   } = await money.getItem(input.senderID);
   dailyStreak = Math.max(1, dailyStreak);
+  output.setStyle(style);
+  const cll = new Collectibles(rawCll);
+
   lastDailyClaim ??= Date.now() - oneDayInMilliseconds;
-  const rate = await getInflationRate();
 
   const currentTime = Date.now();
+
+  const elapsed = currentTime - lastDailyClaim;
 
   const percentSinceClaim = getCompletePercent(
     lastDailyClaim,
@@ -651,11 +659,20 @@ export async function entry({
     currentTime
   );
 
+  if (percentSinceClaim >= 2) {
+    dailyStreak = 1;
+    await money.setItem(input.senderID, {
+      dailyStreak,
+    });
+  }
+
+  const canClaim = elapsed >= oneDayInMilliseconds;
+
   const currentStreak = STREAK_REWARDS_0.at(
     (dailyStreak - 1) % STREAK_REWARDS_0.length
   );
 
-  const tops = `👤 **${name}** (Daily Claim)\n`;
+  const tops = `👤 **${name}**\n`;
 
   if (!currentStreak) {
     return output.reply(
@@ -689,18 +706,88 @@ export async function entry({
           showID: false,
         })
       )
-      .join("\n")}${isCurrent ? `\nReply with **"claim"** to collect!` : ""}`;
+      .join("\n")}${
+      isCurrent
+        ? `${reward.cash ? `\n💵 ${abbreviateNumber(reward.cash)}` : ""}${
+            reward.bp ? `\n💷 ${abbreviateNumber(reward.bp)}` : ""
+          }${
+            reward.clls
+              ? `\n${reward.clls.map(
+                  (i) =>
+                    `${
+                      cll.getMeta(i.key)?.icon ?? "❓"
+                    } **x**${abbreviateNumber(i.amountAdded)} ${
+                      cll.getMeta(i.key)?.name ?? "???"
+                    } `
+                )}`
+              : ""
+          }`
+        : ""
+    }${
+      isCurrent
+        ? canClaim
+          ? `\nReply with **"claim"** to collect!`
+          : `\n⏳ Claim after: **${formatTimeSentence(
+              oneDayInMilliseconds - elapsed
+            )}**`
+        : ""
+    }`;
   });
 
-  return output.reply(
-    `${tops}\n${UNISpectra.standardLine}\n${rewardsList.join(
-      `\n${UNISpectra.standardLine}\n`
-    )}\n${UNISpectra.standardLine}\n${
+  const info = await output.reply(
+    `${tops}\n**${FontSystem.applyFonts("STREAKS", "double_struck")}**:\n${
+      UNISpectra.standardLine
+    }\n${rewardsList.join(`\n${UNISpectra.standardLine}\n`)}\n${
+      UNISpectra.standardLine
+    }\n${
       indexCurr >= Math.floor(STREAK_REWARDS_0.length / 2)
         ? ""
-        : `(There are rewards after day ${lastPage1}!)`
-    }`
+        : `(There are rewards after day ${lastPage1}!)\n`
+    }💡 **Tip**: Do not miss a day if you don't want your streak to **RESET**.\n⏳ Resets after: **${formatTimeSentence(
+      oneDayInMilliseconds * 2 - elapsed
+    )}**`
   );
+  info.atReply(async (repCtx) => {
+    const { output, input } = repCtx;
+    output.setStyle(style);
+    let {
+      money: userMoney,
+      lastDailyClaim,
+      dailyStreak = 1,
+      collectibles: rawCll = [],
+      inventory: rawInv = [],
+      battlePoints,
+      name = "Unregistered",
+    } = await money.getItem(input.senderID);
+    const inventory = new Inventory(rawInv);
+    const cll = new Collectibles(rawCll);
+    lastDailyClaim ??= Date.now() - oneDayInMilliseconds;
+    const rate = await getInflationRate();
+
+    const currentTime = Date.now();
+
+    const percentSinceClaim = getCompletePercent(
+      lastDailyClaim,
+      oneDayInMilliseconds,
+      currentTime
+    );
+
+    const elapsed = currentTime - lastDailyClaim;
+
+    if (percentSinceClaim < 1) {
+      return output.reply(
+        `${tops}\n⏳ | Please wait for **${formatTimeSentence(
+          oneDayInMilliseconds - elapsed
+        )}** before claiming your reward.`
+      );
+    }
+
+    dailyStreak = Math.max(1, dailyStreak);
+
+    const currentStreak = STREAK_REWARDS_0.at(
+      (dailyStreak - 1) % STREAK_REWARDS_0.length
+    );
+  });
 }
 
 export async function entryOLD({
