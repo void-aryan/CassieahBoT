@@ -1,9 +1,9 @@
 {
   "web:bmVha3l1dGk": {
-    "money": 983304,
+    "money": 996758,
     "exp": 0,
     "battlePoints": 410,
-    "lastModified": 1759308368388,
+    "lastModified": 1759316919482,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -57,7 +57,7 @@
           "icon": "💎",
           "type": "currency"
         },
-        "amount": 41
+        "amount": 44
       },
       {
         "metadata": {
@@ -85,6 +85,101 @@
       "petnostalgia": true
     },
     "inventory": [
+      {
+        "key": "beginnerPack",
+        "name": "Beginner Pack",
+        "icon": "📦👶",
+        "type": "zip",
+        "sellPrice": -1,
+        "flavorText": "Decent pack for any player that's just starting the game.",
+        "zipContents": [
+          {
+            "name": "Basic Pet Bundle ☆",
+            "icon": "🐾",
+            "flavorText": "A bundle of pets for sale! Use inv use to open.",
+            "sellPrice": 3100,
+            "type": "treasure",
+            "treasureKey": "randomGrouped_petsI",
+            "key": "petBundle",
+            "uuid": "1759316908921_7564c7ba-a9a7-431d-8b8a-744bf4cabf9a",
+            "index": 0,
+            "cannotToss": false
+          },
+          {
+            "name": "Shadow Coin",
+            "key": "shadowCoin",
+            "flavorText": "A coin rumored to have been forged in the depths of a forgotten realm, carrying with it the clandestine power to transfer fortunes unseen.",
+            "icon": "🌒",
+            "type": "food",
+            "heal": 120,
+            "sellPrice": 500,
+            "healParty": true,
+            "uuid": "1759316908921_b6c1e6d3-758d-498a-abf2-a0fcfd6563d0",
+            "index": 1,
+            "cannotToss": false
+          },
+          {
+            "name": "Shadow Coin",
+            "key": "shadowCoin",
+            "flavorText": "A coin rumored to have been forged in the depths of a forgotten realm, carrying with it the clandestine power to transfer fortunes unseen.",
+            "icon": "🌒",
+            "type": "food",
+            "heal": 120,
+            "sellPrice": 500,
+            "healParty": true,
+            "uuid": "1759316908921_b6c1e6d3-758d-498a-abf2-a0fcfd6563d0",
+            "index": 1,
+            "cannotToss": false
+          },
+          {
+            "name": "Lotto Ticket",
+            "key": "lottoTicket",
+            "flavorText": "A mysterious ticket purchased from the Meow Shop. Its purpose remains unclear, but it brims with potential.",
+            "icon": "🔖",
+            "type": "key",
+            "sellPrice": 5,
+            "prob": 0.35,
+            "group": [
+              "generic",
+              "banking"
+            ],
+            "uuid": "1759316908921_5256069a-50ae-4f63-a60c-ea53e57a0019",
+            "index": 2,
+            "cannotToss": false
+          },
+          {
+            "name": "Lotto Ticket",
+            "key": "lottoTicket",
+            "flavorText": "A mysterious ticket purchased from the Meow Shop. Its purpose remains unclear, but it brims with potential.",
+            "icon": "🔖",
+            "type": "key",
+            "sellPrice": 5,
+            "prob": 0.35,
+            "group": [
+              "generic",
+              "banking"
+            ],
+            "uuid": "1759316908921_5256069a-50ae-4f63-a60c-ea53e57a0019",
+            "index": 2,
+            "cannotToss": false
+          },
+          {
+            "name": "Gift Pack",
+            "icon": "🎁🎴",
+            "flavorText": "This is a gift item, this item might grant you something. It's not guaranteed enough, you can use this using inventory command, if you know..",
+            "sellPrice": 100,
+            "type": "roulette_pack",
+            "treasureKey": "generic",
+            "key": "giftPack",
+            "uuid": "1759316908921_00799801-5d64-4a26-beb3-267fce756b16",
+            "index": 4,
+            "cannotToss": false
+          }
+        ],
+        "uuid": "1759316908921_a5f537b8-0fdc-428e-8251-9e8d01e43234",
+        "index": 8,
+        "cannotToss": false
+      },
       {
         "key": "gsBlueberry",
         "name": "Blueberry Seed",
@@ -918,7 +1013,7 @@
       "achievements": []
     },
     "lastGiftClaim": 1758983202158,
-    "dailyStreak": 1,
-    "lastDailyClaim": 1759135558307
+    "dailyStreak": 2,
+    "lastDailyClaim": 1759316919480
   }
 }

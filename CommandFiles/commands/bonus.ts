@@ -634,6 +634,7 @@ export async function entry({
   input,
   output,
   money,
+  ctx,
   getInflationRate,
 }: CommandContext) {
   let {
@@ -643,6 +644,7 @@ export async function entry({
 
     name = "Unregistered",
   } = await money.getItem(input.senderID);
+  const rate = await getInflationRate();
   dailyStreak = Math.max(1, dailyStreak);
   output.setStyle(style);
   const cll = new Collectibles(rawCll);
@@ -710,19 +712,29 @@ export async function entry({
         })
       )
       .join("\n")}${
-      isCurrent
-        ? `${reward.cash ? `\n💵 ${abbreviateNumber(reward.cash)}` : ""}${
-            reward.bp ? `\n💷 ${abbreviateNumber(reward.bp)}` : ""
+      true
+        ? `${
+            reward.cash
+              ? `\n💵 **x${abbreviateNumber(
+                  Math.round(reward.cash + (reward.cash * rate || 0))
+                )}** Money`
+              : ""
+          }${
+            reward.bp
+              ? `\n💷 **x${abbreviateNumber(reward.bp)}** Battle Points`
+              : ""
           }${
             reward.clls
-              ? `\n${reward.clls.map(
-                  (i) =>
-                    `${
-                      cll.getMeta(i.key)?.icon ?? "❓"
-                    } **x**${abbreviateNumber(i.amountAdded)} ${
-                      cll.getMeta(i.key)?.name ?? "???"
-                    } `
-                )}`
+              ? `\n${reward.clls
+                  .map(
+                    (i) =>
+                      `${
+                        cll.getMeta(i.key)?.icon ?? "❓"
+                      } **x${abbreviateNumber(i.amountAdded)}** ${
+                        cll.getMeta(i.key)?.name ?? "???"
+                      } `
+                  )
+                  .join("\n")}`
               : ""
           }`
         : ""
@@ -738,21 +750,26 @@ export async function entry({
   });
 
   const info = await output.reply(
-    `${tops}\n**${FontSystem.applyFonts(
+    `${tops}\n${UNISpectra.arrow} ${FontSystem.applyFonts(
       "STREAKS" + (hasReset ? " (Reset back to 1)" : ""),
-      "double_struck"
-    )}**:\n${UNISpectra.standardLine}\n${rewardsList.join(
+      "bold_italic"
+    )}:\n${UNISpectra.standardLine}\n${rewardsList.join(
       `\n${UNISpectra.standardLine}\n`
     )}\n${UNISpectra.standardLine}\n${
       indexCurr >= Math.floor(STREAK_REWARDS_0.length / 2)
         ? ""
         : `(There are rewards after day ${lastPage1}!)\n`
-    }💡 **Tip**: Do not miss a day if you don't want your streak to **RESET**.\n⏳ Resets after: **${formatTimeSentence(
-      oneDayInMilliseconds * 2 - elapsed
-    )}**`
+    }💡 **Tip**: Do not miss a day if you don't want your streak to **RESET**.\n⏳ Resets after: **${
+      formatTimeSentence(oneDayInMilliseconds * 2 - elapsed) || "0s"
+    }**`
   );
+  const STREAK1 = dailyStreak;
   info.atReply(async (repCtx) => {
-    const { output, input } = repCtx;
+    const { output, input, getInflationRate } = repCtx;
+    if (input.senderID !== ctx.input.senderID) return;
+    if (input.words[0]?.toLowerCase() !== "claim") {
+      return;
+    }
     output.setStyle(style);
     let {
       money: userMoney,
@@ -761,8 +778,9 @@ export async function entry({
       collectibles: rawCll = [],
       inventory: rawInv = [],
       battlePoints,
-      name = "Unregistered",
     } = await money.getItem(input.senderID);
+    if (dailyStreak !== STREAK1) return;
+
     const inventory = new Inventory(rawInv);
     const cll = new Collectibles(rawCll);
     lastDailyClaim ??= Date.now() - oneDayInMilliseconds;
@@ -790,6 +808,69 @@ export async function entry({
 
     const currentStreak = STREAK_REWARDS_0.at(
       (dailyStreak - 1) % STREAK_REWARDS_0.length
+    );
+
+    const reward = currentStreak;
+
+    const index = STREAK_REWARDS_0.indexOf(reward);
+    const day = index + 1 + repeatsAdd;
+    const list = `${Array.from(groupItems(reward.items).values())
+      .map((data) => listItem(data, data.amount))
+      .join("\n")}${
+      true
+        ? `${
+            reward.cash
+              ? `\n💵 **x${abbreviateNumber(
+                  Math.round(reward.cash + (reward.cash * rate || 0))
+                )}** Money`
+              : ""
+          }${
+            reward.bp
+              ? `\n💷 **x${abbreviateNumber(reward.bp)}** Battle Points`
+              : ""
+          }${
+            reward.clls
+              ? `\n${reward.clls
+                  .map(
+                    (i) =>
+                      `${
+                        cll.getMeta(i.key)?.icon ?? "❓"
+                      } **x${abbreviateNumber(i.amountAdded)}** ${
+                        cll.getMeta(i.key)?.name ?? "???"
+                      } (${i.key})`
+                  )
+                  .join("\n")}`
+              : ""
+          }`
+        : ""
+    }`;
+    lastDailyClaim = Date.now();
+    inventory.add([...reward.items]);
+    for (const cllAdd of reward.clls) {
+      cll.raise(cllAdd.key, cllAdd.amountAdded || 0);
+    }
+    userMoney += Math.round((reward.cash || 0) + (reward.cash * rate || 0));
+    battlePoints += reward.bp || 0;
+    dailyStreak++;
+
+    await money.setItem(input.senderID, {
+      money: userMoney,
+      inventory: inventory.raw(),
+      collectibles: Array.from(cll),
+      battlePoints,
+      lastDailyClaim,
+      dailyStreak,
+    });
+
+    return output.reply(
+      `${tops}\n${UNISpectra.arrow} ${FontSystem.applyFonts(
+        "REWARD CLAIMED!",
+        "bold_italic"
+      )}\n${UNISpectra.standardLine}\n${list}\n${
+        UNISpectra.standardLine
+      }\n✅ **Day #${day}**\n⏳ Claim again after: **${formatTimeSentence(
+        oneDayInMilliseconds - 1
+      )}**`
     );
   });
 }
