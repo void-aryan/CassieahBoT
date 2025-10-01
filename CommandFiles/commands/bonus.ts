@@ -659,7 +659,10 @@ export async function entry({
     currentTime
   );
 
+  let hasReset = false;
+
   if (percentSinceClaim >= 2) {
+    hasReset = true;
     dailyStreak = 1;
     await money.setItem(input.senderID, {
       dailyStreak,
@@ -735,11 +738,12 @@ export async function entry({
   });
 
   const info = await output.reply(
-    `${tops}\n**${FontSystem.applyFonts("STREAKS", "double_struck")}**:\n${
-      UNISpectra.standardLine
-    }\n${rewardsList.join(`\n${UNISpectra.standardLine}\n`)}\n${
-      UNISpectra.standardLine
-    }\n${
+    `${tops}\n**${FontSystem.applyFonts(
+      "STREAKS" + (hasReset ? " (Reset back to 1)" : ""),
+      "double_struck"
+    )}**:\n${UNISpectra.standardLine}\n${rewardsList.join(
+      `\n${UNISpectra.standardLine}\n`
+    )}\n${UNISpectra.standardLine}\n${
       indexCurr >= Math.floor(STREAK_REWARDS_0.length / 2)
         ? ""
         : `(There are rewards after day ${lastPage1}!)\n`
