@@ -730,7 +730,7 @@ export class BriefcaseAPI {
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
                 `❌ No treasure with key "**${keyToCheck}**" found in your pack!\n` +
-                `Try "${prefix}${commandName} list" to see what’s in your ${inventoryIcon}!`
+                `Try "${prefix}${commandName} list" to see what's in your ${inventoryIcon}!`
             );
           }
           const infos = Object.entries(item)
@@ -834,7 +834,7 @@ export class BriefcaseAPI {
               `👤 **${
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
-                `❌ "**${key}**" isn’t in your pack! Check with "${prefix}${commandName} list".`
+                `❌ "**${key}**" isn't in your pack! Check with "${prefix}${commandName} list".`
             );
           }
 
@@ -944,7 +944,7 @@ export class BriefcaseAPI {
                   `👤 **${
                     userData.name || "Unregistered"
                   }** (${inventoryName})\n\n` +
-                    `❓ Where’d it go? "**${item.name}**" vanished from your ${inventoryIcon}!`
+                    `❓ Where'd it go? "**${item.name}**" vanished from your ${inventoryIcon}!`
                 );
               }
 
@@ -1076,7 +1076,7 @@ export class BriefcaseAPI {
                 `👤 **${
                   userData.name || "Unregistered"
                 }** (${inventoryName})\n\n` +
-                  `❌ This cheque’s a dud! No cash to claim.`
+                  `❌ This cheque's a dud! No cash to claim.`
               );
             }
             customInventory.deleteOne(chequeKey);
@@ -1140,7 +1140,7 @@ export class BriefcaseAPI {
                   `👤 **${
                     userData.name || "Unregistered"
                   }** (${inventoryName})\n\n` +
-                    `❌ The treasure’s gone! Did it slip out of your ${inventoryIcon}?`,
+                    `❌ The treasure's gone! Did it slip out of your ${inventoryIcon}?`,
                   style
                 );
               }
@@ -1175,7 +1175,7 @@ export class BriefcaseAPI {
                   `👤 **${
                     userData.name || "Unregistered"
                   }** (${inventoryName})\n\n` +
-                    `❌ Treasure fizzled out! Something’s off...`
+                    `❌ Treasure fizzled out! Something's off...`
                 );
               }
               if (inventory.getAll().length >= invLimit) {
@@ -1275,7 +1275,7 @@ export class BriefcaseAPI {
                 `👤 **${
                   userData.name || "Unregistered"
                 }** (${inventoryName})\n\n` +
-                  `❌ The pack’s gone! Did it slip out of your ${inventoryIcon}?`,
+                  `❌ The pack's gone! Did it slip out of your ${inventoryIcon}?`,
                 style
               );
             }
@@ -1320,6 +1320,52 @@ export class BriefcaseAPI {
               style
             );
           }
+          if (item.type === "zip") {
+            const items: InventoryItem[] = Array.isArray(item.zipContents)
+              ? item.zipContents
+              : [];
+            if (items.length === 0) {
+              return output.replyStyled(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `***Oops!***\nLooks like this zip is malformed, tampered, or incorrectly formatted, were sorry but you would **never** be able to **open** it!`,
+                style
+              );
+            }
+            if (customInventory.getAll().length + items.length > invLimit) {
+              return output.reply(
+                `👤 **${
+                  userData.name || "Unregistered"
+                }** (${inventoryName})\n\n` +
+                  `❌ Your ${inventoryIcon} is almost full! This ZIP requires **${items.length}** slots! Toss something with "${prefix}${commandName} toss".`
+              );
+            }
+            const added: InventoryItem[] = [];
+            for (const item of items) {
+              customInventory.addOne(item);
+              added.push(item);
+            }
+            customInventory.deleteOne(item.key);
+
+            await money.setItem(input.senderID, {
+              [ikey]: Array.from(customInventory),
+            });
+
+            return output.replyStyled(
+              `👤 **${
+                userData.name || "Unregistered"
+              }** (${inventoryName})\n\n` +
+                `${UNIRedux.arrow} ***ZIP Opened!***\n\n` +
+                `${item.icon} Unpacked **${item.name}**!\n\n` +
+                `${UNIRedux.arrow} ***Rewards***\n` +
+                `${added
+                  .map((t) => `${t.icon} **${t.name}** [${t.key}]`)
+                  .join("\n")}\n\n` +
+                `Check them out with "${prefix}${commandName} check <key>"!`,
+              style
+            );
+          }
           if (item.type === "roulette_pack") {
             const packPreviewCount = 5;
             const middleIndex = Math.floor(packPreviewCount / 2);
@@ -1329,7 +1375,7 @@ export class BriefcaseAPI {
                 `👤 **${
                   userData.name || "Unregistered"
                 }** (${inventoryName})\n\n` +
-                  `❌ The pack’s gone! Did it slip out of your ${inventoryIcon}?`,
+                  `❌ The pack's gone! Did it slip out of your ${inventoryIcon}?`,
                 style
               );
             }
@@ -1463,7 +1509,7 @@ export class BriefcaseAPI {
               `👤 **${
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
-                `❌ Can’t send to yourself! Your ${inventoryIcon} stays put.`
+                `❌ Can't send to yourself! Your ${inventoryIcon} stays put.`
             );
           }
           if (!customInventory.has(keyT)) {
@@ -1495,7 +1541,7 @@ export class BriefcaseAPI {
               `👤 **${
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
-                `❌ No one with ID "**${recipientID}**" exists! Who’s this mystery friend?`
+                `❌ No one with ID "**${recipientID}**" exists! Who's this mystery friend?`
             );
           }
           if (!recipientData.name) {
@@ -1503,7 +1549,7 @@ export class BriefcaseAPI {
               `👤 **${
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
-                `❌ Recipient’s nameless! Can’t send to a ghost.`
+                `❌ Recipient's nameless! Can't send to a ghost.`
             );
           }
           const rInventory = new Inventory(recipientData[ikey], inventoryLimit);
@@ -1512,7 +1558,7 @@ export class BriefcaseAPI {
               `👤 **${
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
-                `❌ **${recipientData.name}**’s ${inventoryIcon} is stuffed full! They need to toss something.`
+                `❌ **${recipientData.name}**'s ${inventoryIcon} is stuffed full! They need to toss something.`
             );
           }
           if (
@@ -1525,7 +1571,7 @@ export class BriefcaseAPI {
               }** (${inventoryName})\n\n` +
                 `❌ **${recipientData.name}** has **${
                   rInventory.getAll().length
-                }/${invLimit}** slots! Can’t fit **${amountItem}** more.`
+                }/${invLimit}** slots! Can't fit **${amountItem}** more.`
             );
           }
           let sentItems = [];
@@ -1536,7 +1582,7 @@ export class BriefcaseAPI {
             if (itemToSend?.cannotSend) {
               failItems.push({
                 ...itemToSend,
-                error: `✦ This item’s stuck with you!`,
+                error: `✦ This item's stuck with you!`,
               });
               continue;
             }
@@ -1545,7 +1591,7 @@ export class BriefcaseAPI {
               if (isNaN(amount) || amount < 1) {
                 failItems.push({
                   ...itemToSend,
-                  error: `✦ Cheque’s unreadable! No cash here.`,
+                  error: `✦ Cheque's unreadable! No cash here.`,
                 });
                 continue;
               }
@@ -1603,7 +1649,7 @@ export class BriefcaseAPI {
               `👤 **${
                 userData.name || "Unregistered"
               }** (${inventoryName})\n\n` +
-                `❌ No item picked! Try "**cat*3**" to toss 3 cats—or whatever’s in your ${inventoryIcon}!`
+                `❌ No item picked! Try "**cat*3**" to toss 3 cats—or whatever's in your ${inventoryIcon}!`
             );
           }
 
@@ -1660,7 +1706,7 @@ export class BriefcaseAPI {
           }
           if (cannot.length > 0) {
             response +=
-              `❌ Couldn’t toss **${cannot.length}** item${
+              `❌ Couldn't toss **${cannot.length}** item${
                 cannot.length !== 1 ? "s" : ""
               }:\n` +
               `${cannot.map((i) => `${i.icon} **${i.name}**`).join("\n")}\n`;
@@ -1788,7 +1834,7 @@ export class BriefcaseAPI {
               return output.reply(
                 `👤 **${
                   userData?.name || "Unregistered"
-                }** (${inventoryName})\n\n` + `No one’s got **${key}** yet!`
+                }** (${inventoryName})\n\n` + `No one's got **${key}** yet!`
               );
             }
 

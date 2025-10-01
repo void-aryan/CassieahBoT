@@ -39,13 +39,14 @@ const { parseCurrency: pCy } = global.utils;
 /**
  *
  * @param {"gift" | "pack"} type
+ * @param {Record<any, any>} [assign={}]
  * @returns
  */
-export function generateGift(type = "gift") {
+export function generateGift(type = "gift", assign = {}) {
   if (type === "pack") {
     return generateGiftPack();
   }
-  return {
+  const i = {
     name: "Gift",
     icon: "🎁",
     flavorText:
@@ -55,6 +56,8 @@ export function generateGift(type = "gift") {
     treasureKey: "generic",
     key: "gift",
   };
+  Object.assign(i, assign);
+  return i;
 }
 export function generateGiftPack() {
   return {

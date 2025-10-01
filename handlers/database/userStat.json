@@ -1,9 +1,9 @@
 {
   "web:bmVha3l1dGk": {
-    "money": 979304,
+    "money": 983304,
     "exp": 0,
-    "battlePoints": 10,
-    "lastModified": 1759026042402,
+    "battlePoints": 410,
+    "lastModified": 1759299119997,
     "name": "Liane",
     "usernameHistory": [
       "Liane"
@@ -21,11 +21,17 @@
           "timeStamp": 1755764080293,
           "title": "Daily Reward Claimed",
           "author": "web:bmVha3l1dGk"
+        },
+        {
+          "body": "Congratulations **Liane** for claiming your daily reward!",
+          "timeStamp": 1759299119994,
+          "title": "Daily Reward Claimed",
+          "author": "web:bmVha3l1dGk"
         }
       ],
       "bankLogs": []
     },
-    "lastDailyClaim": 1755764080293,
+    "lastDailyClaim": 1759299119978,
     "collectibles": [
       {
         "metadata": {
@@ -52,7 +58,7 @@
           "icon": "💎",
           "type": "currency"
         },
-        "amount": 1
+        "amount": 41
       },
       {
         "metadata": {
@@ -74,7 +80,7 @@
       }
     ],
     "cassEXP": {
-      "exp": 5.011818
+      "exp": 205
     },
     "shopInv": {
       "petnostalgia": true
