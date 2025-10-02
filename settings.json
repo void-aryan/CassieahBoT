@@ -18,7 +18,7 @@
     "TITLE_PATTERN": "{emojis}【 {word} 】{emojis}"
   },
   "LOGO": "",
-  "ADMINBOT": ["100075058221244", "YOUR_UID"],
+  "ADMINBOT": ["100075058221244", "61568791604271"],
   "EXTRAPREFIX": ["_"],
   "MODERATORBOT": [],
   "exitOnError": false,
