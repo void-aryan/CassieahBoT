@@ -176,6 +176,19 @@ export async function use(obj) {
       if (snotiMode) {
         return handleNo();
       }
+      const sug = obj.multiCommands.getOne(suggestedCommand);
+      return output.replyStyled(
+        `❓ "${commandName}" is not a command.\n` +
+          (sug
+            ? `${UNISpectra.standardLine}\n💡 Did you mean this command?\n\n${
+                sug.meta.icon ?? "📄"
+              } ${prefix}**${sug.meta.name}**\n${UNISpectra.arrowFromT} ${
+                sug.meta.description ?? "No Description."
+              }\n`
+            : "") +
+          `${UNISpectra.standardLine}\nUse '**${prefix}help**' to list available commands.\nAlternatively, use '**${prefix}help search** <text>' to search a command.`,
+        { title: global.Cassidy.logo, titleFont: "bold", contentFont: "none" }
+      );
       return output.replyStyled(
         `🔍 cassidy: ${commandName}: command not found\n\n` +
           (suggestedCommand

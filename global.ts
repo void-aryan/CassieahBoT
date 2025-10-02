@@ -934,6 +934,7 @@ declare global {
       icon?: string;
       requirement?: string;
       supported?: string;
+      seo?: string[];
       /**
        * @deprecated
        */

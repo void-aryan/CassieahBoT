@@ -5,6 +5,7 @@ import {
   UNISpectra,
 } from "@cassidy/unispectra";
 import { ShopClass } from "@cass-plugins/shopV2";
+import stringSimilarity from "string-similarity";
 
 export const meta: CommandMeta = {
   name: "menu",
@@ -138,6 +139,98 @@ export async function entry({
 
     const resultStr = `🔍 | **Available Commands** 🧰 (${commands.size})\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
     return output.reply(resultStr);
+  } else if (
+    String(args[0]).toLowerCase() === "search" ||
+    String(args[0]).toLowerCase() === "find"
+  ) {
+    const searchStr = String(args[1] || "");
+    if (!searchStr) {
+      return output.reply(
+        `🔎 Search a **command** by putting a search keyword as argument.\n\n**EXAMPLE**: ${prefix}${commandName} search shop`
+      );
+    }
+    const getSortedFinds = <T>(
+      search: string,
+      candidates: { tokens: string[]; data: T }[]
+    ) => {
+      const results = candidates
+        .map((candidate) => {
+          const scores = candidate.tokens.map((t) =>
+            stringSimilarity.compareTwoStrings(search.toLowerCase(), t)
+          );
+          const scoreSum = scores.reduce((acc, score) => score + acc, 0);
+          const mean = scoreSum / scores.length;
+          return {
+            candidate,
+            scoreWhole: stringSimilarity.compareTwoStrings(
+              search.toLowerCase(),
+              candidate.tokens.join("\n").toLowerCase()
+            ),
+            scoreMean: mean,
+            score: scoreSum,
+            data: candidate.data,
+          };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      return results;
+    };
+    const cmds = commands.values().map((command) => {
+      const {
+        meta: { ...meta },
+      } = command;
+      meta.seo ??= [];
+      meta.otherNames ??= [];
+      meta.description ??= "";
+      meta.usage ??= "";
+      meta.category ??= "";
+      meta.usage = meta.usage.replaceAll("{prefix}", "");
+      meta.usage = meta.usage.replaceAll("{name}", "");
+      const combined = `${meta.category} ${meta.name} ${meta.otherNames.join(
+        " "
+      )} ${meta.name} ${meta.otherNames.join(" ")} ${
+        meta.name
+      } ${meta.otherNames.join(" ")} ${meta.name} ${meta.otherNames.join(
+        " "
+      )} ${meta.name} ${meta.otherNames.join(" ")} ${
+        meta.name
+      } ${meta.otherNames.join(" ")} ${meta.description} ${
+        meta.usage
+      } ${meta.seo.join(" ")} ${meta.seo.join(" ")} ${meta.seo.join(
+        " "
+      )} ${meta.seo.join(" ")} ${meta.seo.join(" ")} ${meta.seo.join(
+        " "
+      )} ${meta.seo.join(" ")} ${meta.seo.join(" ")}`;
+      const split = combined.split(/\s+/);
+
+      return { ...command, meta, searchStr: combined, split };
+    });
+    const results = getSortedFinds(
+      searchStr,
+      cmds.map((i) => ({
+        tokens: i.split,
+        data: i,
+      }))
+    );
+    return output.reply(
+      `🔎 **Search Results** (${results.length})\n${UNISpectra.standardLine}\n${
+        results.length === 0
+          ? `❓ No Results.`
+          : results
+              .map((i) => ({ ...i.data.meta, i }))
+              .map(
+                (i) =>
+                  `${i.icon ?? "📁"} ${prefix}**${i.name}**${
+                    i.otherNames.length > 0
+                      ? `\nAliases: **${i.otherNames.join(", ")}**`
+                      : ""
+                  }\n${UNISpectra.arrowFromT} ${
+                    i.description ?? "No Description"
+                  }`
+              )
+              .join(`\n${UNISpectra.standardLine}\n`)
+      }`
+    );
   } else if (String(args[0]).toLowerCase() === "basics") {
     const entries = Object.entries(basicCommands);
 
@@ -455,6 +548,7 @@ export async function entry({
       ``,
       `📚 **More Commands**`,
       `Type **${prefix}${commandName} all**`,
+      `Type **${prefix}${commandName} search** <text> to find commands easily.`,
       ``,
       `${UNISpectra.arrowFromT} View by page: **${prefix}${commandName} <page>**`,
       `${UNISpectra.arrowFromT} View the basics: **${prefix}${commandName} basics**`,
