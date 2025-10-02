@@ -10,7 +10,7 @@ export const meta = {
   usage: "{prefix}catfact",
   category: "Fun",
   version: "1.0.1",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   requirement: "3.0.0",
   icon: "🐱",

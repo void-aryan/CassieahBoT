@@ -11,7 +11,7 @@ export const meta: CommandMeta = {
     "Evaluate JavaScript code or Evalute Typescript Code using eval-ts, eval-dts",
   usage: "eval [code/reply to bot]",
   version: "2.0.1",
-  permissions: [2],
+  role: 2,
   botAdmin: true,
   noPrefix: false,
   requirement: "3.0.0",
@@ -24,6 +24,7 @@ export const meta: CommandMeta = {
 
 export async function entry(context: CommandContext) {
   const { args, output, input } = context;
+  if (!input.isAdmin) return output.reply("Bruh?");
   const type = input.propertyArray[0];
 
   if (!args[0] && !input.is("message_reply")) {

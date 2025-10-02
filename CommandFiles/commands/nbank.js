@@ -46,6 +46,7 @@ export const meta = {
   otherNames: ["nb", "nicabank"],
   // botAdmin: true,
   cmdType: "arl_g",
+  icon: "🏦",
 };
 
 export const style = {

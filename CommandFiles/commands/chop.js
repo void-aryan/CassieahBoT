@@ -10,7 +10,7 @@ export const meta = {
   author: "MrkimstersDev (LeonHart)",
   usage: "{prefix}chop",
   category: "Idle Accumulation Games",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   otherNames: ["woodcut"],
   shopPrice: 150,

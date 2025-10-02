@@ -11,7 +11,7 @@ export const meta = {
   usage: "<prefix>baybayin <query>",
   author: "@lianecagara",
   category: "Utilities",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 2,
   shopPrice: 100,

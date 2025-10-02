@@ -10,7 +10,7 @@ export const meta = {
   author: "@lianecagara",
   usage: "{prefix}bakery",
   category: "Shopping",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   requirement: "3.0.0",
   icon: "🍰",

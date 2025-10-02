@@ -11,7 +11,7 @@ export const meta: CommandMeta = {
   version: "1.0.0",
   usage: "{prefix}busy",
   category: "Config",
-  permissions: [0],
+  role: 0,
   botAdmin: false,
   waitingTime: 1,
   requirement: "3.0.0",

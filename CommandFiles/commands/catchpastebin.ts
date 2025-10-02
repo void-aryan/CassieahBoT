@@ -14,6 +14,7 @@ export default defineCommand({
     role: 0,
     description: "Use this to catch pastebin",
     category: "Utilities",
+    icon: "⚠️",
   },
   style,
   async entry({ output, globalDB, args, input }) {

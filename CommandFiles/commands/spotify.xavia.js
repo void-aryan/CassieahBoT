@@ -11,6 +11,7 @@ const config = {
     "From xaviateam's video cmd but i turned into spotify/music cmd.",
   usage: "<song name>",
   cooldown: 5,
+  icon: "🎵",
 };
 
 const langData = {

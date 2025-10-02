@@ -11,7 +11,7 @@ export const meta = {
   author: "@lianecagara",
   usage: "{prefix}deepseadiver",
   category: "Idle Accumulation Games",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   requirement: "3.0.0",
   icon: "🌊",

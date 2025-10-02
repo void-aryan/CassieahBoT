@@ -11,6 +11,7 @@ export default defineCommand({
       "Start a mining simulator to earn money, collect ores, or buy better pickaxes.",
     category: "Idle Investment Games",
     usage: "mines start | mines collect | mines buy <pickaxe>",
+    icon: "⛏️",
   },
   style: {
     preset: ["owners.json"],

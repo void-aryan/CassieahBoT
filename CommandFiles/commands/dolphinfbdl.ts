@@ -26,7 +26,7 @@ export const meta: CommandMeta = {
   author: "MrkimstersDev | 0xVoid",
   usage: "{prefix}dolphinfbdl <facebook-video-url>",
   category: "Media",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 5,
   otherNames: ["fbdl"],

@@ -10,7 +10,7 @@ export const meta = {
   author: "MrkimstersDev",
   usage: "{prefix}dig",
   category: "Idle Accumulation Games",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   otherNames: ["excavate"],
   shopPrice: 300,

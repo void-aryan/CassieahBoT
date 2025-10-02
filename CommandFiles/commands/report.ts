@@ -4,6 +4,7 @@ export default easyCMD({
   title: "📝 Report to Admin",
   category: "Utilities",
   contentFont: "fancy",
+  icon: "📝",
   meta: {
     cooldown: 120,
     otherNames: ["re"],

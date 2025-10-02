@@ -12,6 +12,7 @@ export const meta = {
   permissions: [0],
   description: "Translate text to the desired language",
   category: "Utilities",
+  icon: "🌐",
 };
 
 export const style = {

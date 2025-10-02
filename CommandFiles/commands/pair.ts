@@ -12,6 +12,7 @@ export default defineCommand({
     category: "Fun",
     noPrefix: false,
     role: 0,
+    icon: "💘",
     waitingTime: 20,
   },
   style: {

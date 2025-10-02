@@ -13,7 +13,7 @@ export const meta = {
   description: "Execute shell commands",
   usage: "{prefix}{name} <command>",
   category: "Utilities",
-  permissions: [2],
+  role: 2,
   waitingTime: 5,
   botAdmin: true,
   noPrefix: false,
@@ -35,6 +35,7 @@ export const style = {
  * @returns
  */
 export async function entry({ output, input }) {
+  if (!input.isAdmin) return output.reply("Bruh?");
   output.reaction("⏳");
   const command = input.arguments.join(" ");
   if (!command) {

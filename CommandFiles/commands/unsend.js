@@ -13,6 +13,7 @@ export const meta = {
   usage: "Reply to the bot's message and call the command",
   fbOnly: true,
   noPrefix: false,
+  icon: "🗑️",
 };
 
 /**

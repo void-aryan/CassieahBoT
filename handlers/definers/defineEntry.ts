@@ -126,6 +126,7 @@ export interface EasyCommand {
   contentFont?: CassidySpectra.CommandStyle["contentFont"];
   content?: CassidySpectra.CommandStyle["content"];
   extra?: Partial<CassidySpectra.CassidyCommand>;
+  icon?: string;
 }
 
 /**
@@ -147,6 +148,7 @@ export function easyCMD(command: EasyCommand): CassidySpectra.CassidyCommand {
       category: command.category ?? "Easy",
       description: command.description ?? "No description.",
       version: command.version ?? "1.0.0",
+      icon: command.icon ?? "",
     },
     entry: modifyCTX(
       command.run ??

@@ -6,6 +6,7 @@ export default easyCMD({
   extra: {
     style: { title: Cassidy.logo, contentFont: "fancy" },
   },
+  icon: "✅",
   async run({ print, multiCommands, args, ctx }) {
     const commandName = args[0];
     if (!commandName) {

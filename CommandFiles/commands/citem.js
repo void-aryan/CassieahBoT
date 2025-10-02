@@ -10,7 +10,7 @@ export const meta = {
   version: "1.0.2",
   usage: "{prefix}citem <...json>",
   category: "Inventory",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 1,
   otherNames: ["customitem"],

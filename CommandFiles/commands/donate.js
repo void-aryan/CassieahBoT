@@ -12,7 +12,7 @@ export const meta = {
   usage: "{prefix}{name} <amount>",
   category: "Finance",
   author: "@lianecagara",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 0,
   icon: "🎁",

@@ -13,17 +13,17 @@ export const meta = {
   permissions: [0],
   noPrefix: false,
   cmdType: "cplx_g",
+  icon: "✨",
 };
 
 /**
  * @type {CommandStyle}
  */
 export const style = {
-  title: "✨ Kate Shop",   
-  titleFont: "bold",       
-  contentFont: "fancy",    
+  title: "✨ Kate Shop",
+  titleFont: "bold",
+  contentFont: "fancy",
 };
-
 
 const kateShop = {
   key: "kateShop",

@@ -19,7 +19,7 @@ export const meta = {
   author: "@lianecagara",
   usage: "{prefix}doublerisk [mtls_key] <amount>",
   category: "Gambling Games",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   otherNames: ["doubleorlose", "riskitall", "doubleornothing", "don"],
   waitingTime: 30,

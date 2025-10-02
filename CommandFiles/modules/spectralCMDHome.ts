@@ -184,6 +184,10 @@ export class SpectralCMDHome {
   };
   cooldowns: Map<string, Map<string, number>>;
 
+  static updateMetaUsage(config: Config[], meta: CommandMeta) {
+    meta.usage = `{prefix}${meta.name} [${config.map((i) => i.key).join("/")}]`;
+  }
+
   constructor(
     {
       home,

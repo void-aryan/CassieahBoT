@@ -2,6 +2,9 @@
 import { defineEntry } from "@cass/define";
 import { BriefcaseAPI } from "@cass-modules/BriefcaseAPI";
 
+/**
+ * @type {CommandMeta}
+ */
 export const meta = {
   name: "briefcase",
   description: "Manage your items.",
@@ -35,6 +38,7 @@ const briefcase = new BriefcaseAPI({
   inventoryKey: "inventory",
   isHypen: false,
   showCollectibles: true,
+  meta,
 });
 
 export const entry = defineEntry((ctx) => briefcase.runInContext(ctx));

@@ -10,6 +10,7 @@ const command = defineCommand({
       "Take aim and shoot an arrow at an apple! Hit it to double or triple your bet, or miss and pay a random user your bet as compensation!",
     category: "Gambling Games",
     usage: "appleshot <bet> | appleshot cooldown",
+    icon: "🏹",
   },
   style: {
     title: {

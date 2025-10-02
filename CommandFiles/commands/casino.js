@@ -35,7 +35,7 @@ export const meta = {
   version: "1.0.0",
   usage: "{prefix}{name} {gamename} {betamount} {additional arguments}",
   category: "Gambling Games",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 15,
   otherNames: ["cas", "cs"],

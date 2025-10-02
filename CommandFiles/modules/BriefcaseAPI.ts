@@ -404,11 +404,13 @@ export type BriefcaseAPIExtraConfig = Partial<SpectraMainConfig> & {
   inventoryIcon: string;
   inventoryLimit: number;
   showCollectibles: boolean;
+  meta?: CommandMeta;
 };
 
 export class BriefcaseAPI {
   extraConfig: BriefcaseAPIExtraConfig;
   extraItems: BriefcaseAPIConfig[];
+  meta: CommandMeta;
   constructor(
     extraConfig: BriefcaseAPIExtraConfig,
     extraItems?: BriefcaseAPIConfig[] | undefined
@@ -420,6 +422,7 @@ export class BriefcaseAPI {
     extraConfig.inventoryLimit ??= 36;
     extraConfig.inventoryIcon ??= "🎒";
     extraConfig.showCollectibles ??= true;
+    this.meta = extraConfig.meta;
     this.extraConfig = extraConfig;
     this.extraItems = extraItems ?? [];
   }

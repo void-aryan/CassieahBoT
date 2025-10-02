@@ -10,7 +10,7 @@ export const meta: CommandMeta = {
   usage: "{prefix}{name}",
   category: "Finance",
   author: "@lianecagara",
-  permissions: [0],
+  role: 0,
   noPrefix: "both",
   waitingTime: 0,
   requirement: "3.0.0",

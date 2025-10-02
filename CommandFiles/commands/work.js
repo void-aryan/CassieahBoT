@@ -23,6 +23,7 @@ export const meta = {
   waitingTime: 10,
   category: "Chance Games",
   cmdType: "arl_g",
+  icon: "💼",
 };
 
 export const style = {

@@ -13,7 +13,7 @@ export const meta = {
   version: "1.0.8",
   usage: "{prefix}cheque <action> [amount]",
   category: "Finance",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 1,
   requirement: "3.0.0",

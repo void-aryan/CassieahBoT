@@ -13,7 +13,7 @@ export const meta = {
   version: "1.0.0",
   usage: "{prefix}duel <pet name>",
   category: "Spinoff Games",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 1,
   otherNames: [],

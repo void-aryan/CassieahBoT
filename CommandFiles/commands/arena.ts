@@ -13,7 +13,7 @@ export const meta: CommandMeta = {
   usage: "{prefix}{name} [pet] [--ai]",
   category: "Spinoff Games",
   author: "@lianecagara",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 1,
   requirement: "3.7.0",

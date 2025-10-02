@@ -12,7 +12,7 @@ export const meta: CommandMeta = {
   version: "1.1.4",
   usage: "{prefix}inventory <action> [args]",
   category: "Finance",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 1,
   otherNames: ["devapi", "cassapi"],

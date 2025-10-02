@@ -16,7 +16,7 @@ export const meta = {
   usage: "{prefix}{name} <command> [args]",
   category: "Simulation Games",
   author: "JenicaDev & Liane Cagara",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 1,
   requirement: "2.5.0",

@@ -14,6 +14,7 @@ export const meta = {
   waitingTime: 5,
   noPrefix: false,
   fbOnly: true,
+  icon: "💬",
 };
 
 export const style = {

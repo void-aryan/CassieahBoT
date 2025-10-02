@@ -11,7 +11,7 @@ export const meta: CommandMeta = {
   author: "@lianecagara",
   description:
     "Acts as a central hub, like a Start Menu, providing users with an overview of available commands, their functionalities, and access to specific command details. Helps users quickly navigate the bot's features.",
-  version: "3.0.7",
+  version: "3.1.0",
   usage: "{prefix}{name} [commandName]",
   category: "System",
   role: 0,
@@ -24,7 +24,7 @@ export const meta: CommandMeta = {
 export const style: CommandStyle = {
   title: Cassidy.logo,
   titleFont: "none",
-  contentFont: "fancy",
+  contentFont: "none",
 };
 
 const basicCommands = {
@@ -143,13 +143,15 @@ export async function entry({
 
     const filteredEntries = await Promise.all(
       entries.map(async (i) => {
-        const command = commands.getOne(i[0]);
+        const command = multiCommands.getOne(i[0]);
         if (!command) {
           return null;
         }
         const role = await extractCommandRole(command);
 
         const isAllowed = input.hasRole(role);
+
+        return i;
 
         return isAllowed ? i : null;
       })
@@ -430,6 +432,7 @@ export async function entry({
           (!command.meta.shopPrice || shop.isUnlocked(command.meta.name)) &&
           input.hasRole(role);
         const isAllowed = input.hasRole(role);
+        return i;
 
         return isAllowed ? i : null;
       })
@@ -440,11 +443,9 @@ export async function entry({
     const basicStr = validEntries
       .map(
         (i) =>
-          `${commands.getOne(i[0])?.meta?.icon ?? "📁"} ${(
-            commands.getOne(i[0])?.meta?.usage ?? "{prefix}{name}"
-          )
-            .replaceAll("{prefix}", prefix)
-            .replaceAll("{name}", i[0])}`
+          `${multiCommands.getOne(i[0])?.meta?.icon ?? "📁"} ${prefix}${i[0]} ${
+            UNISpectra.arrowFromT
+          } ${i[1]}`
       )
       .join("\n");
 
@@ -452,12 +453,13 @@ export async function entry({
       `✅ **Basic Commands**`,
       basicStr,
       ``,
-      `${UNISpectra.arrowFromT} Try to ***Explore*** more commands!`,
-      `${UNISpectra.arrowFromT} View ALL COMMANDS: **${prefix}${commandName} all**`,
+      `📚 **More Commands**`,
+      `Type **${prefix}${commandName} all**`,
+      ``,
       `${UNISpectra.arrowFromT} View by page: **${prefix}${commandName} <page>**`,
-      `${UNISpectra.arrowFromT} View basics: **${prefix}${commandName} basics**`,
+      `${UNISpectra.arrowFromT} View the basics: **${prefix}${commandName} basics**`,
 
-      `${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`,
+      `${UNISpectra.disc} Developed by @**Liane Cagara** 🎀`,
     ].join("\n");
     if (1) {
       return output.replyStyled(strs, {

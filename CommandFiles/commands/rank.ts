@@ -12,6 +12,7 @@ export const meta: CommandMeta = {
   otherNames: ["level", "exp"],
   waitingTime: 0.1,
   cmdType: "cplx_g",
+  icon: "🌟",
 };
 
 export function formatNumber(number: number) {

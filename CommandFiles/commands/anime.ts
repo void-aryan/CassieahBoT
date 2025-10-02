@@ -9,7 +9,7 @@ export const meta: CommandMeta = {
   version: "1.0.1",
   usage: "{prefix}{name} <anime title>",
   category: "Entertainment",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 10,
   requirement: "3.0.0",

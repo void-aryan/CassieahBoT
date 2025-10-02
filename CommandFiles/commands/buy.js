@@ -13,7 +13,7 @@ export const meta = {
   version: "1.1.7",
   usage: "{prefix}buy <command>",
   category: "Shopping",
-  permissions: [0],
+  role: 0,
   noPrefix: false,
   waitingTime: 0.01,
   icon: "🛒",
