@@ -101,7 +101,7 @@ async function main({
   output.setStyle(cmd.style);
 
   const res: ResponseType = await output.req(
-    "https://haji-mix.up.railway.app/api/gpt4o",
+    "https://aryanapi.up.railway.app/api/llama-4-maverick-17b-128e-instruct",
     {
       uid: input.sid + "_7",
       ask,
