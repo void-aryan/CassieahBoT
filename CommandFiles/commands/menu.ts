@@ -27,6 +27,28 @@ export const style: CommandStyle = {
   contentFont: "fancy",
 };
 
+const basicCommands = {
+  register: "Change your username.",
+  items: "List and use **items** from your inventory.",
+  gift: "Collect your hourly free gift/rewards.",
+  bal: "Check your virtual **money**, collectibles, battlepoints, and ranks.",
+  bank: "Store other **items** and **money** in an isolated bank.",
+  active: "See **active** users.",
+  streak: "Collect your **daily** bonus/streak.",
+  vault: "Extra **storage** for your items.",
+  bag: "Another extra **storage** for your items.",
+  rank: "View your **EXP**.",
+  ratings: "View and write a **ratings & review**",
+  report: "Report **something** to an admin.",
+  trade: "**Buy & Sell** items.",
+  uid: "View your UNIQUE User ID.",
+  pet: "Buy, feed, and **earn** from your pets!",
+  rosashop: "Buy something **pet** related.",
+  garden: "Grow a **Garden** here!",
+  arena: "AI or PvP Pet Tournament, where you can **earn**!",
+  mtls: "Create, buy, convert your **money** to a **mint**, (Not a **stock system** BTW.)",
+};
+
 export async function entry({
   input,
   output,
@@ -117,28 +139,6 @@ export async function entry({
     const resultStr = `🔍 | **Available Commands** 🧰 (${commands.size})\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
     return output.reply(resultStr);
   } else if (String(args[0]).toLowerCase() === "basics") {
-    const basicCommands = {
-      daily: "Claim your ***FREE*** reward every day!",
-      balance: "View your current coins! ( ***SOFT CURRENCY*** )",
-      gift: "Enjoy ***ITEM REWARDS*** every 20+ minutes.",
-      briefcase: "Learn how to manage your ***ITEMS*** after claiming gifts!",
-      bank: "Wanna store your coins somewhere? Try ***BANK**",
-      quiz: "Grind ***MORE*** coins by guessing!",
-      wordgame: "Grind ***MORE & MORE*** coins by guessing words too!",
-      garden: "Grow your ***GARDEN***!",
-      buy: "Unlock ***HIDDEN*** commands by purchasing them!",
-      rosashop:
-        "Purchase items from shopkeepers and unlock ***NEW POSSIBILITIES***",
-      pet: "Buy, Feed, and sell, or even battle using your ***PETS***",
-      harvest:
-        "Earn ***LOTS OF COINS*** without doing anything than tune and collect!",
-      skyrise: "Wanna manage your own ***EMPIRE*** and ***EARN TOO***?",
-      trade:
-        "Sell, collaborate, and ***EARN*** from your items using the price you like!",
-      arena: "Turn your pets into a ***GEM*** farm by battling with ai.",
-      encounter:
-        "Prepare your ***PETS*** for true danger and earn ***GEMS*** too!",
-    };
     const entries = Object.entries(basicCommands);
 
     const filteredEntries = await Promise.all(
@@ -149,9 +149,7 @@ export async function entry({
         }
         const role = await extractCommandRole(command);
 
-        const isAllowed =
-          (!command.meta.shopPrice || shop.isUnlocked(command.meta.name)) &&
-          input.hasRole(role);
+        const isAllowed = input.hasRole(role);
 
         return isAllowed ? i : null;
       })
@@ -162,7 +160,7 @@ export async function entry({
     const basicStr = validEntries
       .map(
         (i) =>
-          `${commands.getOne(i[0])?.meta?.icon ?? "📁"} ${prefix}${i[0]} ${
+          `${multiCommands.getOne(i[0])?.meta?.icon ?? "📁"} ${prefix}${i[0]} ${
             UNISpectra.arrowFromT
           } ${i[1]}`
       )
@@ -310,27 +308,6 @@ export async function entry({
       }, {});
     const dontPrio: CassidySpectra.CommandTypes[] = ["arl_g", "cplx_g"];
 
-    // const sortedCategories = Object.keys(categorizedCommands).sort((a, b) => {
-    //   const aContainsGame = a.toLowerCase().includes("game");
-    //   const bContainsGame = b.toLowerCase().includes("game");
-
-    //   const aCommands = categorizedCommands[a];
-    //   const bCommands = categorizedCommands[b];
-
-    //   if (aContainsGame && bContainsGame) {
-    //     return a.localeCompare(b);
-    //   }
-
-    //   if (aContainsGame) {
-    //     return -1;
-    //   }
-    //   if (bContainsGame) {
-    //     return 1;
-    //   }
-
-    //   return a.localeCompare(b);
-    // });
-
     const getSumPrioIndex = (commands: CassidySpectra.CassidyCommand[]) => {
       if (!commands.length) return 0;
 
@@ -417,7 +394,7 @@ export async function entry({
     const resultStr = `🔍 | **Available Commands** 🧰 (${commands.size})\n\n${result}${UNISpectra.charm} Developed by @**Liane Cagara** 🎀`;
     return output.reply(resultStr);
   } else {
-    const basicCommands = {
+    const basicCommandsOld = {
       daily: "Claim your ***FREE*** reward every day!",
       balance: "View your current coins! ( ***SOFT CURRENCY*** )",
       gift: "Enjoy ***ITEM REWARDS*** every 20+ minutes.",
@@ -443,15 +420,16 @@ export async function entry({
 
     const filteredEntries = await Promise.all(
       entries.map(async (i) => {
-        const command = commands.getOne(i[0]);
+        const command = multiCommands.getOne(i[0]);
         if (!command) {
           return null;
         }
         const role = await extractCommandRole(command);
 
-        const isAllowed =
+        const isAllowedOld =
           (!command.meta.shopPrice || shop.isUnlocked(command.meta.name)) &&
           input.hasRole(role);
+        const isAllowed = input.hasRole(role);
 
         return isAllowed ? i : null;
       })

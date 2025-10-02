@@ -13,9 +13,9 @@ import { ShopItem } from "@cass-modules/GardenBalancer";
 import { calculateInflation } from "@cass-modules/unitypes";
 
 export const meta: CommandMeta = {
-  name: "petnostalgia",
+  name: "pet",
   description: "Manage your pets! (Reworked but same as old!)",
-  otherNames: ["p", "pet", "petn"],
+  otherNames: ["p", "petn"],
   version: "1.6.12",
   usage: "{prefix}{name}",
   category: "Idle Investment Games",

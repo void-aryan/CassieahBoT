@@ -1,5 +1,6 @@
 // @ts-check
 import { parseBet } from "@cass-modules/ArielUtils";
+import crypto from "crypto";
 
 /**
  * @type {CommandMeta}
@@ -89,8 +90,6 @@ export async function entry({ input, output, money, cancelCooldown }) {
     cancelCooldown();
     return;
   }
-
-  const crypto = require("crypto");
 
   function secureRandomInt(min, max) {
     const range = max - min + 1;

@@ -56,7 +56,6 @@ const defaultMeta = {
   noPrefix: false,
   waitingTime: 5,
   ext_plugins: {},
-  icon: "📄",
 };
 
 import {
