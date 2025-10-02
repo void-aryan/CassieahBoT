@@ -518,7 +518,7 @@ export class SpectralCMDHome {
 
   createHomeLists(configs: Config[], ctx: CommandContext) {
     return configs
-      .filter((c) => !c.hidden)
+      .filter((c) => !c.hidden && (ctx.input.isAdmin || !c.isAdmin))
       .map(
         (c) =>
           `${c.icon || "✨"} ${ctx.prefix}${

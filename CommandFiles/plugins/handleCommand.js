@@ -13,6 +13,12 @@ import { handleDefaultCommand, UNISpectra } from "@cassidy/unispectra";
 import { CassidyResponseStylerControl } from "@cassidy/styler";
 import { formatCash } from "@cass-modules/ArielUtils";
 
+/**
+ *
+ * @param {string} input
+ * @param {Cassieah.GlobalCassidy["commands"]} commands
+ * @returns
+ */
 function getSuggestedCommand(input, commands) {
   const commandNames = Object.keys(commands);
 
