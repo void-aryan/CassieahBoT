@@ -1,21 +1,11 @@
-import {
-  abbreviateNumber,
-  formatCash,
-  formatTimeSentence,
-} from "@cass-modules/ArielUtils";
+import { abbreviateNumber, formatTimeSentence } from "@cass-modules/ArielUtils";
 import { groupItems, listItem } from "@cass-modules/BriefcaseAPI";
-import { CollectibleItem, InventoryItem } from "@cass-modules/cassidyUser";
+import { InventoryItem } from "@cass-modules/cassidyUser";
 import { CROP_CONFIG } from "@cass-modules/GardenConfig";
 import { Collectibles, Inventory } from "@cass-modules/InventoryEnhanced";
-import {
-  getCompletePercent,
-  listIcons,
-  UNIRedux,
-  UNISpectra,
-} from "@cassidy/unispectra";
+import { getCompletePercent, UNISpectra } from "@cassidy/unispectra";
 import { generateGift } from "@cassidy/ut-shop";
 import { FontSystem } from "cassidy-styler";
-import { clamp } from "lodash";
 
 export const meta: CommandMeta = {
   name: "streak",
