@@ -10,7 +10,7 @@
   "GRADIENT_THEME": "retro",
   "knownURL": "https://cassidyredux.onrender.com",
   "noFB": false,
-  "PREFIX": "#",
+  "PREFIX": "@",
   "NICKNAME": "𝗔𝗥𝗬𝗔𝗡 𝗕𝗢𝗧",
   "CUSTOM_STYLE": {
     "enabled": false,
@@ -19,7 +19,7 @@
   },
   "LOGO": "",
   "ADMINBOT": ["61580333625022", "61568791604271"],
-  "EXTRAPREFIX": ["_"],
+  "EXTRAPREFIX": ["€"],
   "MODERATORBOT": [],
   "exitOnError": false,
   "WEB_PASSWORD": "wsshiagwvkljijxxsvddidbdib+_*77s",
